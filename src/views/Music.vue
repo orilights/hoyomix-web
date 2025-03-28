@@ -2,7 +2,7 @@
 import ArtistListByType from '@/components/ArtistListByType.vue'
 import { apiBase } from '@/constants'
 import { useStore } from '@/store'
-import { getCoverUrl, getProductIconUrl, getProductName, getPublishDate, goFeedbackPage } from '@/utils'
+import { getCoverUrl, getProductIconUrl, getProductName, getPublishDate, goFeedbackPage, goNeteaseClient } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,6 +25,14 @@ function removeTimeStr(str: string) {
 
 function goToNetease() {
   window.open(`https://music.163.com/#/song?id=${musicInfo.value!.netease.id}`)
+}
+
+function goToNeteaseClient() {
+  goNeteaseClient({
+    type: 'song',
+    id: musicInfo.value!.netease.id,
+    cmd: 'play',
+  })
 }
 
 function getLyricData() {
@@ -108,6 +116,12 @@ onMounted(() => {
             @click="goToNetease"
           >
             跳转至网易云音乐
+          </button>
+          <button
+            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
+            @click="goToNeteaseClient"
+          >
+            在网易云音乐 App 中播放
           </button>
           <button
             class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"

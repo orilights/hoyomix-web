@@ -9,6 +9,7 @@ import {
   getProductName,
   getPublishDate,
   goFeedbackPage,
+  goNeteaseClient,
 } from '@/utils'
 
 const route = useRoute()
@@ -20,6 +21,14 @@ const album_info = computed(() => albums.value.find(album => album.netease.id ==
 
 function goToNetease() {
   window.open(`https://music.163.com/#/album?id=${album_info.value!.netease.id}`)
+}
+
+function goToNeteaseClient() {
+  goNeteaseClient({
+    type: 'album',
+    id: album_info.value!.netease.id,
+    cmd: 'play',
+  })
 }
 
 // function goPrevAlbum() {
@@ -86,6 +95,12 @@ onMounted(() => {
             @click="goToNetease"
           >
             跳转至网易云音乐
+          </button>
+          <button
+            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
+            @click="goToNeteaseClient"
+          >
+            在网易云音乐 App 中播放
           </button>
           <button
             class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
