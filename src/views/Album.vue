@@ -19,17 +19,24 @@ const { albums } = toRefs(store)
 const albumId = computed(() => route.params.id as string)
 const album_info = computed(() => albums.value.find(album => album.netease.id === Number(albumId.value)))
 
-function goToNetease() {
-  window.open(`https://music.163.com/#/album?id=${album_info.value!.netease.id}`)
-}
-
-function goToNeteaseClient() {
-  goNeteaseClient({
-    type: 'album',
-    id: album_info.value!.netease.id,
-    cmd: 'play',
-  })
-}
+const neteaseOptions = computed(() => [
+  {
+    label: '跳转至详情页',
+    onClick: () => {
+      window.open(`https://music.163.com/#/album?id=${album_info.value!.netease.id}`)
+    },
+  },
+  {
+    label: '在 APP 中播放',
+    onClick: () => {
+      goNeteaseClient({
+        type: 'album',
+        id: album_info.value!.netease.id,
+        cmd: 'play',
+      })
+    },
+  },
+])
 
 // function goPrevAlbum() {
 //   const index = albums.value.findIndex(album => album.netease.id === Number(albumId.value))
@@ -89,21 +96,16 @@ onMounted(() => {
             {{ album_info.netease.description }}
           </div>
         </div>
-        <div>
+        <div class="flex gap-2">
+          <Dropdown :options="neteaseOptions">
+            <button
+              class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+            >
+              <IconNcm class="size-5 text-[#fc3b5b]" />
+            </button>
+          </Dropdown>
           <button
             class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            @click="goToNetease"
-          >
-            跳转至网易云音乐
-          </button>
-          <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
-            @click="goToNeteaseClient"
-          >
-            在网易云音乐 App 中播放
-          </button>
-          <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
             @click="goFeedbackPage"
           >
             反馈问题

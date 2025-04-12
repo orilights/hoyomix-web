@@ -10,6 +10,8 @@ declare module 'vue' {
   export interface GlobalComponents {
     AlbumList: typeof import('./components/AlbumList.vue')['default']
     ArtistListByType: typeof import('./components/ArtistListByType.vue')['default']
+    Dropdown: typeof import('./components/common/Dropdown.vue')['default']
+    IconNcm: typeof import('./components/icon/IconNcm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tooltip: typeof import('./components/Tooltip.vue')['default']

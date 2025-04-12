@@ -19,20 +19,27 @@ const lyricList = computed(() => {
   return lyricData.value.split('\n').map(line => removeTimeStr(line).trim()).filter(line => line)
 })
 
+const neteaseOptions = computed(() => [
+  {
+    label: '跳转至详情页',
+    onClick: () => {
+      window.open(`https://music.163.com/#/song?id=${musicInfo.value!.netease.id}`)
+    },
+  },
+  {
+    label: '在 APP 中播放',
+    onClick: () => {
+      goNeteaseClient({
+        type: 'song',
+        id: musicInfo.value!.netease.id,
+        cmd: 'play',
+      })
+    },
+  },
+])
+
 function removeTimeStr(str: string) {
   return str.replace(/\[\d{2}:\d{2}\.\d{2,3}(?:\.\d{3})?\]/g, '')
-}
-
-function goToNetease() {
-  window.open(`https://music.163.com/#/song?id=${musicInfo.value!.netease.id}`)
-}
-
-function goToNeteaseClient() {
-  goNeteaseClient({
-    type: 'song',
-    id: musicInfo.value!.netease.id,
-    cmd: 'play',
-  })
 }
 
 function getLyricData() {
@@ -87,15 +94,16 @@ onMounted(() => {
             </span>
           </div>
 
-          <div class="mt-2 flex items-center">
-            <span class="text-gray-500">收录于</span>
+          <div class="mt-2 flex items-center gap-2">
+            <span class="text-gray-500">所属</span>
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.product } }"
-              class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors ml-2"
+              class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors"
               :title="getProductName(albumInfo.product)"
             >
               <img class="size-6" :src="getProductIconUrl(albumInfo.product, '48px')">
             </RouterLink>
+            <span class="text-gray-500">收录于</span>
             <RouterLink
               :to="{ name: 'AlbumInfo', params: { id: albumInfo.netease.id } }"
               class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
@@ -110,33 +118,28 @@ onMounted(() => {
             </span>
           </div>
         </div>
-        <div>
+        <div class="flex gap-2">
           <button
             class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            @click="goToNetease"
-          >
-            跳转至网易云音乐
-          </button>
-          <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
-            @click="goToNeteaseClient"
-          >
-            在网易云音乐 App 中播放
-          </button>
-          <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
             @click="goPrevMusic"
           >
             前一首
           </button>
           <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
+            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             @click="goNextMusic"
           >
             后一首
           </button>
+          <Dropdown :options="neteaseOptions">
+            <button
+              class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+            >
+              <IconNcm class="size-5 text-[#fc3b5b]" />
+            </button>
+          </Dropdown>
           <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
+            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             @click="goFeedbackPage"
           >
             反馈问题
