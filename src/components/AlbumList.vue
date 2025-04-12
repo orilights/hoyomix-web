@@ -52,11 +52,9 @@ function getAlbumYear(album: AlbumData) {
           :to="{ name: 'AlbumInfo', params: { id: album_info.netease.id } }" :title="album_info.name"
         >
           <div class="p-4 rounded-2xl hover:bg-gray-500/20 transition-colors">
-            <img
-              class="rounded-2xl w-full"
-              :src="getCoverUrl('netease', album_info.netease.coverPicId, '200px')" :alt="album_info.name"
-              loading="lazy"
-            >
+            <div class="rounded-2xl overflow-hidden">
+              <CoverImage :src="getCoverUrl('netease', album_info.netease.coverPicId, '200px')" />
+            </div>
             <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
               {{ album_info.name }}
             </div>
@@ -71,3 +69,15 @@ function getAlbumYear(album: AlbumData) {
     </div>
   </div>
 </template>
+
+<style>
+.square {
+    overflow: hidden;
+}
+
+.square::after {
+    content: '';
+    display: block;
+    margin-top: 100%;
+}
+</style>

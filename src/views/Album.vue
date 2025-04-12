@@ -67,11 +67,10 @@ onMounted(() => {
 <template>
   <div v-if="album_info" class="overflow-hidden">
     <div class="h-[300px] flex">
-      <img
-        class="size-[300px] rounded-2xl shrink-0 shadow-md"
-        :src="getCoverUrl('netease', album_info.netease.coverPicId)"
-        :alt="album_info.name"
-      >
+      <div class="w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
+        <CoverImage :src="getCoverUrl('netease', album_info.netease.coverPicId)" />
+      </div>
+
       <div class="flex flex-col justify-between ml-8">
         <div>
           <div class="text-3xl font-bold">
