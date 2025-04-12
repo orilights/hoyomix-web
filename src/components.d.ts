@@ -15,6 +15,6 @@ declare module 'vue' {
     IconNcm: typeof import('./components/icon/IconNcm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Tooltip: typeof import('./components/Tooltip.vue')['default']
+    Tooltip: typeof import('./components/common/Tooltip.vue')['default']
   }
 }

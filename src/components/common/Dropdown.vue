@@ -83,7 +83,7 @@ onBeforeUnmount(() => {
       <div
         v-show="isOpen"
         ref="menu"
-        class="dropdown-menu absolute left-0 mt-1 bg-white rounded-lg w-fit text-sm shadow overflow-hidden"
+        class="dropdown-menu absolute left-0 mt-1 bg-white rounded-lg w-fit text-sm shadow overflow-hidden z-999"
         :class="[`align-${alignment}`, { 'menu-up': menuDirection === 'up' }]"
         @click.stop
       >
