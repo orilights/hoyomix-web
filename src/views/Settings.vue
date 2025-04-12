@@ -1,8 +1,17 @@
 <script setup lang="ts">
 import { useStore } from '@/store'
 import { goFeedbackPage } from '@/utils'
+import { formatDate } from '@vueuse/core'
+
+declare global {
+  interface Window {
+    __BUILD_TIME__: string | number
+  }
+}
 
 const store = useStore()
+
+const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
 onMounted(() => {
   store.setBackground()
@@ -30,7 +39,9 @@ onMounted(() => {
       一个兴趣使然的 HOYO-MiX 音乐信息收集网站
       <br>
       <div class="mt-2">
-        当前版本：v0.1.0 <span class="border rounded-md px-1 py-0.5 text-sm text-green-700">早期预览版</span>
+        当前版本：v0.1.0
+        <span class="border rounded-md px-1 py-0.5 text-sm text-green-700">早期预览版</span>
+        <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
       <div class="mt-2">
         <br>
