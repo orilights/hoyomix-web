@@ -1,4 +1,5 @@
 import type { IndexHtmlTransformResult, Plugin } from 'vite'
+import process from 'process'
 
 const buildInfo: () => Plugin = () => {
   return {
@@ -14,6 +15,7 @@ const buildInfo: () => Plugin = () => {
         __BUILD_TIME__ = "${new Date().toISOString()}"
         `,
       })
+      console.log(process.env);
 
       return els
     },
