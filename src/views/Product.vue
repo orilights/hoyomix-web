@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ArtistListByType from '@/components/ArtistListByType.vue'
 import { productMap } from '@/constants'
 import { useStore } from '@/store'
 import { getProductIconUrl, getProductName } from '@/utils'
@@ -44,7 +43,7 @@ watch(product, (val) => {
 
   <div class="flex gap-4 mt-4">
     <div class="w-[400px] shrink-0 p-2 bg-black/5 rounded-xl">
-      <ArtistListByType :albums="albumsFiltered" />
+      <!-- <ArtistListByType :albums="albumsFiltered"  /> -->
     </div>
 
     <!-- <div class="flex-1">
