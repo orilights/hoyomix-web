@@ -1,5 +1,5 @@
 export interface NeteaseClientSchemeParams {
   type: 'album' | 'artist' | 'song'
-  id: number
+  id: number | string
   cmd: 'play'
 }

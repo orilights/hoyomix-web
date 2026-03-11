@@ -2,7 +2,7 @@
 import { useStore } from '@/store'
 
 const store = useStore()
-const { albums } = toRefs(store)
+const { albumList } = toRefs(store)
 
 onMounted(() => {
   document.title = 'HOYO-MiX Online'
@@ -11,5 +11,5 @@ onMounted(() => {
 </script>
 
 <template>
-  <AlbumList :albums-list="albums" display-by-year />
+  <AlbumList :albums-list="albumList" display-by-year />
 </template>

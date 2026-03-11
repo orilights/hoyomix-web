@@ -29,8 +29,18 @@ export interface AlbumData {
   netease: {
     id: number
     coverPicId: number
-    coverUrl: string
     alias?: string
     description?: string
+  }
+}
+
+export interface AlbumListData {
+  id: number
+  name: string
+  publishTime: number
+  size: number
+  netease: {
+    id: number
+    coverPicId: number
   }
 }

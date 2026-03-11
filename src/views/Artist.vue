@@ -87,9 +87,9 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="flex-1">
+    <!-- <div class="flex-1">
       <AlbumList :albums-list="albumsFiltered" />
-    </div>
+    </div> -->
   </div>
 </template>
 

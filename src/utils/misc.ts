@@ -1,11 +1,18 @@
+import type { ExportPlatforms } from '@/types/export'
 import type { NeteaseClientSchemeParams } from '@/types/netease'
 import { feedbackPageUrl, productMap, resourceBase } from '@/constants'
 
-export function getCoverUrl(service: string, id: number, size?: string) {
-  if (size) {
-    return `${resourceBase}/cover/${service}/${size}/${id}.jpg`
+export function getCoverUrl(platforms: ExportPlatforms, _size?: string) {
+  // if (size) {
+  //   return `${resourceBase}/cover/${service}/${size}/${id}.jpg`
+  // }
+  if (platforms.ncm) {
+    return `${resourceBase}/cover/ncm/${platforms.ncm.id}.jpg`
   }
-  return `${resourceBase}/cover/${service}/${id}.jpg`
+  if (platforms.qq) {
+    return `${resourceBase}/cover/qq/${platforms.qq.id}.jpg`
+  }
+  return ''
 }
 
 export function getProductName(product: string = '') {
@@ -42,4 +49,14 @@ export function goNeteaseClient(params: NeteaseClientSchemeParams) {
     const data = toBase64(JSON.stringify(params))
     window.open(`orpheus://${data}`, '_blank')
   }
+}
+
+export function getRandomString(length: number) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length)
+    result += chars.charAt(randomIndex)
+  }
+  return result
 }

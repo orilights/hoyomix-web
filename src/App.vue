@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { getIndexApi } from '@/api'
+import type { ExportAlbumListItem } from './types/export'
+import { getAlbumListApi } from '@/api'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
 import { useStore } from '@/store'
 
 const store = useStore()
-const { indexData } = toRefs(store)
+const { albumList } = toRefs(store)
 
 const layout = shallowRef(DefaultLayout)
 
 onMounted(() => {
-  getIndexApi()
+  getAlbumListApi()
     .then(res => res.json())
-    .then((data: any) => {
-      indexData.value = data
+    .then((data: ExportAlbumListItem[]) => {
+      data.reverse()
+      albumList.value = data
     })
 })
 </script>

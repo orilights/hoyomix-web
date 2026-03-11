@@ -44,7 +44,7 @@ watch(backgroundUrl, async (newVal) => {
     }"
   />
   <div class="default-layout min-h-screen backdrop-blur-2xl bg-white/80">
-    <div class="px-4 lg:px-32 py-8">
+    <div class="px-4 md:px-16 xl:px-32 py-8">
       <div class="pb-4">
         <button
           class="text-sm bg-gray-500/10 p-3 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
@@ -72,8 +72,8 @@ watch(backgroundUrl, async (newVal) => {
         </button>
       </div>
       <slot />
-      <div v-if="showCopyright" class="mt-8 text-sm text-gray-500">
-        <div class="absolute bottom-0 text-center w-full left-0 mb-4">
+      <div v-if="showCopyright" class="mt-16 text-sm text-gray-500">
+        <div class="absolute bottom-0 text-center w-full left-0 mb-4 px-4">
           本网站由爱好者制作，并非 HOYO-MiX 官方网站。
           网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司。
         </div>

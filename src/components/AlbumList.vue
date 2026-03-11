@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { AlbumData } from '@/types/core'
-import { getCoverUrl, getPublishDate } from '@/utils'
+import type { ExportAlbumListItem } from '@/types/export'
+import { getCoverUrl } from '@/utils'
 import { useElementSize } from '@vueuse/core'
 
 const props = withDefaults(defineProps<{
-  albumsList: AlbumData[]
+  albumsList: ExportAlbumListItem[]
   displayByYear?: boolean
 }>(), {
   displayByYear: false,
@@ -30,8 +30,8 @@ const gridColumns = computed(() => {
   return num
 })
 
-function getAlbumYear(album: AlbumData) {
-  return new Date(album.publishTime).getFullYear()
+function getAlbumYear(album: ExportAlbumListItem) {
+  return new Date(album.publishDate).getFullYear()
 }
 </script>
 
@@ -48,20 +48,20 @@ function getAlbumYear(album: AlbumData) {
         }"
       >
         <RouterLink
-          v-for="album_info in albumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.netease.id"
-          :to="{ name: 'AlbumInfo', params: { id: album_info.netease.id } }" :title="album_info.name"
+          v-for="album_info in albumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
+          :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
         >
           <div class="p-4 rounded-2xl hover:bg-gray-500/20 transition-colors">
             <div class="rounded-2xl overflow-hidden">
-              <CoverImage :src="getCoverUrl('netease', album_info.netease.coverPicId, '200px')" />
+              <CoverImage :src="getCoverUrl(album_info.platforms, '200px')" />
             </div>
             <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
               {{ album_info.name }}
             </div>
             <div>
-              <span class="text-xs text-gray-500">{{ getPublishDate(album_info.publishTime) }}</span>
+              <span class="text-xs text-gray-500">{{ album_info.publishDate }}</span>
               ·
-              <span class="text-xs text-gray-500">{{ album_info.size }}</span>
+              <span class="text-xs text-gray-500">{{ album_info.songCount }}</span>
             </div>
           </div>
         </RouterLink>

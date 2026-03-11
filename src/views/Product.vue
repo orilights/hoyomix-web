@@ -2,7 +2,7 @@
 import ArtistListByType from '@/components/ArtistListByType.vue'
 import { productMap } from '@/constants'
 import { useStore } from '@/store'
-import { getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
+import { getProductIconUrl, getProductName } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,7 +23,7 @@ watch(product, (val) => {
       return
     }
     document.title = `${getProductName(val)} - HOYO-MiX Online`
-    store.setBackground(getCoverUrl('netease', albumsFiltered.value[0]!.netease.coverPicId, '200px'))
+    // store.setBackground(getCoverUrl('netease', albumsFiltered.value[0]!.netease.coverPicId, '200px'))
   }
 }, { immediate: true })
 </script>
@@ -47,8 +47,8 @@ watch(product, (val) => {
       <ArtistListByType :albums="albumsFiltered" />
     </div>
 
-    <div class="flex-1">
+    <!-- <div class="flex-1">
       <AlbumList :albums-list="albumsFiltered" />
-    </div>
+    </div> -->
   </div>
 </template>

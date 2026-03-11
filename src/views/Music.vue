@@ -1,18 +1,34 @@
 <script setup lang="ts">
-import ArtistListByType from '@/components/ArtistListByType.vue'
+import type { ExportAlbum, ExportSong } from '@/types/export'
+import { getAlbumInfoApi } from '@/api'
 import { apiBase } from '@/constants'
 import { useStore } from '@/store'
-import { getCoverUrl, getProductIconUrl, getProductName, getPublishDate, goFeedbackPage, goNeteaseClient } from '@/utils'
+import { getCoverUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
 const store = useStore()
-const { albums } = toRefs(store)
 
-const musicId = computed(() => Number(route.params.id as string))
-const albumInfo = computed(() => albums.value.find(album => album.musics.find(music => music.netease.id === musicId.value)))
-const musicInfo = computed(() => albumInfo.value?.musics.find(music => music.netease.id === musicId.value))
+const albumId = computed(() => route.params.albumId as string)
+const musicId = computed(() => Number(route.params.musicId))
 
+const albumInfo = ref<ExportAlbum | null>(null)
+const musicInfo = computed<ExportSong | null>(() => {
+  if (albumInfo.value) {
+    return albumInfo.value.songs.find(song => song.id === musicId.value) || null
+  }
+  return null
+})
+
+watch(albumId, (val) => {
+  if (val) {
+    getAlbumInfoApi(Number(val))
+      .then(res => res.json())
+      .then((data: ExportAlbum) => {
+        albumInfo.value = data
+      })
+  }
+}, { immediate: true })
 const lyricData = ref('')
 
 const lyricList = computed(() => {
@@ -23,7 +39,7 @@ const neteaseOptions = computed(() => [
   {
     label: '跳转至详情页',
     onClick: () => {
-      window.open(`https://music.163.com/#/song?id=${musicInfo.value!.netease.id}`)
+      window.open(`https://music.163.com/#/song?id=${musicInfo.value!.platforms.ncm!.id}`)
     },
   },
   {
@@ -31,7 +47,7 @@ const neteaseOptions = computed(() => [
     onClick: () => {
       goNeteaseClient({
         type: 'song',
-        id: musicInfo.value!.netease.id,
+        id: musicInfo.value!.platforms.ncm!.id,
         cmd: 'play',
       })
     },
@@ -43,7 +59,7 @@ function removeTimeStr(str: string) {
 }
 
 function getLyricData() {
-  fetch(`${apiBase}/lyric/netease/${musicInfo.value!.netease.id}.lrc`)
+  fetch(`${apiBase}/lyric/ncm/${musicInfo.value!.platforms.ncm!.id}.lrc`)
     .then(res => res.text())
     .then((data) => {
       lyricData.value = data
@@ -51,23 +67,23 @@ function getLyricData() {
 }
 
 function goPrevMusic() {
-  const index = albumInfo.value!.musics.findIndex(music => music.netease.id === musicId.value)
+  const index = albumInfo.value!.songs.findIndex(song => song.id === musicId.value)
   if (index > 0) {
-    router.push({ name: 'MusicInfo', params: { id: albumInfo.value!.musics[index - 1].netease.id } })
+    router.push({ name: 'MusicInfo', params: { albumId: albumId.value, musicId: albumInfo.value!.songs[index - 1].id } })
   }
 }
 
 function goNextMusic() {
-  const index = albumInfo.value!.musics.findIndex(music => music.netease.id === musicId.value)
-  if (index < albumInfo.value!.musics.length - 1) {
-    router.push({ name: 'MusicInfo', params: { id: albumInfo.value!.musics[index + 1].netease.id } })
+  const index = albumInfo.value!.songs.findIndex(song => song.id === musicId.value)
+  if (index < albumInfo.value!.songs.length - 1) {
+    router.push({ name: 'MusicInfo', params: { albumId: albumId.value, musicId: albumInfo.value!.songs[index + 1].id } })
   }
 }
 
 watch(musicInfo, (val) => {
   if (val) {
     document.title = `${val.name} - HOYO-MiX Online`
-    store.setBackground(getCoverUrl('netease', albumInfo.value!.netease.coverPicId, '200px'))
+    store.setBackground(getCoverUrl(albumInfo.value!.platforms, '200px'))
     getLyricData()
   }
 }, { immediate: true })
@@ -81,29 +97,29 @@ onMounted(() => {
   <div v-if="albumInfo && musicInfo" class="overflow-hidden">
     <div class="h-[300px] flex">
       <div class="w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
-        <CoverImage :src="getCoverUrl('netease', albumInfo.netease.coverPicId)" />
+        <CoverImage :src="getCoverUrl(albumInfo.platforms, '200px')" />
       </div>
       <div class="flex flex-col justify-between ml-8">
         <div>
           <div class="text-3xl font-bold">
             {{ musicInfo.name }}
-            <span class="ml-2 text-xl text-gray-500">
+            <!-- <span class="ml-2 text-xl text-gray-500">
               {{ musicInfo.netease.alias ?? '' }}
-            </span>
+            </span> -->
           </div>
 
           <div class="mt-2 flex items-center gap-2">
-            <span class="text-gray-500">所属</span>
+            <!-- <span class="text-gray-500">所属</span>
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.product } }"
               class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors"
               :title="getProductName(albumInfo.product)"
             >
               <img class="size-6" :src="getProductIconUrl(albumInfo.product, '48px')">
-            </RouterLink>
+            </RouterLink> -->
             <span class="text-gray-500">收录于</span>
             <RouterLink
-              :to="{ name: 'AlbumInfo', params: { id: albumInfo.netease.id } }"
+              :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"
               class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
             >
               <span>{{ albumInfo.name }}</span>
@@ -112,7 +128,7 @@ onMounted(() => {
           <div class="mt-2 flex items-center">
             <span class="text-gray-500">发布于</span>
             <span class="ml-2">
-              {{ getPublishDate(albumInfo.publishTime) }}
+              {{ albumInfo.publishDate }}
             </span>
           </div>
         </div>
@@ -147,9 +163,9 @@ onMounted(() => {
     </div>
 
     <div class="flex gap-4 mt-4">
-      <div class="w-[400px] p-4 bg-black/5 rounded-xl">
+      <!-- <div class="w-[400px] p-4 bg-black/5 rounded-xl">
         <ArtistListByType :albums="[albumInfo]" :music-id="musicId" />
-      </div>
+      </div> -->
 
       <div class="flex-1">
         <div class="bg-black/5 rounded-xl overflow-hidden p-4">

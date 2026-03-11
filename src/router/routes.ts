@@ -14,26 +14,26 @@ const routes: RouteRecordRaw[] = [
     },
     component: () => import('@/views/Settings.vue'),
   },
-  {
-    path: '/product/:name',
-    name: 'ProductInfo',
-    component: () => import('@/views/Product.vue'),
-  },
+  // {
+  //   path: '/product/:name',
+  //   name: 'ProductInfo',
+  //   component: () => import('@/views/Product.vue'),
+  // },
   {
     path: '/album/:id',
     name: 'AlbumInfo',
     component: () => import('@/views/Album.vue'),
   },
   {
-    path: '/music/:id',
+    path: '/album/:albumId/music/:musicId',
     name: 'MusicInfo',
     component: () => import('@/views/Music.vue'),
   },
-  {
-    path: '/artist/:name',
-    name: 'ArtistInfo',
-    component: () => import('@/views/Artist.vue'),
-  },
+  // {
+  //   path: '/artist/:name',
+  //   name: 'ArtistInfo',
+  //   component: () => import('@/views/Artist.vue'),
+  // },
 ]
 
 export default routes
