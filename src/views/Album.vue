@@ -16,6 +16,29 @@ const albumId = computed(() => route.params.id as string)
 
 const albumInfo = ref<ExportAlbum | null>(null)
 
+const discList = computed(() => {
+  if (albumInfo.value) {
+    return albumInfo.value.songs.reduce((disks, song) => {
+      const disk = disks.find(d => d.name === song.disc)
+      if (disk) {
+        disk.songs.push(song)
+      }
+      else {
+        disks.push({
+          name: song.disc,
+          songs: [song],
+        })
+      }
+      return disks
+    }, [] as { name: string, songs: ExportAlbum['songs'] }[])
+  }
+  return []
+})
+
+const showDiscName = computed(() => {
+  return discList.value.length > 1
+})
+
 watch(albumId, (val) => {
   if (val) {
     getAlbumInfoApi(Number(val))
@@ -143,7 +166,7 @@ onMounted(() => {
 
       <div class="flex-1">
         <div class="bg-black/5 rounded-xl overflow-hidden pt-2 pb-4">
-          <table class="w-full ">
+          <table class="w-full">
             <thead>
               <tr class="text-left">
                 <th class="pl-4 p-2 w-[30px]">
@@ -161,32 +184,41 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody v-if="albumInfo">
-              <tr
-                v-for="music_info, index in albumInfo.songs" :key="music_info.id"
-                class="hover:bg-black/8 cursor-pointer transition-colors"
-                @click="$router.push({ name: 'MusicInfo', params: { albumId: albumInfo.id, musicId: music_info.id } })"
-              >
-                <td class="pl-4 p-2 text-gray-500">
-                  {{ index + 1 }}
-                </td>
-                <td class="p-2">
-                  <div>
-                    {{ music_info.name }}
-                    <!-- <span
-                      v-if="music_info.netease.alias"
-                      class="text-sm text-gray-500 ml-2"
-                    >
-                      {{ music_info.netease.alias }}
-                    </span> -->
-                  </div>
-                </td>
-                <!-- <td class="p-2">
+              <template v-for="discInfo, index in discList" :key="index">
+                <tr v-if="showDiscName">
+                  <td colspan="3">
+                    <div class="text-gray-600 py-2 px-3 text-sm">
+                      {{ discInfo.name }}
+                    </div>
+                  </td>
+                </tr>
+                <tr
+                  v-for="songInfo, songIndex in discInfo.songs" :key="songInfo.id"
+                  class="hover:bg-black/8 cursor-pointer transition-colors"
+                  @click="$router.push({ name: 'MusicInfo', params: { albumId: albumInfo.id, musicId: songInfo.id } })"
+                >
+                  <td class="pl-4 p-2 text-gray-500">
+                    {{ songIndex + 1 }}
+                  </td>
+                  <td class="p-2">
+                    <div>
+                      {{ songInfo.name }}
+                      <span
+                        v-if="songInfo.description"
+                        class="text-sm text-gray-500 ml-2"
+                      >
+                        {{ songInfo.description }}
+                      </span>
+                    </div>
+                  </td>
+                  <!-- <td class="p-2">
                   {{ music_info.type === MusicType.PURE_MUSIC ? '纯音乐' : '歌曲' }}
                 </td> -->
-                <td class="p-2">
-                  {{ formatDuration(music_info.duration) }}
-                </td>
-              </tr>
+                  <td class="p-2">
+                    {{ formatDuration(songInfo.duration) }}
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>

@@ -2,7 +2,7 @@
 import type { ExportAlbum, ExportSong } from '@/types/export'
 import { getAlbumInfoApi } from '@/api'
 import { useStore } from '@/store'
-import { getCoverUrl, getLyricrUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
+import { formatDuration, getCoverUrl, getLyricrUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -110,15 +110,17 @@ onMounted(() => {
   <div v-if="albumInfo && musicInfo" class="overflow-hidden">
     <div class="h-[300px] flex">
       <div class="w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
-        <CoverImage :src="getCoverUrl(albumInfo.platforms, '200px')" />
+        <CoverImage :src="getCoverUrl(albumInfo.platforms)" />
       </div>
       <div class="flex flex-col justify-between ml-8">
         <div>
-          <div class="text-3xl font-bold">
-            {{ musicInfo.name }}
-            <!-- <span class="ml-2 text-xl text-gray-500">
-              {{ musicInfo.netease.alias ?? '' }}
-            </span> -->
+          <div>
+            <span class="text-3xl font-bold">
+              {{ musicInfo.name }}
+            </span>
+            <span class="ml-2 text-xl text-gray-500">
+              {{ musicInfo.description ?? '' }}
+            </span>
           </div>
 
           <div class="mt-2 flex items-center gap-2">
@@ -140,8 +142,12 @@ onMounted(() => {
           </div>
           <div class="mt-2 flex items-center">
             <span class="text-gray-500">发布于</span>
-            <span class="ml-2">
+            <span class="ml-4">
               {{ albumInfo.publishDate }}
+            </span>
+            <span class="ml-4 text-gray-500">时长</span>
+            <span class="ml-4">
+              {{ formatDuration(musicInfo.duration) }}
             </span>
           </div>
         </div>
@@ -189,7 +195,7 @@ onMounted(() => {
 
       <div class="flex-1">
         <div class="bg-black/5 rounded-xl overflow-hidden p-4">
-          <div v-for="line, index in lyricList" :key="index">
+          <div v-for="line, index in lyricList" :key="index" class="my-1">
             {{ line }}
           </div>
         </div>
