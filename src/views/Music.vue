@@ -54,6 +54,15 @@ const neteaseOptions = computed(() => [
   },
 ])
 
+const qqMusicOptions = computed(() => [
+  {
+    label: '跳转至详情页',
+    onClick: () => {
+      window.open(`https://y.qq.com/n/ryqq_v2/songDetail/${musicInfo.value!.platforms.qq!.id}`)
+    },
+  },
+])
+
 function removeTimeStr(str: string) {
   return str.replace(/\[\d{2}:\d{2}\.\d{2,3}(?:\.\d{3})?\]/g, '')
 }
@@ -145,11 +154,18 @@ onMounted(() => {
           >
             后一首
           </button>
-          <Dropdown :options="neteaseOptions">
+          <Dropdown v-if="musicInfo.platforms.ncm" :options="neteaseOptions">
             <button
               class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             >
               <IconNcm class="size-5 text-[#fc3b5b]" />
+            </button>
+          </Dropdown>
+          <Dropdown v-if="musicInfo.platforms.qq" :options="qqMusicOptions">
+            <button
+              class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+            >
+              <IconQQ class="size-5" />
             </button>
           </Dropdown>
           <button

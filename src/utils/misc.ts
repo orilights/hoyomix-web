@@ -2,15 +2,12 @@ import type { ExportPlatforms } from '@/types/export'
 import type { NeteaseClientSchemeParams } from '@/types/netease'
 import { feedbackPageUrl, productMap, resourceBase } from '@/constants'
 
-export function getCoverUrl(platforms: ExportPlatforms, _size?: string) {
-  // if (size) {
-  //   return `${resourceBase}/cover/${service}/${size}/${id}.jpg`
-  // }
+export function getCoverUrl(platforms: ExportPlatforms, size?: string) {
   if (platforms.ncm) {
-    return `${resourceBase}/cover/ncm/${platforms.ncm.id}.jpg`
+    return `${resourceBase}/cover/ncm/${platforms.ncm.id}${size ? `_${size}` : ''}.jpg`
   }
   if (platforms.qq) {
-    return `${resourceBase}/cover/qq/${platforms.qq.id}.jpg`
+    return `${resourceBase}/cover/qq/${platforms.qq.id}${size ? `_${size}` : ''}.jpg`
   }
   return ''
 }

@@ -13,6 +13,7 @@ declare module 'vue' {
     CoverImage: typeof import('./components/CoverImage.vue')['default']
     Dropdown: typeof import('./components/common/Dropdown.vue')['default']
     IconNcm: typeof import('./components/icon/IconNcm.vue')['default']
+    IconQQ: typeof import('./components/icon/IconQQ.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tooltip: typeof import('./components/common/Tooltip.vue')['default']

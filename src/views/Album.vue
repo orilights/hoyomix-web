@@ -52,6 +52,15 @@ const neteaseOptions = computed(() => [
   },
 ])
 
+const qqMusicOptions = computed(() => [
+  {
+    label: '跳转至详情页',
+    onClick: () => {
+      window.open(`https://y.qq.com/n/ryqq_v2/albumDetail/${albumInfo.value!.platforms.qq!.id}`)
+    },
+  },
+])
+
 // function goPrevAlbum() {
 //   const index = albums.value.findIndex(album => album.netease.id === Number(albumId.value))
 //   if (index > 0) {
@@ -75,7 +84,7 @@ onMounted(() => {
   <div v-if="albumInfo" class="overflow-hidden">
     <div class="h-[300px] flex">
       <div class="w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
-        <CoverImage :src="getCoverUrl(albumInfo.platforms, '200px')" />
+        <CoverImage :src="getCoverUrl(albumInfo.platforms)" />
       </div>
 
       <div class="flex flex-col justify-between ml-8">
@@ -103,11 +112,18 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex gap-2">
-          <Dropdown :options="neteaseOptions">
+          <Dropdown v-if="albumInfo.platforms.ncm" :options="neteaseOptions">
             <button
               class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             >
               <IconNcm class="size-5 text-[#fc3b5b]" />
+            </button>
+          </Dropdown>
+          <Dropdown v-if="albumInfo.platforms.qq" :options="qqMusicOptions">
+            <button
+              class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+            >
+              <IconQQ class="size-5" />
             </button>
           </Dropdown>
           <button
