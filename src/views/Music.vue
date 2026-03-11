@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { ExportAlbum, ExportSong } from '@/types/export'
 import { getAlbumInfoApi } from '@/api'
-import { apiBase } from '@/constants'
 import { useStore } from '@/store'
-import { getCoverUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
+import { getCoverUrl, getLyricrUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,7 +31,7 @@ watch(albumId, (val) => {
 const lyricData = ref('')
 
 const lyricList = computed(() => {
-  return lyricData.value.split('\n').map(line => removeTimeStr(line).trim()).filter(line => line)
+  return lyricData.value.split('\n').map(line => removeTimeStr(line).trim()).filter(line => !line.startsWith('[')).filter(line => line)
 })
 
 const neteaseOptions = computed(() => [
@@ -68,7 +67,12 @@ function removeTimeStr(str: string) {
 }
 
 function getLyricData() {
-  fetch(`${apiBase}/lyric/ncm/${musicInfo.value!.platforms.ncm!.id}.lrc`)
+  const url = getLyricrUrl(musicInfo.value!.platforms)
+  if (!url) {
+    lyricData.value = '暂无数据'
+    return
+  }
+  fetch(url)
     .then(res => res.text())
     .then((data) => {
       lyricData.value = data
