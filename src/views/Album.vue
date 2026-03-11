@@ -160,9 +160,9 @@ onMounted(() => {
     </div>
 
     <div class="flex gap-4 mt-4">
-      <!-- <div class="w-[400px] p-4 bg-black/5 rounded-xl">
-        <ArtistListByType :albums="[album_info]" />
-      </div> -->
+      <div class="w-[400px] p-4 bg-black/5 rounded-xl">
+        <ArtistListByType :id="albumInfo.id" type="album" />
+      </div>
 
       <div class="flex-1">
         <div class="bg-black/5 rounded-xl overflow-hidden pt-2 pb-4">
