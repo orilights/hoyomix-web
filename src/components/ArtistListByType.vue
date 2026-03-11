@@ -22,6 +22,7 @@ const artistInfo = ref<ArtistTypeInfo>({})
 
 watch(() => props.id, (val) => {
   if (val) {
+    artistInfo.value = {}
     if (props.type === 'album') {
       getAlbumArtistInfoApi(val)
         .then(res => res.json())
@@ -53,12 +54,12 @@ watch(() => props.id, (val) => {
         v-for="artist in typeInfo" :key="artist.nameFull"
         class="text-sm rounded-md border-gray-400"
       >
-        <Tooltip v-if="artist.songs">
+        <Tooltip>
           <!-- <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }"> -->
           {{ artist.nameCn }}
-          <span class="text-xs text-gray-600">{{ artist.songs.length }}&nbsp;</span>
+          <span v-if="artist.songs" class="text-xs text-gray-600">{{ artist.songs.length }}&nbsp;</span>
           <!-- </RouterLink> -->
-          <template #tooltip>
+          <template v-if="artist.songs" #tooltip>
             <div class="p-2 max-w-[300px] bg-white w-fit text-xs rounded-lg shadow">
               <div v-for="song, index in artist.songs?.slice(0, 10)" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">
                 {{ song.name }}
