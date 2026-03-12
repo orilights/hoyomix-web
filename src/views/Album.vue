@@ -5,6 +5,7 @@ import { useStore } from '@/store'
 import {
   formatDuration,
   getCoverUrl,
+  getProductIconUrl,
   goFeedbackPage,
   goNeteaseClient,
 } from '@/utils'
@@ -116,15 +117,15 @@ onMounted(() => {
             {{ albumInfo.name }}
           </div>
           <div class="mt-2 flex items-center">
-            <!-- <RouterLink
-              :to="{ name: 'ProductInfo', params: { name: albumInfo.product } }"
+            <RouterLink
+              :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
               class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
             >
-              <img class="size-8" :src="getProductIconUrl(album_info.product, '48px')">
+              <img class="size-8" :src="getProductIconUrl(albumInfo.productName, '48px')">
               <span class="ml-2">
-                {{ getProductName(album_info.product) }}
+                {{ albumInfo.productName }}
               </span>
-            </RouterLink> -->
+            </RouterLink>
             <span class="text-gray-500 ml-2">发布于</span>
             <span class="ml-2">
               {{ albumInfo.publishDate }}

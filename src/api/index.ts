@@ -1,5 +1,9 @@
 import { apiBase } from '@/constants'
 
+export function getChangelog() {
+  return fetch('https://api.amarea.cn/config/hoyomix.changelog')
+}
+
 export function getAlbumListApi() {
   return fetch(`${apiBase}/albumList.json`)
 }

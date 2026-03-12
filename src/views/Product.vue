@@ -1,28 +1,26 @@
 <script setup lang="ts">
-import { productMap } from '@/constants'
 import { useStore } from '@/store'
-import { getProductIconUrl, getProductName } from '@/utils'
+import { getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
 
 const route = useRoute()
-const router = useRouter()
 const store = useStore()
-const { albums } = toRefs(store)
 
 const product = computed(() => route.params.name as string)
 
-const albumsFiltered = computed(() => albums.value.filter(album => album.product === product.value))
+const { albumList } = toRefs(store)
+
+const albumsFiltered = computed(() => {
+  return albumList.value.filter(i => i.productName === product.value)
+})
 
 function sumBy(arr: any[], getValue: (x: any) => any) {
   return arr.reduce((acc, cur) => acc + getValue(cur), 0)
 }
 watch(product, (val) => {
   if (val) {
-    if (!Object.keys(productMap).includes(val)) {
-      router.replace({ name: 'Home' })
-      return
-    }
     document.title = `${getProductName(val)} - HOYO-MiX Online`
-    // store.setBackground(getCoverUrl('netease', albumsFiltered.value[0]!.netease.coverPicId, '200px'))
+
+    store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '200px'))
   }
 }, { immediate: true })
 </script>
@@ -32,11 +30,21 @@ watch(product, (val) => {
     <img :src="getProductIconUrl(product)" class="rounded-full shadow">
     <div class="ml-8">
       <div class="font-bold text-3xl">
-        {{ getProductName(product) }}
+        {{ product }}
       </div>
-      <div class="text-xl mt-2">
-        <span>专辑 {{ albumsFiltered.length }}</span>
-        <span class="ml-4">音乐 {{ sumBy(albumsFiltered, (i) => i.size) }}</span>
+      <div class="mt-6">
+        <span class="text-gray-500">
+          专辑
+        </span>
+        <span>
+          {{ albumsFiltered.length }}
+        </span>
+        <span class="ml-4 text-gray-500">
+          音乐
+        </span>
+        <span>
+          {{ sumBy(albumsFiltered, (i) => i.songCount) }}
+        </span>
       </div>
     </div>
   </div>
@@ -46,8 +54,8 @@ watch(product, (val) => {
       <!-- <ArtistListByType :albums="albumsFiltered"  /> -->
     </div>
 
-    <!-- <div class="flex-1">
+    <div class="flex-1">
       <AlbumList :albums-list="albumsFiltered" />
-    </div> -->
+    </div>
   </div>
 </template>

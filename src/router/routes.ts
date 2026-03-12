@@ -14,11 +14,11 @@ const routes: RouteRecordRaw[] = [
     },
     component: () => import('@/views/Settings.vue'),
   },
-  // {
-  //   path: '/product/:name',
-  //   name: 'ProductInfo',
-  //   component: () => import('@/views/Product.vue'),
-  // },
+  {
+    path: '/product/:name',
+    name: 'ProductInfo',
+    component: () => import('@/views/Product.vue'),
+  },
   {
     path: '/album/:id',
     name: 'AlbumInfo',

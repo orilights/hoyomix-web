@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getChangelog } from '@/api'
 import { useStore } from '@/store'
 import { goFeedbackPage } from '@/utils'
 import { formatDate } from '@vueuse/core'
@@ -13,8 +14,16 @@ const store = useStore()
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
+const changelog = ref('')
+
 onMounted(() => {
   store.setBackground()
+
+  getChangelog()
+    .then(res => res.json())
+    .then((data: any) => {
+      changelog.value = data['hoyomix.changelog']
+    })
 })
 </script>
 
@@ -44,7 +53,6 @@ onMounted(() => {
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
       <div class="mt-2">
-        <br>
         <button
           class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer my-2"
           @click="goFeedbackPage"
@@ -53,6 +61,12 @@ onMounted(() => {
         </button>
         <br>
       </div>
+    </div>
+    <div class="font-bold text-2xl mt-4">
+      更新日志
+    </div>
+    <div class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4">
+      {{ changelog }}
     </div>
   </div>
 </template>

@@ -2,7 +2,7 @@
 import type { ExportAlbum, ExportSong } from '@/types/export'
 import { getAlbumInfoApi } from '@/api'
 import { useStore } from '@/store'
-import { formatDuration, getCoverUrl, getLyricrUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
+import { formatDuration, getCoverUrl, getLyricrUrl, getProductIconUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -124,14 +124,14 @@ onMounted(() => {
           </div>
 
           <div class="mt-2 flex items-center gap-2">
-            <!-- <span class="text-gray-500">所属</span>
+            <span class="text-gray-500">所属</span>
             <RouterLink
-              :to="{ name: 'ProductInfo', params: { name: albumInfo.product } }"
+              :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
               class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors"
-              :title="getProductName(albumInfo.product)"
+              :title="albumInfo.productName"
             >
-              <img class="size-6" :src="getProductIconUrl(albumInfo.product, '48px')">
-            </RouterLink> -->
+              <img class="size-6" :src="getProductIconUrl(albumInfo.productName, '48px')">
+            </RouterLink>
             <span class="text-gray-500">收录于</span>
             <RouterLink
               :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"

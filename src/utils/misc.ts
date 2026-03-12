@@ -26,11 +26,19 @@ export function getProductName(product: string = '') {
   return productMap[product] || product
 }
 
-export function getProductIconUrl(product: string = '', size?: string) {
-  if (size) {
-    return `/images/icon/${product}-${size}.png`
+export function getProductIconUrl(productName: string, size?: string) {
+  const ProductNameMap: Record<string, string> = {
+    '原神': 'genshin',
+    '崩坏3': 'honkai3',
+    '崩坏：星穹铁道': 'starrail',
+    '未定事件簿': 'wd',
+    '绝区零': 'zzz',
+    '崩坏学园2': 'honkai2',
   }
-  return `/images/icon/${product}.png`
+  if (size) {
+    return `/images/icon/${ProductNameMap[productName] || productName}-${size}.png`
+  }
+  return `/images/icon/${ProductNameMap[productName] || productName}.png`
 }
 
 export function goFeedbackPage() {

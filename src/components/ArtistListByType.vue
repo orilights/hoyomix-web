@@ -9,7 +9,7 @@ const props = defineProps<{
 interface ArtistTypeInfo {
   [typeName: string]: {
     nameFull: string
-    nameCn: string
+    name: string
     songs?: {
       id: number
       name: string
@@ -56,7 +56,7 @@ watch(() => props.id, (val) => {
       >
         <Tooltip>
           <!-- <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }"> -->
-          {{ artist.nameCn }}
+          {{ artist.name }}
           <span v-if="artist.songs" class="text-xs text-gray-600">{{ artist.songs.length }}&nbsp;</span>
           <!-- </RouterLink> -->
           <template v-if="artist.songs" #tooltip>

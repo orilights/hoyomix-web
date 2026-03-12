@@ -22,6 +22,7 @@ export interface ExportAlbum {
   id: number
   name: string
   description: string
+  productName: string
   publishDate: string
   platforms: ExportPlatforms
   songs: ExportSong[]
