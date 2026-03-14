@@ -4,7 +4,7 @@ import { useWindowScroll } from '@vueuse/core'
 
 const route = useRoute()
 const store = useStore()
-const { backgroundUrl } = toRefs(store)
+const { backgroundUrl } = storeToRefs(store)
 
 const background1 = ref<HTMLElement | null>(null)
 const background2 = ref<HTMLElement | null>(null)

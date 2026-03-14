@@ -7,7 +7,7 @@ const store = useStore()
 
 const product = computed(() => route.params.name as string)
 
-const { albumList } = toRefs(store)
+const { albumList } = storeToRefs(store)
 
 const albumsFiltered = computed(() => {
   return albumList.value.filter(i => i.productName === product.value)

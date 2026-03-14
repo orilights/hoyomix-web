@@ -2,7 +2,7 @@
 import { useStore } from '@/store'
 
 const store = useStore()
-const { albumList } = toRefs(store)
+const { albumList } = storeToRefs(store)
 
 onMounted(() => {
   document.title = 'HOYO-MiX Online'

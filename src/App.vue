@@ -5,7 +5,7 @@ import DefaultLayout from '@/layout/DefaultLayout.vue'
 import { useStore } from '@/store'
 
 const store = useStore()
-const { albumList } = toRefs(store)
+const { albumList } = storeToRefs(store)
 
 const layout = shallowRef(DefaultLayout)
 
