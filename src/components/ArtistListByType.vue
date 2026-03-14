@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { getAlbumArtistInfoApi, getMusicArtistInfoApi } from '@/api'
+import { getArtistInfoApi } from '@/api'
 
 const props = defineProps<{
-  id: number
-  type: 'album' | 'music'
+  id: number | string
+  type: 'album' | 'music' | 'product'
 }>()
 
 interface ArtistTypeInfo {
@@ -20,30 +20,29 @@ interface ArtistTypeInfo {
 
 const artistInfo = ref<ArtistTypeInfo>({})
 
+function sortArtists(info: ArtistTypeInfo) {
+  const sorted: ArtistTypeInfo = {}
+  for (const typeName in info) {
+    sorted[typeName] = info[typeName].sort((a, b) => (b.songs?.length ?? 0) - (a.songs?.length ?? 0))
+  }
+  return sorted
+}
+
 watch(() => props.id, (val) => {
   if (val) {
     artistInfo.value = {}
-    if (props.type === 'album') {
-      getAlbumArtistInfoApi(val)
-        .then(res => res.json())
-        .then((data) => {
-          artistInfo.value = data
-        })
-    }
-    else if (props.type === 'music') {
-      getMusicArtistInfoApi(val)
-        .then(res => res.json())
-        .then((data) => {
-          artistInfo.value = data
-        })
-    }
+    getArtistInfoApi(val, props.type)
+      .then(res => res.json())
+      .then((data) => {
+        artistInfo.value = sortArtists(data)
+      })
   }
 }, { immediate: true })
 </script>
 
 <template>
   <div
-    v-for="([typeName, typeInfo]) in Object.entries(artistInfo)" :key="typeName"
+    v-for="([typeName, artists]) in Object.entries(artistInfo)" :key="typeName"
     class="pb-1"
   >
     <div class="font-bold">
@@ -51,7 +50,7 @@ watch(() => props.id, (val) => {
     </div>
     <div class="flex flex-wrap gap-x-2">
       <div
-        v-for="artist in typeInfo" :key="artist.nameFull"
+        v-for="artist in artists" :key="artist.nameFull"
         class="text-sm rounded-md border-gray-400"
       >
         <Tooltip>

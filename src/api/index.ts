@@ -12,10 +12,6 @@ export function getAlbumInfoApi(albumId: number) {
   return fetch(`${apiBase}/album/${albumId}.json`)
 }
 
-export function getAlbumArtistInfoApi(albumId: number) {
-  return fetch(`${apiBase}/artist/album/${albumId}.json`)
-}
-
-export function getMusicArtistInfoApi(musicId: number) {
-  return fetch(`${apiBase}/artist/song/${musicId}.json`)
+export function getArtistInfoApi(id: number | string, type: 'album' | 'music' | 'product') {
+  return fetch(`${apiBase}/artist/${type}/${id}.json`)
 }

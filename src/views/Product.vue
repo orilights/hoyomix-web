@@ -51,7 +51,7 @@ watch(product, (val) => {
 
   <div class="flex gap-4 mt-4">
     <div class="w-[400px] shrink-0 p-2 bg-black/5 rounded-xl">
-      <!-- <ArtistListByType :albums="albumsFiltered"  /> -->
+      <ArtistListByType :id="product" type="product" />
     </div>
 
     <div class="flex-1">

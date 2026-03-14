@@ -1,30 +1,10 @@
 <script setup lang="ts">
 import { useStore } from '@/store'
-import { getArtistData, getProductIconUrl, getProductName } from '@/utils'
 
 const route = useRoute()
 const store = useStore()
-const { albums } = toRefs(store)
 
 const artistName = computed(() => route.params.name as string)
-const albumsFiltered = computed(() => albums.value
-  .filter(album =>
-    album.musics.find(music =>
-      music.artists.find(artist => artist.name === artistName.value),
-    ),
-  ),
-)
-const products = computed(() => {
-  const result = new Set<string>()
-  albumsFiltered.value.forEach((album) => {
-    result.add(album.product)
-  })
-  return Array.from(result)
-})
-const artistData = computed(() => getArtistData(albumsFiltered.value, artistName.value))
-const isHoyomixMember = computed(() =>
-  albumsFiltered.value.some(album => album.musics.some(music => music.artists.some(i => i.name === artistName.value && i.o))),
-)
 
 onMounted(() => {
   document.title = `${artistName.value} - HOYO-MiX Online`
@@ -37,14 +17,14 @@ onMounted(() => {
     <div class="w-[400px] h-fit p-4 bg-black/5 rounded-xl">
       <div class="font-bold text-2xl pb-4">
         {{ artistName }}
-        <div v-if="isHoyomixMember" class="font-normal text-base text-gray-500">
+        <!-- <div v-if="isHoyomixMember" class="font-normal text-base text-gray-500">
           HOYO-MiX 成员
-        </div>
+        </div> -->
       </div>
       <div class="font-bold mt-2 mb-1">
         参与项目
       </div>
-      <div class="flex flex-wrap gap-1">
+      <!-- <div class="flex flex-wrap gap-1">
         <div
           v-for="product in products" :key="product"
         >
@@ -84,7 +64,7 @@ onMounted(() => {
             </template>
           </Tooltip>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- <div class="flex-1">
