@@ -190,7 +190,7 @@ onMounted(() => {
 
     <div class="flex gap-4 mt-4">
       <div class="w-[400px] p-4 bg-black/5 rounded-xl">
-        <ArtistListByType :id="musicId" type="music" />
+        <ArtistListByType :id="musicId" type="song" />
       </div>
 
       <div class="flex-1">

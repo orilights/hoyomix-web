@@ -3,7 +3,7 @@ import { getArtistInfoApi } from '@/api'
 
 const props = defineProps<{
   id: number | string
-  type: 'album' | 'music' | 'product'
+  type: 'album' | 'song' | 'product'
 }>()
 
 interface ArtistTypeInfo {
