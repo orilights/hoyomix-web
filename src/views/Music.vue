@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { ExportAlbum, ExportSong } from '@/types/export'
-import { getAlbumInfoApi } from '@/api'
+import { getAlbumInfoApi, getLyricsApi } from '@/api'
+import { lyricTimeRegex } from '@/constants'
 import { useStore } from '@/store'
-import { formatDuration, getCoverUrl, getLyricrUrl, getProductIconUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
+import { usePlayerStore } from '@/store/player'
+import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
 const store = useStore()
+const playerStore = usePlayerStore()
 
 const albumId = computed(() => route.params.albumId as string)
 const musicId = computed(() => Number(route.params.musicId))
@@ -63,20 +66,26 @@ const qqMusicOptions = computed(() => [
 ])
 
 function removeTimeStr(str: string) {
-  return str.replace(/\[\d{2}:\d{2}\.\d{2,3}(?:\.\d{3})?\]/g, '')
+  return str.replace(lyricTimeRegex, '')
 }
 
 function getLyricData() {
-  const url = getLyricrUrl(musicInfo.value!.platforms)
-  if (!url) {
+  if (!musicInfo.value?.platforms || Object.keys(musicInfo.value!.platforms).length === 0) {
     lyricData.value = '暂无数据'
     return
   }
-  fetch(url)
-    .then(res => res.text())
+  getLyricsApi(Object.keys(musicInfo.value!.platforms)[0] as 'qq' | 'ncm', musicInfo.value!.id)
+    .then(res => res.json())
     .then((data) => {
-      lyricData.value = data
+      lyricData.value = data.content
     })
+}
+
+function handlePlay() {
+  if (musicInfo.value) {
+    const index = playerStore.addToPlaylist(buildPlaylistItem(musicInfo.value, albumInfo.value!))
+    playerStore.playSong(index)
+  }
 }
 
 function goPrevMusic() {
@@ -152,6 +161,13 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex gap-2">
+          <button
+            class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+            @click="handlePlay"
+          >
+            <LucidePlay class="size-4" />
+            播放
+          </button>
           <button
             class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             @click="goPrevMusic"

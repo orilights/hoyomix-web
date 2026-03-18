@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ExportAlbumListItem } from '@/types/export'
-import { getCoverUrl } from '@/utils'
 import { useElementSize } from '@vueuse/core'
+import { getCoverUrl } from '@/utils'
 
 const props = withDefaults(defineProps<{
   albumsList: ExportAlbumListItem[]
@@ -21,7 +21,7 @@ const years = computed(() => {
   for (const album of props.albumsList) {
     years.add(getAlbumYear(album))
   }
-  return Array.from(years).sort((a, b) => b - a)
+  return [...years].sort((a, b) => b - a)
 })
 const gridColumns = computed(() => {
   const num = Math.floor(containerWidth.value / 200)

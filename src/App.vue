@@ -3,13 +3,17 @@ import type { ExportAlbumListItem } from './types/export'
 import { getAlbumListApi } from '@/api'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
 import { useStore } from '@/store'
+import { usePlayerStore } from '@/store/player'
 
 const store = useStore()
+const playerStore = usePlayerStore()
 const { albumList } = storeToRefs(store)
 
 const layout = shallowRef(DefaultLayout)
 
 onMounted(() => {
+  playerStore.initPlayer()
+
   getAlbumListApi()
     .then(res => res.json())
     .then((data: ExportAlbumListItem[]) => {

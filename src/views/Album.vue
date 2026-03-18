@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import type { ExportAlbum } from '@/types/export'
+import type { ExportAlbum, ExportSong } from '@/types/export'
 import { getAlbumInfoApi } from '@/api'
 import { useStore } from '@/store'
+import { usePlayerStore } from '@/store/player'
 import {
+  buildPlaylistFromAlbum,
+  buildPlaylistItem,
   formatDuration,
   getCoverUrl,
   getProductIconUrl,
@@ -12,6 +15,7 @@ import {
 
 const route = useRoute()
 const store = useStore()
+const playerStore = usePlayerStore()
 
 const albumId = computed(() => route.params.id as string)
 
@@ -99,6 +103,26 @@ const qqMusicOptions = computed(() => [
 //   }
 // }
 
+function playAll() {
+  if (!albumInfo.value)
+    return
+  playerStore.replacePlaylist(buildPlaylistFromAlbum(albumInfo.value), 0)
+}
+
+function playSong(song: ExportSong) {
+  if (!albumInfo.value)
+    return
+  const items = buildPlaylistFromAlbum(albumInfo.value)
+  const index = items.findIndex(i => i.songId === song.id)
+  playerStore.replacePlaylist(items, Math.max(0, index))
+}
+
+function addToPlaylist(song: ExportSong) {
+  if (!albumInfo.value)
+    return
+  playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value))
+}
+
 onMounted(() => {
   document.documentElement.scrollTo(0, 0)
 })
@@ -136,6 +160,13 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex gap-2">
+          <button
+            class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+            @click="playAll"
+          >
+            <LucidePlay class="size-4" />
+            播放全部
+          </button>
           <Dropdown v-if="albumInfo.platforms.ncm" :options="neteaseOptions">
             <button
               class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
@@ -176,12 +207,10 @@ onMounted(() => {
                 <th class="p-2">
                   歌曲
                 </th>
-                <!-- <th class="p-2 w-[100px]">
-                  类型
-                </th> -->
                 <th class="p-2 w-[100px]">
                   时长
                 </th>
+                <th class="p-2 w-[80px]" />
               </tr>
             </thead>
             <tbody v-if="albumInfo">
@@ -195,7 +224,7 @@ onMounted(() => {
                 </tr>
                 <tr
                   v-for="songInfo, songIndex in discInfo.songs" :key="songInfo.id"
-                  class="hover:bg-black/8 cursor-pointer transition-colors"
+                  class="hover:bg-black/8 cursor-pointer transition-colors group"
                   @click="$router.push({ name: 'MusicInfo', params: { albumId: albumInfo.id, musicId: songInfo.id } })"
                 >
                   <td class="pl-4 p-2 text-gray-500">
@@ -212,11 +241,26 @@ onMounted(() => {
                       </span>
                     </div>
                   </td>
-                  <!-- <td class="p-2">
-                  {{ music_info.type === MusicType.PURE_MUSIC ? '纯音乐' : '歌曲' }}
-                </td> -->
                   <td class="p-2">
                     {{ formatDuration(songInfo.duration) }}
+                  </td>
+                  <td class="p-2">
+                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                        title="播放"
+                        @click.stop="playSong(songInfo)"
+                      >
+                        <LucidePlay class="size-4" />
+                      </button>
+                      <button
+                        class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                        title="添加到播放列表"
+                        @click.stop="addToPlaylist(songInfo)"
+                      >
+                        <LucidePlus class="size-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </template>

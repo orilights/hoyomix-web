@@ -1,6 +1,6 @@
 import type { ExportPlatforms } from '@/types/export'
 import type { NeteaseClientSchemeParams } from '@/types/netease'
-import { apiBase, feedbackPageUrl, productMap, resourceBase } from '@/constants'
+import { apiBase, feedbackPageUrl, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
 
 export function getLyricrUrl(platforms: ExportPlatforms) {
   if (platforms.ncm) {
@@ -47,7 +47,7 @@ export function goFeedbackPage() {
 
 export function isMobile() {
   const ua = navigator.userAgent
-  return /iPhone|phone|android|iPod|pad|iPad/i.test(ua)
+  return mobileUserAgentRegex.test(ua)
 }
 
 export function toBase64(text: string) {

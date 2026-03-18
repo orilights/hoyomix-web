@@ -5,13 +5,31 @@ export function getChangelog() {
 }
 
 export function getAlbumListApi() {
-  return fetch(`${apiBase}/albumList.json`)
+  return fetch(`${apiBase}/albums`)
 }
 
 export function getAlbumInfoApi(albumId: number) {
-  return fetch(`${apiBase}/album/${albumId}.json`)
+  return fetch(`${apiBase}/albums/${albumId}`)
 }
 
-export function getArtistInfoApi(id: number | string, type: 'album' | 'song' | 'product') {
-  return fetch(`${apiBase}/artist/${type}/${id}.json`)
+export function getCreditInfoApi(id: number | string, type: 'album' | 'song' | 'product') {
+  let requestUrl: string = ''
+  if (type === 'album') {
+    requestUrl = `${apiBase}/credits/albums/${id}`
+  }
+  else if (type === 'song') {
+    requestUrl = `${apiBase}/credits/songs/${id}`
+  }
+  else if (type === 'product') {
+    requestUrl = `${apiBase}/credits/products/${id}`
+  }
+  return fetch(requestUrl)
+}
+
+export function getArtistInfoApi(artistName: string) {
+  return fetch(`${apiBase}/artists/${artistName}`)
+}
+
+export function getLyricsApi(provider: 'qq' | 'ncm', songId: number | string) {
+  return fetch(`${apiBase}/lyrics?provider=${provider}&songId=${songId}`)
 }

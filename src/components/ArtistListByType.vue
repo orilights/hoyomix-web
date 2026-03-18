@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getArtistInfoApi } from '@/api'
+import { getCreditInfoApi } from '@/api'
 
 const props = defineProps<{
   id: number | string
@@ -31,7 +31,7 @@ function sortArtists(info: ArtistTypeInfo) {
 watch(() => props.id, (val) => {
   if (val) {
     artistInfo.value = {}
-    getArtistInfoApi(val, props.type)
+    getCreditInfoApi(val, props.type)
       .then(res => res.json())
       .then((data) => {
         artistInfo.value = sortArtists(data)
@@ -54,10 +54,10 @@ watch(() => props.id, (val) => {
         class="text-sm rounded-md border-gray-400"
       >
         <Tooltip>
-          <!-- <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }"> -->
-          {{ artist.name }}
-          <span v-if="artist.songs" class="text-xs text-gray-600">{{ artist.songs.length }}&nbsp;</span>
-          <!-- </RouterLink> -->
+          <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
+            {{ artist.name }}
+            <span v-if="artist.songs" class="text-xs text-gray-600">{{ artist.songs.length }}&nbsp;</span>
+          </RouterLink>
           <template v-if="artist.songs" #tooltip>
             <div class="p-2 max-w-[300px] bg-white w-fit text-xs rounded-lg shadow">
               <div v-for="song, index in artist.songs?.slice(0, 10)" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">

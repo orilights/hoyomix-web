@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { formatDate } from '@vueuse/core'
 import { getChangelog } from '@/api'
 import { useStore } from '@/store'
 import { goFeedbackPage } from '@/utils'
-import { formatDate } from '@vueuse/core'
 
 declare global {
   interface Window {

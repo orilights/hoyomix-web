@@ -31,3 +31,14 @@ export interface ExportAlbum {
 export type ExportAlbumListItem = Omit<ExportAlbum, 'songs'> & {
   songCount: number
 }
+
+export interface ArtistInfo {
+  name: string
+  variants: {
+    nameFull: string
+    isHoyomix: boolean
+  }[]
+  songs: ExportSong[]
+  albums: ExportAlbumListItem[]
+  products: string[]
+}

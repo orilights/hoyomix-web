@@ -23,6 +23,12 @@ export default defineConfig({
     }),
     Components({
       dts: 'src/components.d.ts',
+      resolvers: [
+        (name: string) => {
+          if (name.startsWith('Lucide'))
+            return { name: name.slice(6), from: 'lucide-vue-next' }
+        },
+      ],
     }),
     buildInfo(),
   ],
