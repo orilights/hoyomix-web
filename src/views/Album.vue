@@ -123,6 +123,8 @@ function addToPlaylist(song: ExportSong) {
   playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value))
 }
 
+const activeTab = ref<'songs' | 'artists'>('songs')
+
 onMounted(() => {
   document.documentElement.scrollTo(0, 0)
 })
@@ -130,17 +132,17 @@ onMounted(() => {
 
 <template>
   <div v-if="albumInfo" class="overflow-hidden">
-    <div class="h-[300px] flex">
-      <div class="w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
+    <div class="flex flex-col md:flex-row md:h-[300px]">
+      <div class="w-full md:w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
         <CoverImage :src="getCoverUrl(albumInfo.platforms)" />
       </div>
 
-      <div class="flex flex-col justify-between ml-8">
+      <div class="flex flex-col justify-between mt-4 md:mt-0 md:ml-8">
         <div>
-          <div class="text-3xl font-bold">
+          <div class="text-2xl md:text-3xl font-bold">
             {{ albumInfo.name }}
           </div>
-          <div class="mt-2 flex items-center">
+          <div class="mt-2 flex items-center flex-wrap">
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
               class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
@@ -155,11 +157,11 @@ onMounted(() => {
               {{ albumInfo.publishDate }}
             </span>
           </div>
-          <div class="mt-2 h-[160px] overflow-y-auto">
+          <div class="mt-2 h-[80px] overflow-y-auto">
             {{ albumInfo.description }}
           </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 mt-4 md:mt-0 flex-wrap">
           <button
             class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
             @click="playAll"
@@ -191,12 +193,29 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="flex gap-4 mt-4">
-      <div class="w-[400px] p-4 bg-black/5 rounded-xl">
+    <div class="flex gap-2 mt-4 md:hidden">
+      <button
+        class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+        :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+        @click="activeTab = 'songs'"
+      >
+        歌曲列表
+      </button>
+      <button
+        class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+        :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+        @click="activeTab = 'artists'"
+      >
+        制作人员
+      </button>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4">
+      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="albumInfo.id" type="album" />
       </div>
 
-      <div class="flex-1">
+      <div v-show="activeTab === 'songs'" class="flex-1 md:!block" :class="{ hidden: activeTab !== 'songs' }">
         <div class="bg-black/5 rounded-xl overflow-hidden pt-2 pb-4">
           <table class="w-full">
             <thead>
@@ -207,10 +226,10 @@ onMounted(() => {
                 <th class="p-2">
                   歌曲
                 </th>
-                <th class="p-2 w-[100px]">
+                <th class="hidden md:table-cell p-2 w-[100px]">
                   时长
                 </th>
-                <th class="p-2 w-[80px]" />
+                <th class="hidden md:table-cell p-2 w-[80px]" />
               </tr>
             </thead>
             <tbody v-if="albumInfo">
@@ -241,10 +260,10 @@ onMounted(() => {
                       </span>
                     </div>
                   </td>
-                  <td class="p-2">
+                  <td class="hidden md:table-cell p-2">
                     {{ formatDuration(songInfo.duration) }}
                   </td>
-                  <td class="p-2">
+                  <td class="hidden md:table-cell p-2">
                     <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"

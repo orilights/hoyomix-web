@@ -110,6 +110,8 @@ watch(musicInfo, (val) => {
   }
 }, { immediate: true })
 
+const activeTab = ref<'lyrics' | 'artists'>('lyrics')
+
 onMounted(() => {
   document.documentElement.scrollTo(0, 0)
 })
@@ -117,22 +119,22 @@ onMounted(() => {
 
 <template>
   <div v-if="albumInfo && musicInfo" class="overflow-hidden">
-    <div class="h-[300px] flex">
-      <div class="w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
+    <div class="flex flex-col md:flex-row md:h-[300px]">
+      <div class="w-full md:w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
         <CoverImage :src="getCoverUrl(albumInfo.platforms)" />
       </div>
-      <div class="flex flex-col justify-between ml-8">
+      <div class="flex flex-col justify-between mt-4 md:mt-0 md:ml-8">
         <div>
           <div>
-            <span class="text-3xl font-bold">
+            <span class="text-2xl md:text-3xl font-bold">
               {{ musicInfo.name }}
             </span>
-            <span class="ml-2 text-xl text-gray-500">
+            <span class="ml-2 text-lg md:text-xl text-gray-500">
               {{ musicInfo.description ?? '' }}
             </span>
           </div>
 
-          <div class="mt-2 flex items-center gap-2">
+          <div class="mt-2 flex items-center gap-2 flex-wrap">
             <span class="text-gray-500">所属</span>
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
@@ -149,7 +151,7 @@ onMounted(() => {
               <span>{{ albumInfo.name }}</span>
             </RouterLink>
           </div>
-          <div class="mt-2 flex items-center">
+          <div class="mt-2 flex items-center flex-wrap">
             <span class="text-gray-500">发布于</span>
             <span class="ml-4">
               {{ albumInfo.publishDate }}
@@ -160,7 +162,7 @@ onMounted(() => {
             </span>
           </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 mt-4 md:mt-0 flex-wrap">
           <button
             class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
             @click="handlePlay"
@@ -204,12 +206,29 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="flex gap-4 mt-4">
-      <div class="w-[400px] p-4 bg-black/5 rounded-xl">
+    <div class="flex gap-2 mt-4 md:hidden">
+      <button
+        class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+        :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+        @click="activeTab = 'lyrics'"
+      >
+        歌词
+      </button>
+      <button
+        class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+        :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+        @click="activeTab = 'artists'"
+      >
+        制作人员
+      </button>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4">
+      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="musicId" type="song" />
       </div>
 
-      <div class="flex-1">
+      <div v-show="activeTab === 'lyrics'" class="flex-1 md:!block" :class="{ hidden: activeTab !== 'lyrics' }">
         <div class="bg-black/5 rounded-xl overflow-hidden p-4">
           <div v-for="line, index in lyricList" :key="index" class="my-1">
             {{ line }}
