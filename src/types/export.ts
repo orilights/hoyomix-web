@@ -34,10 +34,8 @@ export type ExportAlbumListItem = Omit<ExportAlbum, 'songs'> & {
 
 export interface ArtistInfo {
   name: string
-  variants: {
-    nameFull: string
-    isHoyomix: boolean
-  }[]
+  alias: string[]
+  isHoyomix: boolean
   songs: ExportSong[]
   albums: ExportAlbumListItem[]
   products: string[]

@@ -12,4 +12,9 @@ export interface PlaylistItem {
 }
 
 export type PlayMode = 'sequential' | 'loop' | 'single' | 'shuffle'
-export type AudioQuality = 'sq' | 'hq'
+export type AudioQuality = 9 | 5 | 1
+
+export interface SongMediaItem {
+  quality: string
+  url: string
+}

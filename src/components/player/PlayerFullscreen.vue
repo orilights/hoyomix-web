@@ -112,7 +112,7 @@ function onSeek(time: number) {
           </div>
         </div>
 
-        <div v-if="showSpectrum" class="h-14 shrink-0">
+        <div v-if="showSpectrum" class="h-16 shrink-0">
           <PlayerSpectrum :active="showSpectrum && isPlaying" />
         </div>
       </div>

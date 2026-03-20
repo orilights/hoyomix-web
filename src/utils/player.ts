@@ -18,8 +18,8 @@ export class AudioPlayer {
   private sourceNode: MediaElementAudioSourceNode | null = null
   private listeners = new Map<PlayerEventType, Set<PlayerEventCallback>>()
   private frequencyData: Uint8Array<ArrayBuffer> | null = null
-  private backupUrl = ''
-  private usingBackup = false
+  public urls: string[] = []
+  private urlIndex = 0
 
   constructor() {
     this.audio = new Audio()
@@ -65,10 +65,10 @@ export class AudioPlayer {
     })
 
     this.audio.addEventListener('error', () => {
-      if (this.backupUrl && !this.usingBackup) {
-        // 尝试备用源
-        this.usingBackup = true
-        this.loadUrl(this.backupUrl)
+      // 尝试下一个 URL
+      if (this.urlIndex < this.urls.length - 1) {
+        this.urlIndex++
+        this.loadUrl(this.urls[this.urlIndex])
       }
       else {
         this.emit('error', new Error(this.audio.error?.message || 'Audio load error'))
@@ -90,10 +90,10 @@ export class AudioPlayer {
     this.audio.load()
   }
 
-  async loadSong(url: string, backupUrl?: string) {
+  async loadSong(urls: string[]) {
     this.audio.pause()
-    this.backupUrl = backupUrl || ''
-    this.usingBackup = false
+    this.urls = urls
+    this.urlIndex = 0
 
     this.initAudioContext()
 
@@ -101,7 +101,9 @@ export class AudioPlayer {
       await this.audioContext.resume()
     }
 
-    await this.loadUrl(url)
+    if (urls.length > 0) {
+      await this.loadUrl(urls[0])
+    }
   }
 
   async play() {

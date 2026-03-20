@@ -1,7 +1,23 @@
+import type { AudioQuality } from '@/types/player'
+
 export const apiBase = import.meta.env.VITE_API_BASE as string
 export const resourceBase = import.meta.env.VITE_RESOURCE_BASE as string
 export const feedbackPageUrl = import.meta.env.VITE_FEEDBACK_URL as string
-export const resourceBaseBackup = import.meta.env.VITE_RESOURCE_BASE_BACKUP as string
+
+export const audioQualityOptions: { value: AudioQuality, label: string, key: string }[] = [
+  { value: 9, label: '无损', key: 'flac' },
+  { value: 5, label: '高', key: 'mp3_320' },
+  { value: 1, label: '标准', key: 'mp3_128' },
+]
+
+export function getQualityLabel(q: AudioQuality): string {
+  return audioQualityOptions.find(o => o.value === q)?.label ?? '高'
+}
+
+export function getQualityKey(q: AudioQuality): string {
+  return audioQualityOptions.find(o => o.value === q)?.key ?? 'mp3_320'
+}
+
 export const productMap: { [key: string]: string }
   = {
     genshin: '原神',
@@ -19,6 +35,11 @@ export const artistTypeSort = [
   '歌手',
   '演唱',
   '人声',
+]
+
+export const artistTypeSortLast = [
+  '出品',
+  '制作人',
 ]
 
 export const lyricTimeRegex = /\[\d{2}:\d{2}\.\d{2,3}(?:\.\d{3})?\]/

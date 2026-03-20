@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getCreditInfoApi } from '@/api'
+import { artistTypeSort, artistTypeSortLast } from '@/constants'
 
 const props = defineProps<{
   id: number | string
@@ -8,8 +9,8 @@ const props = defineProps<{
 
 interface ArtistTypeInfo {
   [typeName: string]: {
-    nameFull: string
     name: string
+    alias: string[]
     songs?: {
       id: number
       name: string
@@ -28,6 +29,18 @@ function sortArtists(info: ArtistTypeInfo) {
   return sorted
 }
 
+const sortedEntries = computed(() => {
+  return Object.entries(artistInfo.value).sort(([a], [b]) => {
+    const ai = artistTypeSort.indexOf(a)
+    const bi = artistTypeSort.indexOf(b)
+    const ali = artistTypeSortLast.indexOf(a)
+    const bli = artistTypeSortLast.indexOf(b)
+    const aScore = ai !== -1 ? ai : ali !== -1 ? 10000 + ali : 1000
+    const bScore = bi !== -1 ? bi : bli !== -1 ? 10000 + bli : 1000
+    return aScore - bScore
+  })
+})
+
 watch(() => props.id, (val) => {
   if (val) {
     artistInfo.value = {}
@@ -42,7 +55,7 @@ watch(() => props.id, (val) => {
 
 <template>
   <div
-    v-for="([typeName, artists]) in Object.entries(artistInfo)" :key="typeName"
+    v-for="([typeName, artists]) in sortedEntries" :key="typeName"
     class="pb-1"
   >
     <div class="font-bold">
@@ -50,7 +63,7 @@ watch(() => props.id, (val) => {
     </div>
     <div class="flex flex-wrap gap-x-2">
       <div
-        v-for="artist in artists" :key="artist.nameFull"
+        v-for="artist in artists" :key="artist.name"
         class="text-sm rounded-md border-gray-400"
       >
         <Tooltip>

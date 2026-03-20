@@ -61,26 +61,36 @@ const currentLineIndex = computed(() => {
 })
 
 // 自动滚动到当前行
-watch(currentLineIndex, (index) => {
-  if (index < 0 || !lyricContainer.value)
-    return
-
-  const lines = lyricContainer.value.querySelectorAll('[data-lyric-line]')
-  const currentEl = lines[index] as HTMLElement
-  if (currentEl) {
-    const containerHeight = lyricContainer.value.clientHeight
-    const targetTop = currentEl.offsetTop - containerHeight / 2 + currentEl.clientHeight / 2
-    lyricContainer.value.scrollTo({
-      top: targetTop,
-      behavior: isInit.value ? 'smooth' : 'auto',
-    })
+watch(currentLineIndex, () => {
+  if (!isInit.value) {
     isInit.value = true
+    return
   }
+  scrollToCurrentLine()
 }, { immediate: true })
+
+function scrollToCurrentLine() {
+  if (currentLineIndex.value >= 0 && lyricContainer.value) {
+    const lines = lyricContainer.value.querySelectorAll('[data-lyric-line]')
+    const currentEl = lines[currentLineIndex.value] as HTMLElement
+    if (currentEl) {
+      const containerHeight = lyricContainer.value.clientHeight
+      const targetTop = currentEl.offsetTop - containerHeight / 2 + currentEl.clientHeight / 2
+      lyricContainer.value.scrollTo({
+        top: targetTop,
+        behavior: 'smooth',
+      })
+    }
+  }
+}
 
 function onClickLine(line: LyricLine) {
   emit('seek', line.time)
 }
+
+onMounted(() => {
+  scrollToCurrentLine()
+})
 </script>
 
 <template>

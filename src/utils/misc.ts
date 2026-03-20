@@ -1,23 +1,13 @@
 import type { ExportPlatforms } from '@/types/export'
 import type { NeteaseClientSchemeParams } from '@/types/netease'
-import { apiBase, feedbackPageUrl, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
+import { feedbackPageUrl, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
 
-export function getLyricrUrl(platforms: ExportPlatforms) {
+export function getCoverUrl(platforms: ExportPlatforms, size: string = '800px') {
   if (platforms.ncm) {
-    return `${apiBase}/lyric/ncm/${platforms.ncm.id}.lrc`
+    return `${resourceBase}/cover/ncm/${platforms.ncm.id}_${size}.jpg`
   }
   if (platforms.qq) {
-    return `${apiBase}/lyric/qq/${platforms.qq.id}.lrc`
-  }
-  return ''
-}
-
-export function getCoverUrl(platforms: ExportPlatforms, size?: string) {
-  if (platforms.ncm) {
-    return `${resourceBase}/cover/ncm/${platforms.ncm.id}${size ? `_${size}` : ''}.jpg`
-  }
-  if (platforms.qq) {
-    return `${resourceBase}/cover/qq/${platforms.qq.id}${size ? `_${size}` : ''}.jpg`
+    return `${resourceBase}/cover/qq/${platforms.qq.id}_${size}.jpg`
   }
   return ''
 }

@@ -33,3 +33,7 @@ export function getArtistInfoApi(artistName: string) {
 export function getLyricsApi(provider: 'qq' | 'ncm', songId: number | string) {
   return fetch(`${apiBase}/lyrics?provider=${provider}&songId=${songId}`)
 }
+
+export function getSongMediaApi(songId: number | string) {
+  return fetch(`${apiBase}/media/${songId}`)
+}

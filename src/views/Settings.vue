@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { formatDate } from '@vueuse/core'
 import { getChangelog } from '@/api'
+import { audioQualityOptions } from '@/constants'
 import { useStore } from '@/store'
+import { usePlayerStore } from '@/store/player'
 import { goFeedbackPage } from '@/utils'
 
 declare global {
@@ -11,6 +13,8 @@ declare global {
 }
 
 const store = useStore()
+const playerStore = usePlayerStore()
+const { quality } = storeToRefs(playerStore)
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
@@ -33,7 +37,22 @@ onMounted(() => {
       设置
     </div>
     <div class="mt-4">
-      这里理应是一个设置页面，但是由于 <del>作者太懒</del> 还没做完，所以暂时什么都没有
+      <div class="font-bold text-lg mb-2">
+        音频质量
+      </div>
+      <div class="flex gap-2">
+        <button
+          v-for="opt in audioQualityOptions"
+          :key="opt.value"
+          class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          :class="quality === opt.value
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          @click="playerStore.switchQuality(opt.value)"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
     </div>
     <div class="font-bold text-2xl mt-4">
       关于 HOYO-MiX Online

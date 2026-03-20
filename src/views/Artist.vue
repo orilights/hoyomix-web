@@ -13,10 +13,6 @@ const artistName = computed(() => route.params.name as string)
 
 const artistInfo = ref<ArtistInfo | null>(null)
 
-const isHoyomixMember = computed(() => {
-  return artistInfo.value?.variants.some(variant => variant.isHoyomix) ?? false
-})
-
 const albumsFiltered = computed(() => {
   if (artistInfo.value) {
     return albumList.value.filter(album => artistInfo.value?.albums.find(i => i.id === album.id))
@@ -45,7 +41,7 @@ onMounted(() => {
     <div class="w-full md:w-[400px] h-fit p-4 bg-black/5 rounded-xl">
       <div class="font-bold text-2xl pb-4">
         {{ artistName }}
-        <div v-if="isHoyomixMember" class="font-normal text-base text-gray-500">
+        <div v-if="artistInfo?.isHoyomix" class="font-normal text-base text-gray-500">
           HOYO-MiX 成员
         </div>
       </div>

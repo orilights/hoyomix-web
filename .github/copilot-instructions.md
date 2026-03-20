@@ -68,19 +68,20 @@ plugins/          # Vite 自定义插件（buildInfo 构建时间注入到 HTML�
 ## 播放器模块
 
 底层音频引擎（`src/utils/player.ts` 的 `AudioPlayer` 类）基于 HTMLAudioElement + AudioContext，支持：
-- 主备 URL 自动降级
+- 多 URL 自动重试（同质量多个 URL 依次尝试）
 - 事件驱动（play/pause/ended/timeupdate/error/bufferupdate/loading/canplay/durationchange）
 - 频谱数据获取（`getFrequencyData()`，用于可视化）
 - 通过 `getAudioPlayer()` 获取全局单例
 
-辅助函数在 `src/utils/player-utils.ts`：`getSongUrl()`、`buildPlaylistItem()`、`buildPlaylistFromAlbum()`
+辅助函数在 `src/utils/player-utils.ts`：`parseSongMedia()`、`selectMediaUrls()`、`getAvailableQualities()`、`buildPlaylistItem()`、`buildPlaylistFromAlbum()`
 
 UI 由 6 个组件组成（`src/components/player/`），在 `DefaultLayout` 底部渲染；`App.vue` 的 `onMounted` 中调用 `playerStore.initPlayer()` 初始化。
 
 ## API 与数据
 
 - API 基于静态 JSON 文件（`VITE_API_BASE`）
-- 资源地址通过 `VITE_RESOURCE_BASE` 配置，`VITE_RESOURCE_BASE_BACKUP` 可选备用
+- 封面等静态资源通过 `VITE_RESOURCE_BASE` 配置
+- 歌曲播放 URL 通过 `getSongMediaApi` 从服务端获取，支持三级音质（无损 flac / 高 mp3_320 / 标准 mp3_128）
 - 反馈页面通过 `VITE_FEEDBACK_URL` 配置
 - 核心数据类型：`src/types/export.ts`（前端展示结构，含 `ExportPlatforms`）、`src/types/player.ts`（`PlaylistItem`、`PlayMode`、`AudioQuality`）
 - 支持网易云音乐和 QQ 音乐两个平台的链接跳转

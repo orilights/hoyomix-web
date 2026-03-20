@@ -1,6 +1,7 @@
-import type { AudioQuality, PlaylistItem, PlayMode } from '@/types/player'
+import type { AudioQuality, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
-import { getLyricrUrl, getSongBackupUrl, getSongUrl } from '@/utils'
+import { getLyricsApi, getSongMediaApi } from '@/api'
+import { getAvailableQualities, parseSongMedia, selectMediaUrls } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 
 export const usePlayerStore = defineStore('player', {
@@ -10,11 +11,13 @@ export const usePlayerStore = defineStore('player', {
     currentIndex: -1,
     playMode: 'sequential' as PlayMode,
     volume: 0.8,
-    quality: 'hq' as AudioQuality,
+    quality: 5 as AudioQuality,
     showSpectrum: false,
 
     // 运行时状态
     isPlaying: false,
+    currentMediaItems: [] as SongMediaItem[],
+    availableQualities: new Set<AudioQuality>(),
     currentTime: 0,
     duration: 0,
     bufferedEnd: 0,
@@ -94,26 +97,56 @@ export const usePlayerStore = defineStore('player', {
 
       this.currentIndex = index
       const song = this.playlist[index]
-      const url = getSongUrl(song.songId, this.quality)
-      const backupUrl = getSongBackupUrl(song.songId, this.quality)
 
+      // 立即重置播放状态，不等待加载完成
       this.currentTime = 0
+      this.duration = 0
       this.bufferedEnd = 0
+      this.isLoading = true
+      this.lyricData = ''
+      this.fetchLyric()
+
+      try {
+        const res = await getSongMediaApi(song.songId)
+        const data = await res.json()
+        this.currentMediaItems = parseSongMedia(data.medias)
+        this.availableQualities = getAvailableQualities(this.currentMediaItems)
+      }
+      catch {
+        this.currentMediaItems = []
+        this.availableQualities = new Set()
+        this.isPlaying = false
+        this.isLoading = false
+        return
+      }
+
+      const urls = selectMediaUrls(this.currentMediaItems, this.quality)
+      if (urls.length === 0) {
+        this.isPlaying = false
+        this.isLoading = false
+        return
+      }
 
       const player = getAudioPlayer()
-      await player.loadSong(url, backupUrl)
+      await player.loadSong(urls)
       await player.play()
-
-      this.fetchLyric()
     },
 
     async togglePlay() {
+      if (this.isLoading) {
+        return
+      }
       const player = getAudioPlayer()
       if (this.isPlaying) {
         player.pause()
       }
       else if (this.currentSong) {
-        await player.play()
+        if (player.urls.length === 0) {
+          await this.playSong(this.currentIndex)
+        }
+        else {
+          await player.play()
+        }
       }
       else if (this.playlist.length > 0) {
         await this.playSong(0)
@@ -275,19 +308,19 @@ export const usePlayerStore = defineStore('player', {
         return
       this.quality = q
 
-      if (!this.currentSong)
+      if (!this.currentSong || this.currentMediaItems.length === 0)
         return
 
       const savedTime = this.currentTime
       const wasPlaying = this.isPlaying
 
-      const url = getSongUrl(this.currentSong.songId, q)
-      const backupUrl = getSongBackupUrl(this.currentSong.songId, q)
+      const urls = selectMediaUrls(this.currentMediaItems, q)
+      if (urls.length === 0)
+        return
 
       const player = getAudioPlayer()
-      await player.loadSong(url, backupUrl)
+      await player.loadSong(urls)
 
-      // 等待 canplay 后恢复进度
       const onCanPlay = async () => {
         player.off('canplay', onCanPlay)
         player.seek(savedTime)
@@ -319,18 +352,17 @@ export const usePlayerStore = defineStore('player', {
         return
       }
 
-      const url = getLyricrUrl(song.platforms)
-      if (!url) {
+      if (!song.platforms || Object.keys(song.platforms).length === 0) {
         this.lyricData = ''
         return
       }
 
-      fetch(url)
-        .then(res => res.text())
+      getLyricsApi(Object.keys(song.platforms)[0] as 'qq' | 'ncm', song.songId)
+        .then(res => res.json())
         .then((data) => {
           // 确认仍然是同一首歌
           if (this.currentSong?.songId === song.songId) {
-            this.lyricData = data
+            this.lyricData = data.content
           }
         })
         .catch(() => {

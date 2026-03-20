@@ -4,17 +4,20 @@ import { nextTick, onBeforeUnmount, ref } from 'vue'
 interface DropdownOption {
   label: string
   onClick: () => void
+  disabled?: boolean
 }
 
 interface Props {
   options: DropdownOption[]
   alignment?: 'left' | 'center' | 'right'
   autoPosition?: boolean
+  dark?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   alignment: 'left',
   autoPosition: true,
+  dark: false,
 })
 
 const container = ref<HTMLElement | null>(null)
@@ -63,6 +66,8 @@ function calculatePosition() {
 }
 
 function selectOption(option: DropdownOption) {
+  if (option.disabled)
+    return
   option.onClick()
   isOpen.value = false
   document.removeEventListener('click', closeDropdown)
@@ -83,14 +88,21 @@ onBeforeUnmount(() => {
       <div
         v-show="isOpen"
         ref="menu"
-        class="dropdown-menu absolute left-0 mt-1 bg-white rounded-lg w-fit text-sm shadow overflow-hidden z-999"
-        :class="[`align-${alignment}`, { 'menu-up': menuDirection === 'up' }]"
+        class="dropdown-menu absolute left-0 mt-1 rounded-lg w-fit text-sm shadow overflow-hidden z-999"
+        :class="[
+          `align-${alignment}`,
+          { 'menu-up': menuDirection === 'up' },
+          dark ? 'bg-gray-800 text-white' : 'bg-white',
+        ]"
         @click.stop
       >
         <div
           v-for="(option, index) in options"
           :key="index"
-          class="p-2 cursor-pointer hover:bg-gray-500/10 transition-colors text-nowrap"
+          class="p-2 transition-colors text-nowrap"
+          :class="option.disabled
+            ? dark ? 'text-white/30 cursor-not-allowed' : 'text-gray-400 cursor-not-allowed'
+            : dark ? 'cursor-pointer hover:bg-white/10' : 'cursor-pointer hover:bg-gray-500/10'"
           @click="selectOption(option)"
         >
           {{ option.label }}

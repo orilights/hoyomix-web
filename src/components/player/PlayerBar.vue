@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { AudioQuality, PlayMode } from '@/types/player'
+import type { PlayMode } from '@/types/player'
+import { audioQualityOptions, getQualityLabel } from '@/constants'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
 
@@ -7,6 +8,7 @@ const playerStore = usePlayerStore()
 const {
   currentSong,
   isPlaying,
+  isLoading,
   currentTime,
   duration,
   bufferedEnd,
@@ -15,6 +17,7 @@ const {
   quality,
   isFullscreen,
   showPlaylist,
+  availableQualities,
 } = storeToRefs(playerStore)
 
 const showVolumeSlider = ref(false)
@@ -52,20 +55,29 @@ const playModeIcon = computed(() => {
   return map[playMode.value]
 })
 
-const qualityLabel = computed(() => quality.value.toUpperCase())
+const qualityLabel = computed(() => getQualityLabel(quality.value))
+
+const qualityOptions = computed(() =>
+  audioQualityOptions.map(opt => ({
+    label: opt.label,
+    disabled: !availableQualities.value.has(opt.value),
+    onClick: () => playerStore.switchQuality(opt.value),
+  })),
+)
 
 function onSeek(time: number) {
   playerStore.seek(time)
 }
 
-function toggleQuality() {
-  const next: AudioQuality = quality.value === 'hq' ? 'sq' : 'hq'
-  playerStore.switchQuality(next)
-}
-
 function openFullscreen() {
   playerStore.setFullscreen(true)
 }
+
+onMounted(() => {
+  if (currentSong.value) {
+    playerStore.fetchLyric()
+  }
+})
 </script>
 
 <template>
@@ -90,12 +102,16 @@ function openFullscreen() {
             @click="openFullscreen"
           >
           <div v-if="currentSong" class="min-w-0">
-            <div class="text-white text-sm truncate">
-              {{ currentSong.songName }}
-            </div>
-            <div class="text-white/50 text-xs truncate">
-              {{ currentSong.albumName }}
-            </div>
+            <RouterLink :to="{ name: 'MusicInfo', params: { albumId: currentSong.albumId, musicId: currentSong.songId } }" @click="isFullscreen = false">
+              <div class="text-white text-sm truncate">
+                {{ currentSong.songName }}
+              </div>
+            </RouterLink>
+            <RouterLink :to="{ name: 'AlbumInfo', params: { id: currentSong.albumId } }" @click="isFullscreen = false">
+              <div class="text-white/50 text-xs truncate mt-1">
+                {{ currentSong.albumName }}
+              </div>
+            </RouterLink>
           </div>
         </div>
 
@@ -112,7 +128,8 @@ function openFullscreen() {
               class="text-white bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors cursor-pointer"
               @click="playerStore.togglePlay()"
             >
-              <LucidePlay v-if="!isPlaying" class="size-5" fill="currentColor" />
+              <LucideLoader2 v-if="isLoading" class="size-5 animate-spin" />
+              <LucidePlay v-else-if="!isPlaying" class="size-5" fill="currentColor" />
               <LucidePause v-else class="size-5" fill="currentColor" stroke-width="0.5" />
             </button>
 
@@ -146,7 +163,8 @@ function openFullscreen() {
             class="text-white p-2 cursor-pointer"
             @click="playerStore.togglePlay()"
           >
-            <LucidePlay v-if="!isPlaying" class="size-6" fill="currentColor" />
+            <LucideLoader2 v-if="isLoading" class="size-6 animate-spin" />
+            <LucidePlay v-else-if="!isPlaying" class="size-6" fill="currentColor" />
             <LucidePause v-else class="size-6" fill="currentColor" stroke-width="0.5" />
           </button>
           <button
@@ -158,15 +176,16 @@ function openFullscreen() {
         </div>
 
         <div class="hidden md:flex items-center gap-1 w-[240px] justify-end shrink-0">
-          <button
-            class="text-xs font-bold px-2 py-1 rounded border cursor-pointer transition-colors"
-            :class="quality === 'sq'
-              ? 'text-amber-400 border-amber-400/50 hover:bg-amber-400/10'
-              : 'text-white/60 border-white/30 hover:bg-white/10'"
-            @click="toggleQuality"
-          >
-            {{ qualityLabel }}
-          </button>
+          <Dropdown :options="qualityOptions" alignment="center" dark>
+            <button
+              class="text-xs font-bold px-2 py-1 rounded border cursor-pointer transition-colors"
+              :class="quality === 9
+                ? 'text-amber-400 border-amber-400/50 hover:bg-amber-400/10'
+                : 'text-white/60 border-white/30 hover:bg-white/10'"
+            >
+              {{ qualityLabel }}
+            </button>
+          </Dropdown>
 
           <button
             class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
