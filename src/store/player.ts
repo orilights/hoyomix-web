@@ -1,7 +1,7 @@
 import type { AudioQuality, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
 import { getLyricsApi, getSongMediaApi } from '@/api'
-import { getAvailableQualities, parseSongMedia, selectMediaUrls } from '@/utils'
+import { clearMediaSession, getAvailableQualities, parseSongMedia, selectMediaUrls, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 
 export const usePlayerStore = defineStore('player', {
@@ -55,14 +55,32 @@ export const usePlayerStore = defineStore('player', {
       const player = getAudioPlayer()
       player.setVolume(this.volume)
 
+      setupMediaSessionHandlers({
+        play: () => this.togglePlay(),
+        pause: () => this.togglePlay(),
+        playNext: () => this.playNext(),
+        playPrev: () => this.playPrev(),
+        seek: (time: number) => this.seek(time),
+      })
+
       player.on('play', () => {
         this.isPlaying = true
+        if ('mediaSession' in navigator)
+          navigator.mediaSession.playbackState = 'playing'
       })
       player.on('pause', () => {
         this.isPlaying = false
+        if ('mediaSession' in navigator)
+          navigator.mediaSession.playbackState = 'paused'
       })
       player.on('timeupdate', (time: number) => {
         this.currentTime = time
+        if ('mediaSession' in navigator && this.duration > 0) {
+          try {
+            navigator.mediaSession.setPositionState({ duration: this.duration, playbackRate: 1, position: time })
+          }
+          catch {}
+        }
       })
       player.on('durationchange', (dur: number) => {
         this.duration = dur
@@ -130,6 +148,7 @@ export const usePlayerStore = defineStore('player', {
       const player = getAudioPlayer()
       await player.loadSong(urls)
       await player.play()
+      updateMediaSession(song)
     },
 
     async togglePlay() {
@@ -273,6 +292,7 @@ export const usePlayerStore = defineStore('player', {
       this.bufferedEnd = 0
       this.lyricData = ''
       getAudioPlayer().pause()
+      clearMediaSession()
     },
 
     reorderPlaylist(oldIndex: number, newIndex: number) {

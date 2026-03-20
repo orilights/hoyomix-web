@@ -1,6 +1,7 @@
 import type { ExportAlbum, ExportSong } from '@/types/export'
 import type { AudioQuality, PlaylistItem, SongMediaItem } from '@/types/player'
 import { audioQualityOptions, getQualityKey } from '@/constants'
+import { getCoverUrl } from './misc'
 
 // 解析服务端返回的 medias 数组（格式："quality|url"）
 export function parseSongMedia(medias: string[]): SongMediaItem[] {
@@ -67,4 +68,50 @@ export function buildPlaylistItem(song: ExportSong, album: ExportAlbum): Playlis
 
 export function buildPlaylistFromAlbum(album: ExportAlbum): PlaylistItem[] {
   return album.songs.map(song => buildPlaylistItem(song, album))
+}
+
+// ============ Media Session API ============
+
+const MEDIA_SESSION_ARTWORK_SIZES = ['96px', '128px', '256px', '512px'] as const
+
+export function updateMediaSession(song: PlaylistItem) {
+  if (!('mediaSession' in navigator))
+    return
+
+  const artwork: MediaImage[] = MEDIA_SESSION_ARTWORK_SIZES
+    .map(size => ({ src: getCoverUrl(song.albumPlatforms, size), sizes: `${size.replace('px', '')}x${size.replace('px', '')}`, type: 'image/jpeg' }))
+    .filter(a => a.src !== '')
+
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: song.songName,
+    artist: 'HOYO-MiX',
+    album: song.albumName,
+    artwork: artwork.length > 0 ? artwork : undefined,
+  })
+}
+
+export function clearMediaSession() {
+  if (!('mediaSession' in navigator))
+    return
+  navigator.mediaSession.metadata = null
+}
+
+export function setupMediaSessionHandlers(callbacks: {
+  play: () => void
+  pause: () => void
+  playNext: () => void
+  playPrev: () => void
+  seek: (time: number) => void
+}) {
+  if (!('mediaSession' in navigator))
+    return
+
+  navigator.mediaSession.setActionHandler('play', callbacks.play)
+  navigator.mediaSession.setActionHandler('pause', callbacks.pause)
+  navigator.mediaSession.setActionHandler('nexttrack', callbacks.playNext)
+  navigator.mediaSession.setActionHandler('previoustrack', callbacks.playPrev)
+  navigator.mediaSession.setActionHandler('seekto', (action) => {
+    if (action.seekTime != null)
+      callbacks.seek(action.seekTime)
+  })
 }
