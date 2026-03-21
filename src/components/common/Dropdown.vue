@@ -3,6 +3,7 @@ import { nextTick, onBeforeUnmount, ref } from 'vue'
 
 interface DropdownOption {
   label: string
+  desc?: string
   onClick: () => void
   disabled?: boolean
 }
@@ -106,6 +107,7 @@ onBeforeUnmount(() => {
           @click="selectOption(option)"
         >
           {{ option.label }}
+          <span v-if="option.desc" class="text-xs text-gray-500">{{ option.desc }}</span>
         </div>
       </div>
     </transition>

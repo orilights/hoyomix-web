@@ -11,6 +11,7 @@ const {
   isFullscreen,
   lyricData,
   showSpectrum,
+  volume,
 } = storeToRefs(playerStore)
 
 const coverUrl = computed(() => {
@@ -103,6 +104,15 @@ function onSeek(time: number) {
 
         <div class="md:hidden shrink-0 flex justify-end px-6 py-4">
           <div class="flex items-center gap-5 bg-black/40 backdrop-blur-md rounded-full px-6 py-3">
+            <input
+              type="range"
+              :value="volume"
+              min="0"
+              max="1"
+              step="0.01"
+              class="volume-slider"
+              @input="playerStore.setVolume(Number(($event.target as HTMLInputElement).value))"
+            >
             <button class="text-gray-400 hover:text-white transition-colors cursor-pointer" @click="playerStore.playPrev()">
               <LucideSkipBack class="size-6" fill="currentColor" />
             </button>
@@ -121,6 +131,11 @@ function onSeek(time: number) {
 </template>
 
 <style scoped>
+.volume-slider {
+  height: 4px;
+  accent-color: white;
+}
+
 .fullscreen-player-enter-active,
 .fullscreen-player-leave-active {
   transition: all 0.4s ease;

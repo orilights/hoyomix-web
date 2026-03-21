@@ -60,6 +60,7 @@ const qualityLabel = computed(() => getQualityLabel(quality.value))
 const qualityOptions = computed(() =>
   audioQualityOptions.map(opt => ({
     label: opt.label,
+    desc: opt.desc,
     disabled: !availableQualities.value.has(opt.value),
     onClick: () => playerStore.switchQuality(opt.value),
   })),
@@ -94,7 +95,7 @@ onMounted(() => {
 
     <div class="bg-gray-900/95 backdrop-blur-xl border-t border-white/10">
       <div class="h-[72px] flex items-center px-4 gap-4">
-        <div class="flex items-center gap-3 min-w-0 w-[240px] shrink-0">
+        <div class="flex items-center gap-3 min-w-0 max-w-[240px]">
           <img
             v-if="coverUrl && !isFullscreen"
             :src="coverUrl"
@@ -115,7 +116,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="hidden md:flex flex-col items-center flex-1 gap-1">
+        <div class="hidden md:flex flex-col items-center flex-1 gap-1 shrink-0">
           <div class="flex items-center gap-4">
             <button
               class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1"
@@ -158,24 +159,16 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex md:hidden items-center gap-2 ml-auto">
+        <div class="flex items-center gap-2 w-[240px] ml-auto justify-end">
           <button
-            class="text-white p-2 cursor-pointer"
+            class="text-white p-2 cursor-pointer md:hidden"
             @click="playerStore.togglePlay()"
           >
             <LucideLoader2 v-if="isLoading" class="size-6 animate-spin" />
             <LucidePlay v-else-if="!isPlaying" class="size-6" fill="currentColor" />
             <LucidePause v-else class="size-6" fill="currentColor" stroke-width="0.5" />
           </button>
-          <button
-            class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
-            @click="showPlaylist = !showPlaylist"
-          >
-            <LucideList class="size-4" />
-          </button>
-        </div>
 
-        <div class="hidden md:flex items-center gap-1 w-[240px] justify-end shrink-0">
           <Dropdown :options="qualityOptions" alignment="center" dark>
             <button
               class="text-xs font-bold px-2 py-1 rounded border cursor-pointer transition-colors"
@@ -198,7 +191,7 @@ onMounted(() => {
             <LucideShuffle v-else class="size-4" />
           </button>
 
-          <div class="relative" @wheel.prevent="onVolumeWheel">
+          <div class="hidden md:block relative" @wheel.prevent="onVolumeWheel">
             <button
               class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
               @click="toggleMute"
@@ -231,7 +224,8 @@ onMounted(() => {
           </div>
 
           <button
-            class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+            class="p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+            :class="{ 'text-blue-400': showPlaylist, 'text-white/60 hover:text-white': !showPlaylist }"
             @click="showPlaylist = !showPlaylist"
           >
             <LucideList class="size-4" />
