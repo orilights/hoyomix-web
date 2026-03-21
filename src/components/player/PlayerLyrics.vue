@@ -99,6 +99,7 @@ onMounted(() => {
   <div
     ref="lyricContainer"
     class="lyrics-container h-full overflow-y-auto scrollbar-hide py-[40%]"
+    :options="{ scrollbars: undefined }"
   >
     <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center mt-8">
       暂无歌词

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ExportAlbumListItem } from './types/export'
+import { useOverlayScrollbars } from 'overlayscrollbars-vue'
 import { getAlbumListApi } from '@/api'
 import DefaultLayout from '@/layout/DefaultLayout.vue'
 import { useStore } from '@/store'
@@ -8,9 +9,20 @@ import { usePlayerStore } from '@/store/player'
 const store = useStore()
 const playerStore = usePlayerStore()
 const { albumList } = storeToRefs(store)
-const { volume } = storeToRefs(playerStore)
+const { volume, isFullscreen, showPlaylist } = storeToRefs(playerStore)
 
 const layout = shallowRef(DefaultLayout)
+
+const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({
+  defer: true,
+  options: {
+    scrollbars: {
+      theme: 'os-theme-custom',
+      autoHide: 'leave',
+      clickScroll: true,
+    },
+  },
+})
 
 function onKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement
@@ -32,7 +44,17 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
+watch(() => isFullscreen.value || showPlaylist.value, (val) => {
+  const osInstance = useOsInstance()
+  osInstance?.options({
+    overflow: {
+      y: val ? 'hidden' : 'scroll',
+    },
+  })
+}, { immediate: true })
+
 onMounted(() => {
+  initBodyScrollbars({ target: document.body })
   playerStore.initPlayer()
   window.addEventListener('keydown', onKeydown)
 

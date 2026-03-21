@@ -4,7 +4,7 @@ import { getAlbumInfoApi, getLyricsApi } from '@/api'
 import { lyricTimeRegex } from '@/constants'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
-import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goFeedbackPage, goNeteaseClient } from '@/utils'
+import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -167,7 +167,7 @@ onMounted(() => {
             class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
             @click="handlePlay"
           >
-            <LucidePlay class="size-4" />
+            <LucidePlay class="size-4" fill="currentColor" />
             播放
           </button>
           <button
@@ -196,12 +196,6 @@ onMounted(() => {
               <IconQQ class="size-5" />
             </button>
           </Dropdown>
-          <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            @click="goFeedbackPage"
-          >
-            反馈问题
-          </button>
         </div>
       </div>
     </div>

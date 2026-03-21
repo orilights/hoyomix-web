@@ -28,6 +28,8 @@ export default defineConfig({
         (name: string) => {
           if (name.startsWith('Lucide'))
             return { name: name.slice(6), from: 'lucide-vue-next' }
+          if (name === 'OverlayScrollbarsComponent')
+            return { name: 'OverlayScrollbarsComponent', from: 'overlayscrollbars-vue' }
         },
       ],
     }),

@@ -34,6 +34,7 @@ declare module 'vue' {
     LucideVolume2: typeof import('lucide-vue-next')['Volume2']
     LucideVolumeX: typeof import('lucide-vue-next')['VolumeX']
     LucideX: typeof import('lucide-vue-next')['X']
+    OverlayScrollbarsComponent: typeof import('overlayscrollbars-vue')['OverlayScrollbarsComponent']
     PlayerBar: typeof import('./components/player/PlayerBar.vue')['default']
     PlayerFullscreen: typeof import('./components/player/PlayerFullscreen.vue')['default']
     PlayerLyrics: typeof import('./components/player/PlayerLyrics.vue')['default']

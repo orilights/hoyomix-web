@@ -93,9 +93,15 @@ onMounted(() => {
       />
     </div>
 
-    <div class="bg-gray-900/95 backdrop-blur-xl border-t border-white/10">
+    <div
+      class=" backdrop-blur-xl border-t border-white/10 transition-colors"
+      :class="{
+        'bg-gray-900/95': !isFullscreen,
+        'bg-gray-900/20': isFullscreen,
+      }"
+    >
       <div class="h-[72px] flex items-center px-4 gap-4">
-        <div class="flex items-center gap-3 min-w-0 max-w-[240px]">
+        <div class="flex items-center gap-3 min-w-0 max-w-[240px] md:w-[240px]">
           <img
             v-if="coverUrl && !isFullscreen"
             :src="coverUrl"

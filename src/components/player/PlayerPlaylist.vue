@@ -55,7 +55,7 @@ function clearAll() {
           </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto">
+        <OverlayScrollbarsComponent class="flex-1" :options="{ scrollbars: { theme: 'os-theme-custom-light', autoHide: 'leave', clickScroll: true } }" defer>
           <draggable
             :model-value="playlist"
             item-key="songId"
@@ -107,7 +107,7 @@ function clearAll() {
           <div v-if="playlist.length === 0" class="text-white/30 text-center mt-16">
             播放列表为空
           </div>
-        </div>
+        </OverlayScrollbarsComponent>
       </div>
     </div>
   </Transition>

@@ -9,7 +9,6 @@ import {
   formatDuration,
   getCoverUrl,
   getProductIconUrl,
-  goFeedbackPage,
   goNeteaseClient,
 } from '@/utils'
 
@@ -89,20 +88,6 @@ const qqMusicOptions = computed(() => [
   },
 ])
 
-// function goPrevAlbum() {
-//   const index = albums.value.findIndex(album => album.netease.id === Number(albumId.value))
-//   if (index > 0) {
-//     router.push({ name: 'AlbumInfo', params: { id: albums.value[index - 1].netease.id } })
-//   }
-// }
-
-// function goNextAlbum() {
-//   const index = albums.value.findIndex(album => album.netease.id === Number(albumId.value))
-//   if (index < albums.value.length - 1) {
-//     router.push({ name: 'AlbumInfo', params: { id: albums.value[index + 1].netease.id } })
-//   }
-// }
-
 function playAll() {
   if (!albumInfo.value)
     return
@@ -157,16 +142,16 @@ onMounted(() => {
               {{ albumInfo.publishDate }}
             </span>
           </div>
-          <div class="mt-2 h-[80px] overflow-y-auto">
+          <OverlayScrollbarsComponent class="mt-2 h-[80px]" :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }" defer>
             {{ albumInfo.description }}
-          </div>
+          </OverlayScrollbarsComponent>
         </div>
         <div class="flex gap-2 mt-4 md:mt-0 flex-wrap">
           <button
             class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
             @click="playAll"
           >
-            <LucidePlay class="size-4" />
+            <LucidePlay class="size-4" fill="currentColor" />
             播放全部
           </button>
           <Dropdown v-if="albumInfo.platforms.ncm" :options="neteaseOptions">
@@ -183,12 +168,6 @@ onMounted(() => {
               <IconQQ class="size-5" />
             </button>
           </Dropdown>
-          <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            @click="goFeedbackPage"
-          >
-            反馈问题
-          </button>
         </div>
       </div>
     </div>
