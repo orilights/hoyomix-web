@@ -9,9 +9,6 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/settings',
     name: 'Settings',
-    meta: {
-      hideCopyright: true,
-    },
     component: () => import('@/views/Settings.vue'),
   },
   {

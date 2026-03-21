@@ -4,19 +4,15 @@ import { LucideLayoutGrid, LucideSlidersHorizontal } from 'lucide-vue-next'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 
-const route = useRoute()
 const store = useStore()
 const playerStore = usePlayerStore()
 const { backgroundUrl } = storeToRefs(store)
-const { isFullscreen, playlist } = storeToRefs(playerStore)
-
-const hasPlaylist = computed(() => playlist.value.length > 0)
+const { isFullscreen } = storeToRefs(playerStore)
 
 const background1 = ref<HTMLElement | null>(null)
 const background2 = ref<HTMLElement | null>(null)
 
 const showBackground = ref(1)
-const showCopyright = computed(() => !(route.meta?.hideCopyright === true))
 
 const { y: scrollY } = useWindowScroll()
 
@@ -78,14 +74,8 @@ watch(backgroundUrl, async (newVal) => {
     </button>
   </div>
   <div class="default-layout min-h-screen backdrop-blur-2xl bg-white/80">
-    <div class="px-4 md:px-16 xl:px-32 pt-[80px]" :class="hasPlaylist ? 'pb-[100px]' : 'pb-8'">
+    <div class="px-4 md:px-16 xl:px-32 pt-[80px] pb-[100px]">
       <slot />
-      <div v-if="showCopyright" class="mt-16 text-sm text-gray-500">
-        <div class="absolute bottom-0 text-center w-full left-0 mb-4 px-4">
-          本网站由爱好者制作，并非 HOYO-MiX 官方网站。
-          网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司。
-        </div>
-      </div>
     </div>
   </div>
 

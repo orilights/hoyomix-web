@@ -76,12 +76,3 @@ onUnmounted(() => {
     <router-view />
   </component>
 </template>
-
-<style>
-body {
-  --background-image: url('');
-  background-image: var(--background-image);
-  background-size: cover;
-  background-position: center;
-}
-</style>

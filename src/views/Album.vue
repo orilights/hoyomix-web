@@ -189,12 +189,12 @@ onMounted(() => {
       </button>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4">
+    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4 h-fit">
       <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="albumInfo.id" type="album" />
       </div>
 
-      <div v-show="activeTab === 'songs'" class="flex-1 md:!block" :class="{ hidden: activeTab !== 'songs' }">
+      <div v-show="activeTab === 'songs'" class="flex-1 md:!block h-fit" :class="{ hidden: activeTab !== 'songs' }">
         <div class="bg-black/5 rounded-xl overflow-hidden pt-2 pb-4">
           <table class="w-full">
             <thead>

@@ -112,16 +112,16 @@ onMounted(() => {
             </div>
           </Transition>
           <div v-if="currentSong" class="min-w-0">
-            <RouterLink :to="{ name: 'MusicInfo', params: { albumId: currentSong.albumId, musicId: currentSong.songId } }" @click="isFullscreen = false">
-              <div class="text-white text-sm truncate">
+            <div class="text-white text-sm truncate">
+              <RouterLink :to="{ name: 'MusicInfo', params: { albumId: currentSong.albumId, musicId: currentSong.songId } }" @click="isFullscreen = false">
                 {{ currentSong.songName }}
-              </div>
-            </RouterLink>
-            <RouterLink :to="{ name: 'AlbumInfo', params: { id: currentSong.albumId } }" @click="isFullscreen = false">
-              <div class="text-white/50 text-xs truncate mt-1">
+              </RouterLink>
+            </div>
+            <div class="text-white/50 text-xs truncate mt-1">
+              <RouterLink :to="{ name: 'AlbumInfo', params: { id: currentSong.albumId } }" @click="isFullscreen = false">
                 {{ currentSong.albumName }}
-              </div>
-            </RouterLink>
+              </RouterLink>
+            </div>
           </div>
         </div>
 

@@ -26,7 +26,6 @@ const blurCoverUrl = computed(() => {
   return getCoverUrl(currentSong.value.albumPlatforms, '200px')
 })
 
-// 双层背景图过渡
 const bg1Url = ref('')
 const bg2Url = ref('')
 const showBackground = ref(0)
@@ -63,12 +62,12 @@ function onSeek(time: number) {
     >
       <div class="absolute inset-0 overflow-hidden bg-gray-900">
         <div
-          class="fs-background transition-opacity duration-500"
+          class="player-background transition-opacity duration-500"
           :style="{ backgroundImage: bg1Url ? `url(${bg1Url})` : 'none' }"
           :class="showBackground === 1 ? 'opacity-100' : 'opacity-0'"
         />
         <div
-          class="fs-background transition-opacity duration-500"
+          class="player-background transition-opacity duration-500"
           :style="{ backgroundImage: bg2Url ? `url(${bg2Url})` : 'none' }"
           :class="showBackground === 2 ? 'opacity-100' : 'opacity-0'"
         />
@@ -110,7 +109,9 @@ function onSeek(time: number) {
             </div>
             <div class="mt-4 text-center">
               <div class="text-white text-xl font-bold truncate">
-                {{ currentSong.songName }}
+                <RouterLink :to="{ name: 'MusicInfo', params: { albumId: currentSong.albumId, musicId: currentSong.songId } }" @click="isFullscreen = false">
+                  {{ currentSong.songName }}
+                </RouterLink>
               </div>
               <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">
                 {{ currentSong.songDescription }}
@@ -157,7 +158,7 @@ function onSeek(time: number) {
 </template>
 
 <style scoped>
-.fs-background {
+.player-background {
   position: absolute;
   inset: 0;
   background-size: cover;

@@ -218,11 +218,11 @@ onMounted(() => {
     </div>
 
     <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4">
-      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block" :class="{ hidden: activeTab !== 'artists' }">
+      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="musicId" type="song" />
       </div>
 
-      <div v-show="activeTab === 'lyrics'" class="flex-1 md:!block" :class="{ hidden: activeTab !== 'lyrics' }">
+      <div v-show="activeTab === 'lyrics'" class="flex-1 md:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
         <div class="bg-black/5 rounded-xl overflow-hidden p-4">
           <div v-for="line, index in lyricList" :key="index" class="my-1">
             {{ line }}

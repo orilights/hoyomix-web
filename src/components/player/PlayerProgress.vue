@@ -97,7 +97,6 @@ function onClick(e: MouseEvent) {
   emit('seek', getTimeFromEvent(e))
 }
 
-// 触摸事件
 function onTouchStart(e: TouchEvent) {
   if (!props.duration || !e.touches.length)
     return
@@ -139,7 +138,7 @@ const hoverPercent = computed(() => {
   <div
     ref="progressBar"
     class="relative select-none cursor-pointer group"
-    :class="thin ? 'h-1 hover:h-2 transition-[height] z-[70]' : 'h-1.5 rounded-full'"
+    :class="thin ? 'h-1 hover:h-2 transition-[height] z-[70]' : 'h-1.5'"
     @mousedown="onMouseDown"
     @mouseenter="onMouseEnter"
     @mousemove="onMouseMoveBar"
@@ -150,15 +149,17 @@ const hoverPercent = computed(() => {
     @touchend="onTouchEnd"
   >
     <div
-      class="absolute inset-0  rounded-full overflow-hidden"
-      :class="thin ? 'bg-gray-900/95' : 'bg-white/20'"
+      class="absolute inset-0 overflow-hidden bg-white/10"
+      :class="thin ? 'rounded-r-full' : 'rounded-full'"
     >
       <div
-        class="absolute inset-y-0 left-0 bg-white/20 rounded-full transition-[width] duration-300"
+        class="absolute inset-y-0 left-0 bg-white/10 transition-[width] duration-300"
+        :class="thin ? 'rounded-r-full' : 'rounded-full'"
         :style="{ width: `${bufferedPercent}%` }"
       />
       <div
-        class="absolute inset-y-0 left-0 bg-white/80 rounded-full"
+        class="absolute inset-y-0 left-0 bg-white/80"
+        :class="thin ? 'rounded-r-full' : 'rounded-full'"
         :style="{ width: `${displayPercent}%` }"
       />
     </div>

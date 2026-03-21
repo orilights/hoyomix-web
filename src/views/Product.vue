@@ -52,7 +52,7 @@ watch(product, (val) => {
     </div>
   </div>
 
-  <div class="flex gap-2 mt-2 md:hidden">
+  <div class="flex gap-2 mt-2 md:hidden h-fit">
     <button
       class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
       :class="activeTab === 'albums' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
