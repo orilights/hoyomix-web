@@ -14,7 +14,6 @@ const buildInfo: () => Plugin = () => {
         __BUILD_TIME__ = "${new Date().toISOString()}"
         `,
       })
-      // console.log(process.env);
 
       return els
     },

@@ -5,6 +5,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 import buildInfo from './plugins/buildInfo'
+import injectHead from './plugins/injectHead'
 
 export default defineConfig({
   resolve: {
@@ -31,5 +32,6 @@ export default defineConfig({
       ],
     }),
     buildInfo(),
+    injectHead(),
   ],
 })
