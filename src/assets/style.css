@@ -1,0 +1,31 @@
+.fade-enter-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+}
+
+/* OverlayScrollbars 自定义主题（深色滚动条，用于浅色背景） */
+.os-theme-custom {
+  --os-size: 10px;
+  --os-padding-perpendicular: 2px;
+  --os-padding-axis: 2px;
+  --os-track-border-radius: 10px;
+  --os-handle-border-radius: 10px;
+  --os-handle-bg: rgb(0 0 0 / 0.25);
+  --os-handle-bg-hover: rgb(0 0 0 / 0.4);
+  --os-handle-bg-active: rgb(0 0 0 / 0.5);
+}
+
+/* OverlayScrollbars 自定义主题（浅色滚动条，用于深色背景） */
+.os-theme-custom-light {
+  --os-size: 10px;
+  --os-padding-perpendicular: 2px;
+  --os-padding-axis: 2px;
+  --os-track-border-radius: 10px;
+  --os-handle-border-radius: 10px;
+  --os-handle-bg: rgb(255 255 255 / 0.25);
+  --os-handle-bg-hover: rgb(255 255 255 / 0.4);
+  --os-handle-bg-active: rgb(255 255 255 / 0.5);
+}

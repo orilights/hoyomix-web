@@ -94,7 +94,7 @@ onMounted(() => {
     </div>
 
     <div
-      class=" backdrop-blur-xl border-t border-white/10 transition-colors"
+      class="backdrop-blur-xl border-t border-white/10 transition-colors"
       :class="{
         'bg-gray-900/95': !isFullscreen,
         'bg-gray-900/20': isFullscreen,
