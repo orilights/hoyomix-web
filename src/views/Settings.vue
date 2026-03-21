@@ -14,7 +14,7 @@ declare global {
 
 const store = useStore()
 const playerStore = usePlayerStore()
-const { quality } = storeToRefs(playerStore)
+const { quality, enableAudioContext } = storeToRefs(playerStore)
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
@@ -54,8 +54,32 @@ onMounted(() => {
         </button>
       </div>
     </div>
+    <div class="mt-4">
+      <div class="font-bold text-lg mb-2">
+        AudioContext API
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+          :class="enableAudioContext ? 'bg-blue-500' : 'bg-gray-300'"
+          role="switch"
+          :aria-checked="enableAudioContext"
+          @click="playerStore.setAudioContextEnabled(!enableAudioContext)"
+        >
+          <span
+            class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+            :class="enableAudioContext ? 'translate-x-5' : 'translate-x-0'"
+          />
+        </button>
+        <span class="text-sm text-gray-600">{{ enableAudioContext ? '已启用' : '已禁用' }}</span>
+      </div>
+      <div class="text-sm text-gray-600 mt-2">
+        iOS 设备后台播放需禁用该 API <br>
+        禁用后频谱可视化等功能将不可用
+      </div>
+    </div>
     <div class="font-bold text-2xl mt-4">
-      关于 HOYO-MiX Online
+      关于
     </div>
     <div class="mt-4 px-4 py-2 bg-red-50 rounded-lg border border-red-500">
       <div class="font-bold text-red-500">
@@ -84,7 +108,7 @@ onMounted(() => {
     <div class="font-bold text-2xl mt-4">
       更新日志
     </div>
-    <div class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4">
+    <div class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4 overflow-x-scroll">
       {{ changelog }}
     </div>
   </div>

@@ -1,33 +1,102 @@
 <script setup lang="ts">
-const tooltip = ref<HTMLElement>()
+type Placement = 'top' | 'bottom' | 'left' | 'right'
+type Align = 'start' | 'center' | 'end'
 
-const width = ref(0)
+const props = withDefaults(defineProps<{
+  placement?: Placement
+  align?: Align
+  content?: string
+}>(), {
+  placement: 'right',
+  align: 'start',
+})
+
 const show = ref(false)
 
-onMounted(() => {
-  width.value = tooltip.value!.offsetWidth
+const tooltipStyle = computed(() => {
+  const { placement, align } = props
+  const style: Record<string, string> = {}
+  const gap = '6px'
+
+  if (placement === 'right') {
+    style.left = `calc(100% + ${gap})`
+    if (align === 'center') {
+      style.top = '50%'
+      style.transform = 'translateY(-50%)'
+    }
+    else if (align === 'end') {
+      style.bottom = '0'
+    }
+    else {
+      style.top = '0'
+    }
+  }
+  else if (placement === 'left') {
+    style.right = `calc(100% + ${gap})`
+    if (align === 'center') {
+      style.top = '50%'
+      style.transform = 'translateY(-50%)'
+    }
+    else if (align === 'end') {
+      style.bottom = '0'
+    }
+    else {
+      style.top = '0'
+    }
+  }
+  else if (placement === 'top') {
+    style.bottom = `calc(100% + ${gap})`
+    if (align === 'center') {
+      style.left = '50%'
+      style.transform = 'translateX(-50%)'
+    }
+    else if (align === 'end') {
+      style.right = '0'
+    }
+    else {
+      style.left = '0'
+    }
+  }
+  else {
+    style.top = `calc(100% + ${gap})`
+    if (align === 'center') {
+      style.left = '50%'
+      style.transform = 'translateX(-50%)'
+    }
+    else if (align === 'end') {
+      style.right = '0'
+    }
+    else {
+      style.left = '0'
+    }
+  }
+
+  return style
 })
 </script>
 
 <template>
-  <div ref="tooltip" class="relative">
+  <div class="relative">
     <div @mouseenter="show = true" @mouseleave="show = false">
       <slot />
     </div>
     <Transition name="tooltip">
       <div
         v-if="show"
-        class="absolute top-0 z-100 w-[1000px] pointer-events-none" :style="{
-          left: '100%',
-        }"
+        class="absolute z-100 pointer-events-none"
+        :style="tooltipStyle"
       >
-        <slot name="tooltip" />
+        <slot name="tooltip">
+          <div v-if="content" class="px-2 py-1 bg-gray-800 text-white text-xs rounded-md shadow whitespace-nowrap">
+            {{ content }}
+          </div>
+        </slot>
       </div>
     </Transition>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .tooltip-enter-active,
 .tooltip-leave-active {
   transition: opacity 0.15s;

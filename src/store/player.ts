@@ -13,6 +13,7 @@ export const usePlayerStore = defineStore('player', {
     volume: 0.8,
     quality: 5 as AudioQuality,
     showSpectrum: false,
+    enableAudioContext: true,
 
     // 运行时状态
     isPlaying: false,
@@ -54,6 +55,7 @@ export const usePlayerStore = defineStore('player', {
     initPlayer() {
       const player = getAudioPlayer()
       player.setVolume(this.volume)
+      player.setAudioContextEnabled(this.enableAudioContext)
 
       setupMediaSessionHandlers({
         play: () => this.togglePlay(),
@@ -361,6 +363,14 @@ export const usePlayerStore = defineStore('player', {
       this.showSpectrum = !this.showSpectrum
     },
 
+    setAudioContextEnabled(enabled: boolean) {
+      this.enableAudioContext = enabled
+      getAudioPlayer().setAudioContextEnabled(enabled)
+      if (!enabled && this.showSpectrum) {
+        this.showSpectrum = false
+      }
+    },
+
     setFullscreen(value: boolean) {
       this.isFullscreen = value
     },
@@ -392,6 +402,6 @@ export const usePlayerStore = defineStore('player', {
   },
 
   persist: {
-    pick: ['playlist', 'currentIndex', 'playMode', 'volume', 'quality', 'showSpectrum'],
+    pick: ['playlist', 'currentIndex', 'playMode', 'volume', 'quality', 'showSpectrum', 'enableAudioContext'],
   },
 })

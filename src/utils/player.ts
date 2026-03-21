@@ -20,6 +20,7 @@ export class AudioPlayer {
   private frequencyData: Uint8Array<ArrayBuffer> | null = null
   public urls: string[] = []
   private urlIndex = 0
+  private audioContextEnabled = true
 
   constructor() {
     this.audio = new Audio()
@@ -28,7 +29,7 @@ export class AudioPlayer {
   }
 
   private initAudioContext() {
-    if (this.audioContext)
+    if (!this.audioContextEnabled || this.audioContext)
       return
     this.audioContext = new AudioContext()
     this.sourceNode = this.audioContext.createMediaElementSource(this.audio)
@@ -37,6 +38,17 @@ export class AudioPlayer {
     this.sourceNode.connect(this.analyser)
     this.analyser.connect(this.audioContext.destination)
     this.frequencyData = new Uint8Array(this.analyser.frequencyBinCount)
+  }
+
+  setAudioContextEnabled(enabled: boolean) {
+    this.audioContextEnabled = enabled
+    if (!enabled && this.audioContext) {
+      this.audioContext.close()
+      this.audioContext = null
+      this.sourceNode = null
+      this.analyser = null
+      this.frequencyData = null
+    }
   }
 
   private bindAudioEvents() {
