@@ -8,11 +8,33 @@ import { usePlayerStore } from '@/store/player'
 const store = useStore()
 const playerStore = usePlayerStore()
 const { albumList } = storeToRefs(store)
+const { volume } = storeToRefs(playerStore)
 
 const layout = shallowRef(DefaultLayout)
 
+function onKeydown(e: KeyboardEvent) {
+  const target = e.target as HTMLElement
+  // 输入框/文本域/可编辑元素内不触发
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+    return
+
+  if (e.code === 'Space') {
+    e.preventDefault()
+    playerStore.togglePlay()
+  }
+  else if (e.code === 'ArrowUp') {
+    e.preventDefault()
+    playerStore.setVolume(volume.value + 0.05)
+  }
+  else if (e.code === 'ArrowDown') {
+    e.preventDefault()
+    playerStore.setVolume(volume.value - 0.05)
+  }
+}
+
 onMounted(() => {
   playerStore.initPlayer()
+  window.addEventListener('keydown', onKeydown)
 
   getAlbumListApi()
     .then(res => res.json())
@@ -20,6 +42,10 @@ onMounted(() => {
       data.reverse()
       albumList.value = data
     })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
 })
 </script>
 
