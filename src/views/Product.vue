@@ -23,7 +23,7 @@ watch(product, (val) => {
   if (val) {
     document.title = `${getProductName(val)} - HOYO-MiX Online`
 
-    store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '200px'))
+    store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '128px'))
   }
 }, { immediate: true })
 </script>

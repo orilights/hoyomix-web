@@ -42,7 +42,7 @@ function onVolumeWheel(e: WheelEvent) {
 const coverUrl = computed(() => {
   if (!currentSong.value)
     return ''
-  return getCoverUrl(currentSong.value.albumPlatforms, '200px')
+  return getCoverUrl(currentSong.value.albumPlatforms, '128px')
 })
 
 const playModeIcon = computed(() => {

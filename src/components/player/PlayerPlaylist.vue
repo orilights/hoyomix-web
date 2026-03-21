@@ -73,7 +73,7 @@ function clearAll() {
                 </div>
 
                 <img
-                  :src="getCoverUrl(element.albumPlatforms, '200px')"
+                  :src="getCoverUrl(element.albumPlatforms, '128px')"
                   class="size-10 rounded object-cover shrink-0"
                   loading="lazy"
                 >

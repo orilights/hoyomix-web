@@ -105,7 +105,7 @@ function goNextMusic() {
 watch(musicInfo, (val) => {
   if (val) {
     document.title = `${val.name} - HOYO-MiX Online`
-    store.setBackground(getCoverUrl(albumInfo.value!.platforms, '200px'))
+    store.setBackground(getCoverUrl(albumInfo.value!.platforms, '128px'))
     getLyricData()
   }
 }, { immediate: true })
@@ -121,7 +121,7 @@ onMounted(() => {
   <div v-if="albumInfo && musicInfo" class="overflow-hidden">
     <div class="flex flex-col md:flex-row md:h-[300px]">
       <div class="w-full md:w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
-        <CoverImage :src="getCoverUrl(albumInfo.platforms)" />
+        <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
       </div>
       <div class="flex flex-col justify-between mt-4 md:mt-0 md:ml-8">
         <div>

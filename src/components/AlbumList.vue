@@ -53,7 +53,7 @@ function getAlbumYear(album: ExportAlbumListItem) {
         >
           <div class="p-4 rounded-2xl hover:bg-gray-500/20 transition-colors">
             <div class="rounded-2xl overflow-hidden">
-              <CoverImage :src="getCoverUrl(album_info.platforms, '200px')" />
+              <CoverImage :src="getCoverUrl(album_info.platforms, '256px')" />
             </div>
             <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
               {{ album_info.name }}

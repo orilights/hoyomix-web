@@ -56,7 +56,7 @@ watch(albumId, (val) => {
 watch(albumInfo, (val) => {
   if (val) {
     document.title = `${val.name} - HOYO-MiX Online`
-    store.setBackground(getCoverUrl(val.platforms, '200px'))
+    store.setBackground(getCoverUrl(val.platforms, '128px'))
   }
 }, { immediate: true })
 
@@ -119,7 +119,7 @@ onMounted(() => {
   <div v-if="albumInfo" class="overflow-hidden">
     <div class="flex flex-col md:flex-row md:h-[300px]">
       <div class="w-full md:w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
-        <CoverImage :src="getCoverUrl(albumInfo.platforms)" />
+        <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
       </div>
 
       <div class="flex flex-col justify-between mt-4 md:mt-0 md:ml-8">
@@ -189,8 +189,8 @@ onMounted(() => {
       </button>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4 h-fit">
-      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block" :class="{ hidden: activeTab !== 'artists' }">
+    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4">
+      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="albumInfo.id" type="album" />
       </div>
 
