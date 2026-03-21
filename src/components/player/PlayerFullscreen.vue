@@ -26,6 +26,26 @@ const blurCoverUrl = computed(() => {
   return getCoverUrl(currentSong.value.albumPlatforms, '200px')
 })
 
+// 双层背景图过渡
+const bg1Url = ref('')
+const bg2Url = ref('')
+const showBackground = ref(0)
+
+watch(blurCoverUrl, (newVal) => {
+  if (!newVal) {
+    showBackground.value = 0
+    return
+  }
+  if (showBackground.value !== 1) {
+    bg1Url.value = newVal
+    showBackground.value = 1
+  }
+  else {
+    bg2Url.value = newVal
+    showBackground.value = 2
+  }
+}, { immediate: true })
+
 function close() {
   playerStore.setFullscreen(false)
 }
@@ -41,11 +61,17 @@ function onSeek(time: number) {
       v-if="isFullscreen && currentSong"
       class="fixed inset-0 z-50 flex flex-col pb-[72px]"
     >
-      <div class="absolute inset-0 overflow-hidden bg-gray-600">
-        <img
-          :src="blurCoverUrl"
-          class="absolute inset-0 w-full h-full object-cover scale-110 blur-xl bg-gray-900"
-        >
+      <div class="absolute inset-0 overflow-hidden bg-gray-900">
+        <div
+          class="fs-background transition-opacity duration-500"
+          :style="{ backgroundImage: bg1Url ? `url(${bg1Url})` : 'none' }"
+          :class="showBackground === 1 ? 'opacity-100' : 'opacity-0'"
+        />
+        <div
+          class="fs-background transition-opacity duration-500"
+          :style="{ backgroundImage: bg2Url ? `url(${bg2Url})` : 'none' }"
+          :class="showBackground === 2 ? 'opacity-100' : 'opacity-0'"
+        />
         <div class="absolute inset-0 bg-black/50" />
       </div>
 
@@ -131,6 +157,15 @@ function onSeek(time: number) {
 </template>
 
 <style scoped>
+.fs-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.1);
+  filter: blur(40px) brightness(0.7);
+}
+
 .volume-slider {
   height: 4px;
   accent-color: white;

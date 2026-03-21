@@ -101,13 +101,16 @@ onMounted(() => {
       }"
     >
       <div class="h-[72px] flex items-center px-4 gap-4">
-        <div class="flex items-center gap-3 min-w-0 max-w-[240px] md:w-[240px]">
-          <img
-            v-if="coverUrl && !isFullscreen"
-            :src="coverUrl"
-            class="size-12 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity shadow shrink-0"
-            @click="openFullscreen"
-          >
+        <div class="flex items-center min-w-0 max-w-[240px] md:w-[240px]">
+          <Transition name="cover-fade">
+            <div v-if="coverUrl && !isFullscreen" class="size-12 mr-3 shrink-0">
+              <img
+                :src="coverUrl"
+                class="size-12 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity shadow shrink-0"
+                @click="openFullscreen"
+              >
+            </div>
+          </Transition>
           <div v-if="currentSong" class="min-w-0">
             <RouterLink :to="{ name: 'MusicInfo', params: { albumId: currentSong.albumId, musicId: currentSong.songId } }" @click="isFullscreen = false">
               <div class="text-white text-sm truncate">
@@ -264,5 +267,18 @@ onMounted(() => {
 .dropdown-enter-to,
 .dropdown-leave-from {
   transform: translateY(0);
+}
+
+.cover-fade-enter-active,
+.cover-fade-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.cover-fade-enter-from,
+.cover-fade-leave-to {
+  opacity: 0;
+  width: 0;
+  margin-right: 0;
 }
 </style>
