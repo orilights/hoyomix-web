@@ -97,9 +97,8 @@ function playAll() {
 function playSong(song: ExportSong) {
   if (!albumInfo.value)
     return
-  const items = buildPlaylistFromAlbum(albumInfo.value)
-  const index = items.findIndex(i => i.songId === song.id)
-  playerStore.replacePlaylist(items, Math.max(0, index))
+  const index = playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value!))
+  playerStore.playSong(index)
 }
 
 function addToPlaylist(song: ExportSong) {
@@ -116,52 +115,55 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="albumInfo" class="overflow-hidden">
-    <div class="flex flex-col md:flex-row md:h-[300px]">
-      <div class="w-full md:w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
+  <div v-if="albumInfo">
+    <div class="flex md:h-[200px] lg:h-[300px]">
+      <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
         <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
       </div>
 
-      <div class="flex flex-col justify-between mt-4 md:mt-0 md:ml-8">
-        <div>
-          <div class="text-2xl md:text-3xl font-bold">
-            {{ albumInfo.name }}
-          </div>
-          <div class="mt-2 flex items-center flex-wrap">
-            <RouterLink
-              :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
-              class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
-            >
-              <img class="size-8" :src="getProductIconUrl(albumInfo.productName, '48px')">
-              <span class="ml-2">
-                {{ albumInfo.productName }}
-              </span>
-            </RouterLink>
-            <span class="text-gray-500 ml-2">发布于</span>
-            <span class="ml-2">
-              {{ albumInfo.publishDate }}
-            </span>
-          </div>
-          <OverlayScrollbarsComponent class="mt-2 h-[80px]" :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }" defer>
-            {{ albumInfo.description }}
-          </OverlayScrollbarsComponent>
+      <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
+        <div class="md:text-xl lg:text-3xl font-bold truncate" :title="albumInfo.name">
+          {{ albumInfo.name }}
         </div>
-        <div class="flex gap-2 mt-4 md:mt-0 flex-wrap">
-          <button
-            class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-            @click="playAll"
+
+        <div class="mt-1 md:mt-2 flex items-center gap-x-2 flex-wrap text-sm md:text-base">
+          <RouterLink
+            :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
+            class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
           >
-            <LucidePlay class="size-4" fill="currentColor" />
-            播放全部
-          </button>
-          <Dropdown v-if="albumInfo.platforms.ncm" :options="neteaseOptions">
+            <img class="size-5 md:size-8" :src="getProductIconUrl(albumInfo.productName, '48px')">
+            <span class="ml-2 hidden md:inline">
+              {{ albumInfo.productName }}
+            </span>
+          </RouterLink>
+          <span class="text-gray-500 hidden md:inline">发布于</span>
+          <span>
+            {{ albumInfo.publishDate }}
+          </span>
+        </div>
+
+        <OverlayScrollbarsComponent class="mt-1 md:mt-2 flex-1 text-xs md:text-sm lg:text-base" :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }" defer>
+          {{ albumInfo.description }}
+        </OverlayScrollbarsComponent>
+
+        <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
+          <Tooltip placement="top" theme="light" content="替换当前播放列表并播放第一首歌曲">
+            <button
+              class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+              @click="playAll"
+            >
+              <LucidePlay class="size-4" fill="currentColor" />
+              播放全部
+            </button>
+          </Tooltip>
+          <Dropdown v-if="albumInfo.platforms.ncm" position="up" :options="neteaseOptions">
             <button
               class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             >
               <IconNcm class="size-5 text-[#fc3b5b]" />
             </button>
           </Dropdown>
-          <Dropdown v-if="albumInfo.platforms.qq" :options="qqMusicOptions">
+          <Dropdown v-if="albumInfo.platforms.qq" position="up" :options="qqMusicOptions">
             <button
               class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             >
@@ -172,7 +174,33 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="flex gap-2 mt-4 md:hidden">
+    <div class="flex gap-2 flex-wrap md:hidden mt-4">
+      <Tooltip placement="top" theme="light" content="替换当前播放列表并播放第一首歌曲">
+        <button
+          class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+          @click="playAll"
+        >
+          <LucidePlay class="size-4" fill="currentColor" />
+          播放全部
+        </button>
+      </Tooltip>
+      <Dropdown v-if="albumInfo.platforms.ncm" :options="neteaseOptions">
+        <button
+          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+        >
+          <IconNcm class="size-5 text-[#fc3b5b]" />
+        </button>
+      </Dropdown>
+      <Dropdown v-if="albumInfo.platforms.qq" :options="qqMusicOptions">
+        <button
+          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+        >
+          <IconQQ class="size-5" />
+        </button>
+      </Dropdown>
+    </div>
+
+    <div class="flex gap-2 mt-4 lg:hidden">
       <button
         class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
         :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
@@ -189,12 +217,12 @@ onMounted(() => {
       </button>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4">
-      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+    <div class="flex flex-col lg:flex-row gap-4 mt-4">
+      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="albumInfo.id" type="album" />
       </div>
 
-      <div v-show="activeTab === 'songs'" class="flex-1 md:!block h-fit" :class="{ hidden: activeTab !== 'songs' }">
+      <div v-show="activeTab === 'songs'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'songs' }">
         <div class="bg-black/5 rounded-xl overflow-hidden pt-2 pb-4">
           <table class="w-full">
             <thead>
@@ -205,7 +233,7 @@ onMounted(() => {
                 <th class="p-2">
                   歌曲
                 </th>
-                <th class="hidden md:table-cell p-2 w-[100px]">
+                <th class="p-2 w-[100px]">
                   时长
                 </th>
                 <th class="hidden md:table-cell p-2 w-[80px]" />
@@ -239,7 +267,7 @@ onMounted(() => {
                       </span>
                     </div>
                   </td>
-                  <td class="hidden md:table-cell p-2">
+                  <td class="p-2">
                     {{ formatDuration(songInfo.duration) }}
                   </td>
                   <td class="hidden md:table-cell p-2">

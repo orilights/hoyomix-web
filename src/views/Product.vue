@@ -53,7 +53,7 @@ watch(product, (val) => {
       </div>
     </div>
 
-    <div class="flex gap-2 mt-2 md:hidden h-fit">
+    <div class="flex gap-2 mt-4 lg:hidden h-fit">
       <button
         class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
         :class="activeTab === 'albums' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
@@ -70,12 +70,12 @@ watch(product, (val) => {
       </button>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4">
-      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] shrink-0 p-4 bg-black/5 rounded-xl md:!block" :class="{ hidden: activeTab !== 'artists' }">
+    <div class="flex flex-col lg:flex-row gap-4 mt-4">
+      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] shrink-0 p-4 bg-black/5 rounded-xl lg:!block" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="product" type="product" />
       </div>
 
-      <div v-show="activeTab === 'albums'" class="flex-1 md:!block" :class="{ hidden: activeTab !== 'albums' }">
+      <div v-show="activeTab === 'albums'" class="flex-1 lg:!block" :class="{ hidden: activeTab !== 'albums' }">
         <AlbumList :albums-list="albumsFiltered" />
       </div>
     </div>

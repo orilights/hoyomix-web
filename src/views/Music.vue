@@ -119,57 +119,64 @@ onMounted(() => {
 
 <template>
   <div v-if="albumInfo && musicInfo" class="overflow-hidden">
-    <div class="flex flex-col md:flex-row md:h-[300px]">
-      <div class="w-full md:w-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
+    <div class="flex md:h-[200px] lg:h-[300px]">
+      <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
         <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
       </div>
-      <div class="flex flex-col justify-between mt-4 md:mt-0 md:ml-8">
-        <div>
-          <div>
-            <span class="text-2xl md:text-3xl font-bold">
-              {{ musicInfo.name }}
-            </span>
-            <span class="ml-2 text-lg md:text-xl text-gray-500">
-              {{ musicInfo.description ?? '' }}
-            </span>
-          </div>
 
-          <div class="mt-2 flex items-center gap-2 flex-wrap">
-            <span class="text-gray-500">所属</span>
-            <RouterLink
-              :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
-              class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors"
-              :title="albumInfo.productName"
-            >
-              <img class="size-6" :src="getProductIconUrl(albumInfo.productName, '48px')">
-            </RouterLink>
-            <span class="text-gray-500">收录于</span>
-            <RouterLink
-              :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"
-              class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
-            >
-              <span>{{ albumInfo.name }}</span>
-            </RouterLink>
-          </div>
-          <div class="mt-2 flex items-center flex-wrap">
-            <span class="text-gray-500">发布于</span>
-            <span class="ml-4">
-              {{ albumInfo.publishDate }}
-            </span>
-            <span class="ml-4 text-gray-500">时长</span>
-            <span class="ml-4">
-              {{ formatDuration(musicInfo.duration) }}
-            </span>
-          </div>
+      <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
+        <div class="truncate">
+          <span class="md:text-xl lg:text-3xl font-bold">
+            {{ musicInfo.name }}
+          </span>
+          <span v-if="musicInfo.description" class="hidden lg:inline ml-2 text-lg md:text-xl text-gray-500">
+            {{ musicInfo.description }}
+          </span>
         </div>
-        <div class="flex gap-2 mt-4 md:mt-0 flex-wrap">
-          <button
-            class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-            @click="handlePlay"
+
+        <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base">
+          <span class="text-gray-500 hidden md:inline">所属</span>
+          <RouterLink
+            :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
+            class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors shrink-0"
+            :title="albumInfo.productName"
           >
-            <LucidePlay class="size-4" fill="currentColor" />
-            播放
-          </button>
+            <img class="size-5 md:size-8" :src="getProductIconUrl(albumInfo.productName, '48px')">
+          </RouterLink>
+          <span class="text-gray-500 hidden md:inline">收录于</span>
+          <RouterLink
+            :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"
+            class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors truncate"
+          >
+            <span>{{ albumInfo.name }}</span>
+          </RouterLink>
+        </div>
+
+        <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base">
+          <span class="text-gray-500">发布于</span>
+          <span class="ml-4">
+            {{ albumInfo.publishDate }}
+          </span>
+          <span class="ml-4 text-gray-500">时长</span>
+          <span class="ml-4">
+            {{ formatDuration(musicInfo.duration) }}
+          </span>
+        </div>
+
+        <div v-if="musicInfo.description" class="text-xs md:text-sm lg:hidden mt-1 md:mt-2">
+          {{ musicInfo.description }}
+        </div>
+
+        <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
+          <Tooltip placement="top" theme="light" content="添加至播放列表并播放">
+            <button
+              class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+              @click="handlePlay"
+            >
+              <LucidePlay class="size-4" fill="currentColor" />
+              播放
+            </button>
+          </Tooltip>
           <button
             class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             @click="goPrevMusic"
@@ -182,14 +189,14 @@ onMounted(() => {
           >
             后一首
           </button>
-          <Dropdown v-if="musicInfo.platforms.ncm" :options="neteaseOptions">
+          <Dropdown v-if="musicInfo.platforms.ncm" position="up" :options="neteaseOptions">
             <button
               class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             >
               <IconNcm class="size-5 text-[#fc3b5b]" />
             </button>
           </Dropdown>
-          <Dropdown v-if="musicInfo.platforms.qq" :options="qqMusicOptions">
+          <Dropdown v-if="musicInfo.platforms.qq" position="up" :options="qqMusicOptions">
             <button
               class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             >
@@ -200,7 +207,43 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="flex gap-2 mt-4 md:hidden">
+    <div class="flex gap-2 flex-wrap md:hidden mt-4">
+      <button
+        class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+        @click="handlePlay"
+      >
+        <LucidePlay class="size-4" fill="currentColor" />
+        播放
+      </button>
+      <button
+        class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+        @click="goPrevMusic"
+      >
+        前一首
+      </button>
+      <button
+        class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+        @click="goNextMusic"
+      >
+        后一首
+      </button>
+      <Dropdown v-if="musicInfo.platforms.ncm" :options="neteaseOptions">
+        <button
+          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+        >
+          <IconNcm class="size-5 text-[#fc3b5b]" />
+        </button>
+      </Dropdown>
+      <Dropdown v-if="musicInfo.platforms.qq" :options="qqMusicOptions">
+        <button
+          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+        >
+          <IconQQ class="size-5" />
+        </button>
+      </Dropdown>
+    </div>
+
+    <div class="flex gap-2 mt-4 lg:hidden">
       <button
         class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
         :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
@@ -217,12 +260,12 @@ onMounted(() => {
       </button>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-4 mt-2 md:mt-4">
-      <div v-show="activeTab === 'artists'" class="w-full md:w-[400px] p-4 bg-black/5 rounded-xl md:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+    <div class="flex flex-col lg:flex-row gap-4 mt-4">
+      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="musicId" type="song" />
       </div>
 
-      <div v-show="activeTab === 'lyrics'" class="flex-1 md:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
+      <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
         <div class="bg-black/5 rounded-xl overflow-hidden p-4">
           <div v-for="line, index in lyricList" :key="index" class="my-1">
             {{ line }}

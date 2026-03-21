@@ -6,9 +6,11 @@ const props = withDefaults(defineProps<{
   placement?: Placement
   align?: Align
   content?: string
+  theme?: 'dark' | 'light'
 }>(), {
   placement: 'right',
   align: 'start',
+  theme: 'dark',
 })
 
 const show = ref(false)
@@ -87,7 +89,13 @@ const tooltipStyle = computed(() => {
         :style="tooltipStyle"
       >
         <slot name="tooltip">
-          <div v-if="content" class="px-2 py-1 bg-gray-800 text-white text-xs rounded-md shadow whitespace-nowrap">
+          <div
+            v-if="content" class="px-2 py-1 text-xs rounded-md shadow whitespace-nowrap"
+            :class="{
+              'bg-gray-800 text-white': theme === 'dark',
+              'bg-white text-gray-800': theme === 'light',
+            }"
+          >
             {{ content }}
           </div>
         </slot>

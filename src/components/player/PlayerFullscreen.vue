@@ -77,35 +77,39 @@ function onSeek(time: number) {
 
       <div class="relative flex-1 flex flex-col z-10 min-h-0">
         <div class="flex items-center justify-between px-6 py-4 shrink-0">
-          <button
-            class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-            @click="close"
+          <Tooltip
+            placement="bottom"
+            align="start"
+            content="退出全屏"
           >
-            <LucideChevronDown class="size-6" />
-          </button>
+            <button
+              class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+              @click="close"
+            >
+              <LucideChevronDown class="size-6" />
+            </button>
+          </Tooltip>
 
           <div class="text-white/60 text-sm">
             {{ currentSong.songName }}
           </div>
 
-          <div class="flex items-center gap-1">
-            <Tooltip
-              placement="bottom"
-              align="end"
-              :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
+          <Tooltip
+            placement="bottom"
+            align="end"
+            :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
+          >
+            <button
+              class="p-2 rounded-full transition-colors"
+              :class="!enableAudioContext
+                ? 'text-white/20 cursor-not-allowed'
+                : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
+              :disabled="!enableAudioContext"
+              @click="playerStore.toggleSpectrum()"
             >
-              <button
-                class="p-2 rounded-full transition-colors"
-                :class="!enableAudioContext
-                  ? 'text-white/20 cursor-not-allowed'
-                  : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
-                :disabled="!enableAudioContext"
-                @click="playerStore.toggleSpectrum()"
-              >
-                <LucideAudioLines class="size-5" />
-              </button>
-            </Tooltip>
-          </div>
+              <LucideAudioLines class="size-5" />
+            </button>
+          </Tooltip>
         </div>
 
         <div class="flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0">

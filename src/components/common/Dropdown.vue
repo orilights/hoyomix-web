@@ -11,13 +11,13 @@ interface DropdownOption {
 interface Props {
   options: DropdownOption[]
   alignment?: 'left' | 'center' | 'right'
-  autoPosition?: boolean
+  position?: 'down' | 'up' | 'auto'
   dark?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   alignment: 'left',
-  autoPosition: true,
+  position: 'auto',
   dark: false,
 })
 
@@ -30,10 +30,16 @@ const menuDirection = ref('down')
 function toggleDropdown() {
   isOpen.value = !isOpen.value
   if (isOpen.value) {
-    nextTick(() => {
-      calculatePosition()
-      document.addEventListener('click', closeDropdown)
-    })
+    if (props.position === 'auto') {
+      nextTick(() => {
+        calculatePosition()
+      })
+    }
+    else {
+      menuDirection.value = props.position
+    }
+
+    document.addEventListener('click', closeDropdown)
   }
   else {
     document.removeEventListener('click', closeDropdown)
@@ -46,11 +52,6 @@ function closeDropdown() {
 }
 
 function calculatePosition() {
-  if (!props.autoPosition) {
-    menuDirection.value = 'down'
-    return
-  }
-
   if (!container.value || !menu.value)
     return
 
@@ -89,7 +90,7 @@ onBeforeUnmount(() => {
       <div
         v-show="isOpen"
         ref="menu"
-        class="dropdown-menu absolute left-0 mt-1 rounded-lg w-fit text-sm shadow overflow-hidden z-999"
+        class="dropdown-menu absolute left-0 mt-1.5 rounded-lg w-fit text-sm shadow overflow-hidden z-999"
         :class="[
           `align-${alignment}`,
           { 'menu-up': menuDirection === 'up' },
@@ -134,7 +135,7 @@ onBeforeUnmount(() => {
   bottom: 100%;
   top: auto;
   margin-top: 0;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .dropdown-enter-active,

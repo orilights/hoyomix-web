@@ -4,7 +4,7 @@ import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
 
 const playerStore = usePlayerStore()
-const { playlist, currentIndex, showPlaylist } = storeToRefs(playerStore)
+const { playlist, currentIndex, showPlaylist, isFullscreen } = storeToRefs(playerStore)
 
 function onDragEnd(evt: { oldIndex: number, newIndex: number }) {
   if (evt.oldIndex !== evt.newIndex) {
@@ -33,7 +33,14 @@ function clearAll() {
       class="fixed inset-0 z-80 flex justify-end pb-[72px]"
       @click.self="showPlaylist = false"
     >
-      <div class="w-full max-w-md h-full bg-gray-900/95 backdrop-blur-xl flex flex-col shadow-2xl" @click.stop>
+      <div
+        class="w-full max-w-md h-full backdrop-blur-xl flex flex-col shadow-2xl border-l border-white/10"
+        :class="{
+          'bg-gray-900/95': !isFullscreen,
+          'bg-gray-900/20': isFullscreen,
+        }"
+        @click.stop
+      >
         <div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
           <div class="text-white font-bold">
             播放列表
