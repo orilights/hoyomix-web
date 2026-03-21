@@ -98,7 +98,7 @@ onMounted(() => {
 <template>
   <div
     ref="lyricContainer"
-    class="h-full overflow-y-auto scrollbar-hide py-[40%]"
+    class="lyrics-container h-full overflow-y-auto scrollbar-hide py-[40%]"
   >
     <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center mt-8">
       暂无歌词
@@ -119,6 +119,16 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.lyrics-container {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 20%,
+    black 80%,
+    transparent 100%
+  );
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
