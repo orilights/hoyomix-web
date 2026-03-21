@@ -49,11 +49,13 @@ const parsedLyrics = computed<LyricLine[]>(() => {
 })
 
 const currentLineIndex = computed(() => {
+  const defaultOffset = 0.5
+
   if (parsedLyrics.value.length === 0)
     return -1
 
   for (let i = parsedLyrics.value.length - 1; i >= 0; i--) {
-    if (props.currentTime >= parsedLyrics.value[i].time) {
+    if (props.currentTime + defaultOffset >= parsedLyrics.value[i].time) {
       return i
     }
   }
