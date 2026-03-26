@@ -65,3 +65,19 @@ export function getRandomString(length: number) {
   }
   return result
 }
+
+// 清洗搜索高亮 HTML，仅保留 <em> 标签，转义其他 HTML
+const RE_AMP = /&/g
+const RE_LT = /</g
+const RE_GT = />/g
+const RE_EM_OPEN = /&lt;em&gt;/g
+const RE_EM_CLOSE = /&lt;\/em&gt;/g
+
+export function sanitizeHighlight(html: string): string {
+  return html
+    .replace(RE_AMP, '&amp;')
+    .replace(RE_LT, '&lt;')
+    .replace(RE_GT, '&gt;')
+    .replace(RE_EM_OPEN, '<em>')
+    .replace(RE_EM_CLOSE, '</em>')
+}

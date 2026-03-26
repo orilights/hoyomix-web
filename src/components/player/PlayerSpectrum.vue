@@ -4,7 +4,7 @@ import { getAudioPlayer } from '@/utils/player'
 const props = defineProps<{
   active: boolean
 }>()
-const canvas = ref<HTMLCanvasElement>()
+const canvas = useTemplateRef<HTMLCanvasElement>('canvas')
 const animationId = ref(0)
 
 function draw() {

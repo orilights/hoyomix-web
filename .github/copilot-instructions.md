@@ -93,3 +93,4 @@ UI 由 6 个组件组成（`src/components/player/`），在 `DefaultLayout` 底
 - **产品映射**: `productMap` 将产品代码映射为中文名称（如 `genshin` → `原神`）
 - **加载状态**: `pageLoading` + `pageLoadKey` 配合防止竞态（仅当 key 匹配时才清除 loading）
 - **布局**: `DefaultLayout` 提供固定头部（毛玻璃效果）+ 两层背景图过渡 + 内容区白色半透明卡片 + 底部播放器
+- 引用 DOM 元素时，使用 useTemplateRef() 获取响应式引用，而不是直接使用 ref()

@@ -9,6 +9,8 @@ export const useStore = defineStore('main', {
 
     pageLoading: false,
     pageLoadKey: '',
+
+    showSearch: false,
   }),
   actions: {
     setBackground(url = '') {

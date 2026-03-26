@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ExportAlbumListItem } from './types/export'
-import { useWindowScroll } from '@vueuse/core'
 import { useOverlayScrollbars } from 'overlayscrollbars-vue'
 import { getAlbumListApi } from '@/api'
 import { useStore } from '@/store'
@@ -8,14 +7,12 @@ import { usePlayerStore } from '@/store/player'
 
 const store = useStore()
 const playerStore = usePlayerStore()
-const { albumList, backgroundUrl } = storeToRefs(store)
+const { albumList, backgroundUrl, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist } = storeToRefs(playerStore)
 
-const background1 = ref<HTMLElement | null>(null)
-const background2 = ref<HTMLElement | null>(null)
+const background1 = useTemplateRef<HTMLElement>('background1')
+const background2 = useTemplateRef<HTMLElement>('background2')
 const showBackground = ref(1)
-
-const { y: scrollY } = useWindowScroll()
 
 watch(backgroundUrl, (newVal) => {
   if (newVal) {
@@ -64,7 +61,7 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-watch(() => isFullscreen.value || showPlaylist.value, (val) => {
+watch(() => isFullscreen.value || showPlaylist.value || showSearch.value, (val) => {
   const osInstance = useOsInstance()
   osInstance?.options({
     overflow: {
@@ -106,32 +103,8 @@ onUnmounted(() => {
       'opacity-100': showBackground === 2,
     }"
   />
-  <div
-    class="fixed left-0 right-0 top-0 z-10 px-4 md:px-16 xl:px-32 py-2 backdrop-blur-md transition-all duration-500" :class="{
-      'bg-slate-50/60': scrollY > 0,
-      '-translate-y-full opacity-0 pointer-events-none': isFullscreen,
-    }"
-  >
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer"
-      @click="$router.back()"
-    >
-      <LucideChevronLeft class="size-4.5" />
-    </button>
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
-      @click="$router.push({ name: 'Home' })"
-    >
-      <LucideLayoutGrid class="size-4.5" />
-    </button>
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
-      @click="$router.push({ name: 'Settings' })"
-    >
-      <LucideSlidersHorizontal class="size-4.5" />
-    </button>
-  </div>
-  <div class="default-layout min-h-screen backdrop-blur-2xl bg-white/80">
+  <Header />
+  <div class="min-h-screen backdrop-blur-2xl bg-white/80">
     <div class="px-4 md:px-16 xl:px-32 pt-[80px] pb-[100px]">
       <router-view v-slot="{ Component }">
         <Transition name="fade" mode="out-in">

@@ -37,3 +37,12 @@ export function getLyricsApi(provider: 'qq' | 'ncm', songId: number | string) {
 export function getSongMediaApi(songId: number | string) {
   return fetch(`${apiBase}/media/${songId}`)
 }
+
+export function getSearchApi(q: string, type?: string, limit?: number) {
+  const params = new URLSearchParams({ q })
+  if (type)
+    params.set('type', type)
+  if (limit)
+    params.set('limit', String(limit))
+  return fetch(`${apiBase}/search?${params}`)
+}

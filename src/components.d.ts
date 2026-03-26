@@ -15,6 +15,7 @@ declare module 'vue' {
     ArtistListByType: typeof import('./components/ArtistListByType.vue')['default']
     CoverImage: typeof import('./components/CoverImage.vue')['default']
     Dropdown: typeof import('./components/common/Dropdown.vue')['default']
+    Header: typeof import('./components/Header.vue')['default']
     IconNcm: typeof import('./components/icon/IconNcm.vue')['default']
     IconQQ: typeof import('./components/icon/IconQQ.vue')['default']
     LucideChevronDown: typeof import('lucide-vue-next')['ChevronDown']
@@ -29,10 +30,12 @@ declare module 'vue' {
     LucidePlus: typeof import('lucide-vue-next')['Plus']
     LucideRepeat: typeof import('lucide-vue-next')['Repeat']
     LucideRepeat1: typeof import('lucide-vue-next')['Repeat1']
+    LucideSearch: typeof import('lucide-vue-next')['Search']
     LucideShuffle: typeof import('lucide-vue-next')['Shuffle']
     LucideSkipBack: typeof import('lucide-vue-next')['SkipBack']
     LucideSkipForward: typeof import('lucide-vue-next')['SkipForward']
     LucideSlidersHorizontal: typeof import('lucide-vue-next')['SlidersHorizontal']
+    LucideUser: typeof import('lucide-vue-next')['User']
     LucideVolume2: typeof import('lucide-vue-next')['Volume2']
     LucideVolumeX: typeof import('lucide-vue-next')['VolumeX']
     LucideX: typeof import('lucide-vue-next')['X']
@@ -45,6 +48,7 @@ declare module 'vue' {
     PlayerSpectrum: typeof import('./components/player/PlayerSpectrum.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SearchModal: typeof import('./components/SearchModal.vue')['default']
     Tooltip: typeof import('./components/common/Tooltip.vue')['default']
   }
 }

@@ -1,0 +1,339 @@
+<script setup lang="ts">
+import type { SearchResponse, SearchResultItem, SearchType } from '@/types/search'
+import { useDebounceFn, useResizeObserver } from '@vueuse/core'
+import { getSearchApi } from '@/api'
+import { useStore } from '@/store'
+import { getCoverUrl, getProductIconUrl, sanitizeHighlight } from '@/utils'
+
+const visible = defineModel<boolean>({ required: true })
+const router = useRouter()
+const { albumList } = storeToRefs(useStore())
+
+const keyword = ref('')
+const searchType = ref<SearchType | undefined>(undefined)
+const results = ref<SearchResultItem[]>([])
+const loading = ref(false)
+const searched = ref(false)
+
+const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
+const itemRefs = ref<HTMLElement[]>([])
+const contentRef = useTemplateRef<HTMLElement>('contentRef')
+const contentHeight = ref<number | null>(null)
+
+useResizeObserver(contentRef, (entries) => {
+  contentHeight.value = entries[0].contentRect.height
+})
+const activeIndex = ref(-1)
+
+function setItemRef(el: HTMLElement | null, index: number) {
+  if (el)
+    itemRefs.value[index] = el
+}
+
+const typeOptions: { label: string, value: SearchType | undefined }[] = [
+  { label: '全部', value: undefined },
+  { label: '歌曲', value: 'song' },
+  { label: '专辑', value: 'album' },
+  { label: '游戏', value: 'product' },
+  { label: '艺术家', value: 'artist' },
+]
+
+async function handleSearch() {
+  const q = keyword.value.trim()
+  if (!q) {
+    results.value = []
+    searched.value = false
+    return
+  }
+  loading.value = true
+  try {
+    const res = await getSearchApi(q, searchType.value, 10)
+    const data: SearchResponse = await res.json()
+    results.value = data.results
+  }
+  catch {
+    results.value = []
+  }
+  finally {
+    loading.value = false
+    searched.value = true
+  }
+}
+
+const debouncedSearch = useDebounceFn(handleSearch, 300)
+
+watch(keyword, () => {
+  activeIndex.value = -1
+  debouncedSearch()
+})
+
+watch(searchType, () => {
+  activeIndex.value = -1
+  if (keyword.value.trim())
+    handleSearch()
+})
+
+watch(results, () => {
+  activeIndex.value = -1
+  itemRefs.value = []
+})
+
+watch(visible, (val) => {
+  if (val) {
+    nextTick(() => {
+      inputRef.value?.focus()
+    })
+  }
+  else {
+    keyword.value = ''
+    results.value = []
+    searched.value = false
+    searchType.value = undefined
+    activeIndex.value = -1
+    itemRefs.value = []
+  }
+})
+
+function close() {
+  contentHeight.value = null
+  visible.value = false
+}
+
+const mousedownOnOverlay = ref(false)
+
+function onOverlayMousedown(e: MouseEvent) {
+  mousedownOnOverlay.value = e.target === e.currentTarget
+}
+
+function onOverlayClick(e: MouseEvent) {
+  if (e.target === e.currentTarget && mousedownOnOverlay.value)
+    close()
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    close()
+    return
+  }
+  if (!visible.value)
+    return
+
+  if (e.key === 'ArrowDown') {
+    // 阻止播放器全局音量快捷键
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    if (results.value.length === 0)
+      return
+    activeIndex.value = Math.min(activeIndex.value + 1, results.value.length - 1)
+    nextTick(() => {
+      itemRefs.value[activeIndex.value]?.scrollIntoView({ block: 'nearest' })
+    })
+  }
+  else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    if (results.value.length === 0)
+      return
+    activeIndex.value = Math.max(activeIndex.value - 1, 0)
+    nextTick(() => {
+      itemRefs.value[activeIndex.value]?.scrollIntoView({ block: 'nearest' })
+    })
+  }
+  else if (e.key === 'Enter') {
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    if (activeIndex.value >= 0 && results.value[activeIndex.value]) {
+      toResult(results.value[activeIndex.value])
+    }
+  }
+}
+
+function getTypeLabel(type: SearchType) {
+  switch (type) {
+    case 'song': return '歌曲'
+    case 'album': return '专辑'
+    case 'product': return '游戏'
+    case 'artist': return '艺术家'
+  }
+}
+
+function getItemImageUrl(item: SearchResultItem): string | undefined {
+  if (item.type === 'song') {
+    const album = albumList.value.find(a => a.id === item.albumId)
+    return album ? getCoverUrl(album.platforms, '96px') : undefined
+  }
+  if (item.type === 'album') {
+    const album = albumList.value.find(a => a.id === item.id)
+    return album ? getCoverUrl(album.platforms, '96px') : undefined
+  }
+  if (item.type === 'product') {
+    return getProductIconUrl(item.name as string, '48px')
+  }
+  return undefined
+}
+
+function getHighlight(item: SearchResultItem, field: string) {
+  if (item.matches[field])
+    return sanitizeHighlight(item.matches[field])
+  return undefined
+}
+
+function getSubtitle(item: SearchResultItem) {
+  switch (item.type) {
+    case 'song': return [item.albumName, item.productName].filter(Boolean).join(' · ')
+    case 'album': return [item.productName, item.publishDate].filter(Boolean).join(' · ')
+    default: return ''
+  }
+}
+
+function toResult(item: SearchResultItem) {
+  switch (item.type) {
+    case 'song':
+      router.push({ name: 'MusicInfo', params: { albumId: item.albumId, musicId: item.id } })
+      break
+    case 'album':
+      router.push({ name: 'AlbumInfo', params: { id: item.id } })
+      break
+    case 'product':
+      router.push({ name: 'ProductInfo', params: { name: item.name } })
+      break
+    case 'artist':
+      router.push({ name: 'ArtistInfo', params: { name: item.name } })
+      break
+  }
+  close()
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
+</script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="search-fade">
+      <div
+        v-if="visible"
+        class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[10vh] md:pt-[15vh] px-4"
+        @mousedown="onOverlayMousedown"
+        @click="onOverlayClick"
+      >
+        <div class="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden">
+          <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
+            <LucideSearch class="size-5 text-gray-400 shrink-0" />
+            <input
+              ref="inputRef"
+              v-model="keyword"
+              type="text"
+              placeholder="搜索歌曲、专辑、游戏、艺术家..."
+              class="flex-1 text-base outline-none bg-transparent placeholder-gray-400"
+            >
+            <kbd class="hidden md:inline-flex items-center text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">ESC</kbd>
+          </div>
+
+          <div class="flex gap-1.5 px-4 py-2 border-b border-gray-200 overflow-x-auto">
+            <button
+              v-for="opt in typeOptions"
+              :key="opt.label"
+              class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+              :class="searchType === opt.value ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+              @click="searchType = opt.value"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+
+          <div
+            class="overflow-hidden transition-[height] duration-300 ease-in-out"
+            :style="contentHeight !== null ? { height: `${contentHeight}px` } : {}"
+          >
+            <div ref="contentRef" class="max-h-[60vh] overflow-y-auto">
+              <div v-if="loading && results.length === 0" class="flex items-center justify-center py-12 text-gray-400">
+                <LucideLoader2 class="size-5 animate-spin mr-2" />
+                搜索中...
+              </div>
+
+              <div v-else-if="searched && results.length === 0" class="py-12 text-center text-gray-400">
+                未找到相关结果
+              </div>
+
+              <div v-else-if="results.length > 0" class="py-2">
+                <button
+                  v-for="(item, index) in results"
+                  :key="`${item.type}-${item.id}`"
+                  :ref="(el) => setItemRef(el as HTMLElement, index)"
+                  class="w-full flex items-start gap-3 px-4 py-3 transition-colors cursor-pointer text-left"
+                  :class="activeIndex === index ? 'bg-blue-500/10' : 'hover:bg-black/5'"
+                  @click="toResult(item)"
+                  @mouseenter="activeIndex = index"
+                >
+                  <div class="shrink-0 mt-0.5">
+                    <img
+                      v-if="getItemImageUrl(item)"
+                      :src="getItemImageUrl(item)"
+                      loading="lazy"
+                      class="size-10 rounded-lg object-cover"
+                      :class="item.type === 'product' ? 'rounded-full' : 'rounded-lg'"
+                    >
+                    <div v-else class="size-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                      <LucideUser class="size-5 text-gray-400" />
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
+                        {{ getTypeLabel(item.type) }}
+                      </span>
+                      <span
+                        class="search-highlight truncate font-medium"
+                        v-html="getHighlight(item, 'name') || item.name"
+                      />
+                    </div>
+                    <div v-if="getSubtitle(item)" class="text-sm text-gray-500 truncate mt-0.5">
+                      {{ getSubtitle(item) }}
+                    </div>
+                    <div
+                      v-if="getHighlight(item, 'description')"
+                      class="search-highlight text-xs text-gray-400 truncate mt-0.5"
+                      v-html="getHighlight(item, 'description')"
+                    />
+                    <div
+                      v-if="getHighlight(item, 'lyrics')"
+                      class="search-highlight text-xs text-gray-400 truncate mt-0.5"
+                      v-html="getHighlight(item, 'lyrics')"
+                    />
+                  </div>
+                </button>
+              </div>
+
+              <div v-else-if="!searched" class="py-12 text-center text-gray-400">
+                输入关键词开始搜索
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<style scoped>
+.search-fade-enter-active,
+.search-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.search-fade-enter-from,
+.search-fade-leave-to {
+  opacity: 0;
+}
+
+.search-highlight :deep(em) {
+  color: #ef4444;
+  font-style: normal;
+}
+</style>

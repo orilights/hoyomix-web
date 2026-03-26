@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<{
   displayByYear: false,
 })
 
-const homeContainer = ref<HTMLElement>()
+const homeContainer = useTemplateRef<HTMLElement>('homeContainer')
 const { width: containerWidth } = useElementSize(homeContainer)
 
 const years = computed(() => {

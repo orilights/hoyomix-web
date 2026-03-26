@@ -13,7 +13,7 @@ interface LyricLine {
   text: string
 }
 
-const lyricContainer = ref<HTMLElement>()
+const lyricContainer = useTemplateRef<HTMLElement>('lyricContainer')
 
 const isInit = ref(false)
 

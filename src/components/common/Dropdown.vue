@@ -21,8 +21,8 @@ const props = withDefaults(defineProps<Props>(), {
   dark: false,
 })
 
-const container = ref<HTMLElement | null>(null)
-const menu = ref<HTMLElement | null>(null)
+const container = useTemplateRef<HTMLElement>('container')
+const menu = useTemplateRef<HTMLElement>('menu')
 
 const isOpen = ref(false)
 const menuDirection = ref('down')

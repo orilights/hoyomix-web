@@ -14,7 +14,7 @@ const emit = defineEmits<{
   seek: [time: number]
 }>()
 
-const progressBar = ref<HTMLElement>()
+const progressBar = useTemplateRef<HTMLElement>('progressBar')
 const isDragging = ref(false)
 const hoverTime = ref(-1)
 const dragTime = ref(-1)
