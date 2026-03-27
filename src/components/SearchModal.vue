@@ -218,7 +218,7 @@ onUnmounted(() => {
     <Transition name="search-fade">
       <div
         v-if="visible"
-        class="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[10vh] md:pt-[15vh] px-4"
+        class="fixed inset-0 z-999 flex items-start justify-center bg-black/50 backdrop-blur-sm pt-[10vh] md:pt-[15vh] px-4"
         @mousedown="onOverlayMousedown"
         @click="onOverlayClick"
       >
