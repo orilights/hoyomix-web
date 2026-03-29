@@ -26,6 +26,7 @@ export interface ExportAlbum {
   publishDate: string
   platforms: ExportPlatforms
   songs: ExportSong[]
+  totalDuration: string
 }
 
 export type ExportAlbumListItem = Omit<ExportAlbum, 'songs'> & {

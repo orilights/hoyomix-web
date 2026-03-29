@@ -7,28 +7,8 @@ import { usePlayerStore } from '@/store/player'
 
 const store = useStore()
 const playerStore = usePlayerStore()
-const { albumList, backgroundUrl, showSearch } = storeToRefs(store)
+const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist } = storeToRefs(playerStore)
-
-const background1 = useTemplateRef<HTMLElement>('background1')
-const background2 = useTemplateRef<HTMLElement>('background2')
-const showBackground = ref(1)
-
-watch(backgroundUrl, (newVal) => {
-  if (newVal) {
-    if (showBackground.value === 1) {
-      background2.value!.style.setProperty('--background-image', `url(${newVal})`)
-      showBackground.value = 2
-    }
-    else {
-      background1.value!.style.setProperty('--background-image', `url(${newVal})`)
-      showBackground.value = 1
-    }
-  }
-  else {
-    showBackground.value = 0
-  }
-})
 
 const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({
   defer: true,
@@ -89,25 +69,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    ref="background1"
-    class="page-background w-screen h-screen fixed pointer-events-none transition-opacity duration-500 blur-md" :class="{
-      'opacity-0': showBackground !== 1,
-      'opacity-100': showBackground === 1,
-    }"
-  />
-  <div
-    ref="background2"
-    class="page-background w-screen h-screen fixed pointer-events-none transition-opacity duration-500 blur-md" :class="{
-      'opacity-0': showBackground !== 2,
-      'opacity-100': showBackground === 2,
-    }"
-  />
+  <BackgroundLayer />
   <Header />
+
   <div class="min-h-screen backdrop-blur-2xl bg-white/80">
     <div class="px-4 md:px-16 xl:px-32 pt-[80px] pb-[100px]">
       <router-view v-slot="{ Component }">
-        <Transition name="fade" mode="out-in">
+        <Transition name="fade" mode="out-in" appear>
           <component :is="Component" :key="$route.path" />
         </Transition>
       </router-view>
@@ -120,9 +88,5 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.page-background {
-  background-image: var(--background-image);
-  background-size: cover;
-  background-position: center;
-}
+
 </style>
