@@ -153,11 +153,7 @@ onMounted(() => {
         </div>
 
         <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base">
-          <span class="text-gray-500">发布于</span>
-          <span class="ml-4">
-            {{ albumInfo.publishDate }}
-          </span>
-          <span class="ml-4 text-gray-500">时长</span>
+          <span class="text-gray-500">时长</span>
           <span class="ml-4">
             {{ formatDuration(musicInfo.duration) }}
           </span>
