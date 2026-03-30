@@ -140,6 +140,10 @@ onMounted(() => {
           <span>
             {{ albumInfo.publishDate }}
           </span>
+          <span class="text-gray-500 hidden md:inline">时长</span>
+          <span>
+            {{ formatDuration(albumInfo.totalDuration) }}
+          </span>
         </div>
 
         <OverlayScrollbarsComponent class="mt-1 md:mt-2 flex-1 text-xs md:text-sm lg:text-base" :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }" defer>
