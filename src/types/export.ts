@@ -48,3 +48,10 @@ export interface TagInfo {
   tagName: string
   tagData: any
 }
+
+export interface SongLyricData {
+  songId: number
+  provider: 'ncm' | 'qq'
+  content: string
+  translation: string | null
+}

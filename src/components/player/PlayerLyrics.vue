@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import type { LyricLine } from '@/utils'
+import { mergeLyrics } from '@/utils'
+
 const props = defineProps<{
   lyricData: string
+  lyricTranslation: string
+  showTranslation: boolean
   currentTime: number
 }>()
 
@@ -8,45 +13,42 @@ const emit = defineEmits<{
   seek: [time: number]
 }>()
 
-interface LyricLine {
-  time: number
-  text: string
-}
-
 const lyricContainer = useTemplateRef<HTMLElement>('lyricContainer')
 
 const isInit = ref(false)
 
-const lyricTimeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g
+// 用户手动滚动检测
+const userScrolling = ref(false)
+let userScrollTimer: ReturnType<typeof setTimeout> | null = null
+const SCROLL_PAUSE_DURATION = 3000
 
-const parsedLyrics = computed<LyricLine[]>(() => {
-  if (!props.lyricData)
-    return []
+function onUserScroll() {
+  userScrolling.value = true
+  if (userScrollTimer)
+    clearTimeout(userScrollTimer)
+  userScrollTimer = setTimeout(() => {
+    userScrolling.value = false
+  }, SCROLL_PAUSE_DURATION)
+}
 
-  const lines: LyricLine[] = []
+function onWheel() {
+  onUserScroll()
+}
 
-  for (const line of props.lyricData.split('\n')) {
-    const matches = [...line.matchAll(lyricTimeRegex)]
-    if (matches.length === 0)
-      continue
-
-    const text = line.replace(lyricTimeRegex, '').trim()
-    if (!text)
-      continue
-
-    for (const match of matches) {
-      const minutes = Number.parseInt(match[1], 10)
-      const seconds = Number.parseInt(match[2], 10)
-      const ms = Number.parseInt(match[3].padEnd(3, '0'), 10)
-      lines.push({
-        time: minutes * 60 + seconds + ms / 1000,
-        text,
-      })
-    }
+let touchStartY = 0
+function onTouchStart(e: TouchEvent) {
+  touchStartY = e.touches[0].clientY
+}
+function onTouchMove(e: TouchEvent) {
+  const deltaY = Math.abs(e.touches[0].clientY - touchStartY)
+  if (deltaY > 5) {
+    onUserScroll()
   }
+}
 
-  return lines.sort((a, b) => a.time - b.time)
-})
+const parsedLyrics = computed<LyricLine[]>(() =>
+  mergeLyrics(props.lyricData, props.lyricTranslation),
+)
 
 const currentLineIndex = computed(() => {
   const defaultOffset = 0.5
@@ -68,7 +70,9 @@ watch(currentLineIndex, () => {
     isInit.value = true
     return
   }
-  scrollToCurrentLine()
+  if (!userScrolling.value) {
+    scrollToCurrentLine()
+  }
 }, { immediate: true })
 
 function scrollToCurrentLine() {
@@ -87,11 +91,20 @@ function scrollToCurrentLine() {
 }
 
 function onClickLine(line: LyricLine) {
+  // 点击歌词跳转时重置手动滚动状态
+  userScrolling.value = false
+  if (userScrollTimer)
+    clearTimeout(userScrollTimer)
   emit('seek', line.time)
 }
 
 onMounted(() => {
   scrollToCurrentLine()
+})
+
+onUnmounted(() => {
+  if (userScrollTimer)
+    clearTimeout(userScrollTimer)
 })
 </script>
 
@@ -100,6 +113,9 @@ onMounted(() => {
     ref="lyricContainer"
     class="lyrics-container h-full overflow-y-auto scrollbar-hide py-[40%]"
     :options="{ scrollbars: undefined }"
+    @wheel="onWheel"
+    @touchstart="onTouchStart"
+    @touchmove="onTouchMove"
   >
     <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center mt-8">
       暂无歌词
@@ -114,7 +130,16 @@ onMounted(() => {
         : 'text-white/40 text-base'"
       @click="onClickLine(line)"
     >
-      {{ line.text }}
+      <div>{{ line.text }}</div>
+      <div
+        v-if="showTranslation && line.translation"
+        class="mt-0.5"
+        :class="index === currentLineIndex
+          ? 'text-white/70 text-base font-normal'
+          : 'text-white/30 text-sm'"
+      >
+        {{ line.translation }}
+      </div>
     </div>
   </div>
 </template>

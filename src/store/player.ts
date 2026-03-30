@@ -1,7 +1,7 @@
 import type { AudioQuality, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
 import { getLyricsApi, getSongMediaApi } from '@/api'
-import { clearMediaSession, getAvailableQualities, parseSongMedia, selectMediaUrls, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
+import { clearMediaSession, getAvailableQualities, parseSongMedia, selectLyricProvider, selectMediaUrls, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 
 export const usePlayerStore = defineStore('player', {
@@ -14,6 +14,7 @@ export const usePlayerStore = defineStore('player', {
     quality: 5 as AudioQuality,
     showSpectrum: false,
     enableAudioContext: true,
+    showTranslation: true,
 
     // 运行时状态
     isPlaying: false,
@@ -25,6 +26,7 @@ export const usePlayerStore = defineStore('player', {
     isLoading: false,
     isFullscreen: false,
     lyricData: '',
+    lyricTranslation: '',
     showPlaylist: false,
   }),
 
@@ -124,6 +126,7 @@ export const usePlayerStore = defineStore('player', {
       this.bufferedEnd = 0
       this.isLoading = true
       this.lyricData = ''
+      this.lyricTranslation = ''
       this.fetchLyric()
 
       try {
@@ -293,6 +296,7 @@ export const usePlayerStore = defineStore('player', {
       this.duration = 0
       this.bufferedEnd = 0
       this.lyricData = ''
+      this.lyricTranslation = ''
       getAudioPlayer().pause()
       clearMediaSession()
     },
@@ -363,6 +367,10 @@ export const usePlayerStore = defineStore('player', {
       this.showSpectrum = !this.showSpectrum
     },
 
+    toggleTranslation() {
+      this.showTranslation = !this.showTranslation
+    },
+
     setAudioContextEnabled(enabled: boolean) {
       this.enableAudioContext = enabled
       getAudioPlayer().setAudioContextEnabled(enabled)
@@ -379,29 +387,34 @@ export const usePlayerStore = defineStore('player', {
       const song = this.currentSong
       if (!song) {
         this.lyricData = ''
+        this.lyricTranslation = ''
         return
       }
 
-      if (!song.platforms || Object.keys(song.platforms).length === 0) {
+      const provider = song.platforms ? selectLyricProvider(song.platforms) : null
+      if (!provider) {
         this.lyricData = ''
+        this.lyricTranslation = ''
         return
       }
 
-      getLyricsApi(Object.keys(song.platforms)[0] as 'qq' | 'ncm', song.songId)
+      getLyricsApi(provider, song.songId)
         .then(res => res.json())
         .then((data) => {
           // 确认仍然是同一首歌
           if (this.currentSong?.songId === song.songId) {
             this.lyricData = data.content
+            this.lyricTranslation = data.translation ?? ''
           }
         })
         .catch(() => {
           this.lyricData = ''
+          this.lyricTranslation = ''
         })
     },
   },
 
   persist: {
-    pick: ['playlist', 'currentIndex', 'playMode', 'volume', 'quality', 'showSpectrum', 'enableAudioContext'],
+    pick: ['playlist', 'currentIndex', 'playMode', 'volume', 'quality', 'showSpectrum', 'enableAudioContext', 'showTranslation'],
   },
 })

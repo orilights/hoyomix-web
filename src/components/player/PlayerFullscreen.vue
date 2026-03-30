@@ -9,6 +9,8 @@ const {
   currentTime,
   isFullscreen,
   lyricData,
+  lyricTranslation,
+  showTranslation,
   showSpectrum,
   enableAudioContext,
   volume,
@@ -93,22 +95,38 @@ function onSeek(time: number) {
             {{ currentSong.songName }}
           </div>
 
-          <Tooltip
-            placement="bottom"
-            align="end"
-            :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
-          >
-            <button
-              class="p-2 rounded-full transition-colors"
-              :class="!enableAudioContext
-                ? 'text-white/20 cursor-not-allowed'
-                : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
-              :disabled="!enableAudioContext"
-              @click="playerStore.toggleSpectrum()"
+          <div class="flex items-center gap-1">
+            <Tooltip
+              placement="bottom"
+              align="end"
+              content="歌词翻译"
             >
-              <LucideAudioLines class="size-5" />
-            </button>
-          </Tooltip>
+              <button
+                class="p-2 rounded-full transition-colors cursor-pointer hover:bg-white/10"
+                :class="showTranslation ? 'text-blue-400' : 'text-white/60 hover:text-white'"
+                @click="playerStore.toggleTranslation()"
+              >
+                <LucideLanguages class="size-5" />
+              </button>
+            </Tooltip>
+
+            <Tooltip
+              placement="bottom"
+              align="end"
+              :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
+            >
+              <button
+                class="p-2 rounded-full transition-colors"
+                :class="!enableAudioContext
+                  ? 'text-white/20 cursor-not-allowed'
+                  : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
+                :disabled="!enableAudioContext"
+                @click="playerStore.toggleSpectrum()"
+              >
+                <LucideAudioLines class="size-5" />
+              </button>
+            </Tooltip>
+          </div>
         </div>
 
         <div class="flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0">
@@ -134,6 +152,8 @@ function onSeek(time: number) {
           <div class="flex-1 h-full min-w-0">
             <PlayerLyrics
               :lyric-data="lyricData"
+              :lyric-translation="lyricTranslation"
+              :show-translation="showTranslation"
               :current-time="currentTime"
               class="h-full"
               @seek="onSeek"

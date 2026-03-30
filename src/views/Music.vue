@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { ExportAlbum, ExportSong } from '@/types/export'
 import { getAlbumInfoApi, getLyricsApi } from '@/api'
-import { lyricTimeRegex } from '@/constants'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
-import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient } from '@/utils'
+import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient, mergeLyrics, selectLyricProvider } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,10 +31,9 @@ watch(albumId, (val) => {
   }
 }, { immediate: true })
 const lyricData = ref('')
+const lyricTranslation = ref('')
 
-const lyricList = computed(() => {
-  return lyricData.value.split('\n').map(line => removeTimeStr(line).trim()).filter(line => !line.startsWith('[')).filter(line => line)
-})
+const lyricList = computed(() => mergeLyrics(lyricData.value, lyricTranslation.value))
 
 const neteaseOptions = computed(() => [
   {
@@ -65,19 +63,17 @@ const qqMusicOptions = computed(() => [
   },
 ])
 
-function removeTimeStr(str: string) {
-  return str.replace(lyricTimeRegex, '')
-}
-
 function getLyricData() {
-  if (!musicInfo.value?.platforms || Object.keys(musicInfo.value!.platforms).length === 0) {
+  const provider = musicInfo.value?.platforms ? selectLyricProvider(musicInfo.value.platforms) : null
+  if (!provider) {
     lyricData.value = '暂无数据'
     return
   }
-  getLyricsApi(Object.keys(musicInfo.value!.platforms)[0] as 'qq' | 'ncm', musicInfo.value!.id)
+  getLyricsApi(provider, musicInfo.value!.id)
     .then(res => res.json())
     .then((data) => {
       lyricData.value = data.content
+      lyricTranslation.value = data.translation ?? ''
     })
 }
 
@@ -264,7 +260,8 @@ onMounted(() => {
       <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
         <div class="bg-black/5 rounded-xl overflow-hidden p-4">
           <div v-for="line, index in lyricList" :key="index" class="my-1">
-            {{ line }}
+            <span>{{ line.text }}</span>
+            <span v-if="line.translation" class="text-gray-500 ml-2">/ {{ line.translation }}</span>
           </div>
         </div>
       </div>
