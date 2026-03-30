@@ -25,11 +25,12 @@ export interface ExportAlbum {
   productName: string
   publishDate: string
   platforms: ExportPlatforms
+  tags: TagInfo[]
   songs: ExportSong[]
   totalDuration: string
 }
 
-export type ExportAlbumListItem = Omit<ExportAlbum, 'songs'> & {
+export type ExportAlbumListItem = Omit<ExportAlbum, 'songs' | 'tags'> & {
   songCount: number
 }
 
@@ -40,4 +41,10 @@ export interface ArtistInfo {
   songs: ExportSong[]
   albums: ExportAlbumListItem[]
   products: string[]
+}
+
+export interface TagInfo {
+  tagType: string
+  tagName: string
+  tagData: any
 }

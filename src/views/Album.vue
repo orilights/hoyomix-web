@@ -107,7 +107,7 @@ function addToPlaylist(song: ExportSong) {
   playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value))
 }
 
-const activeTab = ref<'songs' | 'artists'>('songs')
+const activeTab = ref<'songs' | 'artists' | 'tags'>('songs')
 
 onMounted(() => {
   document.documentElement.scrollTo(0, 0)
@@ -215,11 +215,24 @@ onMounted(() => {
       >
         制作人员
       </button>
+      <button
+        class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+        :class="activeTab === 'tags' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+        @click="activeTab = 'tags'"
+      >
+        其他信息
+      </button>
     </div>
 
-    <div class="flex flex-col lg:flex-row gap-4 mt-4">
-      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
-        <ArtistListByType :id="albumInfo.id" type="album" />
+    <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
+      <div class="w-full lg:w-[400px]">
+        <div v-show="activeTab === 'tags'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit lg:mb-4" :class="{ hidden: activeTab !== 'tags' }">
+          <TagList :tags="albumInfo.tags" />
+        </div>
+
+        <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+          <ArtistListByType :id="albumInfo.id" type="album" />
+        </div>
       </div>
 
       <div v-show="activeTab === 'songs'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'songs' }">
