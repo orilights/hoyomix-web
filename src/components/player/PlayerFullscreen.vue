@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { LucideAudioLines } from 'lucide-vue-next'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 
