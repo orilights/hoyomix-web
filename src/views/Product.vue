@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useStore } from '@/store'
-import { getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
+import { formatDuration, getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
 
 const route = useRoute()
 const store = useStore()
@@ -48,6 +48,12 @@ watch(product, (val) => {
           </span>
           <span>
             {{ sumBy(albumsFiltered, (i) => i.songCount) }}
+          </span>
+          <span class="ml-4 text-gray-500">
+            时长
+          </span>
+          <span>
+            {{ formatDuration(sumBy(albumsFiltered, (i) => Number(i.totalDuration))) }}
           </span>
         </div>
       </div>
