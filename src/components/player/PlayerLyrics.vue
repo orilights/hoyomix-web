@@ -75,7 +75,7 @@ watch(currentLineIndex, () => {
   }
 }, { immediate: true })
 
-function scrollToCurrentLine() {
+function scrollToCurrentLine(smooth = true) {
   if (currentLineIndex.value >= 0 && lyricContainer.value) {
     const lines = lyricContainer.value.querySelectorAll('[data-lyric-line]')
     const currentEl = lines[currentLineIndex.value] as HTMLElement
@@ -84,7 +84,7 @@ function scrollToCurrentLine() {
       const targetTop = currentEl.offsetTop - containerHeight / 2 + currentEl.clientHeight / 2
       lyricContainer.value.scrollTo({
         top: targetTop,
-        behavior: 'smooth',
+        behavior: smooth ? 'smooth' : 'auto',
       })
     }
   }
@@ -97,6 +97,10 @@ function onClickLine(line: LyricLine) {
     clearTimeout(userScrollTimer)
   emit('seek', line.time)
 }
+
+defineExpose({
+  scrollToCurrentLine,
+})
 
 onMounted(() => {
   scrollToCurrentLine()

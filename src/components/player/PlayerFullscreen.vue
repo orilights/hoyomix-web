@@ -31,6 +31,13 @@ const blurCoverUrl = computed(() => {
 const bg1Url = ref('')
 const bg2Url = ref('')
 const showBackground = ref(0)
+const lyricViewRef = useTemplateRef('lyricView')
+
+watch(showTranslation, () => {
+  nextTick(() => {
+    lyricViewRef.value?.scrollToCurrentLine(false)
+  })
+})
 
 watch(blurCoverUrl, (newVal) => {
   if (!newVal) {
@@ -151,6 +158,7 @@ function onSeek(time: number) {
 
           <div class="flex-1 h-full min-w-0">
             <PlayerLyrics
+              ref="lyricView"
               :lyric-data="lyricData"
               :lyric-translation="lyricTranslation"
               :show-translation="showTranslation"
