@@ -106,11 +106,14 @@ function onSeek(time: number) {
             <Tooltip
               placement="bottom"
               align="end"
-              content="歌词翻译"
+              :content="!lyricTranslation ? '当前歌曲无歌词翻译' : '歌词翻译'"
             >
               <button
-                class="p-2 rounded-full transition-colors cursor-pointer hover:bg-white/10"
-                :class="showTranslation ? 'text-blue-400' : 'text-white/60 hover:text-white'"
+                class="p-2 rounded-full transition-colors"
+                :class="!lyricTranslation
+                  ? 'text-white/20 cursor-not-allowed'
+                  : showTranslation ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
+                :disabled="!lyricTranslation"
                 @click="playerStore.toggleTranslation()"
               >
                 <LucideLanguages class="size-5" />
