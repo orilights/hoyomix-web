@@ -2,6 +2,7 @@
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 
+const router = useRouter()
 const playerStore = usePlayerStore()
 const {
   currentSong,
@@ -58,6 +59,20 @@ function close() {
   playerStore.setFullscreen(false)
 }
 
+function toSong() {
+  if (!currentSong.value)
+    return
+  playerStore.setFullscreen(false)
+  router.push({ name: 'MusicInfo', params: { albumId: currentSong.value.albumId, musicId: currentSong.value.songId } })
+}
+
+function toAlbum() {
+  if (!currentSong.value)
+    return
+  playerStore.setFullscreen(false)
+  router.push({ name: 'AlbumInfo', params: { id: currentSong.value.albumId } })
+}
+
 function onSeek(time: number) {
   playerStore.seek(time)
 }
@@ -98,8 +113,8 @@ function onSeek(time: number) {
             </button>
           </Tooltip>
 
-          <div class="text-white/60 text-sm">
-            {{ currentSong.songName }}
+          <div class="text-white/60 text-sm text-nowrap truncate cursor-pointer" @click="toAlbum">
+            {{ currentSong.albumName }}
           </div>
 
           <div class="flex items-center gap-1">
@@ -111,7 +126,7 @@ function onSeek(time: number) {
               <button
                 class="p-2 rounded-full transition-colors"
                 :class="!lyricTranslation
-                  ? 'text-white/20 cursor-not-allowed'
+                  ? 'text-white/20'
                   : showTranslation ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
                 :disabled="!lyricTranslation"
                 @click="playerStore.toggleTranslation()"
@@ -128,7 +143,7 @@ function onSeek(time: number) {
               <button
                 class="p-2 rounded-full transition-colors"
                 :class="!enableAudioContext
-                  ? 'text-white/20 cursor-not-allowed'
+                  ? 'text-white/20'
                   : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
                 :disabled="!enableAudioContext"
                 @click="playerStore.toggleSpectrum()"
@@ -148,10 +163,8 @@ function onSeek(time: number) {
               >
             </div>
             <div class="mt-4 text-center">
-              <div class="text-white text-xl font-bold truncate">
-                <RouterLink :to="{ name: 'MusicInfo', params: { albumId: currentSong.albumId, musicId: currentSong.songId } }" @click="isFullscreen = false">
-                  {{ currentSong.songName }}
-                </RouterLink>
+              <div class="text-white text-xl font-bold truncate cursor-pointer" @click="toSong">
+                {{ currentSong.songName }}
               </div>
               <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">
                 {{ currentSong.songDescription }}

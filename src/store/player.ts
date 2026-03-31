@@ -16,6 +16,7 @@ export const usePlayerStore = defineStore('player', {
     enableAudioContext: true,
     showTranslation: true,
     lyricsOffset: 0,
+    lyricsFontSize: 16,
 
     // 运行时状态
     isPlaying: false,
@@ -416,6 +417,17 @@ export const usePlayerStore = defineStore('player', {
   },
 
   persist: {
-    pick: ['playlist', 'currentIndex', 'playMode', 'volume', 'quality', 'showSpectrum', 'enableAudioContext', 'showTranslation', 'lyricsOffset'],
+    pick: [
+      'playlist',
+      'currentIndex',
+      'playMode',
+      'volume',
+      'quality',
+      'showSpectrum',
+      'enableAudioContext',
+      'showTranslation',
+      'lyricsOffset',
+      'lyricsFontSize',
+    ],
   },
 })

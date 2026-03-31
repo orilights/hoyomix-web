@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LyricLine } from '@/utils'
+import { LucideRotateCcw } from '@lucide/vue'
 import { usePlayerStore } from '@/store/player'
 import { mergeLyrics } from '@/utils'
 
@@ -15,7 +16,11 @@ const emit = defineEmits<{
 }>()
 
 const playerStore = usePlayerStore()
-const { lyricsOffset } = storeToRefs(playerStore)
+const { lyricsOffset, lyricsFontSize } = storeToRefs(playerStore)
+
+const MIN_FONT_SIZE = 12
+const MAX_FONT_SIZE = 32
+const FONT_STEP = 4
 
 const lyricContainer = useTemplateRef<HTMLElement>('lyricContainer')
 const isHovering = ref(false)
@@ -95,6 +100,16 @@ function scrollToCurrentLine(smooth = true) {
   }
 }
 
+function handleChangeFontSize(delta: number) {
+  const newSize = lyricsFontSize.value + delta
+  if (newSize >= MIN_FONT_SIZE && newSize <= MAX_FONT_SIZE) {
+    lyricsFontSize.value = newSize
+    nextTick(() => {
+      scrollToCurrentLine(false)
+    })
+  }
+}
+
 function onClickLine(line: LyricLine) {
   // 点击歌词跳转时重置手动滚动状态
   userScrolling.value = false
@@ -140,8 +155,9 @@ onUnmounted(() => {
         data-lyric-line
         class="px-4 py-2 cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/10"
         :class="index === currentLineIndex
-          ? 'text-white text-lg font-bold'
-          : 'text-white/40 text-base'"
+          ? 'text-white font-bold'
+          : 'text-white/40'"
+        :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize + FONT_STEP : lyricsFontSize}px` }"
         @click="onClickLine(line)"
       >
         <div>{{ line.text }}</div>
@@ -149,8 +165,9 @@ onUnmounted(() => {
           v-if="showTranslation && line.translation"
           class="mt-0.5"
           :class="index === currentLineIndex
-            ? 'text-white/70 text-base font-normal'
-            : 'text-white/30 text-sm'"
+            ? 'text-white/70 font-normal'
+            : 'text-white/30'"
+          :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize : lyricsFontSize - FONT_STEP}px` }"
         >
           {{ line.translation }}
         </div>
@@ -171,7 +188,7 @@ onUnmounted(() => {
             class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium"
             @click="lyricsOffset -= 0.2"
           >
-            -
+            <LucideRotateCcw class="size-4" />
           </button>
         </Tooltip>
         <Tooltip
@@ -195,7 +212,33 @@ onUnmounted(() => {
             class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium"
             @click="lyricsOffset += 0.2"
           >
-            +
+            <LucideRotateCw class="size-4" />
+          </button>
+        </Tooltip>
+        <Tooltip
+          placement="left"
+          align="center"
+          content="放大字体"
+        >
+          <button
+            class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+            :disabled="lyricsFontSize >= MAX_FONT_SIZE"
+            @click="handleChangeFontSize(FONT_STEP)"
+          >
+            <LucideAArrowUp class="size-4" />
+          </button>
+        </Tooltip>
+        <Tooltip
+          placement="left"
+          align="center"
+          content="缩小字体"
+        >
+          <button
+            class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+            :disabled="lyricsFontSize <= MIN_FONT_SIZE"
+            @click="handleChangeFontSize(-FONT_STEP)"
+          >
+            <LucideAArrowDown class="size-4" />
           </button>
         </Tooltip>
       </div>
