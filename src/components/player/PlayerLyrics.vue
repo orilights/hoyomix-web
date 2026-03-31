@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LyricLine } from '@/utils'
+import { usePlayerStore } from '@/store/player'
 import { mergeLyrics } from '@/utils'
 
 const props = defineProps<{
@@ -13,7 +14,11 @@ const emit = defineEmits<{
   seek: [time: number]
 }>()
 
+const playerStore = usePlayerStore()
+const { lyricsOffset } = storeToRefs(playerStore)
+
 const lyricContainer = useTemplateRef<HTMLElement>('lyricContainer')
+const isHovering = ref(false)
 
 const isInit = ref(false)
 
@@ -51,13 +56,13 @@ const parsedLyrics = computed<LyricLine[]>(() =>
 )
 
 const currentLineIndex = computed(() => {
-  const defaultOffset = 0.5
+  const defaultOffset = 0.4
 
   if (parsedLyrics.value.length === 0)
     return -1
 
   for (let i = parsedLyrics.value.length - 1; i >= 0; i--) {
-    if (props.currentTime + defaultOffset >= parsedLyrics.value[i].time) {
+    if (props.currentTime + defaultOffset + lyricsOffset.value >= parsedLyrics.value[i].time) {
       return i
     }
   }
@@ -114,37 +119,87 @@ onUnmounted(() => {
 
 <template>
   <div
-    ref="lyricContainer"
-    class="lyrics-container h-full overflow-y-auto scrollbar-hide py-[40%]"
-    :options="{ scrollbars: undefined }"
-    @wheel="onWheel"
-    @touchstart="onTouchStart"
-    @touchmove="onTouchMove"
+    class="relative h-full"
+    @mouseenter="isHovering = true"
+    @mouseleave="isHovering = false"
   >
-    <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center mt-8">
-      暂无歌词
-    </div>
     <div
-      v-for="(line, index) in parsedLyrics"
-      :key="index"
-      data-lyric-line
-      class="px-4 py-2 cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/10"
-      :class="index === currentLineIndex
-        ? 'text-white text-lg font-bold'
-        : 'text-white/40 text-base'"
-      @click="onClickLine(line)"
+      ref="lyricContainer"
+      class="lyrics-container h-full overflow-y-auto scrollbar-hide py-[40%]"
+      :options="{ scrollbars: undefined }"
+      @wheel="onWheel"
+      @touchstart="onTouchStart"
+      @touchmove="onTouchMove"
     >
-      <div>{{ line.text }}</div>
+      <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center mt-8">
+        暂无歌词
+      </div>
       <div
-        v-if="showTranslation && line.translation"
-        class="mt-0.5"
+        v-for="(line, index) in parsedLyrics"
+        :key="index"
+        data-lyric-line
+        class="px-4 py-2 cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/10"
         :class="index === currentLineIndex
-          ? 'text-white/70 text-base font-normal'
-          : 'text-white/30 text-sm'"
+          ? 'text-white text-lg font-bold'
+          : 'text-white/40 text-base'"
+        @click="onClickLine(line)"
       >
-        {{ line.translation }}
+        <div>{{ line.text }}</div>
+        <div
+          v-if="showTranslation && line.translation"
+          class="mt-0.5"
+          :class="index === currentLineIndex
+            ? 'text-white/70 text-base font-normal'
+            : 'text-white/30 text-sm'"
+        >
+          {{ line.translation }}
+        </div>
       </div>
     </div>
+
+    <Transition name="fade">
+      <div
+        v-show="isHovering || userScrolling"
+        class="absolute right-2 bottom-4 flex flex-col gap-1 z-10"
+      >
+        <Tooltip
+          placement="left"
+          align="center"
+          content="后退 0.2s"
+        >
+          <button
+            class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium"
+            @click="lyricsOffset -= 0.2"
+          >
+            -
+          </button>
+        </Tooltip>
+        <Tooltip
+          placement="left"
+          align="center"
+          content="重置歌词偏移"
+        >
+          <button
+            class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium"
+            @click="lyricsOffset = 0"
+          >
+            {{ lyricsOffset.toFixed(1) }}
+          </button>
+        </Tooltip>
+        <Tooltip
+          placement="left"
+          align="center"
+          content="前进 0.2s"
+        >
+          <button
+            class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium"
+            @click="lyricsOffset += 0.2"
+          >
+            +
+          </button>
+        </Tooltip>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -165,5 +220,14 @@ onUnmounted(() => {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
