@@ -80,6 +80,54 @@ function openFullscreen() {
   playerStore.setFullscreen(true)
 }
 
+// 移动端左右滑动切换歌曲
+const swipeStartX = ref(0)
+const swipeStartY = ref(0)
+const swipeOffset = ref(0)
+const isHorizontalSwipe = ref(false)
+const swipeSnapBack = ref(false)
+
+function onBarTouchStart(e: TouchEvent) {
+  swipeStartX.value = e.touches[0].clientX
+  swipeStartY.value = e.touches[0].clientY
+  isHorizontalSwipe.value = false
+  swipeSnapBack.value = false
+}
+
+function onBarTouchMove(e: TouchEvent) {
+  const deltaX = e.touches[0].clientX - swipeStartX.value
+  const deltaY = e.touches[0].clientY - swipeStartY.value
+  if (!isHorizontalSwipe.value && Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8)
+    return
+  if (!isHorizontalSwipe.value) {
+    if (Math.abs(deltaX) > Math.abs(deltaY))
+      isHorizontalSwipe.value = true
+    else
+      return
+  }
+  e.preventDefault()
+  swipeOffset.value = deltaX
+}
+
+function onBarTouchEnd() {
+  if (!isHorizontalSwipe.value || Math.abs(swipeOffset.value) < 60) {
+    return
+  }
+  const direction = swipeOffset.value < 0 ? 'next' : 'prev'
+  swipeSnapBack.value = true
+  nextTick(() => {
+    swipeOffset.value = 0
+  })
+  setTimeout(() => {
+    swipeSnapBack.value = false
+  }, 300)
+  if (direction === 'next')
+    playerStore.playNext()
+  else
+    playerStore.playPrev()
+  isHorizontalSwipe.value = false
+}
+
 onMounted(() => {
   if (currentSong.value) {
     playerStore.fetchLyric()
@@ -106,7 +154,16 @@ onMounted(() => {
         'bg-gray-900/20': isFullscreen,
       }"
     >
-      <div class="h-[72px] flex items-center px-4 gap-4">
+      <div
+        class="h-[72px] flex items-center px-4 gap-4"
+        :style="{
+          transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
+          transition: swipeSnapBack ? 'transform 0.5s ease' : undefined,
+        }"
+        @touchstart="onBarTouchStart"
+        @touchmove="onBarTouchMove"
+        @touchend="onBarTouchEnd"
+      >
         <div class="flex items-center min-w-0 max-w-[240px] md:w-[240px]">
           <Transition name="cover-fade">
             <div v-if="coverUrl && !isFullscreen" class="size-12 mr-3 shrink-0">
