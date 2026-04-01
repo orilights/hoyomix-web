@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ArtistInfo } from '@/types/export'
-import { getArtistInfoApi } from '@/api'
+import { toast } from 'vue-sonner'
+import { useArtistInfoQuery } from '@/composables/queries'
 import { useStore } from '@/store'
 import { getProductIconUrl } from '@/utils'
 
@@ -9,26 +10,25 @@ const store = useStore()
 
 const { albumList } = storeToRefs(store)
 
-const artistName = computed(() => route.params.name as string)
+const artistName = computed(() => route.params.name as string || null)
 
-const artistInfo = ref<ArtistInfo | null>(null)
+const { data: artistInfo, isLoading, isError } = useArtistInfoQuery(artistName)
+
+watch(isError, (val) => {
+  if (val)
+    toast.error('艺术家信息加载失败')
+})
 
 const albumsFiltered = computed(() => {
   if (artistInfo.value) {
-    return albumList.value.filter(album => artistInfo.value?.albums.find(i => i.id === album.id))
+    return albumList.value.filter(album => (artistInfo.value as ArtistInfo).albums.find(i => i.id === album.id))
   }
   return []
 })
 
 watch(artistName, (val) => {
-  if (val) {
+  if (val)
     document.title = `${val} - HOYO-MiX Online`
-    getArtistInfoApi(val)
-      .then(res => res.json())
-      .then((data) => {
-        artistInfo.value = data
-      })
-  }
 }, { immediate: true })
 
 onMounted(() => {
@@ -37,7 +37,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row gap-4 mt-4">
+  <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
+    <LucideLoader2 class="size-6 animate-spin mr-2" />
+    加载中...
+  </div>
+
+  <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
+    加载失败，请刷新重试
+  </div>
+
+  <div v-else class="flex flex-col md:flex-row gap-4 mt-4">
     <div class="w-full md:w-[400px] h-fit p-4 bg-black/5 rounded-xl">
       <div class="font-bold text-2xl pb-4">
         {{ artistName }}

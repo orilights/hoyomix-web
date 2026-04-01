@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { SearchResponse, SearchResultItem, SearchType } from '@/types/search'
-import { useDebounceFn, useResizeObserver } from '@vueuse/core'
-import { getSearchApi } from '@/api'
+import type { SearchResultItem, SearchType } from '@/types/search'
+import { refDebounced, useResizeObserver } from '@vueuse/core'
+import { toast } from 'vue-sonner'
+import { useSearchQuery } from '@/composables/queries'
 import { useStore } from '@/store'
 import { getCoverUrl, getProductIconUrl, sanitizeHighlight } from '@/utils'
 
@@ -11,9 +12,6 @@ const { albumList } = storeToRefs(useStore())
 
 const keyword = ref('')
 const searchType = ref<SearchType | undefined>(undefined)
-const results = ref<SearchResultItem[]>([])
-const loading = ref(false)
-const searched = ref(false)
 
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
 const itemRefs = ref<HTMLElement[]>([])
@@ -38,39 +36,26 @@ const typeOptions: { label: string, value: SearchType | undefined }[] = [
   { label: '艺术家', value: 'artist' },
 ]
 
-async function handleSearch() {
-  const q = keyword.value.trim()
-  if (!q) {
-    results.value = []
-    searched.value = false
-    return
-  }
-  loading.value = true
-  try {
-    const res = await getSearchApi(q, searchType.value, 10)
-    const data: SearchResponse = await res.json()
-    results.value = data.results
-  }
-  catch {
-    results.value = []
-  }
-  finally {
-    loading.value = false
-    searched.value = true
-  }
-}
+const debouncedKeyword = refDebounced(keyword, 300)
 
-const debouncedSearch = useDebounceFn(handleSearch, 300)
+const { data: searchData, isFetching, isError } = useSearchQuery(debouncedKeyword, searchType)
+
+const results = computed<SearchResultItem[]>(() => searchData.value?.results ?? [])
+const isTyping = computed(() => keyword.value.trim() !== debouncedKeyword.value.trim())
+const showLoading = computed(() => isTyping.value || isFetching.value)
+const hasSearched = computed(() => debouncedKeyword.value.trim() !== '')
+
+watch(isError, (val) => {
+  if (val)
+    toast.error('搜索失败')
+})
 
 watch(keyword, () => {
   activeIndex.value = -1
-  debouncedSearch()
 })
 
 watch(searchType, () => {
   activeIndex.value = -1
-  if (keyword.value.trim())
-    handleSearch()
 })
 
 watch(results, () => {
@@ -86,8 +71,6 @@ watch(visible, (val) => {
   }
   else {
     keyword.value = ''
-    results.value = []
-    searched.value = false
     searchType.value = undefined
     activeIndex.value = -1
     itemRefs.value = []
@@ -252,12 +235,12 @@ onUnmounted(() => {
             :style="contentHeight !== null ? { height: `${contentHeight}px` } : {}"
           >
             <div ref="contentRef" class="max-h-[60vh] overflow-y-auto">
-              <div v-if="loading && results.length === 0" class="flex items-center justify-center py-12 text-gray-400">
+              <div v-if="showLoading && results.length === 0" class="flex items-center justify-center py-12 text-gray-400">
                 <LucideLoader2 class="size-5 animate-spin mr-2" />
                 搜索中...
               </div>
 
-              <div v-else-if="searched && results.length === 0" class="py-12 text-center text-gray-400">
+              <div v-else-if="hasSearched && !showLoading && results.length === 0" class="py-12 text-center text-gray-400">
                 未找到相关结果
               </div>
 
@@ -310,7 +293,7 @@ onUnmounted(() => {
                 </button>
               </div>
 
-              <div v-else-if="!searched" class="py-12 text-center text-gray-400">
+              <div v-else-if="!keyword.trim()" class="py-12 text-center text-gray-400">
                 输入关键词开始搜索
               </div>
             </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { ExportAlbum, ExportSong } from '@/types/export'
-import { getAlbumInfoApi, getLyricsApi } from '@/api'
+import type { ExportSong } from '@/types/export'
+import { toast } from 'vue-sonner'
+import { useAlbumInfoQuery, useLyricsQuery } from '@/composables/queries'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient, mergeLyrics, selectLyricProvider } from '@/utils'
@@ -10,10 +11,11 @@ const router = useRouter()
 const store = useStore()
 const playerStore = usePlayerStore()
 
-const albumId = computed(() => route.params.albumId as string)
+const albumId = computed(() => Number(route.params.albumId as string) || null)
 const musicId = computed(() => Number(route.params.musicId))
 
-const albumInfo = ref<ExportAlbum | null>(null)
+const { data: albumInfo, isLoading, isError: isAlbumError } = useAlbumInfoQuery(albumId)
+
 const musicInfo = computed<ExportSong | null>(() => {
   if (albumInfo.value) {
     return albumInfo.value.songs.find(song => song.id === musicId.value) || null
@@ -21,19 +23,28 @@ const musicInfo = computed<ExportSong | null>(() => {
   return null
 })
 
-watch(albumId, (val) => {
-  if (val) {
-    getAlbumInfoApi(Number(val))
-      .then(res => res.json())
-      .then((data: ExportAlbum) => {
-        albumInfo.value = data
-      })
-  }
-}, { immediate: true })
-const lyricData = ref('')
-const lyricTranslation = ref('')
+const lyricProvider = computed(() => {
+  return musicInfo.value?.platforms ? selectLyricProvider(musicInfo.value.platforms) : null
+})
+const lyricSongId = computed(() => musicInfo.value?.id ?? null)
 
-const lyricList = computed(() => mergeLyrics(lyricData.value, lyricTranslation.value))
+const { data: lyricsData, isLoading: isLyricsLoading, isError: isLyricsError } = useLyricsQuery(lyricProvider, lyricSongId)
+
+const lyricList = computed(() => {
+  if (!lyricsData.value)
+    return []
+  return mergeLyrics(lyricsData.value.content, lyricsData.value.translation ?? '')
+})
+
+watch(isAlbumError, (val) => {
+  if (val)
+    toast.error('歌曲信息加载失败')
+})
+
+watch(isLyricsError, (val) => {
+  if (val)
+    toast.error('歌词加载失败')
+})
 
 const neteaseOptions = computed(() => [
   {
@@ -63,24 +74,13 @@ const qqMusicOptions = computed(() => [
   },
 ])
 
-function getLyricData() {
-  const provider = musicInfo.value?.platforms ? selectLyricProvider(musicInfo.value.platforms) : null
-  if (!provider) {
-    lyricData.value = '暂无数据'
-    return
-  }
-  getLyricsApi(provider, musicInfo.value!.id)
-    .then(res => res.json())
-    .then((data) => {
-      lyricData.value = data.content
-      lyricTranslation.value = data.translation ?? ''
-    })
-}
-
 function handlePlay() {
   if (musicInfo.value) {
-    const index = playerStore.addToPlaylist(buildPlaylistItem(musicInfo.value, albumInfo.value!))
+    const { index, isNew } = playerStore.addToPlaylist(buildPlaylistItem(musicInfo.value, albumInfo.value!))
     playerStore.playSong(index)
+    if (isNew) {
+      toast.success('已添加至播放列表并播放')
+    }
   }
 }
 
@@ -102,7 +102,6 @@ watch(musicInfo, (val) => {
   if (val) {
     document.title = `${val.name} - HOYO-MiX Online`
     store.setBackground(getCoverUrl(albumInfo.value!.platforms, '128px'))
-    getLyricData()
   }
 }, { immediate: true })
 
@@ -114,7 +113,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="albumInfo && musicInfo" class="overflow-hidden">
+  <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
+    <LucideLoader2 class="size-6 animate-spin mr-2" />
+    加载中...
+  </div>
+
+  <div v-else-if="isAlbumError" class="flex items-center justify-center py-20 text-red-400">
+    加载失败，请刷新重试
+  </div>
+
+  <div v-else-if="albumInfo && musicInfo" class="overflow-hidden">
     <div class="flex md:h-[200px] lg:h-[300px]">
       <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
         <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
@@ -259,10 +267,22 @@ onMounted(() => {
 
       <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
         <div class="bg-black/5 rounded-xl overflow-hidden p-4">
-          <div v-for="line, index in lyricList" :key="index" class="my-1">
-            <span>{{ line.text }}</span>
-            <span v-if="line.translation" class="text-gray-500 ml-2">/ {{ line.translation }}</span>
+          <div v-if="!lyricProvider" class="text-gray-400 text-sm text-center py-4">
+            暂无数据
           </div>
+          <div v-else-if="isLyricsLoading" class="flex items-center justify-center py-4 text-gray-400">
+            <LucideLoader2 class="size-4 animate-spin mr-1" />
+            加载中...
+          </div>
+          <template v-else>
+            <div v-if="lyricList.length === 0" class="text-gray-400 text-sm text-center py-4">
+              暂无数据
+            </div>
+            <div v-for="line, index in lyricList" v-else :key="index" class="my-1">
+              <span>{{ line.text }}</span>
+              <span v-if="line.translation" class="text-gray-500 ml-2">/ {{ line.translation }}</span>
+            </div>
+          </template>
         </div>
       </div>
     </div>

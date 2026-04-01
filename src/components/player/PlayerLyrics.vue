@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { LyricLine } from '@/utils'
-import { LucideRotateCcw } from '@lucide/vue'
 import { usePlayerStore } from '@/store/player'
 import { mergeLyrics } from '@/utils'
 
@@ -267,7 +266,7 @@ onUnmounted(() => {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 .fade-enter-from,
 .fade-leave-to {

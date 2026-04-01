@@ -15,6 +15,25 @@ const props = withDefaults(defineProps<{
 
 const show = ref(false)
 
+function onTouchStart() {
+  show.value = !show.value
+  if (show.value) {
+    document.addEventListener('touchstart', hideTooltip, { once: true, capture: true })
+  }
+}
+
+function hideTooltip() {
+  show.value = false
+}
+
+function onMouseEnter() {
+  show.value = true
+}
+
+function onMouseLeave() {
+  show.value = false
+}
+
 const tooltipStyle = computed(() => {
   const { placement, align } = props
   const style: Record<string, string> = {}
@@ -79,7 +98,7 @@ const tooltipStyle = computed(() => {
 
 <template>
   <div class="relative">
-    <div @mouseenter="show = true" @mouseleave="show = false">
+    <div @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @touchstart="onTouchStart">
       <slot />
     </div>
     <Transition name="tooltip">

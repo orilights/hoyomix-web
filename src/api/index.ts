@@ -1,41 +1,53 @@
+import type { ArtistInfo, ExportAlbum, ExportAlbumListItem, SongLyricData } from '@/types/export'
+import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 
+async function fetchJson<T>(url: string): Promise<T> {
+  const res = await fetch(url)
+  if (!res.ok)
+    throw new Error(`HTTP ${res.status}`)
+  return res.json() as Promise<T>
+}
+
 export function getChangelog() {
-  return fetch('https://api.amarea.cn/config/hoyomix.changelog')
+  return fetchJson<Record<string, string>>('https://api.amarea.cn/config/hoyomix.changelog')
 }
 
 export function getAlbumListApi() {
-  return fetch(`${apiBase}/albums`)
+  return fetchJson<ExportAlbumListItem[]>(`${apiBase}/albums`)
 }
 
 export function getAlbumInfoApi(albumId: number) {
-  return fetch(`${apiBase}/albums/${albumId}`)
+  return fetchJson<ExportAlbum>(`${apiBase}/albums/${albumId}`)
+}
+
+export interface ArtistTypeInfo {
+  [typeName: string]: {
+    name: string
+    alias: string[]
+    songs?: { id: number, name: string }[]
+  }[]
 }
 
 export function getCreditInfoApi(id: number | string, type: 'album' | 'song' | 'product') {
-  let requestUrl: string = ''
-  if (type === 'album') {
-    requestUrl = `${apiBase}/credits/albums/${id}`
-  }
-  else if (type === 'song') {
-    requestUrl = `${apiBase}/credits/songs/${id}`
-  }
-  else if (type === 'product') {
-    requestUrl = `${apiBase}/credits/products/${id}`
-  }
-  return fetch(requestUrl)
+  const paths: Record<string, string> = { album: 'albums', song: 'songs', product: 'products' }
+  return fetchJson<ArtistTypeInfo>(`${apiBase}/credits/${paths[type]}/${id}`)
 }
 
 export function getArtistInfoApi(artistName: string) {
-  return fetch(`${apiBase}/artists/${artistName}`)
+  return fetchJson<ArtistInfo>(`${apiBase}/artists/${artistName}`)
 }
 
 export function getLyricsApi(provider: 'qq' | 'ncm', songId: number | string) {
-  return fetch(`${apiBase}/lyrics?provider=${provider}&songId=${songId}`)
+  return fetchJson<SongLyricData>(`${apiBase}/lyrics?provider=${provider}&songId=${songId}`)
+}
+
+export interface SongMediaResponse {
+  medias: string[]
 }
 
 export function getSongMediaApi(songId: number | string) {
-  return fetch(`${apiBase}/media/${songId}`)
+  return fetchJson<SongMediaResponse>(`${apiBase}/media/${songId}`)
 }
 
 export function getSearchApi(q: string, type?: string, limit?: number) {
@@ -44,5 +56,5 @@ export function getSearchApi(q: string, type?: string, limit?: number) {
     params.set('type', type)
   if (limit)
     params.set('limit', String(limit))
-  return fetch(`${apiBase}/search?${params}`)
+  return fetchJson<SearchResponse>(`${apiBase}/search?${params}`)
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { formatDate } from '@vueuse/core'
-import { getChangelog } from '@/api'
+import { toast } from 'vue-sonner'
+import { useChangelogQuery } from '@/composables/queries'
 import { audioQualityOptions } from '@/constants'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
@@ -18,16 +19,17 @@ const { quality, enableAudioContext } = storeToRefs(playerStore)
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
-const changelog = ref('')
+const { data: changelogData, isLoading: isChangelogLoading, isError: isChangelogError } = useChangelogQuery()
+
+const changelog = computed(() => changelogData.value?.['hoyomix.changelog'] ?? '')
+
+watch(isChangelogError, (val) => {
+  if (val)
+    toast.error('更新日志加载失败')
+})
 
 onMounted(() => {
   store.setBackground()
-
-  getChangelog()
-    .then(res => res.json())
-    .then((data: any) => {
-      changelog.value = data['hoyomix.changelog']
-    })
 })
 </script>
 
@@ -108,7 +110,11 @@ onMounted(() => {
     <div class="font-bold text-2xl mt-4">
       更新日志
     </div>
-    <div class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4 overflow-x-scroll">
+    <div v-if="isChangelogLoading" class="flex items-center mt-4 py-4 text-gray-400">
+      <LucideLoader2 class="size-5 animate-spin mr-2" />
+      加载中...
+    </div>
+    <div v-else class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4 overflow-x-scroll">
       {{ changelog }}
     </div>
   </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ExportAlbumListItem } from './types/export'
 import { useOverlayScrollbars } from 'overlayscrollbars-vue'
-import { getAlbumListApi } from '@/api'
+import { toast, Toaster } from 'vue-sonner'
+import { useAlbumListQuery } from '@/composables/queries'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 
@@ -9,6 +9,18 @@ const store = useStore()
 const playerStore = usePlayerStore()
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist } = storeToRefs(playerStore)
+
+const { data: albumListData, isError: isAlbumListError } = useAlbumListQuery()
+
+watch(albumListData, (data) => {
+  if (data)
+    albumList.value = [...data].reverse()
+}, { immediate: true })
+
+watch(isAlbumListError, (val) => {
+  if (val)
+    toast.error('专辑列表加载失败')
+})
 
 const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({
   defer: true,
@@ -54,13 +66,6 @@ onMounted(() => {
   initBodyScrollbars({ target: document.body })
   playerStore.initPlayer()
   window.addEventListener('keydown', onKeydown)
-
-  getAlbumListApi()
-    .then(res => res.json())
-    .then((data: ExportAlbumListItem[]) => {
-      data.reverse()
-      albumList.value = data
-    })
 })
 
 onUnmounted(() => {
@@ -69,6 +74,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <Toaster position="top-center" rich-colors />
   <BackgroundLayer />
   <Header />
 

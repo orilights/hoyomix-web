@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { ExportAlbum, ExportSong } from '@/types/export'
-import { getAlbumInfoApi } from '@/api'
+import type { ExportSong } from '@/types/export'
+import { toast } from 'vue-sonner'
+import { useAlbumInfoQuery } from '@/composables/queries'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 import {
@@ -16,9 +17,14 @@ const route = useRoute()
 const store = useStore()
 const playerStore = usePlayerStore()
 
-const albumId = computed(() => route.params.id as string)
+const albumId = computed(() => Number(route.params.id as string) || null)
 
-const albumInfo = ref<ExportAlbum | null>(null)
+const { data: albumInfo, isLoading, isError } = useAlbumInfoQuery(albumId)
+
+watch(isError, (val) => {
+  if (val)
+    toast.error('专辑信息加载失败')
+})
 
 const discList = computed(() => {
   if (albumInfo.value) {
@@ -34,7 +40,7 @@ const discList = computed(() => {
         })
       }
       return disks
-    }, [] as { name: string, songs: ExportAlbum['songs'] }[])
+    }, [] as { name: string, songs: typeof albumInfo.value.songs }[])
   }
   return []
 })
@@ -42,16 +48,6 @@ const discList = computed(() => {
 const showDiscName = computed(() => {
   return discList.value.length > 1
 })
-
-watch(albumId, (val) => {
-  if (val) {
-    getAlbumInfoApi(Number(val))
-      .then(res => res.json())
-      .then((data: ExportAlbum) => {
-        albumInfo.value = data
-      })
-  }
-}, { immediate: true })
 
 watch(albumInfo, (val) => {
   if (val) {
@@ -92,19 +88,22 @@ function playAll() {
   if (!albumInfo.value)
     return
   playerStore.replacePlaylist(buildPlaylistFromAlbum(albumInfo.value), 0)
+  toast.success('已替换播放列表')
 }
 
 function playSong(song: ExportSong) {
   if (!albumInfo.value)
     return
-  const index = playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value!))
+  const { index } = playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value!))
   playerStore.playSong(index)
+  toast.success('已添加至播放列表并播放')
 }
 
 function addToPlaylist(song: ExportSong) {
   if (!albumInfo.value)
     return
-  playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value))
+  const { isNew } = playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value))
+  toast.success(isNew ? '已添加至播放列表' : '歌曲已在播放列表中')
 }
 
 const activeTab = ref<'songs' | 'artists' | 'tags'>('songs')
@@ -115,7 +114,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="albumInfo">
+  <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
+    <LucideLoader2 class="size-6 animate-spin mr-2" />
+    加载中...
+  </div>
+
+  <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
+    加载失败，请刷新重试
+  </div>
+
+  <div v-else-if="albumInfo">
     <div class="flex md:h-[200px] lg:h-[300px]">
       <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
         <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />

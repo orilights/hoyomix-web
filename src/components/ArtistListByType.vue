@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { getCreditInfoApi } from '@/api'
+import type { ArtistTypeInfo } from '@/api'
+import { useCreditInfoQuery } from '@/composables/queries'
 import { artistTypeSort, artistTypeSortLast } from '@/constants'
 
 const props = defineProps<{
@@ -7,19 +8,10 @@ const props = defineProps<{
   type: 'album' | 'song' | 'product'
 }>()
 
-interface ArtistTypeInfo {
-  [typeName: string]: {
-    name: string
-    alias: string[]
-    songs?: {
-      id: number
-      name: string
-    }[]
-  }[]
+const id = computed(() => props.id || null)
+const type = computed(() => props.type)
 
-}
-
-const artistInfo = ref<ArtistTypeInfo>({})
+const { data: rawData, isLoading } = useCreditInfoQuery(id, type)
 
 function sortArtists(info: ArtistTypeInfo) {
   const sorted: ArtistTypeInfo = {}
@@ -30,7 +22,8 @@ function sortArtists(info: ArtistTypeInfo) {
 }
 
 const sortedEntries = computed(() => {
-  return Object.entries(artistInfo.value).sort(([a], [b]) => {
+  const info = rawData.value ? sortArtists(rawData.value) : {}
+  return Object.entries(info).sort(([a], [b]) => {
     const ai = artistTypeSort.indexOf(a)
     const bi = artistTypeSort.indexOf(b)
     const ali = artistTypeSortLast.indexOf(a)
@@ -40,51 +33,46 @@ const sortedEntries = computed(() => {
     return aScore - bScore
   })
 })
-
-watch(() => props.id, (val) => {
-  if (val) {
-    artistInfo.value = {}
-    getCreditInfoApi(val, props.type)
-      .then(res => res.json())
-      .then((data) => {
-        artistInfo.value = sortArtists(data)
-      })
-  }
-}, { immediate: true })
 </script>
 
 <template>
-  <div
-    v-for="([typeName, artists]) in sortedEntries" :key="typeName"
-    class="pb-1"
-  >
-    <div class="font-bold">
-      {{ typeName }}
-    </div>
-    <div class="flex flex-wrap gap-x-2">
-      <div
-        v-for="artist in artists" :key="artist.name"
-        class="text-sm rounded-md border-gray-400"
-      >
-        <Tooltip>
-          <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
-            {{ artist.name }}
-            <span v-if="artist.songs" class="text-xs text-gray-600">{{ artist.songs.length }}&nbsp;</span>
-          </RouterLink>
-          <template v-if="artist.songs" #tooltip>
-            <div class="p-2 max-w-[300px] bg-white w-fit text-xs rounded-lg shadow">
-              <div v-for="song, index in artist.songs?.slice(0, 10)" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">
-                {{ song.name }}
+  <div v-if="isLoading" class="w-full flex items-center justify-center py-2 text-gray-400">
+    <LucideLoader2 class="size-4 animate-spin mr-2" />
+    加载中...
+  </div>
+  <template v-else>
+    <div
+      v-for="([typeName, artists]) in sortedEntries" :key="typeName"
+      class="pb-1"
+    >
+      <div class="font-bold">
+        {{ typeName }}
+      </div>
+      <div class="flex flex-wrap gap-x-2">
+        <div
+          v-for="artist in artists" :key="artist.name"
+          class="text-sm rounded-md border-gray-400"
+        >
+          <Tooltip>
+            <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
+              {{ artist.name }}
+              <span v-if="artist.songs" class="text-xs text-gray-600">{{ artist.songs.length }}&nbsp;</span>
+            </RouterLink>
+            <template v-if="artist.songs" #tooltip>
+              <div class="p-2 max-w-[300px] bg-white w-fit text-xs rounded-lg shadow">
+                <div v-for="song, index in artist.songs?.slice(0, 10)" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">
+                  {{ song.name }}
+                </div>
+                <div v-if="artist.songs.length > 10" class="text-gray-500">
+                  和其他 {{ artist.songs.length - 10 }} 首音乐
+                </div>
               </div>
-              <div v-if="artist.songs.length > 10" class="text-gray-500">
-                和其他 {{ artist.songs.length - 10 }} 首音乐
-              </div>
-            </div>
-          </template>
-        </Tooltip>
+            </template>
+          </Tooltip>
+        </div>
       </div>
     </div>
-  </div>
+  </template>
 </template>
 
 <style scoped>

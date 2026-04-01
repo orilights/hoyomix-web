@@ -1,6 +1,9 @@
 import type { AudioQuality, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
+import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api'
+import { audioQualityOptions } from '@/constants'
+import { queryClient } from '@/query-client'
 import { clearMediaSession, getAvailableQualities, parseSongMedia, selectLyricProvider, selectMediaUrls, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 
@@ -106,9 +109,11 @@ export const usePlayerStore = defineStore('player', {
       player.on('error', () => {
         // 播放出错时尝试下一首
         if (this.playlist.length > 1) {
+          toast.error('播放失败，已切换下一首', { duration: 2000 })
           this.playNext()
         }
         else {
+          toast.error('播放失败')
           this.isPlaying = false
           this.isLoading = false
         }
@@ -132,8 +137,11 @@ export const usePlayerStore = defineStore('player', {
       this.fetchLyric()
 
       try {
-        const res = await getSongMediaApi(song.songId)
-        const data = await res.json()
+        const data = await queryClient.fetchQuery({
+          queryKey: ['songMedia', song.songId],
+          queryFn: () => getSongMediaApi(song.songId),
+          staleTime: 1000 * 60 * 5,
+        })
         this.currentMediaItems = parseSongMedia(data.medias)
         this.availableQualities = getAvailableQualities(this.currentMediaItems)
       }
@@ -142,6 +150,7 @@ export const usePlayerStore = defineStore('player', {
         this.availableQualities = new Set()
         this.isPlaying = false
         this.isLoading = false
+        toast.error('歌曲加载失败')
         return
       }
 
@@ -149,6 +158,7 @@ export const usePlayerStore = defineStore('player', {
       if (urls.length === 0) {
         this.isPlaying = false
         this.isLoading = false
+        toast.error('该歌曲暂无可用音频')
         return
       }
 
@@ -257,13 +267,14 @@ export const usePlayerStore = defineStore('player', {
       }
     },
 
-    addToPlaylist(item: PlaylistItem) {
+    addToPlaylist(item: PlaylistItem): { index: number, isNew: boolean } {
       // 防止重复添加相同歌曲
-      const exists = this.playlist.some(i => i.songId === item.songId)
-      if (!exists) {
+      const existingIndex = this.playlist.findIndex(i => i.songId === item.songId)
+      if (existingIndex === -1) {
         this.playlist.push(item)
+        return { index: this.playlist.length - 1, isNew: true }
       }
-      return this.playlist.findIndex(i => i.songId === item.songId)!
+      return { index: existingIndex, isNew: false }
     },
 
     removeFromPlaylist(index: number) {
@@ -336,6 +347,10 @@ export const usePlayerStore = defineStore('player', {
         return
       this.quality = q
 
+      const label = audioQualityOptions.find(o => o.value === q)?.label ?? ''
+      if (label)
+        toast.success(`已切换至${label}音质`)
+
       if (!this.currentSong || this.currentMediaItems.length === 0)
         return
 
@@ -401,7 +416,6 @@ export const usePlayerStore = defineStore('player', {
       }
 
       getLyricsApi(provider, song.songId)
-        .then(res => res.json())
         .then((data) => {
           // 确认仍然是同一首歌
           if (this.currentSong?.songId === song.songId) {

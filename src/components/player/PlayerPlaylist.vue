@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
@@ -23,6 +24,7 @@ function removeSong(index: number) {
 function clearAll() {
   playerStore.clearPlaylist()
   showPlaylist.value = false
+  toast.success('已清空播放列表')
 }
 </script>
 

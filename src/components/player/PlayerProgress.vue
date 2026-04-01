@@ -138,7 +138,7 @@ const hoverPercent = computed(() => {
   <div
     ref="progressBar"
     class="relative select-none cursor-pointer group"
-    :class="thin ? 'h-1 hover:h-2 transition-[height] z-[70]' : 'h-1.5'"
+    :class="thin ? 'h-1 hover:h-2 transition-[height] z-70' : 'h-1.5'"
     @mousedown="onMouseDown"
     @mouseenter="onMouseEnter"
     @mousemove="onMouseMoveBar"
