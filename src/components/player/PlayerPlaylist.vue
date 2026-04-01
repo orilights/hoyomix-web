@@ -104,7 +104,7 @@ function clearAll() {
                 </div>
 
                 <button
-                  class="text-white/30 hover:text-red-400 ml-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0"
+                  class="text-white/30 hover:text-red-400 ml-2 p-1 rounded md:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0"
                   @click.stop="removeSong(index)"
                 >
                   <LucideX class="size-4" />
