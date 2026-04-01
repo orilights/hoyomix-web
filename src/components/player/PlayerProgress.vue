@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePlayerStore } from '@/store/player'
 import { formatDuration } from '@/utils'
 
 const props = withDefaults(defineProps<{
@@ -13,6 +14,9 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   seek: [time: number]
 }>()
+
+const player = usePlayerStore()
+const { isFullscreen } = storeToRefs(player)
 
 const progressBar = useTemplateRef<HTMLElement>('progressBar')
 const isDragging = ref(false)
@@ -154,7 +158,11 @@ const hoverPercent = computed(() => {
   >
     <div
       class="absolute inset-0 overflow-hidden bg-white/10"
-      :class="thin ? 'rounded-r-full' : 'rounded-full'"
+      :class="{
+        'rounded-full': !thin,
+        'rounded-r-full': thin,
+        'bg-gray-500!': thin && !isFullscreen,
+      }"
     >
       <div
         class="absolute inset-y-0 left-0 bg-white/10 transition-[width] duration-300"
