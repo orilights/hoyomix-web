@@ -81,7 +81,7 @@ onUnmounted(() => {
   <div class="min-h-screen backdrop-blur-2xl bg-white/80">
     <div class="px-4 md:px-16 xl:px-32 pt-[80px] pb-[100px]">
       <router-view v-slot="{ Component }">
-        <Transition name="fade" mode="out-in" appear>
+        <Transition name="page-fade" mode="out-in" appear>
           <component :is="Component" :key="$route.path" />
         </Transition>
       </router-view>
@@ -94,5 +94,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.page-fade-enter-active {
+  transition: opacity 0.3s ease;
+}
 
+.page-fade-enter-from {
+  opacity: 0;
+}
 </style>
