@@ -33,6 +33,7 @@ const bg1Url = ref('')
 const bg2Url = ref('')
 const showBackground = ref(0)
 const lyricViewRef = useTemplateRef('lyricView')
+const transformPosition = ref('')
 
 watch(showTranslation, () => {
   nextTick(() => {
@@ -76,6 +77,43 @@ function toAlbum() {
 function onSeek(time: number) {
   playerStore.seek(time)
 }
+
+// 移动端顶部下滑退出全屏
+const touchStartY = ref(0)
+const dragOffset = ref(0)
+const snapBack = ref(false)
+
+function onHeaderTouchStart(e: TouchEvent) {
+  snapBack.value = false
+  touchStartY.value = e.touches[0].clientY
+}
+
+function onHeaderTouchMove(e: TouchEvent) {
+  const delta = e.touches[0].clientY - touchStartY.value
+  if (delta > 0) {
+    dragOffset.value = delta
+  }
+}
+
+function onHeaderTouchEnd() {
+  if (dragOffset.value > 80) {
+    transformPosition.value = `${dragOffset.value}px`
+    dragOffset.value = 0
+    nextTick(() => {
+      close()
+    })
+    setTimeout(() => {
+      transformPosition.value = ''
+    }, 400)
+  }
+  else if (dragOffset.value > 0) {
+    snapBack.value = true
+    dragOffset.value = 0
+    setTimeout(() => {
+      snapBack.value = false
+    }, 300)
+  }
+}
 </script>
 
 <template>
@@ -83,6 +121,10 @@ function onSeek(time: number) {
     <div
       v-if="isFullscreen && currentSong"
       class="fixed inset-0 z-50 flex flex-col pb-[72px]"
+      :style="{
+        transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
+        transition: snapBack ? 'transform 0.3s ease' : undefined,
+      }"
     >
       <div class="absolute inset-0 overflow-hidden bg-gray-900">
         <div
@@ -99,7 +141,12 @@ function onSeek(time: number) {
       </div>
 
       <div class="relative flex-1 flex flex-col z-10 min-h-0">
-        <div class="flex items-center justify-between px-6 py-4 shrink-0">
+        <div
+          class="flex items-center justify-between px-6 py-4 shrink-0"
+          @touchstart="onHeaderTouchStart"
+          @touchmove.prevent="onHeaderTouchMove"
+          @touchend="onHeaderTouchEnd"
+        >
           <Tooltip
             placement="bottom"
             align="start"
@@ -231,6 +278,10 @@ function onSeek(time: number) {
 .fullscreen-player-enter-active,
 .fullscreen-player-leave-active {
   transition: all 0.4s ease;
+}
+.fullscreen-player-leave-from,
+.fullscreen-player-enter-to {
+  transform: translateY(v-bind('transformPosition'));
 }
 .fullscreen-player-enter-from,
 .fullscreen-player-leave-to {
