@@ -14,8 +14,8 @@ const emit = defineEmits<{
   seek: [time: number]
 }>()
 
-const playerStore = usePlayerStore()
-const { lyricsOffset, lyricsFontSize } = storeToRefs(playerStore)
+const player = usePlayerStore()
+const { lyricsOffset, lyricsFontSize } = storeToRefs(player)
 
 const MIN_FONT_SIZE = 12
 const MAX_FONT_SIZE = 32
@@ -262,14 +262,5 @@ onUnmounted(() => {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

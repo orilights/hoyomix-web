@@ -15,7 +15,7 @@ import {
 
 const route = useRoute()
 const store = useStore()
-const playerStore = usePlayerStore()
+const player = usePlayerStore()
 
 const albumId = computed(() => Number(route.params.id as string) || null)
 
@@ -87,22 +87,22 @@ const qqMusicOptions = computed(() => [
 function playAll() {
   if (!albumInfo.value)
     return
-  playerStore.replacePlaylist(buildPlaylistFromAlbum(albumInfo.value), 0)
+  player.replacePlaylist(buildPlaylistFromAlbum(albumInfo.value), 0)
   toast.success('已替换播放列表')
 }
 
 function playSong(song: ExportSong) {
   if (!albumInfo.value)
     return
-  const { index } = playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value!))
-  playerStore.playSong(index)
+  const { index } = player.addToPlaylist(buildPlaylistItem(song, albumInfo.value!))
+  player.playSong(index)
   toast.success('已添加至播放列表并播放')
 }
 
 function addToPlaylist(song: ExportSong) {
   if (!albumInfo.value)
     return
-  const { isNew } = playerStore.addToPlaylist(buildPlaylistItem(song, albumInfo.value))
+  const { isNew } = player.addToPlaylist(buildPlaylistItem(song, albumInfo.value))
   toast.success(isNew ? '已添加至播放列表' : '歌曲已在播放列表中')
 }
 

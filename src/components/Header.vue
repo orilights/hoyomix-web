@@ -5,8 +5,8 @@ import { usePlayerStore } from '@/store/player'
 
 const { y: scrollY } = useWindowScroll()
 const store = useStore()
-const playerStore = usePlayerStore()
-const { isFullscreen } = storeToRefs(playerStore)
+const player = usePlayerStore()
+const { isFullscreen } = storeToRefs(player)
 const { showSearch } = storeToRefs(store)
 
 function onKeydown(e: KeyboardEvent) {

@@ -14,8 +14,8 @@ declare global {
 }
 
 const store = useStore()
-const playerStore = usePlayerStore()
-const { quality, enableAudioContext } = storeToRefs(playerStore)
+const player = usePlayerStore()
+const { quality, enableAudioContext } = storeToRefs(player)
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
@@ -50,7 +50,7 @@ onMounted(() => {
           :class="quality === opt.value
             ? 'bg-blue-500 text-white border-blue-500'
             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          @click="playerStore.switchQuality(opt.value)"
+          @click="player.switchQuality(opt.value)"
         >
           {{ opt.label }}
         </button>
@@ -66,7 +66,7 @@ onMounted(() => {
           :class="enableAudioContext ? 'bg-blue-500' : 'bg-gray-300'"
           role="switch"
           :aria-checked="enableAudioContext"
-          @click="playerStore.setAudioContextEnabled(!enableAudioContext)"
+          @click="player.setAudioContextEnabled(!enableAudioContext)"
         >
           <span
             class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"

@@ -3,7 +3,7 @@ import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 
 const router = useRouter()
-const playerStore = usePlayerStore()
+const player = usePlayerStore()
 const {
   currentSong,
   isPlaying,
@@ -14,8 +14,7 @@ const {
   showTranslation,
   showSpectrum,
   enableAudioContext,
-  volume,
-} = storeToRefs(playerStore)
+} = storeToRefs(player)
 
 const coverUrl = computed(() => {
   if (!currentSong.value)
@@ -57,25 +56,25 @@ watch(blurCoverUrl, (newVal) => {
 }, { immediate: true })
 
 function close() {
-  playerStore.setFullscreen(false)
+  player.setFullscreen(false)
 }
 
 function toSong() {
   if (!currentSong.value)
     return
-  playerStore.setFullscreen(false)
+  player.setFullscreen(false)
   router.push({ name: 'MusicInfo', params: { albumId: currentSong.value.albumId, musicId: currentSong.value.songId } })
 }
 
 function toAlbum() {
   if (!currentSong.value)
     return
-  playerStore.setFullscreen(false)
+  player.setFullscreen(false)
   router.push({ name: 'AlbumInfo', params: { id: currentSong.value.albumId } })
 }
 
 function onSeek(time: number) {
-  playerStore.seek(time)
+  player.seek(time)
 }
 
 // 移动端顶部下滑退出全屏
@@ -176,7 +175,7 @@ function onHeaderTouchEnd() {
                   ? 'text-white/20'
                   : showTranslation ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
                 :disabled="!lyricTranslation"
-                @click="playerStore.toggleTranslation()"
+                @click="player.toggleTranslation()"
               >
                 <LucideLanguages class="size-5" />
               </button>
@@ -193,7 +192,7 @@ function onHeaderTouchEnd() {
                   ? 'text-white/20'
                   : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
                 :disabled="!enableAudioContext"
-                @click="playerStore.toggleSpectrum()"
+                @click="player.toggleSpectrum()"
               >
                 <LucideAudioLines class="size-5" />
               </button>
@@ -233,23 +232,7 @@ function onHeaderTouchEnd() {
         </div>
 
         <div class="md:hidden shrink-0 flex justify-end px-6 py-4">
-          <div class="flex items-center gap-5 bg-black/40 backdrop-blur-md rounded-full px-6 py-3">
-            <input
-              type="range"
-              :value="volume"
-              min="0"
-              max="1"
-              step="0.01"
-              class="volume-slider"
-              @input="playerStore.setVolume(Number(($event.target as HTMLInputElement).value))"
-            >
-            <button class="text-gray-400 hover:text-white transition-colors cursor-pointer" @click="playerStore.playPrev()">
-              <LucideSkipBack class="size-6" fill="currentColor" />
-            </button>
-            <button class="text-gray-400 hover:text-white transition-colors cursor-pointer" @click="playerStore.playNext()">
-              <LucideSkipForward class="size-6" fill="currentColor" />
-            </button>
-          </div>
+          <PlayerControlMobile />
         </div>
 
         <div v-if="showSpectrum" class="h-16 shrink-0">

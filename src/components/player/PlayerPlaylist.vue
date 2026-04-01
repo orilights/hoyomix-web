@@ -4,25 +4,25 @@ import draggable from 'vuedraggable'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
 
-const playerStore = usePlayerStore()
-const { playlist, currentIndex, showPlaylist, isFullscreen } = storeToRefs(playerStore)
+const player = usePlayerStore()
+const { playlist, currentIndex, showPlaylist, isFullscreen } = storeToRefs(player)
 
 function onDragEnd(evt: { oldIndex: number, newIndex: number }) {
   if (evt.oldIndex !== evt.newIndex) {
-    playerStore.reorderPlaylist(evt.oldIndex, evt.newIndex)
+    player.reorderPlaylist(evt.oldIndex, evt.newIndex)
   }
 }
 
 function playSong(index: number) {
-  playerStore.playSong(index)
+  player.playSong(index)
 }
 
 function removeSong(index: number) {
-  playerStore.removeFromPlaylist(index)
+  player.removeFromPlaylist(index)
 }
 
 function clearAll() {
-  playerStore.clearPlaylist()
+  player.clearPlaylist()
   showPlaylist.value = false
   toast.success('已清空播放列表')
 }

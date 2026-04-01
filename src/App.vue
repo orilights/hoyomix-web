@@ -6,9 +6,9 @@ import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 
 const store = useStore()
-const playerStore = usePlayerStore()
+const player = usePlayerStore()
 const { albumList, showSearch } = storeToRefs(store)
-const { volume, isFullscreen, showPlaylist } = storeToRefs(playerStore)
+const { volume, isFullscreen, showPlaylist } = storeToRefs(player)
 
 const { data: albumListData, isError: isAlbumListError } = useAlbumListQuery()
 
@@ -41,15 +41,15 @@ function onKeydown(e: KeyboardEvent) {
 
   if (e.code === 'Space') {
     e.preventDefault()
-    playerStore.togglePlay()
+    player.togglePlay()
   }
   else if (e.code === 'ArrowUp') {
     e.preventDefault()
-    playerStore.setVolume(volume.value + 0.05)
+    player.setVolume(volume.value + 0.05)
   }
   else if (e.code === 'ArrowDown') {
     e.preventDefault()
-    playerStore.setVolume(volume.value - 0.05)
+    player.setVolume(volume.value - 0.05)
   }
 }
 
@@ -64,7 +64,7 @@ watch(() => isFullscreen.value || showPlaylist.value || showSearch.value, (val) 
 
 onMounted(() => {
   initBodyScrollbars({ target: document.body })
-  playerStore.initPlayer()
+  player.initPlayer()
   window.addEventListener('keydown', onKeydown)
 })
 

@@ -9,7 +9,7 @@ import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNe
 const route = useRoute()
 const router = useRouter()
 const store = useStore()
-const playerStore = usePlayerStore()
+const player = usePlayerStore()
 
 const albumId = computed(() => Number(route.params.albumId as string) || null)
 const musicId = computed(() => Number(route.params.musicId))
@@ -76,8 +76,8 @@ const qqMusicOptions = computed(() => [
 
 function handlePlay() {
   if (musicInfo.value) {
-    const { index, isNew } = playerStore.addToPlaylist(buildPlaylistItem(musicInfo.value, albumInfo.value!))
-    playerStore.playSong(index)
+    const { index, isNew } = player.addToPlaylist(buildPlaylistItem(musicInfo.value, albumInfo.value!))
+    player.playSong(index)
     if (isNew) {
       toast.success('已添加至播放列表并播放')
     }
