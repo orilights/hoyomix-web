@@ -138,7 +138,11 @@ const hoverPercent = computed(() => {
   <div
     ref="progressBar"
     class="relative select-none cursor-pointer group"
-    :class="thin ? 'h-1 hover:h-2 transition-[height] z-70' : 'h-1.5'"
+    :class="{
+      'h-1 hover:h-2 transition-[height] thin-hitbox': thin,
+      'h-1.5': !thin,
+      'h-2!': isDragging,
+    }"
     @mousedown="onMouseDown"
     @mouseenter="onMouseEnter"
     @mousemove="onMouseMoveBar"
@@ -166,7 +170,7 @@ const hoverPercent = computed(() => {
 
     <div
       v-if="!thin || isDragging"
-      class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"
+      class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity z-100"
       :class="{ '!opacity-100': isDragging }"
       :style="{ left: `${displayPercent}%` }"
     />
@@ -180,3 +184,14 @@ const hoverPercent = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.thin-hitbox::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  bottom: -12px;
+}
+</style>
