@@ -59,6 +59,12 @@ const parsedLyrics = computed<LyricLine[]>(() =>
   mergeLyrics(props.lyricData, props.lyricTranslation),
 )
 
+watch(parsedLyrics, () => {
+  nextTick(() => {
+    scrollToCurrentLine(false)
+  })
+})
+
 const currentLineIndex = computed(() => {
   const defaultOffset = 0.4
 
@@ -139,36 +145,41 @@ onUnmounted(() => {
   >
     <div
       ref="lyricContainer"
-      class="lyrics-container h-full overflow-y-auto scrollbar-hide py-[40%]"
+      class="lyrics-container h-full overflow-y-auto scrollbar-hide"
+      :class="{
+        'flex items-center justify-center': parsedLyrics.length === 0,
+      }"
       :options="{ scrollbars: undefined }"
       @wheel="onWheel"
       @touchstart="onTouchStart"
       @touchmove="onTouchMove"
     >
-      <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center mt-8">
+      <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
         暂无歌词
       </div>
-      <div
-        v-for="(line, index) in parsedLyrics"
-        :key="index"
-        data-lyric-line
-        class="px-4 py-2 cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/10"
-        :class="index === currentLineIndex
-          ? 'text-white font-bold'
-          : 'text-white/40'"
-        :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize + FONT_STEP : lyricsFontSize}px` }"
-        @click="onClickLine(line)"
-      >
-        <div>{{ line.text }}</div>
+      <div v-else class="py-[50vh]">
         <div
-          v-if="showTranslation && line.translation"
-          class="mt-0.5"
+          v-for="(line, index) in parsedLyrics"
+          :key="index"
+          data-lyric-line
+          class="px-4 py-2 cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/10"
           :class="index === currentLineIndex
-            ? 'text-white/70 font-normal'
-            : 'text-white/30'"
-          :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize : lyricsFontSize - FONT_STEP}px` }"
+            ? 'text-white font-bold'
+            : 'text-white/40'"
+          :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize + FONT_STEP : lyricsFontSize}px` }"
+          @click="onClickLine(line)"
         >
-          {{ line.translation }}
+          <div>{{ line.text }}</div>
+          <div
+            v-if="showTranslation && line.translation"
+            class="mt-0.5"
+            :class="index === currentLineIndex
+              ? 'text-white/70 font-normal'
+              : 'text-white/30'"
+            :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize : lyricsFontSize - FONT_STEP}px` }"
+          >
+            {{ line.translation }}
+          </div>
         </div>
       </div>
     </div>
