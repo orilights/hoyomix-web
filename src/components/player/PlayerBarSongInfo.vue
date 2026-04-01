@@ -46,5 +46,16 @@ const coverUrl = computed(() => {
 </template>
 
 <style scoped>
+.cover-fade-enter-active,
+.cover-fade-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
 
+.cover-fade-enter-from,
+.cover-fade-leave-to {
+  opacity: 0;
+  width: 0;
+  margin-right: 0;
+}
 </style>

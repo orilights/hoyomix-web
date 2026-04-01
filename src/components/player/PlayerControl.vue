@@ -7,7 +7,7 @@ const { currentTime, duration, bufferedEnd } = storeToRefs(player)
 </script>
 
 <template>
-  <div class="flex flex-col items-center flex-1 gap-1 shrink-0">
+  <div class="flex flex-col items-center gap-1">
     <div class="flex items-center gap-4">
       <Tooltip content="上一首" placement="top" align="center">
         <button

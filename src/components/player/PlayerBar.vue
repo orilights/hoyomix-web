@@ -207,7 +207,7 @@ onMounted(() => {
         >
           <PlayerBarSongInfo :song="currentSong" :class="{ 'min-w-0 max-w-[240px] md:w-[240px]': !swipeActive }" />
 
-          <div class="hidden md:block">
+          <div class="hidden md:block flex-1 shrink-0">
             <PlayerControl />
           </div>
 
@@ -312,18 +312,5 @@ onMounted(() => {
 .dropdown-enter-to,
 .dropdown-leave-from {
   transform: translateY(0);
-}
-
-.cover-fade-enter-active,
-.cover-fade-leave-active {
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.cover-fade-enter-from,
-.cover-fade-leave-to {
-  opacity: 0;
-  width: 0;
-  margin-right: 0;
 }
 </style>
