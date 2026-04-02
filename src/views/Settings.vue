@@ -93,7 +93,7 @@ onMounted(() => {
       一个 HOYO-MiX 音乐信息收集网站
       <br>
       <div class="mt-2">
-        当前版本：v0.2.0
+        当前版本：v0.3.0
         <span class="border rounded-md px-1 py-0.5 text-sm text-green-700">早期预览版</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
