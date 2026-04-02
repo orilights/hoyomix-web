@@ -31,7 +31,7 @@ function clearAll() {
 <template>
   <Transition name="playlist-panel">
     <div
-      v-if="showPlaylist"
+      v-show="showPlaylist"
       class="fixed inset-0 z-80 flex justify-end pb-[72px]"
       @click.self="showPlaylist = false"
     >

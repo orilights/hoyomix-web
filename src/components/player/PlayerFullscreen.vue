@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
+import { imageDataToGradient } from '@/utils/color'
 
 const router = useRouter()
 const player = usePlayerStore()
@@ -22,38 +23,50 @@ const coverUrl = computed(() => {
   return getCoverUrl(currentSong.value.albumPlatforms, '800px')
 })
 
-const blurCoverUrl = computed(() => {
+const smallCoverUrl = computed(() => {
   if (!currentSong.value)
     return ''
-  return getCoverUrl(currentSong.value.albumPlatforms, '128px')
+  return getCoverUrl(currentSong.value.albumPlatforms, '96px')
 })
 
-const bg1Url = ref('')
-const bg2Url = ref('')
-const showBackground = ref(0)
+const FALLBACK_BG = 'linear-gradient(to bottom, #111827, #111827)'
+const bg1 = ref(FALLBACK_BG)
+const bg2 = ref(FALLBACK_BG)
+const showBackground = ref(1)
 const lyricViewRef = useTemplateRef('lyricView')
 const transformPosition = ref('')
+
+watch(smallCoverUrl, async (url) => {
+  let gradient = FALLBACK_BG
+  if (url) {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.src = url
+    await img.decode()
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth
+    canvas.height = img.naturalHeight
+    canvas.getContext('2d')!.drawImage(img, 0, 0)
+    const imageData = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height)
+    const pair = imageDataToGradient(imageData)
+    if (pair)
+      gradient = `linear-gradient(to bottom, ${pair[0]}, ${pair[1]})`
+  }
+  if (showBackground.value !== 1) {
+    bg1.value = gradient
+    showBackground.value = 1
+  }
+  else {
+    bg2.value = gradient
+    showBackground.value = 2
+  }
+}, { immediate: true })
 
 watch(showTranslation, () => {
   nextTick(() => {
     lyricViewRef.value?.scrollToCurrentLine(false)
   })
 })
-
-watch(blurCoverUrl, (newVal) => {
-  if (!newVal) {
-    showBackground.value = 0
-    return
-  }
-  if (showBackground.value !== 1) {
-    bg1Url.value = newVal
-    showBackground.value = 1
-  }
-  else {
-    bg2Url.value = newVal
-    showBackground.value = 2
-  }
-}, { immediate: true })
 
 function close() {
   player.setFullscreen(false)
@@ -125,19 +138,19 @@ function onHeaderTouchEnd() {
         transition: snapBack ? 'transform 0.3s ease' : undefined,
       }"
     >
-      <div class="absolute inset-0 overflow-hidden bg-gray-900">
+      <div class="absolute inset-0 bg-gray-900">
         <div
-          class="player-background transition-opacity duration-500"
-          :style="{ backgroundImage: bg1Url ? `url(${bg1Url})` : 'none' }"
+          class="absolute inset-0 transition-opacity duration-700"
+          :style="{ background: bg1 }"
           :class="showBackground === 1 ? 'opacity-100' : 'opacity-0'"
         />
         <div
-          class="player-background transition-opacity duration-500"
-          :style="{ backgroundImage: bg2Url ? `url(${bg2Url})` : 'none' }"
+          class="absolute inset-0 transition-opacity duration-700"
+          :style="{ background: bg2 }"
           :class="showBackground === 2 ? 'opacity-100' : 'opacity-0'"
         />
-        <div class="absolute inset-0 bg-black/50" />
       </div>
+      <div class="background-mask absolute inset-0" />
 
       <div class="relative flex-1 flex flex-col z-10 min-h-0">
         <div
@@ -244,13 +257,8 @@ function onHeaderTouchEnd() {
 </template>
 
 <style scoped>
-.player-background {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  transform: scale(1.1);
-  filter: blur(40px) brightness(0.7);
+.background-mask {
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .volume-slider {
