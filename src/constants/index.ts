@@ -5,9 +5,9 @@ export const resourceBase = import.meta.env.VITE_RESOURCE_BASE as string
 export const feedbackPageUrl = import.meta.env.VITE_FEEDBACK_URL as string
 
 export const audioQualityOptions: { value: AudioQuality, label: string, key: string, desc: string }[] = [
-  { value: 9, label: '无损', key: 'flac', desc: 'FLAC 无损音质' },
+  // { value: 9, label: '无损', key: 'flac', desc: 'FLAC 无损音质' },
   { value: 5, label: '较高', key: 'mp3_320', desc: 'MP3 320kbps' },
-  { value: 1, label: '标准', key: 'mp3_128', desc: 'MP3 128kbps' },
+  // { value: 1, label: '标准', key: 'mp3_128', desc: 'MP3 128kbps' },
 ]
 
 export function getQualityLabel(q: AudioQuality): string {
