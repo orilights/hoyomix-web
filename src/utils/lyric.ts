@@ -57,7 +57,7 @@ export function mergeLyrics(content: string, translation: string): LyricLine[] {
   const lines: LyricLine[] = []
   for (const [time, text] of originMap) {
     let trans = transMap.size > 0 ? findTranslation(transMap, time) : undefined
-    if (trans === '//')
+    if (trans === '//' || trans === '/')
       trans = undefined
     lines.push({ time, text, translation: trans })
   }
