@@ -9,7 +9,7 @@ export function selectLyricProvider(platforms: ExportPlatforms): 'ncm' | 'qq' | 
 }
 
 export interface LyricLine {
-  time: number
+  time: number | null
   text: string
   translation?: string
 }
@@ -52,6 +52,16 @@ export function mergeLyrics(content: string, translation: string): LyricLine[] {
     return []
 
   const originMap = parseLrc(content)
+
+  // 无时间戳，解析为纯文本行
+  if (originMap.size === 0) {
+    return content
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 0)
+      .map(text => ({ time: null, text }))
+  }
+
   const transMap = translation ? parseLrc(translation) : new Map<number, string>()
 
   const lines: LyricLine[] = []
@@ -62,5 +72,5 @@ export function mergeLyrics(content: string, translation: string): LyricLine[] {
     lines.push({ time, text, translation: trans })
   }
 
-  return lines.sort((a, b) => a.time - b.time)
+  return lines.sort((a, b) => a.time! - b.time!)
 }

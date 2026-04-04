@@ -65,14 +65,18 @@ watch(parsedLyrics, () => {
   })
 })
 
+const hasTimestamp = computed(() =>
+  parsedLyrics.value.some(l => l.time !== null),
+)
+
 const currentLineIndex = computed(() => {
   const defaultOffset = 0.4
 
-  if (parsedLyrics.value.length === 0)
+  if (parsedLyrics.value.length === 0 || !hasTimestamp.value)
     return -1
 
   for (let i = parsedLyrics.value.length - 1; i >= 0; i--) {
-    if (props.currentTime + defaultOffset + lyricsOffset.value >= parsedLyrics.value[i].time) {
+    if (props.currentTime + defaultOffset + lyricsOffset.value >= parsedLyrics.value[i].time!) {
       return i
     }
   }
@@ -116,6 +120,8 @@ function handleChangeFontSize(delta: number) {
 }
 
 function onClickLine(line: LyricLine) {
+  if (line.time === null)
+    return
   // 点击歌词跳转时重置手动滚动状态
   userScrolling.value = false
   if (userScrollTimer)
@@ -158,14 +164,18 @@ onUnmounted(() => {
         暂无歌词
       </div>
       <div v-else class="py-[50vh]">
+        <div v-if="!hasTimestamp" class="text-white/80 px-4 py-2">
+          当前歌词不支持滚动
+        </div>
         <div
           v-for="(line, index) in parsedLyrics"
           :key="index"
           data-lyric-line
-          class="px-4 py-2 cursor-pointer transition-all duration-300 rounded-lg hover:bg-white/10"
-          :class="index === currentLineIndex
-            ? 'text-white font-bold'
-            : 'text-white/40'"
+          class="px-4 py-2 transition-all duration-300 rounded-lg"
+          :class="[
+            index === currentLineIndex ? 'text-white font-bold' : 'text-white/40',
+            line.time !== null ? 'cursor-pointer hover:bg-white/10' : 'cursor-default',
+          ]"
           :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize + FONT_STEP : lyricsFontSize}px` }"
           @click="onClickLine(line)"
         >
