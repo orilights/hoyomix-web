@@ -161,7 +161,7 @@ function onHeaderTouchEnd() {
         >
           <Tooltip
             placement="bottom"
-            align="start"
+            align="center"
             content="退出全屏"
           >
             <button
@@ -179,7 +179,7 @@ function onHeaderTouchEnd() {
           <div class="flex items-center gap-1">
             <Tooltip
               placement="bottom"
-              align="end"
+              align="center"
               :content="!lyricTranslation ? '当前歌曲无歌词翻译' : '歌词翻译'"
             >
               <button
@@ -196,7 +196,7 @@ function onHeaderTouchEnd() {
 
             <Tooltip
               placement="bottom"
-              align="end"
+              align="center"
               :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
             >
               <button
@@ -214,8 +214,8 @@ function onHeaderTouchEnd() {
         </div>
 
         <div class="flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0">
-          <div class="hidden md:block w-[40%] max-w-[400px] shrink-0">
-            <div class="rounded-2xl overflow-hidden shadow-2xl">
+          <div class="hidden md:block w-[40%] max-w-[40vh] shrink-0 mx-[5vw]">
+            <div class="rounded-2xl overflow-hidden shadow-2xl ">
               <img
                 :src="coverUrl"
                 class="w-full aspect-square object-cover"

@@ -21,7 +21,7 @@ const coverUrl = computed(() => {
   <div class="flex items-center">
     <Transition name="cover-fade">
       <div v-if="coverUrl && !isFullscreen" class="size-12 mr-3 shrink-0">
-        <Tooltip content="切换全屏" placement="top" align="start">
+        <Tooltip content="切换全屏" placement="top" align="center">
           <img
             :src="coverUrl"
             class="size-12 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity shadow shrink-0"

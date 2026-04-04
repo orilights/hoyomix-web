@@ -87,6 +87,8 @@ const nextSong = computed(() => {
 })
 
 function onBarTouchStart(e: TouchEvent) {
+  if (window.innerWidth >= 768)
+    return
   swipeStartX.value = e.touches[0].clientX
   swipeStartY.value = e.touches[0].clientY
   isHorizontalSwipe.value = false
@@ -273,7 +275,7 @@ onMounted(() => {
                 </Transition>
               </div>
 
-              <Tooltip content="播放列表" placement="top" align="end">
+              <Tooltip content="播放列表" placement="top" align="center">
                 <button
                   class="p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
                   :class="{ 'text-blue-400': showPlaylist, 'text-white/60 hover:text-white': !showPlaylist }"

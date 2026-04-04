@@ -31,3 +31,7 @@
   --os-handle-bg-hover: rgb(255 255 255 / 0.4);
   --os-handle-bg-active: rgb(255 255 255 / 0.5);
 }
+
+* {
+  touch-action: pan-x pan-y;
+}
