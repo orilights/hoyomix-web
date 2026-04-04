@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import type { ExportAlbumListItem } from '@/types/export'
 import { useElementSize } from '@vueuse/core'
+import { toast } from 'vue-sonner'
+import { getAlbumInfoApi } from '@/api'
+import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
+import { buildPlaylistFromAlbum } from '@/utils/player-utils'
 
 const props = withDefaults(defineProps<{
   albumsList: ExportAlbumListItem[]
@@ -10,6 +14,7 @@ const props = withDefaults(defineProps<{
   displayByYear: false,
 })
 
+const player = usePlayerStore()
 const homeContainer = useTemplateRef<HTMLElement>('homeContainer')
 const { width: containerWidth } = useElementSize(homeContainer)
 
@@ -33,6 +38,17 @@ const gridColumns = computed(() => {
 function getAlbumYear(album: ExportAlbumListItem) {
   return new Date(album.publishDate).getFullYear()
 }
+
+async function playAlbum(albumId: number) {
+  try {
+    const album = await getAlbumInfoApi(albumId)
+    player.replacePlaylist(buildPlaylistFromAlbum(album), 0)
+    toast.success('已替换播放列表')
+  }
+  catch (error) {
+    toast.error(`获取专辑信息失败: ${error instanceof Error ? error.message : error}`)
+  }
+}
 </script>
 
 <template>
@@ -51,9 +67,16 @@ function getAlbumYear(album: ExportAlbumListItem) {
           v-for="album_info in albumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
           :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
         >
-          <div class="p-4 rounded-2xl hover:bg-gray-500/20 transition-colors">
-            <div class="rounded-2xl overflow-hidden">
+          <div class="group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
+            <div class="rounded-2xl overflow-hidden relative">
               <CoverImage :src="getCoverUrl(album_info.platforms, '256px')" />
+              <button
+                class="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:block items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-2 bg-black/40 hover:bg-black/60"
+                title="播放专辑"
+                @click.prevent="playAlbum(album_info.id)"
+              >
+                <LucidePlay class="w-6 h-6 fill-white" />
+              </button>
             </div>
             <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
               {{ album_info.name }}

@@ -7,6 +7,7 @@ const props = defineProps<{
   song: PlaylistItem | null
 }>()
 
+const router = useRouter()
 const player = usePlayerStore()
 const { isFullscreen } = storeToRefs(player)
 
@@ -15,6 +16,20 @@ const coverUrl = computed(() => {
     return ''
   return getCoverUrl(props.song.albumPlatforms, '128px')
 })
+
+function toSong() {
+  if (!props.song)
+    return
+  player.setFullscreen(false)
+  router.push({ name: 'MusicInfo', params: { albumId: props.song.albumId, musicId: props.song.songId } })
+}
+
+function toAlbum() {
+  if (!props.song)
+    return
+  player.setFullscreen(false)
+  router.push({ name: 'AlbumInfo', params: { id: props.song.albumId } })
+}
 </script>
 
 <template>
@@ -31,15 +46,11 @@ const coverUrl = computed(() => {
       </div>
     </Transition>
     <div v-if="song" class="min-w-0">
-      <div class="text-white text-sm truncate">
-        <RouterLink :to="{ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.songId } }" @click="isFullscreen = false">
-          {{ song.songName }}
-        </RouterLink>
+      <div class="text-white text-sm truncate cursor-pointer" @click="toSong">
+        {{ song.songName }}
       </div>
-      <div class="text-white/50 text-xs truncate mt-1">
-        <RouterLink :to="{ name: 'AlbumInfo', params: { id: song.albumId } }" @click="isFullscreen = false">
-          {{ song.albumName }}
-        </RouterLink>
+      <div class="text-white/50 text-xs truncate mt-1 cursor-pointer" @click="toAlbum">
+        {{ song.albumName }}
       </div>
     </div>
   </div>
