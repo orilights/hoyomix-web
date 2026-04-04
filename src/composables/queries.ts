@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/vue-query'
 import {
   getAlbumInfoApi,
   getAlbumListApi,
+  getAlbumsByTagApi,
   getArtistInfoApi,
   getChangelog,
   getCreditInfoApi,
@@ -74,5 +75,13 @@ export function useSearchQuery(
     queryFn: () => getSearchApi(keyword.value, type.value, 10),
     enabled: computed(() => !!keyword.value.trim()),
     staleTime: 1000 * 30,
+  })
+}
+
+export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>) {
+  return useQuery({
+    queryKey: computed(() => ['tagAlbums', tagType, tagName.value]),
+    queryFn: () => getAlbumsByTagApi(tagType, tagName.value!),
+    enabled: computed(() => !!tagType && !!tagName.value),
   })
 }

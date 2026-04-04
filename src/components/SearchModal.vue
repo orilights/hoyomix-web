@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SearchResultItem, SearchType } from '@/types/search'
+import { LucideDisc } from '@lucide/vue'
 import { refDebounced, useResizeObserver } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useSearchQuery } from '@/composables/queries'
@@ -32,6 +33,7 @@ const typeOptions: { label: string, value: SearchType | undefined }[] = [
   { label: '全部', value: undefined },
   { label: '歌曲', value: 'song' },
   { label: '专辑', value: 'album' },
+  { label: '专辑系列', value: 'series' },
   { label: '游戏', value: 'product' },
   { label: '艺术家', value: 'artist' },
 ]
@@ -137,6 +139,7 @@ function getTypeLabel(type: SearchType) {
     case 'album': return '专辑'
     case 'product': return '游戏'
     case 'artist': return '艺术家'
+    case 'series': return '专辑系列'
   }
 }
 
@@ -183,6 +186,8 @@ function toResult(item: SearchResultItem) {
     case 'artist':
       router.push({ name: 'ArtistInfo', params: { name: item.name } })
       break
+    case 'series':
+      router.push({ name: 'AlbumSeries', params: { seriesName: item.name } })
   }
   close()
 }
@@ -263,7 +268,8 @@ onUnmounted(() => {
                       :class="item.type === 'product' ? 'rounded-full' : 'rounded-lg'"
                     >
                     <div v-else class="size-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <LucideUser class="size-5 text-gray-400" />
+                      <LucideUser v-if="item.type === 'artist'" class="size-5 text-gray-400" />
+                      <LucideDisc v-if="item.type === 'series'" class="size-5 text-gray-400" />
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">

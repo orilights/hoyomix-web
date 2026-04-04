@@ -21,6 +21,8 @@ declare module 'vue' {
     IconQQ: typeof import('./components/icon/IconQQ.vue')['default']
     LucideAArrowDown: typeof import('@lucide/vue')['AArrowDown']
     LucideAArrowUp: typeof import('@lucide/vue')['AArrowUp']
+    LucideArrowDownWideNarrow: typeof import('@lucide/vue')['ArrowDownWideNarrow']
+    LucideArrowUpNarrowWide: typeof import('@lucide/vue')['ArrowUpNarrowWide']
     LucideAudioLines: typeof import('@lucide/vue')['AudioLines']
     LucideChevronDown: typeof import('@lucide/vue')['ChevronDown']
     LucideChevronLeft: typeof import('@lucide/vue')['ChevronLeft']

@@ -31,6 +31,11 @@ const routes: RouteRecordRaw[] = [
     name: 'ArtistInfo',
     component: () => import('@/views/Artist.vue'),
   },
+  {
+    path: '/album/series/:seriesName',
+    name: 'AlbumSeries',
+    component: () => import('@/views/AlbumSeries.vue'),
+  },
 ]
 
 export default routes

@@ -58,3 +58,7 @@ export function getSearchApi(q: string, type?: string, limit?: number) {
     params.set('limit', String(limit))
   return fetchJson<SearchResponse>(`${apiBase}/search?${params}`)
 }
+
+export function getAlbumsByTagApi(tagType: string, tagName: string) {
+  return fetchJson<ExportAlbumListItem[]>(`${apiBase}/tags/${tagType}/${encodeURIComponent(tagName)}/albums`)
+}

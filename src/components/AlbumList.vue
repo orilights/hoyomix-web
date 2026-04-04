@@ -47,15 +47,24 @@ const player = usePlayerStore()
 const homeContainer = useTemplateRef<HTMLElement>('homeContainer')
 const { width: containerWidth } = useElementSize(homeContainer)
 
+const sortOrder = ref<'asc' | 'desc'>('desc')
+
+const sortedAlbumsList = computed(() => {
+  return [...props.albumsList].sort((a, b) => {
+    const diff = new Date(a.publishDate).getTime() - new Date(b.publishDate).getTime()
+    return sortOrder.value === 'desc' ? -diff : diff
+  })
+})
+
 const years = computed(() => {
   if (!props.displayByYear) {
     return [0]
   }
-  const years = new Set<number>()
-  for (const album of props.albumsList) {
-    years.add(getAlbumYear(album))
+  const set = new Set<number>()
+  for (const album of sortedAlbumsList.value) {
+    set.add(getAlbumYear(album))
   }
-  return [...years].sort((a, b) => b - a)
+  return [...set].sort((a, b) => sortOrder.value === 'desc' ? b - a : a - b)
 })
 const gridColumns = computed(() => {
   const num = Math.floor(containerWidth.value / 200)
@@ -83,6 +92,15 @@ async function playAlbum(albumId: number) {
 <template>
   <div ref="homeContainer" class="relative">
     <div v-if="showLayoutToggle" class="flex gap-1 mb-2 place-content-end">
+      <Tooltip :content="sortOrder === 'desc' ? '发布日期：降序' : '发布日期：升序'" placement="top" align="center">
+        <button
+          class="p-1.5 rounded-lg transition-colors cursor-pointer text-gray-400 hover:bg-gray-500/15"
+          @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
+        >
+          <LucideArrowDownWideNarrow v-if="sortOrder === 'desc'" class="w-4 h-4" />
+          <LucideArrowUpNarrowWide v-else class="w-4 h-4" />
+        </button>
+      </Tooltip>
       <Tooltip content="网格布局" placement="top" align="center">
         <button
           class="p-1.5 rounded-lg transition-colors cursor-pointer"
@@ -114,7 +132,7 @@ async function playAlbum(albumId: number) {
         }"
       >
         <RouterLink
-          v-for="album_info in albumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
+          v-for="album_info in sortedAlbumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
           :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
         >
           <div class="group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
@@ -125,7 +143,7 @@ async function playAlbum(albumId: number) {
                 title="播放专辑"
                 @click.prevent="playAlbum(album_info.id)"
               >
-                <LucidePlay class="w-6 h-6 fill-white" />
+                <LucidePlay class="size-6 fill-white" />
               </button>
             </div>
             <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
@@ -141,7 +159,7 @@ async function playAlbum(albumId: number) {
       </div>
       <div v-else class="flex flex-col">
         <RouterLink
-          v-for="album_info in albumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
+          v-for="album_info in sortedAlbumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
           :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
         >
           <div class="group flex items-center gap-2 md:gap-3 p-2 md:px-4 rounded-xl hover:bg-gray-500/20 transition-colors">
@@ -149,19 +167,19 @@ async function playAlbum(albumId: number) {
               <CoverImage :src="getCoverUrl(album_info.platforms, '128px')" />
             </div>
             <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium truncate">
+              <div class="text-sm md:text-base font-medium truncate">
                 {{ album_info.name }}
               </div>
-              <div class="text-xs text-gray-500 truncate">
+              <div class="text-xs text-gray-500 truncate mt-2">
                 {{ album_info.publishDate }} · {{ album_info.songCount }}
               </div>
             </div>
             <button
-              class="shrink-0 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-1.5 bg-black/40 hover:bg-black/60"
+              class="shrink-0 text-gray-400 hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-all hidden md:block hover:scale-105 active:scale-95 cursor-pointer"
               title="播放专辑"
               @click.prevent="playAlbum(album_info.id)"
             >
-              <LucidePlay class="w-4 h-4 fill-white" />
+              <LucidePlay class="size-6" fill="currentColor" />
             </button>
           </div>
         </RouterLink>

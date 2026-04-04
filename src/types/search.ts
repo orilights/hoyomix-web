@@ -1,4 +1,4 @@
-export type SearchType = 'song' | 'album' | 'product' | 'artist'
+export type SearchType = 'song' | 'album' | 'product' | 'artist' | 'series'
 
 export interface SearchResultItem {
   type: SearchType
