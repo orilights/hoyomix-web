@@ -101,7 +101,7 @@ onMounted(() => {
     </div>
 
     <div class="flex-1">
-      <AlbumList :albums-list="albumsFiltered" />
+      <AlbumList :albums-list="albumsFiltered" persist-key="artist" default-layout="list" />
     </div>
   </div>
 </template>

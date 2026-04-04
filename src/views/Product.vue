@@ -82,7 +82,7 @@ watch(product, (val) => {
       </div>
 
       <div v-show="activeTab === 'albums'" class="flex-1 lg:!block" :class="{ hidden: activeTab !== 'albums' }">
-        <AlbumList :albums-list="albumsFiltered" />
+        <AlbumList default-layout="list" :albums-list="albumsFiltered" persist-key="product" />
       </div>
     </div>
   </div>

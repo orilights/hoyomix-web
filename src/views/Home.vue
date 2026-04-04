@@ -11,5 +11,5 @@ onMounted(() => {
 </script>
 
 <template>
-  <AlbumList :albums-list="albumList" display-by-year />
+  <AlbumList :albums-list="albumList" display-by-year persist-key="home" />
 </template>

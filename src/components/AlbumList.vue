@@ -3,15 +3,44 @@ import type { ExportAlbumListItem } from '@/types/export'
 import { useElementSize } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { getAlbumInfoApi } from '@/api'
+import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { buildPlaylistFromAlbum } from '@/utils/player-utils'
 
+type LayoutMode = 'grid' | 'list'
+
 const props = withDefaults(defineProps<{
   albumsList: ExportAlbumListItem[]
   displayByYear?: boolean
+  defaultLayout?: LayoutMode
+  showLayoutToggle?: boolean
+  persistKey?: string
 }>(), {
   displayByYear: false,
+  defaultLayout: 'grid',
+  showLayoutToggle: true,
+})
+
+const store = useStore()
+
+// 无 persistKey 时用本地状态
+const _localLayout = ref<LayoutMode>(props.defaultLayout)
+const layout = computed<LayoutMode>({
+  get() {
+    if (props.persistKey) {
+      return store.albumLayoutMap[props.persistKey] ?? props.defaultLayout
+    }
+    return _localLayout.value
+  },
+  set(val: LayoutMode) {
+    if (props.persistKey) {
+      store.setAlbumLayout(props.persistKey, val)
+    }
+    else {
+      _localLayout.value = val
+    }
+  },
 })
 
 const player = usePlayerStore()
@@ -52,12 +81,33 @@ async function playAlbum(albumId: number) {
 </script>
 
 <template>
-  <div ref="homeContainer">
+  <div ref="homeContainer" class="relative">
+    <div v-if="showLayoutToggle" class="flex gap-1 mb-2 place-content-end">
+      <Tooltip content="网格布局" placement="top" align="center">
+        <button
+          class="p-1.5 rounded-lg transition-colors cursor-pointer"
+          :class="layout === 'grid' ? 'bg-gray-500/30 text-foreground' : 'text-gray-400 hover:bg-gray-500/15'"
+          @click="layout = 'grid'"
+        >
+          <LucideLayoutGrid class="w-4 h-4" />
+        </button>
+      </Tooltip>
+      <Tooltip content="列表布局" placement="top" align="center">
+        <button
+          class="p-1.5 rounded-lg transition-colors cursor-pointer"
+          :class="layout === 'list' ? 'bg-gray-500/30 text-foreground' : 'text-gray-400 hover:bg-gray-500/15'"
+          @click="layout = 'list'"
+        >
+          <LucideList class="w-4 h-4" />
+        </button>
+      </Tooltip>
+    </div>
     <div v-for="year in years" :key="year">
       <div v-if="year" class="font-bold text-4xl pt-4 pb-2 pl-4">
         {{ year }}
       </div>
       <div
+        v-if="layout === 'grid'"
         class="grid justify-center"
         :style="{
           gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
@@ -71,7 +121,7 @@ async function playAlbum(albumId: number) {
             <div class="rounded-2xl overflow-hidden relative">
               <CoverImage :src="getCoverUrl(album_info.platforms, '256px')" />
               <button
-                class="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:block items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-2 bg-black/40 hover:bg-black/60"
+                class="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-2 bg-black/40 hover:bg-black/60"
                 title="播放专辑"
                 @click.prevent="playAlbum(album_info.id)"
               >
@@ -86,6 +136,33 @@ async function playAlbum(albumId: number) {
               ·
               <span class="text-xs text-gray-500">{{ album_info.songCount }}</span>
             </div>
+          </div>
+        </RouterLink>
+      </div>
+      <div v-else class="flex flex-col">
+        <RouterLink
+          v-for="album_info in albumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
+          :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
+        >
+          <div class="group flex items-center gap-2 md:gap-3 p-2 md:px-4 rounded-xl hover:bg-gray-500/20 transition-colors">
+            <div class="shrink-0 size-14 md:size-20 rounded-lg overflow-hidden">
+              <CoverImage :src="getCoverUrl(album_info.platforms, '128px')" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium truncate">
+                {{ album_info.name }}
+              </div>
+              <div class="text-xs text-gray-500 truncate">
+                {{ album_info.publishDate }} · {{ album_info.songCount }}
+              </div>
+            </div>
+            <button
+              class="shrink-0 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-1.5 bg-black/40 hover:bg-black/60"
+              title="播放专辑"
+              @click.prevent="playAlbum(album_info.id)"
+            >
+              <LucidePlay class="w-4 h-4 fill-white" />
+            </button>
           </div>
         </RouterLink>
       </div>
