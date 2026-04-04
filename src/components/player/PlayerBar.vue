@@ -96,6 +96,8 @@ function onBarTouchStart(e: TouchEvent) {
 }
 
 function onBarTouchMove(e: TouchEvent) {
+  if (window.innerWidth >= 768)
+    return
   const deltaX = e.touches[0].clientX - swipeStartX.value
   const deltaY = e.touches[0].clientY - swipeStartY.value
   if (!isHorizontalSwipe.value && Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8)
