@@ -1,4 +1,4 @@
-import type { ArtistInfo, ExportAlbum, ExportAlbumListItem, SongLyricData } from '@/types/export'
+import type { ArtistInfo, ExportAlbum, ExportAlbumListItem, SongInfo, SongLyricData } from '@/types/export'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 
@@ -19,6 +19,10 @@ export function getAlbumListApi() {
 
 export function getAlbumInfoApi(albumId: number) {
   return fetchJson<ExportAlbum>(`${apiBase}/albums/${albumId}`)
+}
+
+export function getSongInfoApi(songId: number) {
+  return fetchJson<SongInfo>(`${apiBase}/songs/${songId}`)
 }
 
 export interface ArtistTypeInfo {

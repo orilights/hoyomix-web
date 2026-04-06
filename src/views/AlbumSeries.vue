@@ -60,7 +60,7 @@ onMounted(() => {
     </div>
 
     <div class="flex-1">
-      <AlbumList :albums-list="albums ?? []" persist-key="tag-albums" default-layout="list" />
+      <AlbumList :albums-list="albums ?? []" persist-key="albums-series" default-layout="list" />
     </div>
   </div>
 </template>

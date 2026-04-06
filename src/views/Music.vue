@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ExportSong } from '@/types/export'
 import { toast } from 'vue-sonner'
-import { useAlbumInfoQuery, useLyricsQuery } from '@/composables/queries'
+import { useAlbumInfoQuery, useLyricsQuery, useSongInfoQuery } from '@/composables/queries'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient, mergeLyrics, selectLyricProvider } from '@/utils'
@@ -15,6 +15,7 @@ const albumId = computed(() => Number(route.params.albumId as string) || null)
 const musicId = computed(() => Number(route.params.musicId))
 
 const { data: albumInfo, isLoading, isError: isAlbumError } = useAlbumInfoQuery(albumId)
+const { data: songInfo, isLoading: isSongLoading, isError: isSongError } = useSongInfoQuery(musicId)
 
 const musicInfo = computed<ExportSong | null>(() => {
   if (albumInfo.value) {
@@ -243,6 +244,17 @@ onMounted(() => {
       </Dropdown>
     </div>
 
+    <div class="mt-4 lg:hidden">
+      <template v-if="isSongLoading">
+        <LucideLoader2 class="size-6 animate-spin mr-2" />
+        加载中...
+      </template>
+      <div v-else-if="isSongError" class="text-gray-400 text-sm text-center py-4">
+        加载失败，请刷新重试
+      </div>
+      <TagList v-else-if="songInfo" :tags="songInfo.tags" />
+    </div>
+
     <div class="flex gap-2 mt-4 lg:hidden">
       <button
         class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
@@ -260,9 +272,22 @@ onMounted(() => {
       </button>
     </div>
 
-    <div class="flex flex-col lg:flex-row gap-4 mt-4">
-      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
-        <ArtistListByType :id="musicId" type="song" />
+    <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
+      <div class="w-full lg:w-[400px]">
+        <div class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
+          <template v-if="isSongLoading">
+            <LucideLoader2 class="size-6 animate-spin mr-2" />
+            加载中...
+          </template>
+          <div v-else-if="isSongError" class="text-gray-400 text-sm text-center py-4">
+            加载失败，请刷新重试
+          </div>
+          <TagList v-else-if="songInfo" :tags="songInfo.tags" />
+        </div>
+
+        <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+          <ArtistListByType :id="musicId" type="song" />
+        </div>
       </div>
 
       <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">

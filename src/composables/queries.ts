@@ -9,6 +9,7 @@ import {
   getCreditInfoApi,
   getLyricsApi,
   getSearchApi,
+  getSongInfoApi,
 } from '@/api'
 
 export function useAlbumListQuery() {
@@ -24,6 +25,14 @@ export function useAlbumInfoQuery(albumId: Ref<number | null>) {
     queryKey: computed(() => ['albumInfo', albumId.value]),
     queryFn: () => getAlbumInfoApi(albumId.value!),
     enabled: computed(() => !!albumId.value),
+  })
+}
+
+export function useSongInfoQuery(songId: Ref<number | null>) {
+  return useQuery({
+    queryKey: computed(() => ['songInfo', songId.value]),
+    queryFn: () => getSongInfoApi(songId.value!),
+    enabled: computed(() => !!songId.value),
   })
 }
 

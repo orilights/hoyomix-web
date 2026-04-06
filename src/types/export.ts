@@ -43,10 +43,18 @@ export interface ArtistInfo {
   products: string[]
 }
 
+export interface VideoTagData {
+  source: 'web'
+  link: string
+  url: string
+  cover: string
+  duration: number
+}
+
 export interface TagInfo {
   tagType: string
   tagName: string
-  tagData: any
+  tagData?: VideoTagData
 }
 
 export interface SongLyricData {
@@ -54,4 +62,9 @@ export interface SongLyricData {
   provider: 'ncm' | 'qq'
   content: string
   translation: string | null
+}
+
+export interface SongInfo {
+  id: number
+  tags: TagInfo[]
 }
