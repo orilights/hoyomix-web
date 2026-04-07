@@ -130,13 +130,12 @@ onMounted(() => {
       </div>
 
       <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
-        <div class="truncate">
-          <span class="md:text-xl lg:text-3xl font-bold">
-            {{ musicInfo.name }}
-          </span>
-          <span v-if="musicInfo.description" class="hidden lg:inline ml-2 text-lg md:text-xl text-gray-500">
-            {{ musicInfo.description }}
-          </span>
+        <div class="truncate md:text-xl lg:text-3xl font-bold">
+          {{ musicInfo.name }}
+        </div>
+
+        <div v-if="musicInfo.description" class="truncate text-sm mt-1 md:text-base lg:text-lg text-gray-500">
+          {{ musicInfo.description }}
         </div>
 
         <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base">
@@ -151,9 +150,9 @@ onMounted(() => {
           <span class="text-gray-500 hidden md:inline">收录于</span>
           <RouterLink
             :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"
-            class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors truncate"
+            class="hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors truncate"
           >
-            <span>{{ albumInfo.name }}</span>
+            {{ albumInfo.name }}
           </RouterLink>
         </div>
 
@@ -162,10 +161,6 @@ onMounted(() => {
           <span class="ml-4">
             {{ formatDuration(musicInfo.duration) }}
           </span>
-        </div>
-
-        <div v-if="musicInfo.description" class="text-xs md:text-sm lg:hidden mt-1 md:mt-2">
-          {{ musicInfo.description }}
         </div>
 
         <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">

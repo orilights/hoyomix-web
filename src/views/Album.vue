@@ -282,15 +282,12 @@ onMounted(() => {
                     {{ songIndex + 1 }}
                   </td>
                   <td class="p-2">
-                    <div>
+                    <p class="truncate" :title="songInfo.name">
                       {{ songInfo.name }}
-                      <span
-                        v-if="songInfo.description"
-                        class="text-sm text-gray-500 ml-2"
-                      >
-                        {{ songInfo.description }}
-                      </span>
-                    </div>
+                    </p>
+                    <p v-if="songInfo.description" class="text-xs text-gray-500 m-t-1">
+                      {{ songInfo.description }}
+                    </p>
                   </td>
                   <td class="p-2">
                     {{ formatDuration(songInfo.duration) }}
