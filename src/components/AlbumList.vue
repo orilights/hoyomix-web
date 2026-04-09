@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { ExportAlbumListItem } from '@/types/export'
+import type { AlbumListItemInfo } from '@/types/core'
 import { useElementSize } from '@vueuse/core'
 import { toast } from 'vue-sonner'
-import { getAlbumInfoApi } from '@/api'
+import { getAlbumInfoApi } from '@/api/music'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
@@ -11,7 +11,7 @@ import { buildPlaylistFromAlbum } from '@/utils/player-utils'
 type LayoutMode = 'grid' | 'list'
 
 const props = withDefaults(defineProps<{
-  albumsList: ExportAlbumListItem[]
+  albumsList: AlbumListItemInfo[]
   displayByYear?: boolean
   defaultLayout?: LayoutMode
   showLayoutToggle?: boolean
@@ -73,7 +73,7 @@ const gridColumns = computed(() => {
   return num
 })
 
-function getAlbumYear(album: ExportAlbumListItem) {
+function getAlbumYear(album: AlbumListItemInfo) {
   return new Date(album.publishDate).getFullYear()
 }
 

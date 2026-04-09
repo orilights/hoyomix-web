@@ -1,4 +1,4 @@
-import type { ArtistInfo, ExportAlbum, ExportAlbumListItem, SongInfo, SongLyricData } from '@/types/export'
+import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 
@@ -14,23 +14,15 @@ export function getChangelog() {
 }
 
 export function getAlbumListApi() {
-  return fetchJson<ExportAlbumListItem[]>(`${apiBase}/albums`)
+  return fetchJson<AlbumListItemInfo[]>(`${apiBase}/albums`)
 }
 
 export function getAlbumInfoApi(albumId: number) {
-  return fetchJson<ExportAlbum>(`${apiBase}/albums/${albumId}`)
+  return fetchJson<AlbumInfo>(`${apiBase}/albums/${albumId}`)
 }
 
 export function getSongInfoApi(songId: number) {
   return fetchJson<SongInfo>(`${apiBase}/songs/${songId}`)
-}
-
-export interface ArtistTypeInfo {
-  [typeName: string]: {
-    name: string
-    alias: string[]
-    songs?: { id: number, name: string }[]
-  }[]
 }
 
 export function getCreditInfoApi(id: number | string, type: 'album' | 'song' | 'product') {
@@ -43,15 +35,11 @@ export function getArtistInfoApi(artistName: string) {
 }
 
 export function getLyricsApi(provider: 'qq' | 'ncm', songId: number | string) {
-  return fetchJson<SongLyricData>(`${apiBase}/lyrics?provider=${provider}&songId=${songId}`)
-}
-
-export interface SongMediaResponse {
-  medias: string[]
+  return fetchJson<SongLyricInfo>(`${apiBase}/lyrics?provider=${provider}&songId=${songId}`)
 }
 
 export function getSongMediaApi(songId: number | string) {
-  return fetchJson<SongMediaResponse>(`${apiBase}/media/${songId}`)
+  return fetchJson<SongMediaInfo>(`${apiBase}/media/${songId}`)
 }
 
 export function getSearchApi(q: string, type?: string, limit?: number) {
@@ -64,5 +52,5 @@ export function getSearchApi(q: string, type?: string, limit?: number) {
 }
 
 export function getAlbumsByTagApi(tagType: string, tagName: string) {
-  return fetchJson<ExportAlbumListItem[]>(`${apiBase}/tags/${tagType}/${encodeURIComponent(tagName)}/albums`)
+  return fetchJson<AlbumListItemInfo[]>(`${apiBase}/tags/${tagType}/${encodeURIComponent(tagName)}/albums`)
 }

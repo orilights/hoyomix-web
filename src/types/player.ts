@@ -1,4 +1,4 @@
-import type { ExportPlatforms } from './export'
+import type { PlatformInfoMap } from './core'
 
 export interface PlaylistItem {
   songId: number
@@ -7,8 +7,8 @@ export interface PlaylistItem {
   duration: string
   albumId: number
   albumName: string
-  platforms: ExportPlatforms
-  albumPlatforms: ExportPlatforms
+  platforms: PlatformInfoMap
+  albumPlatforms: PlatformInfoMap
 }
 
 export type PlayMode = 'sequential' | 'loop' | 'single' | 'shuffle'

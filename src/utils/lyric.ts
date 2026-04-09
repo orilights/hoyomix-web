@@ -1,6 +1,6 @@
-import type { ExportPlatforms } from '@/types/export'
+import type { PlatformInfoMap } from '@/types/core'
 
-export function selectLyricProvider(platforms: ExportPlatforms): 'ncm' | 'qq' | null {
+export function selectLyricProvider(platforms: PlatformInfoMap): 'ncm' | 'qq' | null {
   if (platforms.ncm)
     return 'ncm'
   if (platforms.qq)

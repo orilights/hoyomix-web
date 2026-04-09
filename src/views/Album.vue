@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ExportSong } from '@/types/export'
+import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery } from '@/composables/queries'
 import { useStore } from '@/store'
@@ -91,7 +91,7 @@ function playAll() {
   toast.success('已替换播放列表')
 }
 
-function playSong(song: ExportSong) {
+function playSong(song: SongListItemInfo) {
   if (!albumInfo.value)
     return
   const { index } = player.addToPlaylist(buildPlaylistItem(song, albumInfo.value!))
@@ -99,7 +99,7 @@ function playSong(song: ExportSong) {
   toast.success('已添加至播放列表并播放')
 }
 
-function addToPlaylist(song: ExportSong) {
+function addToPlaylist(song: SongListItemInfo) {
   if (!albumInfo.value)
     return
   const { isNew } = player.addToPlaylist(buildPlaylistItem(song, albumInfo.value))

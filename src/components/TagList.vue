@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TagInfo } from '@/types/export'
+import type { TagInfo } from '@/types/core'
 import { formatDuration } from '@/utils'
 
 defineProps<{

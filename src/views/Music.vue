@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ExportSong } from '@/types/export'
+import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useLyricsQuery, useSongInfoQuery } from '@/composables/queries'
 import { useStore } from '@/store'
@@ -17,7 +17,7 @@ const musicId = computed(() => Number(route.params.musicId))
 const { data: albumInfo, isLoading, isError: isAlbumError } = useAlbumInfoQuery(albumId)
 const { data: songInfo, isLoading: isSongLoading, isError: isSongError } = useSongInfoQuery(musicId)
 
-const musicInfo = computed<ExportSong | null>(() => {
+const musicInfo = computed<SongListItemInfo | null>(() => {
   if (albumInfo.value) {
     return albumInfo.value.songs.find(song => song.id === musicId.value) || null
   }

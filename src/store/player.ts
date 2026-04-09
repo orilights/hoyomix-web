@@ -1,11 +1,11 @@
 import type { AudioQuality, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
-import { getLyricsApi, getSongMediaApi } from '@/api'
+import { getLyricsApi, getSongMediaApi } from '@/api/music'
 import { audioQualityOptions } from '@/constants'
-import { queryClient } from '@/query-client'
 import { clearMediaSession, getAvailableQualities, parseSongMedia, selectLyricProvider, selectMediaUrls, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
+import { queryClient } from '@/utils/query-client'
 
 export const usePlayerStore = defineStore('player', {
   state: () => ({

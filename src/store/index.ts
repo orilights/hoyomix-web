@@ -1,9 +1,9 @@
-import type { ExportAlbumListItem } from '@/types/export'
+import type { AlbumListItemInfo } from '@/types/core'
 import { defineStore } from 'pinia'
 
 export const useStore = defineStore('main', {
   state: () => ({
-    albumList: [] as ExportAlbumListItem[],
+    albumList: [] as AlbumListItemInfo[],
     backgroundUrl: '',
     showSearch: false,
     albumLayoutMap: {} as Record<string, 'grid' | 'list'>,

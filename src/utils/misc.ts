@@ -1,8 +1,8 @@
-import type { ExportPlatforms } from '@/types/export'
+import type { PlatformInfoMap } from '@/types/core'
 import type { NeteaseClientSchemeParams } from '@/types/netease'
 import { feedbackPageUrl, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
 
-export function getCoverUrl(platforms: ExportPlatforms, size: '96px' | '128px' | '256px' | '512px' | '800px') {
+export function getCoverUrl(platforms: PlatformInfoMap, size: '96px' | '128px' | '256px' | '512px' | '800px') {
   if (platforms.ncm) {
     return `${resourceBase}/cover/ncm/${platforms.ncm.id}_${size}.jpg`
   }

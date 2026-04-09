@@ -10,7 +10,7 @@ import {
   getLyricsApi,
   getSearchApi,
   getSongInfoApi,
-} from '@/api'
+} from '@/api/music'
 
 export function useAlbumListQuery() {
   return useQuery({

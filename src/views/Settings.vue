@@ -7,12 +7,6 @@ import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 import { goFeedbackPage } from '@/utils'
 
-declare global {
-  interface Window {
-    __BUILD_TIME__: string | number
-  }
-}
-
 const store = useStore()
 const player = usePlayerStore()
 const { quality, enableAudioContext } = storeToRefs(player)

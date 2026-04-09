@@ -1,4 +1,4 @@
-import type { ExportAlbum, ExportSong } from '@/types/export'
+import type { AlbumInfo, SongListItemInfo } from '@/types/core'
 import type { AudioQuality, PlaylistItem, SongMediaItem } from '@/types/player'
 import { audioQualityOptions, getQualityKey } from '@/constants'
 import { getCoverUrl } from './misc'
@@ -53,7 +53,7 @@ export function getAvailableQualities(items: SongMediaItem[]): Set<AudioQuality>
   return result
 }
 
-export function buildPlaylistItem(song: ExportSong, album: ExportAlbum): PlaylistItem {
+export function buildPlaylistItem(song: SongListItemInfo, album: AlbumInfo): PlaylistItem {
   return {
     songId: song.id,
     songName: song.name,
@@ -66,7 +66,7 @@ export function buildPlaylistItem(song: ExportSong, album: ExportAlbum): Playlis
   }
 }
 
-export function buildPlaylistFromAlbum(album: ExportAlbum): PlaylistItem[] {
+export function buildPlaylistFromAlbum(album: AlbumInfo): PlaylistItem[] {
   return album.songs.map(song => buildPlaylistItem(song, album))
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ArtistInfo } from '@/types/export'
+import type { ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { useArtistInfoQuery } from '@/composables/queries'
 import { useStore } from '@/store'

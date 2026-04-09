@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ArtistTypeInfo } from '@/api'
+import type { ArtistTypeInfo } from '@/types/core'
 import { useCreditInfoQuery } from '@/composables/queries'
 import { artistTypeSort, artistTypeSortLast } from '@/constants'
 
