@@ -157,16 +157,16 @@ const durationChartOption = computed<EChartsOption>(() => ({
 
 <template>
   <div>
-    <div class="py-4">
+    <div class="pb-4">
       <h1 class="text-2xl md:text-3xl font-bold">
         数据统计
       </h1>
       <p class="text-gray-500 text-sm mt-1">
-        已收录音乐数据汇总
+        已收录音乐数据统计汇总
       </p>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mt-2">
       <div class="bg-black/5 rounded-xl p-4">
         <div class="text-sm text-gray-500">
           专辑总数
@@ -201,7 +201,7 @@ const durationChartOption = computed<EChartsOption>(() => ({
       </div>
     </div>
 
-    <div v-if="albumList.length" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+    <div v-if="albumList.length" class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mt-4">
       <div class="bg-black/5 rounded-xl p-4">
         <div class="text-sm font-medium mb-3 text-gray-600">
           专辑数量
@@ -237,7 +237,7 @@ const durationChartOption = computed<EChartsOption>(() => ({
     </div>
 
     <!-- 年份明细表格 -->
-    <div v-if="albumList.length" class="mt-6 bg-black/5 rounded-xl overflow-hidden">
+    <div v-if="albumList.length" class="mt-4 bg-black/5 rounded-xl overflow-hidden">
       <div class="px-4 pt-4 pb-2 text-sm font-medium text-gray-600">
         逐年数据
       </div>

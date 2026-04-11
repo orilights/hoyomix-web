@@ -29,10 +29,16 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="font-bold text-2xl">
-      设置
+    <div class="pb-4">
+      <h1 class="text-2xl md:text-3xl font-bold">
+        设置
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">
+        一些也许有用的设置
+      </p>
     </div>
-    <div class="mt-4">
+
+    <div>
       <div class="font-bold text-lg mb-2">
         音频质量
       </div>

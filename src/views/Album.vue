@@ -285,7 +285,7 @@ onMounted(() => {
                     <p class="truncate" :title="songInfo.name">
                       {{ songInfo.name }}
                     </p>
-                    <p v-if="songInfo.description" class="truncate text-xs text-gray-500 mt-1">
+                    <p v-if="songInfo.description" class="truncate text-xs text-gray-500">
                       {{ songInfo.description }}
                     </p>
                   </td>
