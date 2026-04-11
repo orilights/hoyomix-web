@@ -248,11 +248,11 @@ onMounted(() => {
       </div>
 
       <div v-show="activeTab === 'songs'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'songs' }">
-        <div class="bg-black/5 rounded-xl overflow-hidden pt-2 pb-4">
-          <table class="w-full">
+        <div class="bg-black/5 rounded-xl pt-2 pb-4">
+          <table class="w-full table-fixed overflow-hidden">
             <thead>
               <tr class="text-left">
-                <th class="pl-4 p-2 w-[30px]">
+                <th class="pl-4 p-2 w-[40px]">
                   #
                 </th>
                 <th class="p-2">
@@ -285,7 +285,7 @@ onMounted(() => {
                     <p class="truncate" :title="songInfo.name">
                       {{ songInfo.name }}
                     </p>
-                    <p v-if="songInfo.description" class="text-xs text-gray-500 m-t-1">
+                    <p v-if="songInfo.description" class="truncate text-xs text-gray-500 mt-1">
                       {{ songInfo.description }}
                     </p>
                   </td>
