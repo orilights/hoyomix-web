@@ -26,6 +26,7 @@ declare module 'vue' {
     LucideAudioLines: typeof import('@lucide/vue')['AudioLines']
     LucideChevronDown: typeof import('@lucide/vue')['ChevronDown']
     LucideChevronLeft: typeof import('@lucide/vue')['ChevronLeft']
+    LucideChevronRight: typeof import('@lucide/vue')['ChevronRight']
     LucideGripVertical: typeof import('@lucide/vue')['GripVertical']
     LucideLanguages: typeof import('@lucide/vue')['Languages']
     LucideLayoutGrid: typeof import('@lucide/vue')['LayoutGrid']

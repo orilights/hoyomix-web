@@ -17,6 +17,30 @@ function sumBy(arr: any[], getValue: (x: any) => any) {
   return arr.reduce((acc, cur) => acc + getValue(cur), 0)
 }
 
+// 年份筛选
+const selectedYear = ref<number | null>(null)
+
+const availableYears = computed(() => {
+  const set = new Set<number>()
+  for (const album of albumsFiltered.value) {
+    set.add(new Date(album.publishDate).getFullYear())
+  }
+  return [...set].sort((a, b) => b - a)
+})
+
+const albumsFilteredByYear = computed(() => {
+  if (selectedYear.value === null)
+    return albumsFiltered.value
+  return albumsFiltered.value.filter(
+    a => new Date(a.publishDate).getFullYear() === selectedYear.value,
+  )
+})
+
+// 切换产品时重置年份筛选
+watch(product, () => {
+  selectedYear.value = null
+})
+
 const activeTab = ref<'albums' | 'artists'>('albums')
 
 watch(product, (val) => {
@@ -34,7 +58,7 @@ watch(product, (val) => {
       <img :src="getProductIconUrl(product)" class="rounded-full shadow">
       <div class="ml-4 md:ml-8">
         <div class="font-bold text-2xl md:text-3xl">
-          {{ product }}
+          {{ getProductName(product) }}
         </div>
         <div class="mt-2 md:mt-6">
           <span class="text-gray-500">
@@ -81,8 +105,33 @@ watch(product, (val) => {
         <ArtistListByType :id="product" type="product" />
       </div>
 
-      <div v-show="activeTab === 'albums'" class="flex-1 lg:!block" :class="{ hidden: activeTab !== 'albums' }">
-        <AlbumList default-layout="list" :albums-list="albumsFiltered" persist-key="product" />
+      <div v-show="activeTab === 'albums'" class="flex-1 lg:!block overflow-hidden" :class="{ hidden: activeTab !== 'albums' }">
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+          <button
+            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
+            :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            @click="selectedYear = null"
+          >
+            全部
+          </button>
+          <button
+            v-for="year in availableYears"
+            :key="year"
+            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
+            :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            @click="selectedYear = year"
+          >
+            {{ year }}
+          </button>
+        </div>
+
+        <AlbumList default-layout="list" :albums-list="albumsFilteredByYear" persist-key="product">
+          <template #toolbar>
+            <span class="text-sm text-gray-400 pl-1">
+              专辑 {{ albumsFilteredByYear.length }} · 歌曲 {{ sumBy(albumsFilteredByYear, (i) => i.songCount) }} · 时长 {{ formatDuration(sumBy(albumsFilteredByYear, (i) => Number(i.totalDuration))) }}
+            </span>
+          </template>
+        </AlbumList>
       </div>
     </div>
   </div>

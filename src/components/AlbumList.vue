@@ -91,34 +91,39 @@ async function playAlbum(albumId: number) {
 
 <template>
   <div ref="homeContainer" class="relative">
-    <div v-if="showLayoutToggle" class="flex gap-1 mb-2 place-content-end">
-      <Tooltip :content="sortOrder === 'desc' ? '发布日期：降序' : '发布日期：升序'" placement="top" align="center">
-        <button
-          class="p-1.5 rounded-lg transition-colors cursor-pointer text-gray-400 hover:bg-gray-500/15"
-          @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
-        >
-          <LucideArrowDownWideNarrow v-if="sortOrder === 'desc'" class="w-4 h-4" />
-          <LucideArrowUpNarrowWide v-else class="w-4 h-4" />
-        </button>
-      </Tooltip>
-      <Tooltip content="网格布局" placement="top" align="center">
-        <button
-          class="p-1.5 rounded-lg transition-colors cursor-pointer"
-          :class="layout === 'grid' ? 'bg-gray-500/30 text-foreground' : 'text-gray-400 hover:bg-gray-500/15'"
-          @click="layout = 'grid'"
-        >
-          <LucideLayoutGrid class="w-4 h-4" />
-        </button>
-      </Tooltip>
-      <Tooltip content="列表布局" placement="top" align="center">
-        <button
-          class="p-1.5 rounded-lg transition-colors cursor-pointer"
-          :class="layout === 'list' ? 'bg-gray-500/30 text-foreground' : 'text-gray-400 hover:bg-gray-500/15'"
-          @click="layout = 'list'"
-        >
-          <LucideList class="w-4 h-4" />
-        </button>
-      </Tooltip>
+    <div v-if="showLayoutToggle || $slots.toolbar" class="flex items-center gap-2 mb-2">
+      <div class="flex-1 min-w-0">
+        <slot name="toolbar" />
+      </div>
+      <div v-if="showLayoutToggle" class="flex gap-1 shrink-0">
+        <Tooltip :content="sortOrder === 'desc' ? '发布日期：降序' : '发布日期：升序'" placement="top" align="center">
+          <button
+            class="p-1.5 rounded-lg transition-colors cursor-pointer text-gray-400 hover:bg-gray-500/15"
+            @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
+          >
+            <LucideArrowDownWideNarrow v-if="sortOrder === 'desc'" class="w-4 h-4" />
+            <LucideArrowUpNarrowWide v-else class="w-4 h-4" />
+          </button>
+        </Tooltip>
+        <Tooltip content="网格布局" placement="top" align="center">
+          <button
+            class="p-1.5 rounded-lg transition-colors cursor-pointer"
+            :class="layout === 'grid' ? 'bg-gray-500/30 text-foreground' : 'text-gray-400 hover:bg-gray-500/15'"
+            @click="layout = 'grid'"
+          >
+            <LucideLayoutGrid class="w-4 h-4" />
+          </button>
+        </Tooltip>
+        <Tooltip content="列表布局" placement="top" align="center">
+          <button
+            class="p-1.5 rounded-lg transition-colors cursor-pointer"
+            :class="layout === 'list' ? 'bg-gray-500/30 text-foreground' : 'text-gray-400 hover:bg-gray-500/15'"
+            @click="layout = 'list'"
+          >
+            <LucideList class="w-4 h-4" />
+          </button>
+        </Tooltip>
+      </div>
     </div>
     <div v-for="year in years" :key="year">
       <div v-if="year" class="font-bold text-4xl pt-4 pb-2 pl-4">
