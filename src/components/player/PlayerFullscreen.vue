@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
-import { imageDataToGradient } from '@/utils/color'
+import { getImageGradient } from '@/utils/cover'
 
 const router = useRouter()
 const player = usePlayerStore()
@@ -23,12 +23,6 @@ const coverUrl = computed(() => {
   return getCoverUrl(currentSong.value.albumPlatforms, '800px')
 })
 
-const smallCoverUrl = computed(() => {
-  if (!currentSong.value)
-    return ''
-  return getCoverUrl(currentSong.value.albumPlatforms, '96px')
-})
-
 const FALLBACK_BG = 'linear-gradient(to bottom, #111827, #111827)'
 const bg1 = ref(FALLBACK_BG)
 const bg2 = ref(FALLBACK_BG)
@@ -36,7 +30,7 @@ const showBackground = ref(1)
 const lyricViewRef = useTemplateRef('lyricView')
 const transformPosition = ref('')
 
-watch(smallCoverUrl, async (url) => {
+watch(coverUrl, async (url) => {
   let gradient = FALLBACK_BG
   if (url) {
     const img = new Image()
@@ -48,9 +42,9 @@ watch(smallCoverUrl, async (url) => {
     canvas.height = img.naturalHeight
     canvas.getContext('2d')!.drawImage(img, 0, 0)
     const imageData = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height)
-    const pair = imageDataToGradient(imageData)
-    if (pair)
-      gradient = `linear-gradient(to bottom, ${pair[0]}, ${pair[1]})`
+    const gradientColor = getImageGradient(imageData)
+    if (gradientColor)
+      gradient = gradientColor
   }
   if (showBackground.value !== 1) {
     bg1.value = gradient
