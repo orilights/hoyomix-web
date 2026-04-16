@@ -16,7 +16,7 @@ const { data: rawData, isLoading } = useCreditInfoQuery(id, type)
 function sortArtists(info: ArtistTypeInfo) {
   const sorted: ArtistTypeInfo = {}
   for (const typeName in info) {
-    sorted[typeName] = info[typeName].sort((a, b) => (b.songs?.length ?? 0) - (a.songs?.length ?? 0))
+    sorted[typeName] = [...info[typeName]].sort((a, b) => (b.songs?.length ?? 0) - (a.songs?.length ?? 0))
   }
   return sorted
 }
