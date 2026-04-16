@@ -19,8 +19,20 @@ export interface ArtistInfo {
   name: string
   alias: string[]
   isHoyomix: boolean
-  songs: SongListItemInfo[]
-  albums: AlbumListItemInfo[]
+  songs: {
+    id: number
+    name: string
+    albumId: number
+    albumName: string
+    albumIndex: number
+    productName: string
+    roles: string[]
+  }[]
+  albums: {
+    id: number
+    name: string
+    productName: string
+  }[]
   products: string[]
 }
 

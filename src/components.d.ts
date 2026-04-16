@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AlbumList: typeof import('./components/AlbumList.vue')['default']
+    ArtistAlbumList: typeof import('./components/ArtistAlbumList.vue')['default']
     ArtistListByType: typeof import('./components/ArtistListByType.vue')['default']
     BackgroundLayer: typeof import('./components/BackgroundLayer.vue')['default']
     CoverImage: typeof import('./components/CoverImage.vue')['default']
