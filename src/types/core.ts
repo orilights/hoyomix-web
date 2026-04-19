@@ -42,6 +42,11 @@ export interface TagInfo {
   tagData?: any
 }
 
+export interface ProductListItemInfo {
+  name: string
+  tags: TagInfo[]
+}
+
 export type AlbumListItemInfo = Omit<AlbumInfo, 'songs' | 'tags'> & {
   songCount: number
 }

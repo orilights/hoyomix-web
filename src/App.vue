@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useOverlayScrollbars } from 'overlayscrollbars-vue'
 import { toast, Toaster } from 'vue-sonner'
-import { useAlbumListQuery } from '@/composables/queries'
+import { useAlbumListQuery, useProductListQuery } from '@/composables/queries'
 import { useStore } from '@/store'
 import { usePlayerStore } from '@/store/player'
 
@@ -12,9 +12,16 @@ const { volume, isFullscreen, showPlaylist } = storeToRefs(player)
 
 const { data: albumListData, isError: isAlbumListError } = useAlbumListQuery()
 
+const { data: productListData } = useProductListQuery()
+
 watch(albumListData, (data) => {
   if (data)
     albumList.value = [...data].reverse()
+}, { immediate: true })
+
+watch(productListData, (data) => {
+  if (data)
+    store.productList = data
 }, { immediate: true })
 
 watch(isAlbumListError, (val) => {

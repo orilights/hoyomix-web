@@ -8,9 +8,18 @@ import {
   getChangelog,
   getCreditInfoApi,
   getLyricsApi,
+  getProductListApi,
   getSearchApi,
   getSongInfoApi,
 } from '@/api/music'
+
+export function useProductListQuery() {
+  return useQuery({
+    queryKey: ['productList'],
+    queryFn: () => getProductListApi(),
+    staleTime: 1000 * 60 * 10,
+  })
+}
 
 export function useAlbumListQuery() {
   return useQuery({

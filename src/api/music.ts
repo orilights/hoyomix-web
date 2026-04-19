@@ -1,4 +1,4 @@
-import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 
@@ -15,6 +15,10 @@ export function getChangelog() {
 
 export function getAlbumListApi() {
   return fetchJson<AlbumListItemInfo[]>(`${apiBase}/albums`)
+}
+
+export function getProductListApi() {
+  return fetchJson<ProductListItemInfo[]>(`${apiBase}/products`)
 }
 
 export function getAlbumInfoApi(albumId: number) {
