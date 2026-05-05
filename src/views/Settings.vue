@@ -4,12 +4,26 @@ import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
 import { audioQualityOptions } from '@/constants'
 import { useStore } from '@/store'
+import { useAuthStore } from '@/store/auth'
 import { usePlayerStore } from '@/store/player'
 import { goFeedbackPage } from '@/utils'
 
 const store = useStore()
 const player = usePlayerStore()
+const authStore = useAuthStore()
 const { quality, enableAudioContext } = storeToRefs(player)
+const { user, isLoggedIn } = storeToRefs(authStore)
+
+const showChangePassword = ref(false)
+
+function getInitial(): string {
+  return user.value?.name?.charAt(0).toUpperCase() ?? '?'
+}
+
+async function logout() {
+  await authStore.logout()
+  toast.success('已退出登录')
+}
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
@@ -80,6 +94,54 @@ onMounted(() => {
         禁用后频谱可视化等功能将不可用
       </div>
     </div>
+
+    <div class="font-bold text-2xl mt-4">
+      账号
+    </div>
+    <div class="mt-2">
+      <div v-if="isLoggedIn" class="bg-white/60 rounded-xl border border-gray-200 p-4">
+        <div class="flex items-center gap-4">
+          <div class="size-14 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+            <img
+              v-if="user?.image"
+              :src="user.image"
+              :alt="user.name"
+              loading="lazy"
+              class="size-full object-cover"
+            >
+            <div v-else class="size-full bg-blue-500 flex items-center justify-center text-white text-xl font-medium">
+              {{ getInitial() }}
+            </div>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="font-medium truncate">
+              {{ user?.name }}
+            </p>
+            <p class="text-sm text-gray-500 truncate mt-0.5">
+              {{ user?.email }}
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-2 mt-4">
+          <button
+            class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+            @click="showChangePassword = true"
+          >
+            修改密码
+          </button>
+          <button
+            class="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
+            @click="logout"
+          >
+            退出登录
+          </button>
+        </div>
+      </div>
+      <div v-else class="text-sm text-gray-500 bg-gray-50 rounded-xl border border-gray-200 px-4 py-3">
+        未登录，请点击右上角"登录"按钮以登录账号。
+      </div>
+    </div>
+
     <div class="font-bold text-2xl mt-4">
       关于
     </div>
@@ -107,6 +169,7 @@ onMounted(() => {
         <br>
       </div>
     </div>
+
     <div class="font-bold text-2xl mt-4">
       更新日志
     </div>
@@ -117,6 +180,8 @@ onMounted(() => {
     <div v-else class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4 overflow-x-scroll">
       {{ changelog }}
     </div>
+
+    <ChangePasswordDialog v-model="showChangePassword" />
   </div>
 </template>
 

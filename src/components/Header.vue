@@ -52,7 +52,7 @@ onUnmounted(() => {
         <LucideSlidersHorizontal class="size-4.5" />
       </button>
     </div>
-    <div class="ml-auto">
+    <div class="ml-auto flex items-center gap-2">
       <button
         class="text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1.5"
         @click="showSearch = true"
@@ -60,6 +60,7 @@ onUnmounted(() => {
         <LucideSearch class="size-4.5" />
         <kbd class="hidden md:inline text-xs text-gray-400">Ctrl+K</kbd>
       </button>
+      <UserButton />
     </div>
   </div>
   <SearchModal v-model="showSearch" />

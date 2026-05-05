@@ -3,6 +3,7 @@ import type { AudioQuality } from '@/types/player'
 export const apiBase = import.meta.env.VITE_API_BASE as string
 export const resourceBase = import.meta.env.VITE_RESOURCE_BASE as string
 export const feedbackPageUrl = import.meta.env.VITE_FEEDBACK_URL as string
+export const userApiBase = import.meta.env.VITE_USER_API_BASE as string
 
 export const audioQualityOptions: { value: AudioQuality, label: string, key: string, desc: string }[] = [
   // { value: 9, label: '无损', key: 'flac', desc: 'FLAC 无损音质' },
