@@ -2,7 +2,8 @@
 import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery } from '@/composables/queries'
-import { useStore } from '@/store'
+import { useAuthStore } from '@/store/auth'
+import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import {
   buildPlaylistFromAlbum,
@@ -14,8 +15,9 @@ import {
 } from '@/utils'
 
 const route = useRoute()
-const store = useStore()
+const store = useMainStore()
 const player = usePlayerStore()
+const auth = useAuthStore()
 
 const albumId = computed(() => Number(route.params.id as string) || null)
 
@@ -108,6 +110,23 @@ function addToPlaylist(song: SongListItemInfo) {
 
 const activeTab = ref<'songs' | 'artists' | 'tags'>('songs')
 
+const showCreatePlaylistDialog = ref(false)
+const showSelectPlaylistDialog = ref(false)
+
+const allSongIds = computed(() => albumInfo.value?.songs.map(s => s.id) ?? [])
+
+function saveAsPlaylist() {
+  if (!auth.requireLogin())
+    return
+  showCreatePlaylistDialog.value = true
+}
+
+function addAlbumToPlaylist() {
+  if (!auth.requireLogin())
+    return
+  showSelectPlaylistDialog.value = true
+}
+
 onMounted(() => {
   document.documentElement.scrollTo(0, 0)
 })
@@ -154,62 +173,35 @@ onMounted(() => {
           </span>
         </div>
 
-        <OverlayScrollbarsComponent class="mt-1 md:mt-2 flex-1 text-xs md:text-sm lg:text-base" :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }" defer>
+        <OverlayScrollbarsComponent
+          class="mt-1 md:mt-2 flex-1 text-xs md:text-sm lg:text-base"
+          :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
+          defer
+        >
           {{ albumInfo.description }}
         </OverlayScrollbarsComponent>
 
         <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
-          <Tooltip placement="top" theme="light" content="替换当前播放列表并播放第一首歌曲">
-            <button
-              class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-              @click="playAll"
-            >
-              <LucidePlay class="size-4" fill="currentColor" />
-              播放全部
-            </button>
-          </Tooltip>
-          <Dropdown v-if="albumInfo.platforms.ncm" position="up" :options="neteaseOptions">
-            <button
-              class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            >
-              <IconNcm class="size-5 text-[#fc3b5b]" />
-            </button>
-          </Dropdown>
-          <Dropdown v-if="albumInfo.platforms.qq" position="up" :options="qqMusicOptions">
-            <button
-              class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            >
-              <IconQQ class="size-5" />
-            </button>
-          </Dropdown>
+          <AlbumActions
+            dropdown-position="up"
+            :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
+            :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
+            @play-all="playAll"
+            @save-as-playlist="saveAsPlaylist"
+            @add-to-playlist="addAlbumToPlaylist"
+          />
         </div>
       </div>
     </div>
 
     <div class="flex gap-2 flex-wrap md:hidden mt-4">
-      <Tooltip placement="top" theme="light" content="替换当前播放列表并播放第一首歌曲">
-        <button
-          class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-          @click="playAll"
-        >
-          <LucidePlay class="size-4" fill="currentColor" />
-          播放全部
-        </button>
-      </Tooltip>
-      <Dropdown v-if="albumInfo.platforms.ncm" :options="neteaseOptions">
-        <button
-          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-        >
-          <IconNcm class="size-5 text-[#fc3b5b]" />
-        </button>
-      </Dropdown>
-      <Dropdown v-if="albumInfo.platforms.qq" :options="qqMusicOptions">
-        <button
-          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-        >
-          <IconQQ class="size-5" />
-        </button>
-      </Dropdown>
+      <AlbumActions
+        :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
+        :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
+        @play-all="playAll"
+        @save-as-playlist="saveAsPlaylist"
+        @add-to-playlist="addAlbumToPlaylist"
+      />
     </div>
 
     <div class="flex gap-2 mt-4 lg:hidden">
@@ -317,6 +309,20 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <CreatePlaylistDialog
+      v-if="albumInfo"
+      v-model="showCreatePlaylistDialog"
+      :initial-song-ids="allSongIds"
+      :initial-cover-album-id="albumInfo.id"
+      @success="(id) => $router.push({ name: 'PlaylistDetail', params: { id } })"
+    />
+
+    <SelectPlaylistDialog
+      v-model="showSelectPlaylistDialog"
+      :song-ids="allSongIds"
+      mode="add"
+    />
   </div>
 </template>
 

@@ -1,3 +1,4 @@
+import type { PlaylistsQueryParams } from '@/api/music'
 import type { SearchType } from '@/types/search'
 import { useQuery } from '@tanstack/vue-query'
 import {
@@ -8,6 +9,9 @@ import {
   getChangelog,
   getCreditInfoApi,
   getLyricsApi,
+  getMyPlaylistsApi,
+  getPlaylistDetailApi,
+  getPlaylistsApi,
   getProductListApi,
   getSearchApi,
   getSongInfoApi,
@@ -101,5 +105,30 @@ export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>) 
     queryKey: computed(() => ['tagAlbums', tagType, tagName.value]),
     queryFn: () => getAlbumsByTagApi(tagType, tagName.value!),
     enabled: computed(() => !!tagType && !!tagName.value),
+  })
+}
+
+export function usePlaylistsQuery(params: Ref<PlaylistsQueryParams>) {
+  return useQuery({
+    queryKey: computed(() => ['playlists', params.value]),
+    queryFn: () => getPlaylistsApi(params.value),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useMyPlaylistsQuery() {
+  return useQuery({
+    queryKey: ['myPlaylists'],
+    queryFn: () => getMyPlaylistsApi(),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function usePlaylistDetailQuery(id: Ref<string | null>) {
+  return useQuery({
+    queryKey: computed(() => ['playlistDetail', id.value]),
+    queryFn: () => getPlaylistDetailApi(id.value!),
+    enabled: computed(() => !!id.value),
+    refetchOnMount: 'always',
   })
 }

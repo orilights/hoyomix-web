@@ -1,16 +1,30 @@
-import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { credentials: 'include' })
+async function fetchJson<T>(url: string, credentials = true): Promise<T> {
+  const res = await fetch(url, { credentials: credentials ? 'include' : undefined })
   if (!res.ok)
-    throw new Error(`HTTP ${res.status}`)
+    throw new Error((await res.json()).error || '未知错误')
+  return res.json() as Promise<T>
+}
+
+async function fetchJsonMutation<T>(url: string, method: string, body?: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method,
+    credentials: 'include',
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  if (!res.ok)
+    throw new Error((await res.json()).error || '未知错误')
+  if (res.status === 204 || res.headers.get('content-length') === '0')
+    return undefined as T
   return res.json() as Promise<T>
 }
 
 export function getChangelog() {
-  return fetchJson<Record<string, string>>('https://api.amarea.cn/config/hoyomix.changelog')
+  return fetchJson<Record<string, string>>('https://api.amarea.cn/config/hoyomix.changelog', false)
 }
 
 export function getAlbumListApi() {
@@ -59,6 +73,57 @@ export function getAlbumsByTagApi(tagType: string, tagName: string) {
   return fetchJson<AlbumListItemInfo[]>(`${apiBase}/tags/${tagType}/${encodeURIComponent(tagName)}/albums`)
 }
 
-export function getSessionInfoApi() {
-  return fetchJson<{ user: { id: number, name: string } }>(`${apiBase}/get-session`)
+export interface PlaylistCreateData {
+  name: string
+  description?: string
+  coverAlbumId?: number | null
+  isPublic?: boolean
+}
+
+export interface PlaylistsQueryParams {
+  page?: number
+  limit?: number
+  name?: string
+  userId?: string
+  sort?: 'asc' | 'desc'
+}
+
+export function getPlaylistsApi(params?: PlaylistsQueryParams) {
+  const query = new URLSearchParams()
+  if (params?.page)
+    query.set('page', String(params.page))
+  if (params?.limit)
+    query.set('limit', String(params.limit))
+  if (params?.name)
+    query.set('name', params.name)
+  if (params?.userId)
+    query.set('userId', params.userId)
+  if (params?.sort)
+    query.set('sort', params.sort)
+  const qs = query.toString()
+  return fetchJson<PlaylistListResponse>(`${apiBase}/playlists${qs ? `?${qs}` : ''}`)
+}
+
+export function getMyPlaylistsApi() {
+  return fetchJson<PlaylistListItem[]>(`${apiBase}/playlists/me`)
+}
+
+export function getPlaylistDetailApi(id: string) {
+  return fetchJson<PlaylistDetail>(`${apiBase}/playlists/${id}`)
+}
+
+export function createPlaylistApi(data: PlaylistCreateData) {
+  return fetchJsonMutation<PlaylistListItem>(`${apiBase}/playlists`, 'POST', data)
+}
+
+export function updatePlaylistApi(id: string, data: Partial<PlaylistCreateData>) {
+  return fetchJsonMutation<PlaylistListItem>(`${apiBase}/playlists/${id}`, 'PUT', data)
+}
+
+export function deletePlaylistApi(id: string) {
+  return fetchJsonMutation<void>(`${apiBase}/playlists/${id}`, 'DELETE')
+}
+
+export function updatePlaylistSongsApi(id: string, songIds: number[]) {
+  return fetchJsonMutation<{ count: number }>(`${apiBase}/playlists/${id}/songs`, 'PUT', { songIds })
 }

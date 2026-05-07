@@ -59,7 +59,6 @@ const qualityOptions = computed(() =>
   })),
 )
 
-// 移动端左右滑动切换歌曲
 const swipeStartX = ref(0)
 const swipeStartY = ref(0)
 const swipeOffset = ref(0)
@@ -67,7 +66,6 @@ const isHorizontalSwipe = ref(false)
 const swipeTransition = ref(false)
 const swipeActive = ref(false)
 
-// 上一首/下一首歌曲预览（shuffle/single 模式无法预测）
 const prevSong = computed(() => {
   if (playlist.value.length === 0 || playMode.value === 'shuffle' || playMode.value === 'single')
     return null

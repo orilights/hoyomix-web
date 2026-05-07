@@ -11,7 +11,10 @@ export function formatDuration(duration: number | string) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
-export function getPublishDate(publishTime: number) {
+export function getPublishDate(publishTime: number | string) {
+  if (typeof publishTime === 'string') {
+    publishTime = new Date(publishTime).getTime()
+  }
   const date = new Date(publishTime)
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }

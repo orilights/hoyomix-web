@@ -89,3 +89,38 @@ export interface PlatformInfoMap {
 export interface SongMediaInfo {
   medias: string[]
 }
+
+export interface PlaylistListItem {
+  id: string
+  name: string
+  description: string | null
+  coverAlbumId: number | null
+  isPublic: boolean
+  userId: string
+  createdAt: string
+  updatedAt: string
+  songCount: number
+}
+
+export interface PlaylistSongItem {
+  songId: number
+  songName: string
+  songDescription: string
+  duration: string
+  albumId: number
+  albumName: string
+  platforms: PlatformInfoMap
+  albumPlatforms: PlatformInfoMap
+}
+
+export interface PlaylistDetail extends Omit<PlaylistListItem, 'songCount'> {
+  songCount: number
+  songs: PlaylistSongItem[]
+}
+
+export interface PlaylistListResponse {
+  total: number
+  page: number
+  limit: number
+  items: PlaylistListItem[]
+}

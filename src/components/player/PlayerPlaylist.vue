@@ -1,11 +1,30 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
+import { useAuthStore } from '@/store/auth'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
 
 const player = usePlayerStore()
+const auth = useAuthStore()
 const { playlist, currentIndex, showPlaylist, isFullscreen } = storeToRefs(player)
+
+const showCreatePlaylistDialog = ref(false)
+const showSelectPlaylistDialog = ref(false)
+
+const playlistSongIds = computed(() => playlist.value.map(item => item.songId))
+
+function saveAsNew() {
+  if (!auth.requireLogin())
+    return
+  showCreatePlaylistDialog.value = true
+}
+
+function overwriteExisting() {
+  if (!auth.requireLogin())
+    return
+  showSelectPlaylistDialog.value = true
+}
 
 function onDragEnd(evt: { oldIndex: number, newIndex: number }) {
   if (evt.oldIndex !== evt.newIndex) {
@@ -49,6 +68,20 @@ function clearAll() {
             <span class="text-white/50 text-sm font-normal ml-2">{{ playlist.length }} 首</span>
           </div>
           <div class="flex items-center gap-2">
+            <Dropdown
+              position="down"
+              :options="[
+                { label: '保存为新歌单', onClick: saveAsNew },
+                { label: '覆盖已有歌单', onClick: overwriteExisting },
+              ]"
+            >
+              <button
+                class="text-white/60 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <LucideListPlus class="size-4" />
+                保存
+              </button>
+            </Dropdown>
             <button
               class="text-white/60 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/10 transition-colors cursor-pointer"
               @click="clearAll"
@@ -120,6 +153,17 @@ function clearAll() {
       </div>
     </div>
   </Transition>
+
+  <CreatePlaylistDialog
+    v-model="showCreatePlaylistDialog"
+    :initial-song-ids="playlistSongIds"
+  />
+
+  <SelectPlaylistDialog
+    v-model="showSelectPlaylistDialog"
+    :song-ids="playlistSongIds"
+    mode="overwrite"
+  />
 </template>
 
 <style scoped>

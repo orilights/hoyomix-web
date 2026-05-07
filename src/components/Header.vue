@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useWindowScroll } from '@vueuse/core'
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 
 const { y: scrollY } = useWindowScroll()
-const store = useStore()
+const store = useMainStore()
 const player = usePlayerStore()
 const { isFullscreen } = storeToRefs(player)
 const { showSearch } = storeToRefs(store)
@@ -60,7 +60,7 @@ onUnmounted(() => {
         <LucideSearch class="size-4.5" />
         <kbd class="hidden md:inline text-xs text-gray-400">Ctrl+K</kbd>
       </button>
-      <UserButton />
+      <UserInfo />
     </div>
   </div>
   <SearchModal v-model="showSearch" />

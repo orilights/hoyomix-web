@@ -46,10 +46,10 @@ function toAlbum() {
       </div>
     </Transition>
     <div v-if="song" class="min-w-0">
-      <div class="text-white text-sm truncate cursor-pointer" @click="toSong">
+      <div class="text-white text-sm truncate cursor-pointer" :title="song.songName" @click="toSong">
         {{ song.songName }}
       </div>
-      <div class="text-white/50 text-xs truncate mt-1 cursor-pointer" @click="toAlbum">
+      <div class="text-white/50 text-xs truncate mt-1 cursor-pointer" :title="song.albumName" @click="toAlbum">
         {{ song.albumName }}
       </div>
     </div>

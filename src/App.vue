@@ -2,18 +2,13 @@
 import { useOverlayScrollbars } from 'overlayscrollbars-vue'
 import { toast, Toaster } from 'vue-sonner'
 import { useAlbumListQuery, useProductListQuery } from '@/composables/queries'
-import { useStore } from '@/store'
-import { useAuthStore } from '@/store/auth'
+import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
-import { getSessionInfoApi } from './api/music'
-import { authClient } from './utils/auth-client'
 
-const store = useStore()
+const store = useMainStore()
 const player = usePlayerStore()
-const auth = useAuthStore()
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist } = storeToRefs(player)
-const { isLoggedIn } = storeToRefs(auth)
 
 const { data: albumListData, isError: isAlbumListError } = useAlbumListQuery()
 
@@ -32,14 +27,6 @@ watch(productListData, (data) => {
 watch(isAlbumListError, (val) => {
   if (val)
     toast.error('专辑列表加载失败')
-})
-
-watch(isLoggedIn, (val) => {
-  if (val) {
-    getSessionInfoApi().then((res) => {
-      console.log('Session info:', res)
-    })
-  }
 })
 
 const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({

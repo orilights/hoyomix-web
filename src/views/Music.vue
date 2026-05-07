@@ -2,14 +2,16 @@
 import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useLyricsQuery, useSongInfoQuery } from '@/composables/queries'
-import { useStore } from '@/store'
+import { useAuthStore } from '@/store/auth'
+import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient, mergeLyrics, selectLyricProvider } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
-const store = useStore()
+const store = useMainStore()
 const player = usePlayerStore()
+const auth = useAuthStore()
 
 const albumId = computed(() => Number(route.params.albumId as string) || null)
 const musicId = computed(() => Number(route.params.musicId))
@@ -108,6 +110,15 @@ watch(musicInfo, (val) => {
 
 const activeTab = ref<'lyrics' | 'artists'>('lyrics')
 
+const showSelectPlaylistDialog = ref(false)
+const currentSongId = computed(() => musicInfo.value ? [musicInfo.value.id] : [])
+
+function addSongToUserPlaylist() {
+  if (!auth.requireLogin())
+    return
+  showSelectPlaylistDialog.value = true
+}
+
 onMounted(() => {
   document.documentElement.scrollTo(0, 0)
 })
@@ -164,79 +175,29 @@ onMounted(() => {
         </div>
 
         <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
-          <Tooltip placement="top" theme="light" content="添加至播放列表并播放">
-            <button
-              class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-              @click="handlePlay"
-            >
-              <LucidePlay class="size-4" fill="currentColor" />
-              播放
-            </button>
-          </Tooltip>
-          <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            @click="goPrevMusic"
-          >
-            前一首
-          </button>
-          <button
-            class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            @click="goNextMusic"
-          >
-            后一首
-          </button>
-          <Dropdown v-if="musicInfo.platforms.ncm" position="up" :options="neteaseOptions">
-            <button
-              class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            >
-              <IconNcm class="size-5 text-[#fc3b5b]" />
-            </button>
-          </Dropdown>
-          <Dropdown v-if="musicInfo.platforms.qq" position="up" :options="qqMusicOptions">
-            <button
-              class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-            >
-              <IconQQ class="size-5" />
-            </button>
-          </Dropdown>
+          <MusicActions
+            show-tooltip
+            dropdown-position="up"
+            :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
+            :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
+            @play="handlePlay"
+            @prev="goPrevMusic"
+            @next="goNextMusic"
+            @add-to-playlist="addSongToUserPlaylist"
+          />
         </div>
       </div>
     </div>
 
     <div class="flex gap-2 flex-wrap md:hidden mt-4">
-      <button
-        class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-        @click="handlePlay"
-      >
-        <LucidePlay class="size-4" fill="currentColor" />
-        播放
-      </button>
-      <button
-        class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-        @click="goPrevMusic"
-      >
-        前一首
-      </button>
-      <button
-        class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-        @click="goNextMusic"
-      >
-        后一首
-      </button>
-      <Dropdown v-if="musicInfo.platforms.ncm" :options="neteaseOptions">
-        <button
-          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-        >
-          <IconNcm class="size-5 text-[#fc3b5b]" />
-        </button>
-      </Dropdown>
-      <Dropdown v-if="musicInfo.platforms.qq" :options="qqMusicOptions">
-        <button
-          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-        >
-          <IconQQ class="size-5" />
-        </button>
-      </Dropdown>
+      <MusicActions
+        :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
+        :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
+        @play="handlePlay"
+        @prev="goPrevMusic"
+        @next="goNextMusic"
+        @add-to-playlist="addSongToUserPlaylist"
+      />
     </div>
 
     <div class="mt-4 lg:hidden">
@@ -306,6 +267,12 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <SelectPlaylistDialog
+      v-model="showSelectPlaylistDialog"
+      :song-ids="currentSongId"
+      mode="add"
+    />
   </div>
 </template>
 

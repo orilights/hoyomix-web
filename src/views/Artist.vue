@@ -2,11 +2,11 @@
 import type { ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { useArtistInfoQuery } from '@/composables/queries'
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 import { getProductIconUrl } from '@/utils'
 
 const route = useRoute()
-const store = useStore()
+const store = useMainStore()
 
 const { albumList } = storeToRefs(store)
 

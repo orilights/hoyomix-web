@@ -4,12 +4,13 @@ import { LucideDisc } from '@lucide/vue'
 import { refDebounced, useResizeObserver } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useSearchQuery } from '@/composables/queries'
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 import { getCoverUrl, getProductIconUrl, sanitizeHighlight } from '@/utils'
 
 const visible = defineModel<boolean>({ required: true })
 const router = useRouter()
-const { albumList } = storeToRefs(useStore())
+const store = useMainStore()
+const { albumList } = storeToRefs(store)
 
 const keyword = ref('')
 const searchType = ref<SearchType | undefined>(undefined)

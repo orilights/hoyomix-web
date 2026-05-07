@@ -3,7 +3,7 @@ import type { AlbumListItemInfo } from '@/types/core'
 import { useElementSize } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { getAlbumInfoApi } from '@/api/music'
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { buildPlaylistFromAlbum } from '@/utils/player-utils'
@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<{
   showLayoutToggle: true,
 })
 
-const store = useStore()
+const store = useMainStore()
 
 // 无 persistKey 时用本地状态
 const _localLayout = ref<LayoutMode>(props.defaultLayout)

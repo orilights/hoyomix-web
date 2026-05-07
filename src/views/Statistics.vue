@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 import { formatDuration } from '@/utils'
 
 const VChart = defineAsyncComponent(() =>
   import('@/utils/echarts').then(m => m.VChart),
 )
 
-const store = useStore()
+const store = useMainStore()
 const { albumList } = storeToRefs(store)
 
 onMounted(() => {
@@ -29,7 +29,6 @@ const totalProducts = computed(() =>
   new Set(albumList.value.map(a => a.productName)).size,
 )
 
-// 按年份聚合
 interface YearStats {
   year: number
   albumCount: number
@@ -61,7 +60,6 @@ const yearStats = computed<YearStats[]>(() => {
 
 const years = computed(() => yearStats.value.map(s => String(s.year)))
 
-// 柱状图：每年专辑发布数量
 const albumCountChartOption = computed<EChartsOption>(() => ({
   tooltip: {
     trigger: 'axis',
@@ -92,7 +90,6 @@ const albumCountChartOption = computed<EChartsOption>(() => ({
   ],
 }))
 
-// 折线图：歌曲数量 vs 歌曲总时长（双 Y 轴）
 const durationChartOption = computed<EChartsOption>(() => ({
   tooltip: {
     trigger: 'axis',

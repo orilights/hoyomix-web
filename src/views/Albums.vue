@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 
-const store = useStore()
+const store = useMainStore()
 const { albumList } = storeToRefs(store)
 
 onMounted(() => {

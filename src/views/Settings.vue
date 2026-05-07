@@ -3,16 +3,16 @@ import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
 import { audioQualityOptions } from '@/constants'
-import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
+import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { goFeedbackPage } from '@/utils'
 
-const store = useStore()
+const store = useMainStore()
 const player = usePlayerStore()
-const authStore = useAuthStore()
+const auth = useAuthStore()
 const { quality, enableAudioContext } = storeToRefs(player)
-const { user, isLoggedIn } = storeToRefs(authStore)
+const { user, isLoggedIn } = storeToRefs(auth)
 
 const showChangePassword = ref(false)
 
@@ -21,7 +21,7 @@ function getInitial(): string {
 }
 
 async function logout() {
-  await authStore.logout()
+  await auth.logout()
   toast.success('已退出登录')
 }
 
@@ -137,8 +137,13 @@ onMounted(() => {
           </button>
         </div>
       </div>
-      <div v-else class="text-sm text-gray-500 bg-gray-50 rounded-xl border border-gray-200 px-4 py-3">
-        未登录，请点击右上角"登录"按钮以登录账号。
+      <div v-else>
+        <button
+          class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+          @click="auth.openAuthDialog()"
+        >
+          登录
+        </button>
       </div>
     </div>
 

@@ -2,10 +2,9 @@
 import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/store/auth'
 
-const authStore = useAuthStore()
-const { user, isLoggedIn, isPending } = storeToRefs(authStore)
+const auth = useAuthStore()
+const { user, isLoggedIn, isPending, showAuthDialog } = storeToRefs(auth)
 
-const showAuthDialog = ref(false)
 const showDropdown = ref(false)
 
 function getInitial(): string {
@@ -36,7 +35,7 @@ function onAvatarClick(e: MouseEvent) {
 
 async function logout() {
   closeDropdown()
-  await authStore.logout()
+  await auth.logout()
   toast.success('已退出登录')
 }
 
@@ -50,7 +49,7 @@ onUnmounted(() => {
     <button
       v-if="!isLoggedIn && !isPending"
       class="text-sm bg-gray-500/10 px-3 py-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1.5"
-      @click="showAuthDialog = true"
+      @click="auth.openAuthDialog()"
     >
       <LucideUser class="size-4.5" />
       <span class="hidden md:inline text-xs">登录</span>

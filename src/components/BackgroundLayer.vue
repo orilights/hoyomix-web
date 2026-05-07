@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 
-const store = useStore()
+const store = useMainStore()
 const { backgroundUrl } = storeToRefs(store)
 
 const background1 = useTemplateRef<HTMLElement>('background1')

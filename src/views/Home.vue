@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { productMap } from '@/constants'
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl } from '@/utils'
 
-const store = useStore()
+const store = useMainStore()
 const { albumList } = storeToRefs(store)
 
 const playlistScrollContainer = useTemplateRef('playlistScrollContainer')
@@ -111,6 +111,26 @@ onMounted(() => {
           </RouterLink>
         </div>
       </OverlayScrollbarsComponent>
+    </div>
+
+    <div class="mt-3">
+      <RouterLink
+        :to="{ name: 'Playlists' }"
+        class="flex items-center gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+      >
+        <div class="px-3">
+          <LucideListMusic class="size-6 text-gray-900" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-gray-900">
+            歌单
+          </div>
+          <div class="text-sm text-gray-500 mt-0.5">
+            发现和管理歌单
+          </div>
+        </div>
+        <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
+      </RouterLink>
     </div>
 
     <div class="mt-3">

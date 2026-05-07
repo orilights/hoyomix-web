@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
 import { useTagAlbumsQuery } from '@/composables/queries'
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 import { getProductIconUrl } from '@/utils'
 
 const route = useRoute()
-const store = useStore()
+const store = useMainStore()
 
 const seriesName = computed(() => route.params.seriesName as string || null)
 

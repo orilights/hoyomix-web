@@ -84,7 +84,6 @@ function onSeek(time: number) {
   player.seek(time)
 }
 
-// 移动端顶部下滑退出全屏
 const touchStartY = ref(0)
 const dragOffset = ref(0)
 const snapBack = ref(false)
@@ -216,7 +215,7 @@ function onHeaderTouchEnd() {
               >
             </div>
             <div class="mt-4 text-center">
-              <div class="text-white text-xl font-bold truncate cursor-pointer" @click="toSong">
+              <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
                 {{ currentSong.songName }}
               </div>
               <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">

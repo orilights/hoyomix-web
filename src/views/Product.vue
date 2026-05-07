@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useStore } from '@/store'
+import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
 
 const route = useRoute()
-const store = useStore()
+const store = useMainStore()
 
 const product = computed(() => route.params.name as string)
 
