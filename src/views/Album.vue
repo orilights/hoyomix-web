@@ -21,11 +21,11 @@ const auth = useAuthStore()
 
 const albumId = computed(() => Number(route.params.id as string) || null)
 
-const { data: albumInfo, isLoading, isError } = useAlbumInfoQuery(albumId)
+const { data: albumInfo, isLoading, isError, error } = useAlbumInfoQuery(albumId)
 
 watch(isError, (val) => {
   if (val)
-    toast.error('专辑信息加载失败')
+    toast.error(`专辑信息加载失败：${error.value?.message ?? '未知错误'}`)
 })
 
 const discList = computed(() => {

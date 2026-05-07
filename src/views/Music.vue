@@ -16,7 +16,7 @@ const auth = useAuthStore()
 const albumId = computed(() => Number(route.params.albumId as string) || null)
 const musicId = computed(() => Number(route.params.musicId))
 
-const { data: albumInfo, isLoading, isError: isAlbumError } = useAlbumInfoQuery(albumId)
+const { data: albumInfo, isLoading, isError: isAlbumError, error: albumError } = useAlbumInfoQuery(albumId)
 const { data: songInfo, isLoading: isSongLoading, isError: isSongError } = useSongInfoQuery(musicId)
 
 const musicInfo = computed<SongListItemInfo | null>(() => {
@@ -31,7 +31,7 @@ const lyricProvider = computed(() => {
 })
 const lyricSongId = computed(() => musicInfo.value?.id ?? null)
 
-const { data: lyricsData, isLoading: isLyricsLoading, isError: isLyricsError } = useLyricsQuery(lyricProvider, lyricSongId)
+const { data: lyricsData, isLoading: isLyricsLoading, isError: isLyricsError, error: lyricsError } = useLyricsQuery(lyricProvider, lyricSongId)
 
 const lyricList = computed(() => {
   if (!lyricsData.value)
@@ -41,12 +41,12 @@ const lyricList = computed(() => {
 
 watch(isAlbumError, (val) => {
   if (val)
-    toast.error('歌曲信息加载失败')
+    toast.error(`歌曲信息加载失败：${albumError.value?.message ?? '未知错误'}`)
 })
 
 watch(isLyricsError, (val) => {
   if (val)
-    toast.error('歌词加载失败')
+    toast.error(`歌词加载失败：${lyricsError.value?.message ?? '未知错误'}`)
 })
 
 const neteaseOptions = computed(() => [

@@ -41,7 +41,7 @@ const typeOptions: { label: string, value: SearchType | undefined }[] = [
 
 const debouncedKeyword = refDebounced(keyword, 300)
 
-const { data: searchData, isFetching, isError } = useSearchQuery(debouncedKeyword, searchType)
+const { data: searchData, isFetching, isError, error } = useSearchQuery(debouncedKeyword, searchType)
 
 const results = computed<SearchResultItem[]>(() => searchData.value?.results ?? [])
 const isTyping = computed(() => keyword.value.trim() !== debouncedKeyword.value.trim())
@@ -50,7 +50,7 @@ const hasSearched = computed(() => debouncedKeyword.value.trim() !== '')
 
 watch(isError, (val) => {
   if (val)
-    toast.error('搜索失败')
+    toast.error(`搜索失败：${error.value?.message ?? '未知错误'}`)
 })
 
 watch(keyword, () => {

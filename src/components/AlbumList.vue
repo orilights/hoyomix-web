@@ -84,7 +84,7 @@ async function playAlbum(albumId: number) {
     toast.success('已替换播放列表')
   }
   catch (error) {
-    toast.error(`获取专辑信息失败: ${error instanceof Error ? error.message : error}`)
+    toast.error(`获取专辑信息失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
 }
 </script>

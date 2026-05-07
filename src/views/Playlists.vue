@@ -55,8 +55,8 @@ async function loadPublic() {
     else
       publicPage.value++
   }
-  catch {
-    toast.error('加载歌单失败')
+  catch (error) {
+    toast.error(`加载歌单失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
   finally {
     publicLoading.value = false
@@ -84,8 +84,8 @@ async function deletePlaylist(id: string) {
     toast.success('删除成功')
     refetchMine()
   }
-  catch {
-    toast.error('删除失败，请稍后重试')
+  catch (error) {
+    toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
 }
 

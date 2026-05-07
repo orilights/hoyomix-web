@@ -27,13 +27,13 @@ async function logout() {
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
-const { data: changelogData, isLoading: isChangelogLoading, isError: isChangelogError } = useChangelogQuery()
+const { data: changelogData, isLoading: isChangelogLoading, isError: isChangelogError, error: changelogError } = useChangelogQuery()
 
 const changelog = computed(() => changelogData.value?.['hoyomix.changelog'] ?? '')
 
 watch(isChangelogError, (val) => {
   if (val)
-    toast.error('更新日志加载失败')
+    toast.error(`更新日志加载失败：${changelogError.value?.message ?? '未知错误'}`)
 })
 
 onMounted(() => {

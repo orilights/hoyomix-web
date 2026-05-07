@@ -10,7 +10,7 @@ const player = usePlayerStore()
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist } = storeToRefs(player)
 
-const { data: albumListData, isError: isAlbumListError } = useAlbumListQuery()
+const { data: albumListData, isError: isAlbumListError, error: albumListError } = useAlbumListQuery()
 
 const { data: productListData } = useProductListQuery()
 
@@ -26,7 +26,7 @@ watch(productListData, (data) => {
 
 watch(isAlbumListError, (val) => {
   if (val)
-    toast.error('专辑列表加载失败')
+    toast.error(`专辑列表加载失败：${albumListError.value?.message ?? '未知错误'}`)
 })
 
 const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({

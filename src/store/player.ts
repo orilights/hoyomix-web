@@ -145,12 +145,12 @@ export const usePlayerStore = defineStore('player', {
         this.currentMediaItems = parseSongMedia(data.medias)
         this.availableQualities = getAvailableQualities(this.currentMediaItems)
       }
-      catch {
+      catch (error) {
         this.currentMediaItems = []
         this.availableQualities = new Set()
         this.isPlaying = false
         this.isLoading = false
-        toast.error('歌曲加载失败')
+        toast.error(`歌曲加载失败：${error instanceof Error ? error.message : '未知错误'}`)
         return
       }
 

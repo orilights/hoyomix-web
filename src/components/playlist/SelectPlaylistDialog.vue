@@ -30,8 +30,8 @@ watch(visible, async (v) => {
   try {
     playlists.value = await getMyPlaylistsApi()
   }
-  catch {
-    toast.error('获取歌单列表失败')
+  catch (error) {
+    toast.error(`获取歌单列表失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
   finally {
     loading.value = false
@@ -63,8 +63,8 @@ async function select(playlist: PlaylistListItem) {
     visible.value = false
     emit('success')
   }
-  catch {
-    toast.error('操作失败，请稍后重试')
+  catch (error) {
+    toast.error(`操作失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
   finally {
     submitting.value = false

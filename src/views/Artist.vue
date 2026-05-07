@@ -12,11 +12,11 @@ const { albumList } = storeToRefs(store)
 
 const artistName = computed(() => route.params.name as string || null)
 
-const { data: artistInfo, isLoading, isError } = useArtistInfoQuery(artistName)
+const { data: artistInfo, isLoading, isError, error } = useArtistInfoQuery(artistName)
 
 watch(isError, (val) => {
   if (val)
-    toast.error('艺术家信息加载失败')
+    toast.error(`艺术家信息加载失败：${error.value?.message ?? '未知错误'}`)
 })
 
 const albumsFiltered = computed(() => {

@@ -123,8 +123,8 @@ async function submit() {
     visible.value = false
     emit('success', playlistId)
   }
-  catch {
-    toast.error(isEdit.value ? '更新失败，请稍后重试' : '创建失败，请稍后重试')
+  catch (error) {
+    toast.error(isEdit.value ? `更新失败：${error instanceof Error ? error.message : '未知错误'}` : `创建失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
   finally {
     loading.value = false

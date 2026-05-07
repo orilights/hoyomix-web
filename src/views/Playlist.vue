@@ -20,13 +20,13 @@ const { isLoggedIn, user } = storeToRefs(auth)
 const queryClient = useQueryClient()
 
 const playlistId = computed(() => route.params.id as string)
-const { data: playlist, isLoading, isError, refetch } = usePlaylistDetailQuery(playlistId)
+const { data: playlist, isLoading, isError, error, refetch } = usePlaylistDetailQuery(playlistId)
 
 const dragging = ref(false)
 
 watch(isError, (v) => {
   if (v)
-    toast.error('歌单加载失败')
+    toast.error(`歌单加载失败：${error.value?.message ?? '未知错误'}`)
 })
 
 const isOwner = computed(() =>
@@ -152,8 +152,8 @@ async function removeSong(song: PlaylistSongItem) {
     queryClient.invalidateQueries({ queryKey: ['playlistDetail', playlist.value.id] })
     toast.success('已从歌单移除')
   }
-  catch {
-    toast.error('删除失败，请稍后重试')
+  catch (error) {
+    toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
   finally {
     savingOrder.value = false
@@ -174,8 +174,8 @@ async function removeSelected() {
     selectedIds.value = new Set()
     toast.success('已删除选中歌曲')
   }
-  catch {
-    toast.error('删除失败，请稍后重试')
+  catch (error) {
+    toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
   finally {
     savingOrder.value = false
@@ -195,8 +195,8 @@ async function onDragEnd() {
     await updatePlaylistSongsApi(playlist.value.id, localSongs.value.map(s => s.songId))
     queryClient.invalidateQueries({ queryKey: ['playlistDetail', playlist.value.id] })
   }
-  catch {
-    toast.error('保存顺序失败')
+  catch (error) {
+    toast.error(`保存顺序失败：${error instanceof Error ? error.message : '未知错误'}`)
     refetch()
   }
   finally {
@@ -228,8 +228,8 @@ async function deletePlaylist() {
     toast.success('歌单已删除')
     router.push({ name: 'Playlists' })
   }
-  catch {
-    toast.error('删除失败，请稍后重试')
+  catch (error) {
+    toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
 }
 

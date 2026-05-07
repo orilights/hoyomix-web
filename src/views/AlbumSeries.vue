@@ -11,11 +11,11 @@ const seriesName = computed(() => route.params.seriesName as string || null)
 
 const productName = computed(() => seriesName.value?.split('-')[0] ?? '')
 
-const { data: albums, isLoading, isError } = useTagAlbumsQuery('series', seriesName)
+const { data: albums, isLoading, isError, error } = useTagAlbumsQuery('series', seriesName)
 
 watch(isError, (val) => {
   if (val)
-    toast.error('系列专辑加载失败')
+    toast.error(`系列专辑加载失败：${error.value?.message ?? '未知错误'}`)
 })
 
 watch(seriesName, (val) => {
