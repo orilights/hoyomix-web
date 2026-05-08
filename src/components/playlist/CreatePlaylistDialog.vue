@@ -43,7 +43,7 @@ watch(visible, (v) => {
   else {
     name.value = ''
     description.value = ''
-    isPublic.value = true
+    isPublic.value = false
     coverAlbumId.value = props.initialCoverAlbumId ?? null
     albumSearchText.value = albumList.value.find(a => a.id === props.initialCoverAlbumId)?.name ?? ''
   }
@@ -101,7 +101,7 @@ async function submit() {
     if (isEdit.value && props.existingPlaylist) {
       const res = await updatePlaylistApi(props.existingPlaylist.id, {
         name: name.value.trim(),
-        description: description.value.trim() || undefined,
+        description: description.value.trim(),
         coverAlbumId: coverAlbumId.value,
         isPublic: isPublic.value,
       })
@@ -110,7 +110,7 @@ async function submit() {
     else {
       const res = await createPlaylistApi({
         name: name.value.trim(),
-        description: description.value.trim() || undefined,
+        description: description.value.trim(),
         coverAlbumId: coverAlbumId.value,
         isPublic: isPublic.value,
       })
