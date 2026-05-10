@@ -11,7 +11,7 @@ import { goFeedbackPage } from '@/utils'
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
-const { quality, enableAudioContext } = storeToRefs(player)
+const { quality, enableAudioContext, lyricsSource } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 const showChangePassword = ref(false)
@@ -70,6 +70,36 @@ onMounted(() => {
         </button>
       </div>
     </div>
+
+    <div class="mt-4">
+      <div class="font-bold text-lg mb-2">
+        歌词源
+      </div>
+      <div class="flex gap-2">
+        <button
+          class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          :class="lyricsSource === 'ncm'
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          @click="player.setLyricsSource('ncm')"
+        >
+          网易云音乐
+        </button>
+        <button
+          class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          :class="lyricsSource === 'qq'
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          @click="player.setLyricsSource('qq')"
+        >
+          QQ 音乐
+        </button>
+      </div>
+      <div class="text-sm text-gray-600 mt-2">
+        优先使用所选平台的歌词
+      </div>
+    </div>
+
     <div class="mt-4">
       <div class="font-bold text-lg mb-2">
         AudioContext API

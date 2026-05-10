@@ -1,4 +1,4 @@
-import type { AudioQuality, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
+import type { AudioQuality, LyricsSource, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api/music'
@@ -20,6 +20,7 @@ export const usePlayerStore = defineStore('player', {
     showTranslation: true,
     lyricsOffset: 0,
     lyricsFontSize: 16,
+    lyricsSource: 'ncm' as LyricsSource,
 
     // 运行时状态
     isPlaying: false,
@@ -388,6 +389,11 @@ export const usePlayerStore = defineStore('player', {
       this.showTranslation = !this.showTranslation
     },
 
+    setLyricsSource(source: LyricsSource) {
+      this.lyricsSource = source
+      this.fetchLyric()
+    },
+
     setAudioContextEnabled(enabled: boolean) {
       this.enableAudioContext = enabled
       getAudioPlayer().setAudioContextEnabled(enabled)
@@ -408,7 +414,7 @@ export const usePlayerStore = defineStore('player', {
         return
       }
 
-      const provider = song.platforms ? selectLyricProvider(song.platforms) : null
+      const provider = song.platforms ? selectLyricProvider(song.platforms, this.lyricsSource) : null
       if (!provider) {
         this.lyricData = ''
         this.lyricTranslation = ''
@@ -442,6 +448,7 @@ export const usePlayerStore = defineStore('player', {
       'showTranslation',
       'lyricsOffset',
       'lyricsFontSize',
+      'lyricsSource',
     ],
   },
 })

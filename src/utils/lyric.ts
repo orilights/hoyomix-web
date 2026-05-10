@@ -1,10 +1,18 @@
 import type { PlatformInfoMap } from '@/types/core'
 
-export function selectLyricProvider(platforms: PlatformInfoMap): 'ncm' | 'qq' | null {
-  if (platforms.ncm)
-    return 'ncm'
-  if (platforms.qq)
-    return 'qq'
+export function selectLyricProvider(platforms: PlatformInfoMap, preferred: 'ncm' | 'qq' = 'ncm'): 'ncm' | 'qq' | null {
+  if (preferred === 'ncm') {
+    if (platforms.ncm)
+      return 'ncm'
+    if (platforms.qq)
+      return 'qq'
+  }
+  else {
+    if (platforms.qq)
+      return 'qq'
+    if (platforms.ncm)
+      return 'ncm'
+  }
   return null
 }
 

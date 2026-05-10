@@ -13,6 +13,8 @@ const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 
+const { lyricsSource } = storeToRefs(player)
+
 const albumId = computed(() => Number(route.params.albumId as string) || null)
 const musicId = computed(() => Number(route.params.musicId))
 
@@ -27,7 +29,7 @@ const musicInfo = computed<SongListItemInfo | null>(() => {
 })
 
 const lyricProvider = computed(() => {
-  return musicInfo.value?.platforms ? selectLyricProvider(musicInfo.value.platforms) : null
+  return musicInfo.value?.platforms ? selectLyricProvider(musicInfo.value.platforms, lyricsSource.value) : null
 })
 const lyricSongId = computed(() => musicInfo.value?.id ?? null)
 
