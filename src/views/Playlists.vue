@@ -76,7 +76,12 @@ watch(playlistsTab, (tab) => {
     loadPublic()
 }, { immediate: true })
 
-const { data: myPlaylists, refetch: refetchMine } = useMyPlaylistsQuery()
+const { data: myPlaylists, isLoading: isMyLoading, isError: isMyError, error: myError, refetch: refetchMine } = useMyPlaylistsQuery()
+
+watch(isMyError, (v) => {
+  if (v)
+    toast.error(`我的歌单加载失败：${myError.value?.message ?? '未知错误'}`)
+})
 
 async function deletePlaylist(id: string) {
   try {
@@ -164,10 +169,13 @@ onMounted(() => {
       <div v-if="!isLoggedIn" class="text-center py-16 text-gray-400">
         请先登录以查看你的歌单
       </div>
-      <div v-else-if="!myPlaylists" class="flex justify-center py-16">
+      <div v-else-if="isMyLoading" class="flex justify-center py-16">
         <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
       </div>
-      <div v-else-if="myPlaylists.length === 0" class="text-center py-16">
+      <div v-else-if="isMyError" class="flex items-center justify-center py-16 text-red-400">
+        加载失败，请刷新重试
+      </div>
+      <div v-else-if="myPlaylists?.length === 0" class="text-center py-16">
         <LucideMusic class="size-12 text-gray-200 mx-auto mb-3" />
         <p class="text-sm text-gray-400">
           还没有歌单，快去创建一个吧
