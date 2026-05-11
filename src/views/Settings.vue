@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
+import { fetchJsonMutation } from '@/api/music'
 import { useChangelogQuery } from '@/composables/queries'
-import { audioQualityOptions } from '@/constants'
+import { apiBase, audioQualityOptions } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -26,6 +27,49 @@ async function logout() {
 }
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
+
+const versionClickCount = ref(0)
+const showDebugTool = ref(false)
+
+const debugMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+const debugMethod = ref('GET')
+const debugUrl = ref('')
+const debugBody = ref('')
+const debugResult = ref<string | null>(null)
+const debugLoading = ref(false)
+
+function onVersionClick() {
+  versionClickCount.value++
+  if (versionClickCount.value >= 5)
+    showDebugTool.value = true
+}
+
+async function sendDebugRequest() {
+  if (!debugUrl.value.trim())
+    return
+  debugLoading.value = true
+  debugResult.value = null
+  try {
+    const url = debugUrl.value.startsWith('http') ? debugUrl.value : `${apiBase}${debugUrl.value}`
+    let body: unknown
+    if (debugBody.value.trim()) {
+      try {
+        body = JSON.parse(debugBody.value)
+      }
+      catch {
+        body = debugBody.value
+      }
+    }
+    const result = await fetchJsonMutation<unknown>(url, debugMethod.value, body)
+    debugResult.value = JSON.stringify(result, null, 2)
+  }
+  catch (e) {
+    debugResult.value = `错误：${e instanceof Error ? e.message : String(e)}`
+  }
+  finally {
+    debugLoading.value = false
+  }
+}
 
 const { data: changelogData, isLoading: isChangelogLoading, isError: isChangelogError, error: changelogError } = useChangelogQuery()
 
@@ -190,8 +234,8 @@ onMounted(() => {
       一个 HOYO-MiX 音乐信息收集网站
       <br>
       <div class="mt-2">
-        当前版本：v0.4.0
-        <span class="border rounded-md px-1 py-0.5 text-sm text-green-700">早期预览版</span>
+        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.4.0</span>
+        <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">早期预览版</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
       <div class="mt-2">
@@ -205,10 +249,53 @@ onMounted(() => {
       </div>
     </div>
 
+    <div v-if="showDebugTool" class="mt-4">
+      <div class="font-bold text-lg mb-2">
+        请求测试
+      </div>
+      <div class="bg-white/60 rounded-xl border border-gray-200 p-4 space-y-3">
+        <div class="flex gap-2 flex-wrap">
+          <button
+            v-for="method in debugMethods"
+            :key="method"
+            class="px-3 py-1 rounded-md border text-sm font-medium transition-colors cursor-pointer"
+            :class="debugMethod === method
+              ? 'bg-blue-500 text-white border-blue-500'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+            @click="debugMethod = method"
+          >
+            {{ method }}
+          </button>
+        </div>
+        <input
+          v-model="debugUrl"
+          class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          placeholder="请求地址"
+        >
+        <textarea
+          v-model="debugBody"
+          rows="4"
+          class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
+          placeholder="Body"
+        />
+        <button
+          class="px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+          :disabled="debugLoading || !debugUrl.trim()"
+          @click="sendDebugRequest"
+        >
+          <LucideLoader2 v-if="debugLoading" class="size-4 animate-spin" />
+          发送
+        </button>
+        <pre
+          v-if="debugResult !== null"
+          class="bg-gray-100 rounded-lg p-3 text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto max-h-96"
+        >{{ debugResult }}</pre>
+      </div>
+    </div>
+
     <div class="font-bold text-2xl mt-4">
       更新日志
-    </div>
-    <div v-if="isChangelogLoading" class="flex items-center mt-4 py-4 text-gray-400">
+    </div>    <div v-if="isChangelogLoading" class="flex items-center mt-4 py-4 text-gray-400">
       <LucideLoader2 class="size-5 animate-spin mr-2" />
       加载中...
     </div>

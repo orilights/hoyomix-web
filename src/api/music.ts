@@ -9,7 +9,7 @@ async function fetchJson<T>(url: string, credentials = true): Promise<T> {
   return res.json() as Promise<T>
 }
 
-async function fetchJsonMutation<T>(url: string, method: string, body?: unknown): Promise<T> {
+export async function fetchJsonMutation<T>(url: string, method: string, body?: unknown): Promise<T> {
   const res = await fetch(url, {
     method,
     credentials: 'include',
