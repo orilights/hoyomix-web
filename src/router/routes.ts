@@ -56,6 +56,11 @@ const routes: RouteRecordRaw[] = [
     name: 'PlaylistDetail',
     component: () => import('@/views/Playlist.vue'),
   },
+  {
+    path: '/email-verified',
+    name: 'EmailVerified',
+    component: () => import('@/views/EmailVerified.vue'),
+  },
 ]
 
 export default routes

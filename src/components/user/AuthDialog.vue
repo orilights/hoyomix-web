@@ -2,6 +2,9 @@
 import { toast } from 'vue-sonner'
 import { authClient } from '@/utils/auth-client'
 
+const router = useRouter()
+const route = useRoute()
+
 const visible = defineModel<boolean>({ required: true })
 
 const tab = ref<'login' | 'register'>('login')
@@ -79,7 +82,10 @@ async function handleLogin() {
   }
   close()
   toast.success('登录成功')
-  location.reload()
+  if (route.name === 'EmailVerified')
+    router.replace('/')
+  else
+    location.reload()
 }
 
 async function handleRegister() {
@@ -93,7 +99,7 @@ async function handleRegister() {
     name: registerName.value,
     email: registerEmail.value,
     password: registerPassword.value,
-    callbackURL: `${window.location.origin}`,
+    callbackURL: `${window.location.origin}${router.resolve({ name: 'EmailVerified' }).href}`,
   })
   loading.value = false
   if (error) {
