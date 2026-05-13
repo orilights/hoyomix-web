@@ -93,7 +93,7 @@ async function handleRegister() {
     name: registerName.value,
     email: registerEmail.value,
     password: registerPassword.value,
-    callbackURL: `${window.location.protocol}//${window.location.origin}`,
+    callbackURL: `${window.location.origin}`,
   })
   loading.value = false
   if (error) {
