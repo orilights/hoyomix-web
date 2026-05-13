@@ -79,7 +79,7 @@ watch(playlistsTab, (tab) => {
 const { data: myPlaylists, isLoading: isMyLoading, isError: isMyError, error: myError, refetch: refetchMine } = useMyPlaylistsQuery()
 
 watch(isMyError, (v) => {
-  if (v)
+  if (v && isLoggedIn.value)
     toast.error(`我的歌单加载失败：${myError.value?.message ?? '未知错误'}`)
 })
 
