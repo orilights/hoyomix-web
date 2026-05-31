@@ -113,7 +113,7 @@ onMounted(() => {
       </OverlayScrollbarsComponent>
     </div>
 
-    <div class="mt-3">
+    <div class="mt-3 grid grid-cols-2 gap-3">
       <RouterLink
         :to="{ name: 'Playlists' }"
         class="flex items-center gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
@@ -127,6 +127,23 @@ onMounted(() => {
           </div>
           <div class="text-sm text-gray-500 mt-0.5">
             发现和管理歌单
+          </div>
+        </div>
+        <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
+      </RouterLink>
+      <RouterLink
+        :to="{ name: 'Random' }"
+        class="flex items-center gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+      >
+        <div class="px-3">
+          <LucideShuffle class="size-6 text-gray-900" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-gray-900">
+            随机歌单
+          </div>
+          <div class="text-sm text-gray-500 mt-0.5">
+            随机生成播放列表
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />

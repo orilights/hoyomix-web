@@ -1,4 +1,4 @@
-import type { AlbumListItemInfo, ProductListItemInfo } from '@/types/core'
+import type { AlbumListItemInfo, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
 import { defineStore } from 'pinia'
 
 export const useMainStore = defineStore('main', {
@@ -9,6 +9,15 @@ export const useMainStore = defineStore('main', {
     showSearch: false,
     albumLayoutMap: {} as Record<string, 'grid' | 'list'>,
     playlistsTab: 'public' as 'public' | 'mine',
+    // 随机歌单
+    randomPlaylistMode: 'random' as 'random' | 'album',
+    randomPlaylistLimit: 20,
+    randomPlaylistProducts: [] as string[],
+    randomPlaylistDateFrom: '',
+    randomPlaylistDateTo: '',
+    randomPlaylistExcludeAlbums: [] as number[],
+    randomPlaylistAlbums: [] as number[],
+    randomPlaylist: [] as PlaylistSongItem[],
   }),
   actions: {
     setBackground(url = '') {
@@ -19,6 +28,6 @@ export const useMainStore = defineStore('main', {
     },
   },
   persist: {
-    pick: ['albumLayoutMap', 'playlistsTab'],
+    pick: ['albumLayoutMap', 'playlistsTab', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistAlbums', 'randomPlaylist'],
   },
 })

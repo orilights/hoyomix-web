@@ -1,4 +1,4 @@
-import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistSongItem, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 
@@ -126,4 +126,31 @@ export function deletePlaylistApi(id: string) {
 
 export function updatePlaylistSongsApi(id: string, songIds: number[]) {
   return fetchJsonMutation<{ count: number }>(`${apiBase}/playlists/${id}/songs`, 'PUT', { songIds })
+}
+
+export interface RandomPlaylistParams {
+  limit?: number
+  products?: string[]
+  albums?: number[]
+  excludeAlbums?: number[]
+  dateFrom?: string
+  dateTo?: string
+}
+
+export function getRandomPlaylistApi(params?: RandomPlaylistParams) {
+  const query = new URLSearchParams()
+  if (params?.limit)
+    query.set('limit', String(params.limit))
+  if (params?.products?.length)
+    query.set('products', params.products.join(','))
+  if (params?.albums?.length)
+    query.set('albums', params.albums.join(','))
+  if (params?.excludeAlbums?.length)
+    query.set('excludeAlbums', params.excludeAlbums.join(','))
+  if (params?.dateFrom)
+    query.set('dateFrom', params.dateFrom)
+  if (params?.dateTo)
+    query.set('dateTo', params.dateTo)
+  const qs = query.toString()
+  return fetchJson<PlaylistSongItem[]>(`${apiBase}/random-playlist${qs ? `?${qs}` : ''}`)
 }
