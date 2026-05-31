@@ -90,12 +90,27 @@ export interface SongMediaInfo {
   medias: string[]
 }
 
+export type PlaylistReviewStatus = 'none' | 'pending' | 'approved' | 'rejected'
+
+export interface PlaylistReview {
+  id: number
+  playlistId: string
+  type: 'make_public' | 'update_info'
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled'
+  snapshotBefore: { name: string, description: string, isPublic: boolean }
+  snapshotAfter: { name: string, description: string, isPublic: boolean }
+  reason: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface PlaylistListItem {
   id: string
   name: string
   description: string | null
   coverAlbumId: number | null
   isPublic: boolean
+  reviewStatus: PlaylistReviewStatus
   userId: string
   createdAt: string
   updatedAt: string

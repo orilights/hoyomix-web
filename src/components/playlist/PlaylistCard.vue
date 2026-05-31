@@ -38,7 +38,7 @@ const coverUrl = computed(() =>
         <div v-else class="aspect-square flex items-center justify-center bg-gray-200">
           <LucideMusic class="size-12 text-blue-400" />
         </div>
-        <div class="absolute top-2 left-2 flex gap-2">
+        <div class="absolute top-2 left-2 flex gap-2 flex-wrap">
           <div
             v-if="showOwner && playlist.userId === user?.id"
             class=" px-1.5 py-0.5 rounded text-xs bg-black/40 text-white"
@@ -50,6 +50,18 @@ const coverUrl = computed(() =>
             class=" px-1.5 py-0.5 rounded text-xs bg-black/40 text-white"
           >
             私密
+          </div>
+          <div
+            v-if="showDelete && playlist.reviewStatus === 'pending'"
+            class="px-1.5 py-0.5 rounded text-xs bg-yellow-400/80 text-white"
+          >
+            审核中
+          </div>
+          <div
+            v-else-if="showDelete && playlist.reviewStatus === 'rejected'"
+            class="px-1.5 py-0.5 rounded text-xs bg-red-500/80 text-white"
+          >
+            已驳回
           </div>
         </div>
 

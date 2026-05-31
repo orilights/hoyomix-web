@@ -90,6 +90,27 @@ const coverPreviewUrl = computed(() =>
   coverAlbumInfo.value ? getCoverUrl(coverAlbumInfo.value.platforms, '96px') : '',
 )
 
+const hasPendingReview = computed(() =>
+  props.existingPlaylist?.reviewStatus === 'pending',
+)
+
+const willTriggerMakePublicReview = computed(() => {
+  if (!isPublic.value)
+    return false
+  if (!isEdit.value)
+    return true
+  return props.existingPlaylist?.isPublic === false
+})
+
+const willTriggerUpdateInfoReview = computed(() => {
+  if (!isEdit.value || !props.existingPlaylist?.isPublic || willTriggerMakePublicReview.value)
+    return false
+  return (
+    name.value.trim() !== props.existingPlaylist.name
+    || (description.value.trim() || '') !== (props.existingPlaylist.description ?? '')
+  )
+})
+
 async function submit() {
   if (!name.value.trim()) {
     toast.error('请输入歌单名称')
@@ -119,7 +140,12 @@ async function submit() {
         await updatePlaylistSongsApi(playlistId, props.initialSongIds)
       }
     }
-    toast.success(isEdit.value ? '歌单已更新' : '歌单已创建')
+    if (willTriggerMakePublicReview.value)
+      toast.info('公开申请已提交，审核通过后歌单将自动公开')
+    else if (willTriggerUpdateInfoReview.value)
+      toast.info('修改已提交审核，通过后将正式生效')
+    else
+      toast.success(isEdit.value ? '歌单已更新' : '歌单已创建')
     visible.value = false
     emit('success', playlistId)
   }
@@ -206,17 +232,39 @@ async function submit() {
 
       <div class="flex items-center gap-3">
         <label class="text-sm font-medium text-gray-700">公开歌单</label>
-        <button
-          class="relative w-10 h-5.5 rounded-full transition-colors cursor-pointer"
-          :class="isPublic ? 'bg-blue-500' : 'bg-gray-200'"
-          @click="isPublic = !isPublic"
-        >
-          <span
-            class="absolute top-0.5 left-0.5 size-4.5 bg-white rounded-full shadow transition-transform"
-            :class="isPublic ? 'translate-x-4.5' : ''"
-          />
-        </button>
+        <Tooltip :content="hasPendingReview ? '已有待审核记录，请等待审核完成' : ''" placement="top">
+          <button
+            class="relative w-10 h-5.5 rounded-full transition-colors"
+            :class="[
+              isPublic ? 'bg-blue-500' : 'bg-gray-200',
+              hasPendingReview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+            ]"
+            :disabled="hasPendingReview"
+            @click="!hasPendingReview && (isPublic = !isPublic)"
+          >
+            <span
+              class="absolute top-0.5 left-0.5 size-4.5 bg-white rounded-full shadow transition-transform"
+              :class="isPublic ? 'translate-x-4.5' : ''"
+            />
+          </button>
+        </Tooltip>
         <span class="text-xs text-gray-400">{{ isPublic ? '所有人可见' : '仅自己可见' }}</span>
+      </div>
+
+      <div
+        v-if="willTriggerMakePublicReview"
+        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 text-blue-700 text-sm"
+      >
+        <LucideInfo class="size-4 mt-0.5 shrink-0" />
+        <span>申请公开后需经过审核，审核期间歌单仍为私密状态，审核通过后将自动公开。</span>
+      </div>
+
+      <div
+        v-else-if="willTriggerUpdateInfoReview"
+        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 text-blue-700 text-sm"
+      >
+        <LucideInfo class="size-4 mt-0.5 shrink-0" />
+        <span>修改公开歌单的名称或描述需经过审核，审核通过后才会正式生效，审核期间显示原内容。</span>
       </div>
     </div>
 

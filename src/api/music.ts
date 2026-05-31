@@ -1,4 +1,4 @@
-import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistSongItem, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 
@@ -126,6 +126,14 @@ export function deletePlaylistApi(id: string) {
 
 export function updatePlaylistSongsApi(id: string, songIds: number[]) {
   return fetchJsonMutation<{ count: number }>(`${apiBase}/playlists/${id}/songs`, 'PUT', { songIds })
+}
+
+export function getPlaylistReviewApi(id: string) {
+  return fetchJson<PlaylistReview>(`${apiBase}/playlists/${id}/review`)
+}
+
+export function cancelPlaylistReviewApi(id: string) {
+  return fetchJsonMutation<void>(`${apiBase}/playlists/${id}/review`, 'DELETE')
 }
 
 export interface RandomPlaylistParams {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { PlaylistSongItem } from '@/types/core'
-import { useQueryClient } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
-import { deletePlaylistApi, updatePlaylistSongsApi } from '@/api/music'
+import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
 import { usePlaylistDetailQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -32,6 +32,15 @@ watch(isError, (v) => {
 const isOwner = computed(() =>
   isLoggedIn.value && !!user.value && !!playlist.value && playlist.value.userId === user.value.id,
 )
+
+const reviewStatus = computed(() => playlist.value?.reviewStatus)
+
+const { data: reviewDetail } = useQuery({
+  queryKey: computed(() => ['playlistReview', playlistId.value]),
+  queryFn: () => getPlaylistReviewApi(playlistId.value),
+  enabled: computed(() => isOwner.value && reviewStatus.value === 'rejected'),
+  staleTime: 1000 * 60 * 5,
+})
 
 const coverAlbum = computed(() =>
   playlist.value?.coverAlbumId
@@ -218,6 +227,26 @@ function onEditSuccess() {
   queryClient.invalidateQueries({ queryKey: ['playlists'] })
 }
 
+const cancellingReview = ref(false)
+
+async function cancelReview() {
+  if (!playlist.value)
+    return
+  cancellingReview.value = true
+  try {
+    await cancelPlaylistReviewApi(playlist.value.id)
+    await refetch()
+    queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
+    toast.success('已取消审核申请')
+  }
+  catch (error) {
+    toast.error(`取消失败：${error instanceof Error ? error.message : '未知错误'}`)
+  }
+  finally {
+    cancellingReview.value = false
+  }
+}
+
 async function deletePlaylist() {
   if (!playlist.value)
     return
@@ -277,6 +306,47 @@ onMounted(() => {
           <span>
             {{ playlist.songCount }}
           </span>
+        </div>
+
+        <div
+          v-if="isOwner && reviewStatus && reviewStatus !== 'none'"
+          class="mt-1 md:mt-2 flex items-center gap-2 flex-wrap shrink-0"
+        >
+          <span
+            v-if="reviewStatus === 'pending'"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"
+          >
+            <LucideClock class="size-3" />
+            审核中
+          </span>
+          <span
+            v-else-if="reviewStatus === 'rejected'"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"
+          >
+            <LucideCircleX class="size-3" />
+            审核已驳回
+          </span>
+          <span
+            v-else-if="reviewStatus === 'approved'"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"
+          >
+            <LucideCircleCheck class="size-3" />
+            审核已通过
+          </span>
+          <span
+            v-if="reviewStatus === 'rejected' && reviewDetail?.reason"
+            class="text-xs text-gray-500"
+          >
+            原因：{{ reviewDetail.reason }}
+          </span>
+          <button
+            v-if="reviewStatus === 'pending'"
+            class="text-xs text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+            :disabled="cancellingReview"
+            @click="cancelReview"
+          >
+            {{ cancellingReview ? '取消中...' : '撤销申请' }}
+          </button>
         </div>
 
         <OverlayScrollbarsComponent
