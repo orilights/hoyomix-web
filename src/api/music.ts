@@ -169,7 +169,7 @@ export function getNotificationUnreadCountApi() {
 }
 
 export function getNotificationsApi(page = 1, limit = 20) {
-  return fetchJson<NotificationListResponse>(`${userApiBase}/notifications?page=${page}&limit=${limit}`)
+  return fetchJson<NotificationListResponse>(`${apiBase}/notifications?page=${page}&limit=${limit}`)
 }
 
 export function markAllNotificationsReadApi() {

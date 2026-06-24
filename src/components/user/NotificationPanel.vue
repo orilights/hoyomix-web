@@ -43,6 +43,12 @@ async function fetchNotifications(reset = false) {
     unreadCount.value = res.unreadCount
     emit('unreadCountChange', res.unreadCount)
   }
+  catch (e) {
+    // 加载更多失败时回滚页码，便于重试
+    if (!reset)
+      page.value--
+    toast.error(`通知加载失败：${e instanceof Error ? e.message : '未知错误'}`)
+  }
   finally {
     loading.value = false
   }
@@ -52,21 +58,43 @@ async function markRead(id: number) {
   const item = notifications.value.find(n => n.id === id)
   if (!item || item.isRead)
     return
+  const prevRead = item.isRead
+  const prevUnread = unreadCount.value
   item.isRead = true
   unreadCount.value = Math.max(0, unreadCount.value - 1)
   emit('unreadCountChange', unreadCount.value)
-  await markNotificationReadApi(id)
-  queryClient.setQueryData(['notificationUnreadCount'], { count: unreadCount.value })
+  try {
+    await markNotificationReadApi(id)
+    queryClient.setQueryData(['notificationUnreadCount'], { count: unreadCount.value })
+  }
+  catch (e) {
+    // 回滚乐观更新
+    item.isRead = prevRead
+    unreadCount.value = prevUnread
+    emit('unreadCountChange', prevUnread)
+    toast.error(`标记已读失败：${e instanceof Error ? e.message : '未知错误'}`)
+  }
 }
 
 async function markAllRead() {
   if (unreadCount.value === 0)
     return
+  const prevUnread = unreadCount.value
+  const prevReadMap = new Map(notifications.value.map(n => [n.id, n.isRead]))
   notifications.value.forEach(n => (n.isRead = true))
   unreadCount.value = 0
   emit('unreadCountChange', 0)
-  await markAllNotificationsReadApi()
-  queryClient.setQueryData(['notificationUnreadCount'], { count: 0 })
+  try {
+    await markAllNotificationsReadApi()
+    queryClient.setQueryData(['notificationUnreadCount'], { count: 0 })
+  }
+  catch (e) {
+    // 回滚乐观更新
+    notifications.value.forEach(n => (n.isRead = prevReadMap.get(n.id) ?? n.isRead))
+    unreadCount.value = prevUnread
+    emit('unreadCountChange', prevUnread)
+    toast.error(`全部已读失败：${e instanceof Error ? e.message : '未知错误'}`)
+  }
 }
 
 async function removeNotification(id: number) {
@@ -74,14 +102,29 @@ async function removeNotification(id: number) {
   if (idx === -1)
     return
   const item = notifications.value[idx]
-  if (!item.isRead) {
+  const wasUnread = !item.isRead
+  const prevUnread = unreadCount.value
+  if (wasUnread) {
     unreadCount.value = Math.max(0, unreadCount.value - 1)
     emit('unreadCountChange', unreadCount.value)
-    queryClient.setQueryData(['notificationUnreadCount'], { count: unreadCount.value })
   }
   notifications.value.splice(idx, 1)
   total.value--
-  await deleteNotificationApi(id)
+  try {
+    await deleteNotificationApi(id)
+    if (wasUnread)
+      queryClient.setQueryData(['notificationUnreadCount'], { count: unreadCount.value })
+  }
+  catch (e) {
+    // 回滚：重新插入到原位置
+    notifications.value.splice(idx, 0, item)
+    total.value++
+    if (wasUnread) {
+      unreadCount.value = prevUnread
+      emit('unreadCountChange', prevUnread)
+    }
+    toast.error(`删除通知失败：${e instanceof Error ? e.message : '未知错误'}`)
+  }
 }
 
 async function deleteRead() {
@@ -90,10 +133,19 @@ async function deleteRead() {
     toast.info('没有已读通知')
     return
   }
+  const removed = notifications.value.filter(n => n.isRead)
   notifications.value = notifications.value.filter(n => !n.isRead)
   total.value -= readCount
-  await deleteReadNotificationsApi()
-  toast.success('已删除已读通知')
+  try {
+    await deleteReadNotificationsApi()
+    toast.success('已删除已读通知')
+  }
+  catch (e) {
+    // 回滚：恢复已读通知
+    notifications.value = [...notifications.value, ...removed]
+    total.value += readCount
+    toast.error(`删除已读失败：${e instanceof Error ? e.message : '未知错误'}`)
+  }
 }
 
 async function loadMore() {

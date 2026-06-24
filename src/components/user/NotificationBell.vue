@@ -14,6 +14,8 @@ const { data: unreadCountData } = useQuery({
   enabled: isLoggedIn,
   refetchInterval: 60 * 1000,
   staleTime: 30 * 1000,
+  // 未读计数轮询失败时静默处理，避免反复打扰用户
+  retry: false,
 })
 
 const hasUnread = computed(() => (unreadCountData.value?.count ?? 0) > 0)
