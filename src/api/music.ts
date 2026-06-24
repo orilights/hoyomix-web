@@ -1,6 +1,7 @@
 import type { AlbumInfo, AlbumListItemInfo, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaInfo } from '@/types/core'
+import type { NotificationListResponse } from '@/types/notification'
 import type { SearchResponse } from '@/types/search'
-import { apiBase } from '@/constants'
+import { apiBase, userApiBase } from '@/constants'
 
 async function fetchJson<T>(url: string, credentials = true): Promise<T> {
   const res = await fetch(url, { credentials: credentials ? 'include' : undefined })
@@ -161,4 +162,28 @@ export function getRandomPlaylistApi(params?: RandomPlaylistParams) {
     query.set('dateTo', params.dateTo)
   const qs = query.toString()
   return fetchJson<PlaylistSongItem[]>(`${apiBase}/random-playlist${qs ? `?${qs}` : ''}`)
+}
+
+export function getNotificationUnreadCountApi() {
+  return fetchJson<{ count: number }>(`${userApiBase}/notifications/unread-count`)
+}
+
+export function getNotificationsApi(page = 1, limit = 20) {
+  return fetchJson<NotificationListResponse>(`${userApiBase}/notifications?page=${page}&limit=${limit}`)
+}
+
+export function markAllNotificationsReadApi() {
+  return fetchJsonMutation<{ updated: number }>(`${userApiBase}/notifications/read-all`, 'PUT')
+}
+
+export function markNotificationReadApi(id: number) {
+  return fetchJsonMutation<{ ok: boolean }>(`${userApiBase}/notifications/${id}/read`, 'PUT')
+}
+
+export function deleteNotificationApi(id: number) {
+  return fetchJsonMutation<{ ok: boolean }>(`${userApiBase}/notifications/${id}`, 'DELETE')
+}
+
+export function deleteReadNotificationsApi() {
+  return fetchJsonMutation<{ deleted: number }>(`${userApiBase}/notifications/read`, 'DELETE')
 }
