@@ -60,6 +60,7 @@ onUnmounted(() => {
         <LucideSearch class="size-4.5" />
         <kbd class="hidden md:inline text-xs text-gray-400">Ctrl+K</kbd>
       </button>
+      <NotificationBell />
       <UserInfo />
     </div>
   </div>
