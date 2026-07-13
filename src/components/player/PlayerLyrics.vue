@@ -163,7 +163,7 @@ onUnmounted(() => {
       <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
         暂无歌词
       </div>
-      <div v-else class="py-[50vh]">
+      <div v-else :class="{ 'py-[50vh]': hasTimestamp, 'py-[20vh]': !hasTimestamp }">
         <div v-if="!hasTimestamp" class="text-white/80 px-4 py-2">
           当前歌词不支持滚动
         </div>
