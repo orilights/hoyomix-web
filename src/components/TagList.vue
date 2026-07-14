@@ -31,6 +31,17 @@ function openLink(url: string) {
       </RouterLink>
 
       <div
+        v-if="tagInfo.tagType === 'area' && tagInfo.tagData"
+        class="px-2 py-0.5 bg-black/5 rounded-xl flex items-center gap-1 text-sm"
+      >
+        <span class="text-gray-500">{{ tagInfo.tagName }}：</span>
+        <template v-for="(levelKey, li) in Object.keys(tagInfo.tagData).sort()" :key="li">
+          <LucideChevronRight v-if="li > 0" class="h-3 w-3 text-gray-400" />
+          <span>{{ tagInfo.tagData[levelKey] }}</span>
+        </template>
+      </div>
+
+      <div
         v-if="tagInfo.tagType === 'video' && tagInfo.tagData"
         class="relative flex items-center w-full overflow-hidden rounded-xl cursor-pointer group py-4 group"
         @click="openLink(tagInfo.tagData.link)"
