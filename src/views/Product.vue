@@ -58,7 +58,7 @@ const versionRanges = computed<VersionRange[]>(() => {
 
 function getVersionLabel(major: number): string {
   if (product.value === '原神' && major === 6)
-    return '月之X'
+    return '空月之歌'
   return `${major}.x`
 }
 
