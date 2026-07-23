@@ -36,6 +36,23 @@ const artistInfoResolved = computed(() => artistInfo.value as ArtistInfo | undef
 
 const selectedRole = ref<string | null>(null)
 const selectedProduct = ref<string | null>(null)
+const selectedYear = ref<number | null>(null)
+
+const availableYears = computed(() => {
+  const set = new Set<number>()
+  for (const album of albumsFiltered.value) {
+    set.add(new Date(album.publishDate).getFullYear())
+  }
+  return [...set].sort((a, b) => b - a)
+})
+
+const albumsFilteredByYear = computed(() => {
+  if (selectedYear.value === null)
+    return albumsFiltered.value
+  return albumsFiltered.value.filter(
+    a => new Date(a.publishDate).getFullYear() === selectedYear.value,
+  )
+})
 
 const productSongCount = computed(() => {
   if (!artistInfoResolved.value)
@@ -68,6 +85,7 @@ watch(artistName, (val) => {
     document.title = `${val} - HOYO-MiX Online`
   selectedRole.value = null
   selectedProduct.value = null
+  selectedYear.value = null
 }, { immediate: true })
 
 onMounted(() => {
@@ -132,7 +150,25 @@ onMounted(() => {
     </div>
 
     <div class="flex-1 overflow-hidden">
-      <ArtistAlbumList v-if="artistInfoResolved" :albums-list="albumsFiltered" :artist-info="artistInfoResolved" :selected-role="selectedRole" :selected-product="selectedProduct" />
+      <div v-if="availableYears.length > 1" class="flex flex-wrap items-center gap-2 mb-2">
+        <button
+          class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
+          :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+          @click="selectedYear = null"
+        >
+          全部
+        </button>
+        <button
+          v-for="year in availableYears"
+          :key="year"
+          class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
+          :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+          @click="selectedYear = year"
+        >
+          {{ year }}
+        </button>
+      </div>
+      <ArtistAlbumList v-if="artistInfoResolved" :albums-list="albumsFilteredByYear" :artist-info="artistInfoResolved" :selected-role="selectedRole" :selected-product="selectedProduct" />
     </div>
   </div>
 </template>
