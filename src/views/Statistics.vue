@@ -154,14 +154,7 @@ const durationChartOption = computed<EChartsOption>(() => ({
 
 <template>
   <div>
-    <div class="pb-4">
-      <h1 class="text-2xl md:text-3xl font-bold">
-        数据统计
-      </h1>
-      <p class="text-gray-500 text-sm mt-1">
-        已收录音乐数据统计汇总
-      </p>
-    </div>
+    <PageHeader title="数据统计" subtitle="已收录音乐数据统计汇总" />
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mt-2">
       <div class="bg-black/5 rounded-xl p-4">

@@ -62,6 +62,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/Random.vue'),
   },
   {
+    path: '/ranking',
+    name: 'Ranking',
+    component: () => import('@/views/Ranking.vue'),
+  },
+  {
     path: '/email-verified',
     name: 'EmailVerified',
     component: () => import('@/views/EmailVerified.vue'),

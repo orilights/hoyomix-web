@@ -22,9 +22,21 @@ const gridColumns = computed(() => {
   return num
 })
 
+const tabOptions = [
+  { key: 'public', label: '广场' },
+  { key: 'mine', label: '我的' },
+]
+
 watch(isLoggedIn, (v) => {
   if (!v)
     store.playlistsTab = 'public'
+})
+
+watch(playlistsTab, (tab) => {
+  if (tab === 'mine' && !isLoggedIn.value) {
+    auth.requireLogin()
+    store.playlistsTab = 'public'
+  }
 })
 
 const showCreateDialog = ref(false)
@@ -109,40 +121,23 @@ onMounted(() => {
 
 <template>
   <div ref="homeContainer">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-bold">
-          歌单
-        </h1>
-        <p class="text-gray-500 text-sm mt-1">
-          发现和管理歌单
-        </p>
-      </div>
-      <button
-        class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-        @click="openCreate"
-      >
-        <LucidePlus class="size-4" />
-        新建歌单
-      </button>
-    </div>
+    <PageHeader title="歌单" subtitle="发现和管理歌单">
+      <template #extra>
+        <button
+          class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+          @click="openCreate"
+        >
+          <LucidePlus class="size-4" />
+          新建歌单
+        </button>
+      </template>
+    </PageHeader>
 
-    <div class="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit mb-6">
-      <button
-        class="px-5 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer"
-        :class="playlistsTab === 'public' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-        @click="playlistsTab = 'public'"
-      >
-        广场
-      </button>
-      <button
-        class="px-5 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer"
-        :class="playlistsTab === 'mine' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
-        @click="isLoggedIn ? (playlistsTab = 'mine') : auth.requireLogin()"
-      >
-        我的
-      </button>
-    </div>
+    <SegmentSwitch
+      v-model="playlistsTab"
+      :options="tabOptions"
+      class="mb-6"
+    />
 
     <div v-if="playlistsTab === 'public'">
       <div v-if="publicItems.length === 0 && publicLoading" class="flex justify-center py-16">

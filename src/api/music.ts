@@ -187,3 +187,9 @@ export function deleteNotificationApi(id: number) {
 export function deleteReadNotificationsApi() {
   return fetchJsonMutation<{ deleted: number }>(`${apiBase}/notifications/read`, 'DELETE')
 }
+
+export type RankingPeriod = '7d' | '30d' | '365d' | 'all'
+
+export function getRankingApi(period: RankingPeriod) {
+  return fetchJson<PlaylistSongItem[]>(`${apiBase}/ranking?period=${period}`)
+}

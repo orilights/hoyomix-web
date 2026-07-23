@@ -113,14 +113,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="pb-4">
-      <h1 class="text-2xl md:text-3xl font-bold">
-        随机歌单
-      </h1>
-      <p class="text-gray-500 text-sm mt-1">
-        随机生成播放列表
-      </p>
-    </div>
+    <PageHeader title="随机歌单" subtitle="随机生成播放列表" />
 
     <div class="xl:grid xl:grid-cols-[320px_1fr] gap-6">
       <div class="bg-white/80 rounded-2xl p-4 space-y-4">

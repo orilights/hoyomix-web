@@ -12,14 +12,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="pb-4">
-      <h1 class="text-2xl md:text-3xl font-bold">
-        全部专辑
-      </h1>
-      <p class="text-gray-500 text-sm mt-1">
-        已收录的所有专辑
-      </p>
-    </div>
+    <PageHeader title="全部专辑" subtitle="已收录的所有专辑" />
 
     <AlbumList :albums-list="albumList" display-by-year persist-key="albums" />
   </div>

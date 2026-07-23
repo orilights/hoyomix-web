@@ -87,14 +87,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="pb-4">
-      <h1 class="text-2xl md:text-3xl font-bold">
-        设置
-      </h1>
-      <p class="text-gray-500 text-sm mt-1">
-        一些也许有用的设置
-      </p>
-    </div>
+    <PageHeader title="设置" subtitle="一些也许有用的设置" />
 
     <div>
       <div class="font-bold text-lg mb-2">
