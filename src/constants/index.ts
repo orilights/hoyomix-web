@@ -46,3 +46,5 @@ export const artistTypeSortLast = [
 export const lyricTimeRegex = /\[\d{2}:\d{2}\.\d{2,3}(?:\.\d{3})?\]/
 
 export const mobileUserAgentRegex = /iPhone|phone|android|iPod|pad|iPad/i
+
+export const appTitle = 'HOYO-MiX Online'

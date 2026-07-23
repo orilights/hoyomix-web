@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appTitle } from '@/constants'
 import { toast } from 'vue-sonner'
 import { useTagAlbumsQuery } from '@/composables/queries'
 import { useMainStore } from '@/store/main'
@@ -20,7 +21,7 @@ watch(isError, (val) => {
 
 watch(seriesName, (val) => {
   if (val)
-    document.title = `${val} 系列专辑 - HOYO-MiX Online`
+    document.title = `${val} 系列专辑 - ${appTitle}`
 }, { immediate: true })
 
 onMounted(() => {

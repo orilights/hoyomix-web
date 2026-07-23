@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { productMap } from '@/constants'
+import { appTitle, productMap } from '@/constants'
 import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl } from '@/utils'
 
@@ -58,7 +58,7 @@ function handleWheel(event: WheelEvent) {
 }
 
 onMounted(() => {
-  document.title = 'HOYO-MiX Online'
+  document.title = appTitle
   store.setBackground()
 })
 </script>

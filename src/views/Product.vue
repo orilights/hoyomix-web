@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appTitle } from '@/constants'
 import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
 
@@ -112,7 +113,7 @@ const activeTab = ref<'albums' | 'artists'>('albums')
 
 watch(product, (val) => {
   if (val) {
-    document.title = `${getProductName(val)} - HOYO-MiX Online`
+    document.title = `${getProductName(val)} - ${appTitle}`
 
     if (albumsFiltered.value[0])
       store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '128px'))

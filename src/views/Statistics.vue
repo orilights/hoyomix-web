@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appTitle } from '@/constants'
 import type { EChartsOption } from 'echarts'
 import { useMainStore } from '@/store/main'
 import { formatDuration } from '@/utils'
@@ -11,7 +12,7 @@ const store = useMainStore()
 const { albumList } = storeToRefs(store)
 
 onMounted(() => {
-  document.title = '数据统计 - HOYO-MiX Online'
+  document.title = `数据统计 - ${appTitle}`
   store.setBackground()
 })
 

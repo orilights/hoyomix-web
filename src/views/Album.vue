@@ -3,6 +3,7 @@ import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery } from '@/composables/queries'
+import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -59,7 +60,7 @@ const showDiscName = computed(() => {
 
 watch(albumInfo, (val) => {
   if (val) {
-    document.title = `${val.name} - HOYO-MiX Online`
+    document.title = `${val.name} - ${appTitle}`
     store.setBackground(getCoverUrl(val.platforms, '128px'))
   }
 }, { immediate: true })

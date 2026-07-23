@@ -2,7 +2,7 @@
 import type { PlaylistItem } from '@/types/player'
 import { toast } from 'vue-sonner'
 import { getRandomPlaylistApi } from '@/api/music'
-import { productMap } from '@/constants'
+import { appTitle, productMap } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -106,7 +106,7 @@ function addToPlaylist() {
 }
 
 onMounted(() => {
-  document.title = '随机歌单 - HOYO-MiX Online'
+  document.title = `随机歌单 - ${appTitle}`
   store.setBackground()
 })
 </script>

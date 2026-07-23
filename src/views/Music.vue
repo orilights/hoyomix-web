@@ -3,6 +3,7 @@ import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery, useLyricsQuery, useSongInfoQuery } from '@/composables/queries'
+import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -125,7 +126,7 @@ function goNextMusic() {
 
 watch(musicInfo, (val) => {
   if (val) {
-    document.title = `${val.name} - HOYO-MiX Online`
+    document.title = `${val.name} - ${appTitle}`
     store.setBackground(getCoverUrl(albumInfo.value!.platforms, '128px'))
   }
 }, { immediate: true })

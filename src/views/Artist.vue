@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appTitle } from '@/constants'
 import type { ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
@@ -82,7 +83,7 @@ const allRoles = computed(() => {
 
 watch(artistName, (val) => {
   if (val)
-    document.title = `${val} - HOYO-MiX Online`
+    document.title = `${val} - ${appTitle}`
   selectedRole.value = null
   selectedProduct.value = null
   selectedYear.value = null

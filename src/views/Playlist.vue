@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appTitle } from '@/constants'
 import type { PlaylistSongItem } from '@/types/core'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
@@ -62,7 +63,7 @@ const coverThumbUrl = computed(() =>
 
 watch(playlist, (val) => {
   if (val) {
-    document.title = `${val.name} - HOYO-MiX Online`
+    document.title = `${val.name} - ${appTitle}`
     store.setBackground(coverThumbUrl.value || undefined)
   }
 }, { immediate: true })

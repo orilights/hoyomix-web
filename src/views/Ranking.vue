@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appTitle } from '@/constants'
 import type { RankingPeriod } from '@/api/music'
 import type { PlaylistSongItem } from '@/types/core'
 import { useUrlSearchParams } from '@vueuse/core'
@@ -71,7 +72,7 @@ function addSongToPlaylist(song: PlaylistSongItem) {
 }
 
 onMounted(() => {
-  document.title = '热榜 - HOYO-MiX Online'
+  document.title = `热榜 - ${appTitle}`
   fetchRanking()
 })
 </script>

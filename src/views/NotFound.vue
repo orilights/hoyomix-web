@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appTitle } from '@/constants'
 import { useMainStore } from '@/store/main'
 
 const route = useRoute()
@@ -8,7 +9,7 @@ const store = useMainStore()
 const errorMessage = computed(() => route.query.errorMessage as string | undefined)
 
 onMounted(() => {
-  document.title = '页面不存在 - HOYO-MiX Online'
+  document.title = `页面不存在 - ${appTitle}`
   store.setBackground()
 })
 </script>
