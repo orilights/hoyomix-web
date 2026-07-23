@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { RankingPeriod } from '@/api/music'
 import type { PlaylistSongItem } from '@/types/core'
+import { useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { getRankingApi } from '@/api/music'
 import { usePlayerStore } from '@/store/player'
@@ -15,18 +16,22 @@ const periods: { key: RankingPeriod, label: string }[] = [
   { key: 'all', label: '总榜' },
 ]
 
-const currentPeriod = ref<RankingPeriod>('7d')
+const params = useUrlSearchParams('history', { removeFalsyValues: true })
+const tab = computed<RankingPeriod>({
+  get: () => (params.tab as RankingPeriod) || '7d',
+  set: (val) => { params.tab = val },
+})
 const songs = ref<PlaylistSongItem[]>([])
 const isLoading = ref(false)
 
-watch(currentPeriod, () => {
+watch(tab, () => {
   fetchRanking()
 })
 
 async function fetchRanking() {
   isLoading.value = true
   try {
-    songs.value = await getRankingApi(currentPeriod.value)
+    songs.value = await getRankingApi(tab.value)
   }
   catch (e: any) {
     toast.error(e.message ?? '加载失败')
@@ -77,7 +82,7 @@ onMounted(() => {
 
     <div class="flex items-center gap-2 mb-4">
       <SegmentSwitch
-        v-model="currentPeriod"
+        v-model="tab"
         :options="periods"
       />
       <div class="flex-1" />

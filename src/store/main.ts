@@ -8,7 +8,6 @@ export const useMainStore = defineStore('main', {
     backgroundUrl: '',
     showSearch: false,
     albumLayoutMap: {} as Record<string, 'grid' | 'list'>,
-    playlistsTab: 'public' as 'public' | 'mine',
     // 随机歌单
     randomPlaylistMode: 'random' as 'random' | 'album',
     randomPlaylistLimit: 20,
@@ -28,6 +27,6 @@ export const useMainStore = defineStore('main', {
     },
   },
   persist: {
-    pick: ['albumLayoutMap', 'playlistsTab', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistAlbums', 'randomPlaylist'],
+    pick: ['albumLayoutMap', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistAlbums', 'randomPlaylist'],
   },
 })

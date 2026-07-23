@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
-import { useElementSize, useIntersectionObserver } from '@vueuse/core'
+import { useElementSize, useIntersectionObserver, useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { deletePlaylistApi, getPlaylistsApi } from '@/api/music'
 import { useMyPlaylistsQuery } from '@/composables/queries'
@@ -9,8 +9,13 @@ import { useMainStore } from '@/store/main'
 
 const store = useMainStore()
 const auth = useAuthStore()
-const { playlistsTab } = storeToRefs(store)
 const { isLoggedIn } = storeToRefs(auth)
+
+const params = useUrlSearchParams('history', { removeFalsyValues: true })
+const tab = computed<string>({
+  get: () => (params.tab as string) || 'public',
+  set: (val) => { params.tab = val },
+})
 
 const homeContainer = useTemplateRef<HTMLElement>('homeContainer')
 const { width: containerWidth } = useElementSize(homeContainer)
@@ -29,13 +34,13 @@ const tabOptions = [
 
 watch(isLoggedIn, (v) => {
   if (!v)
-    store.playlistsTab = 'public'
+    tab.value = 'public'
 })
 
-watch(playlistsTab, (tab) => {
-  if (tab === 'mine' && !isLoggedIn.value) {
+watch(tab, (val) => {
+  if (val === 'mine' && !isLoggedIn.value) {
     auth.requireLogin()
-    store.playlistsTab = 'public'
+    tab.value = 'public'
   }
 })
 
@@ -78,13 +83,13 @@ async function loadPublic() {
 useIntersectionObserver(
   sentinel,
   ([entry]) => {
-    if (entry.isIntersecting && playlistsTab.value === 'public')
+    if (entry.isIntersecting && tab.value === 'public')
       loadPublic()
   },
 )
 
-watch(playlistsTab, (tab) => {
-  if (tab === 'public' && publicItems.value.length === 0)
+watch(tab, (val) => {
+  if (val === 'public' && publicItems.value.length === 0)
     loadPublic()
 }, { immediate: true })
 
@@ -109,13 +114,13 @@ async function deletePlaylist(id: string) {
 function onCreateSuccess() {
   refetchMine()
   if (isLoggedIn.value)
-    playlistsTab.value = 'mine'
+    tab.value = 'mine'
 }
 
 onMounted(() => {
   store.setBackground()
   if (!isLoggedIn.value)
-    store.playlistsTab = 'public'
+    tab.value = 'public'
 })
 </script>
 
@@ -134,12 +139,12 @@ onMounted(() => {
     </PageHeader>
 
     <SegmentSwitch
-      v-model="playlistsTab"
+      v-model="tab"
       :options="tabOptions"
       class="mb-6"
     />
 
-    <div v-if="playlistsTab === 'public'">
+    <div v-if="tab === 'public'">
       <div v-if="publicItems.length === 0 && publicLoading" class="flex justify-center py-16">
         <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
       </div>
