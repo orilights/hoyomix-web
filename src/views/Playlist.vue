@@ -3,7 +3,7 @@ import type { PlaylistSongItem } from '@/types/core'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
-import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
+import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, NotFoundError, updatePlaylistSongsApi } from '@/api/music'
 import { usePlaylistDetailQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -25,7 +25,11 @@ const { data: playlist, isLoading, isError, error, refetch } = usePlaylistDetail
 const dragging = ref(false)
 
 watch(isError, (v) => {
-  if (v)
+  if (!v)
+    return
+  if (error.value instanceof NotFoundError)
+    router.replace({ path: '/404', query: { errorMessage: error.value?.message } })
+  else
     toast.error(`歌单加载失败：${error.value?.message ?? '未知错误'}`)
 })
 

@@ -3,10 +3,20 @@ import type { NotificationListResponse } from '@/types/notification'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 
+export class NotFoundError extends Error {
+  constructor(message = '资源不存在') {
+    super(message)
+    this.name = 'NotFoundError'
+  }
+}
+
 async function fetchJson<T>(url: string, credentials = true): Promise<T> {
   const res = await fetch(url, { credentials: credentials ? 'include' : undefined })
-  if (!res.ok)
+  if (!res.ok) {
+    if (res.status === 404)
+      throw new NotFoundError()
     throw new Error((await res.json()).error || '未知错误')
+  }
   return res.json() as Promise<T>
 }
 

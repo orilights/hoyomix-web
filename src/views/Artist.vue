@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
+import { NotFoundError } from '@/api/music'
 import { useArtistInfoQuery } from '@/composables/queries'
 import { useMainStore } from '@/store/main'
 import { getProductIconUrl } from '@/utils'
 
 const route = useRoute()
+const router = useRouter()
 const store = useMainStore()
 
 const { albumList } = storeToRefs(store)
@@ -15,7 +17,11 @@ const artistName = computed(() => route.params.name as string || null)
 const { data: artistInfo, isLoading, isError, error } = useArtistInfoQuery(artistName)
 
 watch(isError, (val) => {
-  if (val)
+  if (!val)
+    return
+  if (error.value instanceof NotFoundError)
+    router.replace({ path: '/404', query: { errorMessage: error.value?.message } })
+  else
     toast.error(`艺术家信息加载失败：${error.value?.message ?? '未知错误'}`)
 })
 

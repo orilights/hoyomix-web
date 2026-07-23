@@ -71,6 +71,11 @@ const routes: RouteRecordRaw[] = [
     name: 'EmailVerified',
     component: () => import('@/views/EmailVerified.vue'),
   },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+  },
 ]
 
 export default routes

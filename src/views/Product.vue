@@ -3,11 +3,19 @@ import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
 
 const route = useRoute()
+const router = useRouter()
 const store = useMainStore()
 
 const product = computed(() => route.params.name as string)
 
 const { albumList, productList } = storeToRefs(store)
+
+// 检查产品是否存在，若 productList 已加载且不包含该产品则跳转 404
+watch([productList, product], ([list, name]) => {
+  if (list && list.length > 0 && !list.some(p => p.name === getProductName(name))) {
+    router.replace({ path: '/404', query: { errorMessage: `游戏「${getProductName(name)}」不存在` } })
+  }
+}, { immediate: true })
 
 const albumsFiltered = computed(() => {
   return albumList.value.filter(i => i.productName === product.value)
@@ -106,7 +114,8 @@ watch(product, (val) => {
   if (val) {
     document.title = `${getProductName(val)} - HOYO-MiX Online`
 
-    store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '128px'))
+    if (albumsFiltered.value[0])
+      store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '128px'))
   }
 }, { immediate: true })
 </script>

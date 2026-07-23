@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
+import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -15,6 +16,7 @@ import {
 } from '@/utils'
 
 const route = useRoute()
+const router = useRouter()
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
@@ -24,7 +26,11 @@ const albumId = computed(() => Number(route.params.id as string) || null)
 const { data: albumInfo, isLoading, isError, error } = useAlbumInfoQuery(albumId)
 
 watch(isError, (val) => {
-  if (val)
+  if (!val)
+    return
+  if (error.value instanceof NotFoundError)
+    router.replace({ path: '/404', query: { errorMessage: error.value?.message } })
+  else
     toast.error(`专辑信息加载失败：${error.value?.message ?? '未知错误'}`)
 })
 

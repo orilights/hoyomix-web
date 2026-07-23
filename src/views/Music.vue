@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
+import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery, useLyricsQuery, useSongInfoQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -19,7 +20,7 @@ const albumId = computed(() => Number(route.params.albumId as string) || null)
 const musicId = computed(() => Number(route.params.musicId))
 
 const { data: albumInfo, isLoading, isError: isAlbumError, error: albumError } = useAlbumInfoQuery(albumId)
-const { data: songInfo, isLoading: isSongLoading, isError: isSongError } = useSongInfoQuery(musicId)
+const { data: songInfo, isLoading: isSongLoading, isError: isSongError, error: songError } = useSongInfoQuery(musicId)
 
 const musicInfo = computed<SongListItemInfo | null>(() => {
   if (albumInfo.value) {
@@ -42,13 +43,32 @@ const lyricList = computed(() => {
 })
 
 watch(isAlbumError, (val) => {
-  if (val)
+  if (!val)
+    return
+  if (albumError.value instanceof NotFoundError)
+    router.replace({ path: '/404', query: { errorMessage: albumError.value?.message } })
+  else
     toast.error(`歌曲信息加载失败：${albumError.value?.message ?? '未知错误'}`)
 })
 
+// 专辑加载成功但歌曲不存在于该专辑中，跳转 404 页面
+watch([() => !!albumInfo.value, musicInfo], ([hasAlbum, song]) => {
+  if (hasAlbum && !song) {
+    router.replace({ path: '/404', query: { errorMessage: '歌曲不存在' } })
+  }
+})
+
+watch(isSongError, (val) => {
+  if (!val)
+    return
+  if (songError.value instanceof NotFoundError)
+    router.replace({ path: '/404', query: { errorMessage: songError.value?.message } })
+})
+
 watch(isLyricsError, (val) => {
-  if (val)
-    toast.error(`歌词加载失败：${lyricsError.value?.message ?? '未知错误'}`)
+  if (!val || lyricsError.value instanceof NotFoundError)
+    return
+  toast.error(`歌词加载失败：${lyricsError.value?.message ?? '未知错误'}`)
 })
 
 const neteaseOptions = computed(() => [
