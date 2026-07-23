@@ -5,3 +5,6 @@ trustPolicy: no-downgrade
 allowBuilds:
   '@parcel/watcher': true
   vue-demi: true
+
+trustPolicyExclude:
+  - "chokidar@4.0.3"
