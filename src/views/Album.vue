@@ -260,7 +260,7 @@ onMounted(() => {
                 <th class="p-2 w-[100px]">
                   时长
                 </th>
-                <th class="hidden md:table-cell p-2 w-[80px]" />
+                <th class="hidden md:table-cell p-2 w-[120px]" />
               </tr>
             </thead>
             <tbody v-if="albumInfo">
@@ -292,21 +292,33 @@ onMounted(() => {
                     {{ formatDuration(songInfo.duration) }}
                   </td>
                   <td class="hidden md:table-cell p-2">
-                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                        title="播放"
-                        @click.stop="playSong(songInfo)"
+                    <div class="flex gap-1">
+                      <div
+                        v-if="!store.favoriteIds.includes(songInfo.id)"
+                        class="opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <LucidePlay class="size-4" />
-                      </button>
-                      <button
-                        class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                        title="添加到播放列表"
-                        @click.stop="addToPlaylist(songInfo)"
-                      >
-                        <LucidePlus class="size-4" />
-                      </button>
+                        <FavoriteButton :song-id="songInfo.id" />
+                      </div>
+                      <FavoriteButton
+                        v-else
+                        :song-id="songInfo.id"
+                      />
+                      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                          title="播放"
+                          @click.stop="playSong(songInfo)"
+                        >
+                          <LucidePlay class="size-4" />
+                        </button>
+                        <button
+                          class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                          title="添加到播放列表"
+                          @click.stop="addToPlaylist(songInfo)"
+                        >
+                          <LucidePlus class="size-4" />
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>

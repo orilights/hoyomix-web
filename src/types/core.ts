@@ -110,6 +110,7 @@ export interface PlaylistListItem {
   description: string | null
   coverAlbumId: number | null
   isPublic: boolean
+  type?: string
   reviewStatus: PlaylistReviewStatus
   userId: string
   createdAt: string

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { appTitle } from '@/constants'
 import { toast } from 'vue-sonner'
 import { useTagAlbumsQuery } from '@/composables/queries'
+import { appTitle } from '@/constants'
 import { useMainStore } from '@/store/main'
 import { getProductIconUrl } from '@/utils'
 

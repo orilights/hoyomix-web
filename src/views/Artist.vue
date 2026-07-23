@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { appTitle } from '@/constants'
 import type { ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
 import { useArtistInfoQuery } from '@/composables/queries'
+import { appTitle } from '@/constants'
 import { useMainStore } from '@/store/main'
 import { getProductIconUrl } from '@/utils'
 

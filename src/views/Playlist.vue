@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { appTitle } from '@/constants'
 import type { PlaylistSongItem } from '@/types/core'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
 import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, NotFoundError, updatePlaylistSongsApi } from '@/api/music'
 import { usePlaylistDetailQuery } from '@/composables/queries'
+import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -155,8 +155,11 @@ function addSelectedToPlaylist() {
 
 const savingOrder = ref(false)
 
+const isFavoritesPlaylist = computed(() => playlist.value?.type === 'favorites')
+const canEdit = computed(() => isOwner.value && !isFavoritesPlaylist.value)
+
 async function removeSong(song: PlaylistSongItem) {
-  if (!isOwner.value || !playlist.value)
+  if (!isOwner.value || !playlist.value || isFavoritesPlaylist.value)
     return
   const newIds = localSongs.value.filter(s => s.songId !== song.songId).map(s => s.songId)
   savingOrder.value = true
@@ -175,7 +178,7 @@ async function removeSong(song: PlaylistSongItem) {
 }
 
 async function removeSelected() {
-  if (!isOwner.value || !playlist.value || !selectedIds.value.size)
+  if (!isOwner.value || !playlist.value || isFavoritesPlaylist.value || !selectedIds.value.size)
     return
   const newIds = localSongs.value
     .filter(s => !selectedIds.value.has(s.songId))
@@ -196,13 +199,15 @@ async function removeSelected() {
   }
 }
 
+const showEditDialog = ref(false)
+
 function onDragStart() {
   dragging.value = true
 }
 
 async function onDragEnd() {
   dragging.value = false
-  if (!playlist.value)
+  if (!playlist.value || isFavoritesPlaylist.value)
     return
   savingOrder.value = true
   try {
@@ -218,11 +223,13 @@ async function onDragEnd() {
   }
 }
 
-const showEditDialog = ref(false)
-
 function openEdit() {
   if (!auth.requireLogin())
     return
+  if (isFavoritesPlaylist.value) {
+    toast.error('收藏歌单不支持编辑')
+    return
+  }
   showEditDialog.value = true
 }
 
@@ -253,7 +260,7 @@ async function cancelReview() {
 }
 
 async function deletePlaylist() {
-  if (!playlist.value)
+  if (!playlist.value || isFavoritesPlaylist.value)
     return
   try {
     await deletePlaylistApi(playlist.value.id)
@@ -364,7 +371,7 @@ onMounted(() => {
 
         <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
           <PlaylistActions
-            :is-owner="isOwner"
+            :is-owner="canEdit"
             :multi-select-active="showMultiSelect"
             @play-all="playAll"
             @add-all="addAllToPlaylist"
@@ -378,7 +385,7 @@ onMounted(() => {
 
     <div class="flex gap-2 flex-wrap md:hidden mt-4">
       <PlaylistActions
-        :is-owner="isOwner"
+        :is-owner="canEdit"
         :multi-select-active="showMultiSelect"
         @play-all="playAll"
         @add-all="addAllToPlaylist"
@@ -452,34 +459,46 @@ onMounted(() => {
                 {{ formatDuration(song.duration) }}
               </td>
               <td class="hidden md:table-cell p-2">
-                <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                    title="播放"
-                    @click="playSong(song)"
+                <div class="flex gap-1">
+                  <div
+                    v-if="!store.favoriteIds.includes(song.songId)"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <LucidePlay class="size-4" />
-                  </button>
-                  <button
-                    class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                    title="加入播放列表"
-                    @click="addSongToPlaylist(song)"
-                  >
-                    <LucidePlus class="size-4" />
-                  </button>
-                  <template v-if="isOwner">
+                    <FavoriteButton :song-id="song.songId" />
+                  </div>
+                  <FavoriteButton
+                    v-else
+                    :song-id="song.songId"
+                  />
+                  <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                      title="从歌单移除"
-                      :disabled="savingOrder"
-                      @click="removeSong(song)"
+                      title="播放"
+                      @click="playSong(song)"
                     >
-                      <LucideTrash2 class="size-4" />
+                      <LucidePlay class="size-4" />
                     </button>
-                    <div class="drag-handle p-1 rounded cursor-grab active:cursor-grabbing">
-                      <LucideGripVertical class="size-4" />
-                    </div>
-                  </template>
+                    <button
+                      class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                      title="加入播放列表"
+                      @click="addSongToPlaylist(song)"
+                    >
+                      <LucidePlus class="size-4" />
+                    </button>
+                    <template v-if="canEdit">
+                      <button
+                        class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                        title="从歌单移除"
+                        :disabled="savingOrder"
+                        @click="removeSong(song)"
+                      >
+                        <LucideTrash2 class="size-4" />
+                      </button>
+                      <div class="drag-handle p-1 rounded cursor-grab active:cursor-grabbing">
+                        <LucideGripVertical class="size-4" />
+                      </div>
+                    </template>
+                  </div>
                 </div>
               </td>
             </tr>
@@ -514,7 +533,7 @@ onMounted(() => {
             <LucidePlus class="size-4" />
             加入播放列表
           </button>
-          <template v-if="isOwner">
+          <template v-if="canEdit">
             <div class="w-px h-4 bg-white/20" />
             <button
               class="flex items-center gap-1.5 text-sm hover:text-red-400 transition-colors cursor-pointer"

@@ -94,6 +94,10 @@ const hasPendingReview = computed(() =>
   props.existingPlaylist?.reviewStatus === 'pending',
 )
 
+const isFavoritesPlaylist = computed(() =>
+  isEdit.value && props.existingPlaylist?.type === 'favorites',
+)
+
 const willTriggerMakePublicReview = computed(() => {
   if (!isPublic.value)
     return false
@@ -120,12 +124,13 @@ async function submit() {
   try {
     let playlistId: string
     if (isEdit.value && props.existingPlaylist) {
-      const res = await updatePlaylistApi(props.existingPlaylist.id, {
-        name: name.value.trim(),
-        description: description.value.trim(),
-        coverAlbumId: coverAlbumId.value,
-        isPublic: isPublic.value,
-      })
+      const data: any = { coverAlbumId: coverAlbumId.value }
+      if (!isFavoritesPlaylist.value) {
+        data.name = name.value.trim()
+        data.description = description.value.trim()
+        data.isPublic = isPublic.value
+      }
+      const res = await updatePlaylistApi(props.existingPlaylist.id, data)
       playlistId = res.id
     }
     else {
@@ -172,7 +177,8 @@ async function submit() {
           type="text"
           placeholder="输入歌单名称"
           maxlength="30"
-          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          :disabled="isFavoritesPlaylist"
         >
       </div>
 
@@ -183,7 +189,8 @@ async function submit() {
           placeholder="输入歌单描述"
           maxlength="500"
           rows="2"
-          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+          :disabled="isFavoritesPlaylist"
         />
       </div>
 
@@ -232,15 +239,15 @@ async function submit() {
 
       <div class="flex items-center gap-3">
         <label class="text-sm font-medium text-gray-700">公开歌单</label>
-        <Tooltip :content="hasPendingReview ? '已有待审核记录，请等待审核完成' : ''" placement="top">
+        <Tooltip :content="hasPendingReview ? '已有待审核记录，请等待审核完成' : (isFavoritesPlaylist ? '收藏歌单不支持修改公开状态' : '')" placement="top">
           <button
             class="relative w-10 h-5.5 rounded-full transition-colors"
             :class="[
               isPublic ? 'bg-blue-500' : 'bg-gray-200',
-              hasPendingReview ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+              (hasPendingReview || isFavoritesPlaylist) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
             ]"
-            :disabled="hasPendingReview"
-            @click="!hasPendingReview && (isPublic = !isPublic)"
+            :disabled="hasPendingReview || isFavoritesPlaylist"
+            @click="!hasPendingReview && !isFavoritesPlaylist && (isPublic = !isPublic)"
           >
             <span
               class="absolute top-0.5 left-0.5 size-4.5 bg-white rounded-full shadow transition-transform"
@@ -249,6 +256,14 @@ async function submit() {
           </button>
         </Tooltip>
         <span class="text-xs text-gray-400">{{ isPublic ? '所有人可见' : '仅自己可见' }}</span>
+      </div>
+
+      <div
+        v-if="isFavoritesPlaylist"
+        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-yellow-50 text-yellow-700 text-sm"
+      >
+        <LucideInfo class="size-4 mt-0.5 shrink-0" />
+        <span>收藏歌单不支持修改名称、描述与公开状态，仅可修改封面。</span>
       </div>
 
       <div

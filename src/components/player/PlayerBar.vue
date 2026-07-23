@@ -230,6 +230,12 @@ onMounted(() => {
                 </Tooltip>
               </Dropdown>
 
+              <FavoriteButton
+                v-if="currentSong"
+                :song-id="currentSong.songId"
+                size="md"
+              />
+
               <Tooltip :content="playModeTip" placement="top" align="center">
                 <button
                   class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"

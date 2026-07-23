@@ -198,6 +198,18 @@ export function deleteReadNotificationsApi() {
   return fetchJsonMutation<{ deleted: number }>(`${apiBase}/notifications/read`, 'DELETE')
 }
 
+export function getAllFavoritesApi() {
+  return fetchJson<{ songIds: number[] }>(`${apiBase}/favorites`)
+}
+
+export function addFavoriteApi(songId: number) {
+  return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/favorites/${songId}`, 'POST')
+}
+
+export function removeFavoriteApi(songId: number) {
+  return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/favorites/${songId}`, 'DELETE')
+}
+
 export type RankingPeriod = '7d' | '30d' | '365d' | 'all'
 
 export function getRankingApi(period: RankingPeriod) {

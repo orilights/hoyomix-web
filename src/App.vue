@@ -2,11 +2,13 @@
 import { useOverlayScrollbars } from 'overlayscrollbars-vue'
 import { toast, Toaster } from 'vue-sonner'
 import { useAlbumListQuery, useProductListQuery } from '@/composables/queries'
+import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 
 const store = useMainStore()
 const player = usePlayerStore()
+const auth = useAuthStore()
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist } = storeToRefs(player)
 
@@ -28,6 +30,13 @@ watch(isAlbumListError, (val) => {
   if (val)
     toast.error(`专辑列表加载失败：${albumListError.value?.message ?? '未知错误'}`)
 })
+
+watch(() => auth.isLoggedIn, (loggedIn) => {
+  if (loggedIn)
+    store.fetchFavorites()
+  else
+    store.clearFavorites()
+}, { immediate: true })
 
 const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({
   defer: true,

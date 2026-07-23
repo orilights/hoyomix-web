@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { appTitle } from '@/constants'
 import type { EChartsOption } from 'echarts'
+import { appTitle } from '@/constants'
 import { useMainStore } from '@/store/main'
 import { formatDuration } from '@/utils'
 

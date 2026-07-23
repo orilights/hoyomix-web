@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { appTitle } from '@/constants'
 import type { RankingPeriod } from '@/api/music'
 import type { PlaylistSongItem } from '@/types/core'
 import { useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { getRankingApi } from '@/api/music'
+import { appTitle } from '@/constants'
+import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
 
 const player = usePlayerStore()
+const store = useMainStore()
 
 const periods: { key: RankingPeriod, label: string }[] = [
   { key: '7d', label: '周榜' },
@@ -185,21 +187,33 @@ onMounted(() => {
               {{ formatDuration(song.duration) }}
             </td>
             <td class="hidden md:table-cell p-2">
-              <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                  title="播放"
-                  @click="playSong(song)"
+              <div class="flex gap-1">
+                <div
+                  v-if="!store.favoriteIds.includes(song.songId)"
+                  class="opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <LucidePlay class="size-4" />
-                </button>
-                <button
-                  class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                  title="加入播放列表"
-                  @click="addSongToPlaylist(song)"
-                >
-                  <LucidePlus class="size-4" />
-                </button>
+                  <FavoriteButton :song-id="song.songId" />
+                </div>
+                <FavoriteButton
+                  v-else
+                  :song-id="song.songId"
+                />
+                <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                    title="播放"
+                    @click="playSong(song)"
+                  >
+                    <LucidePlay class="size-4" />
+                  </button>
+                  <button
+                    class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                    title="加入播放列表"
+                    @click="addSongToPlaylist(song)"
+                  >
+                    <LucidePlus class="size-4" />
+                  </button>
+                </div>
               </div>
             </td>
           </tr>

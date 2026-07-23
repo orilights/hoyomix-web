@@ -208,6 +208,7 @@ onMounted(() => {
             @next="goNextMusic"
             @add-to-playlist="addSongToUserPlaylist"
           />
+          <FavoriteButton :song-id="musicInfo.id" variant="action" />
         </div>
       </div>
     </div>
@@ -221,6 +222,7 @@ onMounted(() => {
         @next="goNextMusic"
         @add-to-playlist="addSongToUserPlaylist"
       />
+      <FavoriteButton :song-id="musicInfo.id" variant="action" />
     </div>
 
     <div class="mt-4 lg:hidden">
