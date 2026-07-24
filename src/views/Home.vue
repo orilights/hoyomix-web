@@ -113,13 +113,13 @@ onMounted(() => {
       </OverlayScrollbarsComponent>
     </div>
 
-    <div class="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+    <div class="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
       <RouterLink
         :to="{ name: 'Playlists' }"
-        class="flex items-center gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
       >
-        <div class="px-3">
-          <LucideListMusic class="size-6 text-gray-900" />
+        <div class="px-2 md:px-3">
+          <LucideListMusic class="size-5 md:size-6 text-gray-900" />
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900">
@@ -133,10 +133,10 @@ onMounted(() => {
       </RouterLink>
       <RouterLink
         :to="{ name: 'Random' }"
-        class="flex items-center gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
       >
-        <div class="px-3">
-          <LucideShuffle class="size-6 text-gray-900" />
+        <div class="px-2 md:px-3">
+          <LucideShuffle class="size-5 md:size-6 text-gray-900" />
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900">
@@ -150,10 +150,10 @@ onMounted(() => {
       </RouterLink>
       <RouterLink
         :to="{ name: 'Ranking' }"
-        class="flex items-center gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
       >
-        <div class="px-3">
-          <LucideTrendingUp class="size-6 text-gray-900" />
+        <div class="px-2 md:px-3">
+          <LucideTrendingUp class="size-5 md:size-6 text-gray-900" />
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900">
