@@ -61,12 +61,24 @@ const coverThumbUrl = computed(() =>
   coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '128px') : '',
 )
 
+const savingOrder = ref(false)
+
+const isFavoritesPlaylist = computed(() => playlist.value?.type === 'favorites')
+const canEdit = computed(() => isOwner.value)
+const canManagePlaylist = computed(() => isOwner.value && !isFavoritesPlaylist.value)
+
 watch(playlist, (val) => {
   if (val) {
     document.title = `${val.name} - ${appTitle}`
     store.setBackground(coverThumbUrl.value || undefined)
   }
 }, { immediate: true })
+
+// 收藏歌单所有者收藏操作后刷新列表
+watch(store.favoriteIds, () => {
+  if (isFavoritesPlaylist.value && isOwner.value)
+    refetch()
+}, { deep: false })
 
 const localSongs = ref<PlaylistSongItem[]>([])
 
@@ -153,13 +165,8 @@ function addSelectedToPlaylist() {
   selectedIds.value = new Set()
 }
 
-const savingOrder = ref(false)
-
-const isFavoritesPlaylist = computed(() => playlist.value?.type === 'favorites')
-const canEdit = computed(() => isOwner.value && !isFavoritesPlaylist.value)
-
 async function removeSong(song: PlaylistSongItem) {
-  if (!isOwner.value || !playlist.value || isFavoritesPlaylist.value)
+  if (!isOwner.value || !playlist.value)
     return
   const newIds = localSongs.value.filter(s => s.songId !== song.songId).map(s => s.songId)
   savingOrder.value = true
@@ -178,7 +185,7 @@ async function removeSong(song: PlaylistSongItem) {
 }
 
 async function removeSelected() {
-  if (!isOwner.value || !playlist.value || isFavoritesPlaylist.value || !selectedIds.value.size)
+  if (!isOwner.value || !playlist.value || !selectedIds.value.size)
     return
   const newIds = localSongs.value
     .filter(s => !selectedIds.value.has(s.songId))
@@ -207,7 +214,7 @@ function onDragStart() {
 
 async function onDragEnd() {
   dragging.value = false
-  if (!playlist.value || isFavoritesPlaylist.value)
+  if (!playlist.value)
     return
   savingOrder.value = true
   try {
@@ -371,7 +378,7 @@ onMounted(() => {
 
         <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
           <PlaylistActions
-            :is-owner="canEdit"
+            :is-owner="canManagePlaylist"
             :multi-select-active="showMultiSelect"
             @play-all="playAll"
             @add-all="addAllToPlaylist"
@@ -385,7 +392,7 @@ onMounted(() => {
 
     <div class="flex gap-2 flex-wrap md:hidden mt-4">
       <PlaylistActions
-        :is-owner="canEdit"
+        :is-owner="canManagePlaylist"
         :multi-select-active="showMultiSelect"
         @play-all="playAll"
         @add-all="addAllToPlaylist"

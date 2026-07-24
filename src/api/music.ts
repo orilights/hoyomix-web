@@ -99,7 +99,7 @@ export interface PlaylistsQueryParams {
   sort?: 'asc' | 'desc'
 }
 
-export function getPlaylistsApi(params?: PlaylistsQueryParams) {
+export function getPublicPlaylistsApi(params?: PlaylistsQueryParams) {
   const query = new URLSearchParams()
   if (params?.page)
     query.set('page', String(params.page))
@@ -112,7 +112,7 @@ export function getPlaylistsApi(params?: PlaylistsQueryParams) {
   if (params?.sort)
     query.set('sort', params.sort)
   const qs = query.toString()
-  return fetchJson<PlaylistListResponse>(`${apiBase}/playlists${qs ? `?${qs}` : ''}`)
+  return fetchJson<PlaylistListResponse>(`${apiBase}/playlists/public${qs ? `?${qs}` : ''}`)
 }
 
 export function getMyPlaylistsApi() {

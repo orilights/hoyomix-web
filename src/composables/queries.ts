@@ -11,7 +11,7 @@ import {
   getLyricsApi,
   getMyPlaylistsApi,
   getPlaylistDetailApi,
-  getPlaylistsApi,
+  getPublicPlaylistsApi,
   getProductListApi,
   getSearchApi,
   getSongInfoApi,
@@ -111,7 +111,7 @@ export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>) 
 export function usePlaylistsQuery(params: Ref<PlaylistsQueryParams>) {
   return useQuery({
     queryKey: computed(() => ['playlists', params.value]),
-    queryFn: () => getPlaylistsApi(params.value),
+    queryFn: () => getPublicPlaylistsApi(params.value),
     staleTime: 1000 * 30,
   })
 }

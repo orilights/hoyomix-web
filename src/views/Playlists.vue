@@ -2,7 +2,7 @@
 import type { PlaylistListItem } from '@/types/core'
 import { useElementSize, useIntersectionObserver, useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
-import { deletePlaylistApi, getPlaylistsApi } from '@/api/music'
+import { deletePlaylistApi, getPublicPlaylistsApi } from '@/api/music'
 import { useMyPlaylistsQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -64,7 +64,7 @@ async function loadPublic() {
     return
   publicLoading.value = true
   try {
-    const res = await getPlaylistsApi({ page: publicPage.value, limit: 20, sort: 'desc' })
+    const res = await getPublicPlaylistsApi({ page: publicPage.value, limit: 20, sort: 'desc' })
     publicItems.value.push(...res.items)
     publicTotal.value = res.total
     if (publicItems.value.length >= res.total)
@@ -191,7 +191,7 @@ onMounted(() => {
           v-for="pl in myPlaylists"
           :key="pl.id"
           :playlist="pl"
-          show-delete
+          :show-delete="pl.type !== 'favorites'"
           @delete="deletePlaylist"
         />
       </div>
