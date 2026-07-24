@@ -210,8 +210,13 @@ export function removeFavoriteApi(songId: number) {
   return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/favorites/${songId}`, 'DELETE')
 }
 
-export type RankingPeriod = '7d' | '30d' | '365d' | 'all'
+export type RankingPeriod = '1d' | '7d' | '30d' | '365d' | 'all'
+
+export interface RankingResponse {
+  date?: string
+  songs: PlaylistSongItem[]
+}
 
 export function getRankingApi(period: RankingPeriod) {
-  return fetchJson<PlaylistSongItem[]>(`${apiBase}/ranking?period=${period}`)
+  return fetchJson<RankingResponse>(`${apiBase}/ranking?period=${period}`)
 }

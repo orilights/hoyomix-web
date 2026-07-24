@@ -13,6 +13,7 @@ const player = usePlayerStore()
 const store = useMainStore()
 
 const periods: { key: RankingPeriod, label: string }[] = [
+  { key: '1d', label: '日榜' },
   { key: '7d', label: '周榜' },
   { key: '30d', label: '月榜' },
   { key: '365d', label: '年榜' },
@@ -21,10 +22,11 @@ const periods: { key: RankingPeriod, label: string }[] = [
 
 const params = useUrlSearchParams('history', { removeFalsyValues: true })
 const tab = computed<RankingPeriod>({
-  get: () => (params.tab as RankingPeriod) || '7d',
+  get: () => (params.tab as RankingPeriod) || '1d',
   set: (val) => { params.tab = val },
 })
 const songs = ref<PlaylistSongItem[]>([])
+const rankingDate = ref<string | undefined>()
 const isLoading = ref(false)
 
 watch(tab, () => {
@@ -34,11 +36,14 @@ watch(tab, () => {
 async function fetchRanking() {
   isLoading.value = true
   try {
-    songs.value = await getRankingApi(tab.value)
+    const res = await getRankingApi(tab.value)
+    songs.value = res.songs
+    rankingDate.value = res.date
   }
   catch (e: any) {
     toast.error(e.message ?? '加载失败')
     songs.value = []
+    rankingDate.value = undefined
   }
   finally {
     isLoading.value = false
@@ -88,6 +93,9 @@ onMounted(() => {
         v-model="tab"
         :options="periods"
       />
+      <span v-if="rankingDate" class="text-sm text-gray-500">
+        更新于 {{ rankingDate }}
+      </span>
       <div class="flex-1" />
       <div class="hidden md:flex gap-2">
         <button
