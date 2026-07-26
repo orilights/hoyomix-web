@@ -227,6 +227,7 @@ onMounted(() => {
         制作人员
       </button>
       <button
+        v-if="albumInfo.tags.length"
         class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
         :class="activeTab === 'tags' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
         @click="activeTab = 'tags'"
@@ -237,7 +238,7 @@ onMounted(() => {
 
     <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
       <div class="w-full lg:w-[400px]">
-        <div v-show="activeTab === 'tags'" class="w-full lg:w-[400px] lg:!block h-fit lg:mb-4" :class="{ hidden: activeTab !== 'tags' }">
+        <div v-if="albumInfo.tags.length" v-show="activeTab === 'tags'" class="w-full lg:w-[400px] lg:!block h-fit lg:mb-4" :class="{ hidden: activeTab !== 'tags' }">
           <TagList :tags="albumInfo.tags" />
         </div>
 
@@ -277,18 +278,18 @@ onMounted(() => {
                   class="hover:bg-black/8 cursor-pointer transition-colors group"
                   @click="$router.push({ name: 'MusicInfo', params: { albumId: albumInfo.id, musicId: songInfo.id } })"
                 >
-                  <td class="pl-4 p-2 text-gray-500">
+                  <td class="pl-4 p-2 text-gray-500 text-sm sm:text-base">
                     {{ songIndex + 1 }}
                   </td>
                   <td class="p-2">
-                    <p class="truncate" :title="songInfo.name">
+                    <p class="truncate text-sm sm:text-base" :title="songInfo.name">
                       {{ songInfo.name }}
                     </p>
                     <p v-if="songInfo.description" class="truncate text-xs text-gray-500">
                       {{ songInfo.description }}
                     </p>
                   </td>
-                  <td class="p-2">
+                  <td class="p-2 text-sm sm:text-base">
                     {{ formatDuration(songInfo.duration) }}
                   </td>
                   <td class="hidden md:table-cell p-2">

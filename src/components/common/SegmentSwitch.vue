@@ -15,7 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+  <div class="flex flex-wrap gap-1 bg-gray-100 rounded-xl p-1 w-fit">
     <button
       v-for="opt in options"
       :key="opt.key"

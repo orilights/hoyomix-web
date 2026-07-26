@@ -88,7 +88,7 @@ onMounted(() => {
   <div>
     <PageHeader title="热榜" subtitle="看看大家都在听什么" />
 
-    <div class="flex items-center gap-2 mb-4">
+    <div class="flex flex-wrap items-center gap-2 mb-4">
       <SegmentSwitch
         v-model="tab"
         :options="periods"
@@ -97,7 +97,7 @@ onMounted(() => {
         更新于 {{ rankingDate }}
       </span>
       <div class="flex-1" />
-      <div class="hidden md:flex gap-2">
+      <div class="flex gap-2">
         <button
           class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
           :disabled="!songs.length"

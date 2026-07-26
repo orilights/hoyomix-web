@@ -225,15 +225,15 @@ onMounted(() => {
       <FavoriteButton :song-id="musicInfo.id" variant="action" />
     </div>
 
-    <div class="mt-4 lg:hidden">
+    <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="mt-4 lg:hidden">
       <template v-if="isSongLoading">
         <LucideLoader2 class="size-6 animate-spin mr-2" />
         加载中...
       </template>
-      <div v-else-if="isSongError" class="text-gray-400 text-sm text-center py-4">
+      <div v-if="isSongError" class="text-gray-400 text-sm text-center py-4">
         加载失败，请刷新重试
       </div>
-      <TagList v-else-if="songInfo" :tags="songInfo.tags" />
+      <TagList v-if="songInfo?.tags.length" :tags="songInfo.tags" />
     </div>
 
     <div class="flex gap-2 mt-4 lg:hidden">
@@ -255,15 +255,15 @@ onMounted(() => {
 
     <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
       <div class="w-full lg:w-[400px]">
-        <div class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
+        <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
           <template v-if="isSongLoading">
             <LucideLoader2 class="size-6 animate-spin mr-2" />
             加载中...
           </template>
-          <div v-else-if="isSongError" class="text-gray-400 text-sm text-center py-4">
+          <div v-if="isSongError" class="text-gray-400 text-sm text-center py-4">
             加载失败，请刷新重试
           </div>
-          <TagList v-else-if="songInfo" :tags="songInfo.tags" />
+          <TagList v-if="songInfo?.tags.length" :tags="songInfo.tags" />
         </div>
 
         <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">

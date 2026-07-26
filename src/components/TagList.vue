@@ -32,7 +32,7 @@ function openLink(url: string) {
 
       <div
         v-if="tagInfo.tagType === 'area' && tagInfo.tagData"
-        class="px-2 py-0.5 bg-black/5 rounded-xl flex items-center gap-1 text-sm"
+        class="px-2 py-0.5 bg-black/5 rounded-xl flex flex-wrap items-center gap-1 text-sm"
       >
         <span class="text-gray-500">{{ tagInfo.tagName }}：</span>
         <template v-for="(levelKey, li) in Object.keys(tagInfo.tagData).sort()" :key="li">
@@ -77,9 +77,6 @@ function openLink(url: string) {
         </a>
       </div>
     </template>
-    <div v-if="tags.length === 0" class="text-gray-500 text-center w-full">
-      无标签
-    </div>
   </div>
 </template>
 
