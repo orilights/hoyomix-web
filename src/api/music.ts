@@ -210,6 +210,22 @@ export function removeFavoriteApi(songId: number) {
   return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/favorites/${songId}`, 'DELETE')
 }
 
+export function getFavoritePlaylistsApi() {
+  return fetchJson<{ items: PlaylistListItem[] }>(`${apiBase}/playlists/favorites`)
+}
+
+export function getPlaylistFavoriteStatusApi(id: string) {
+  return fetchJson<{ isFavorited: boolean }>(`${apiBase}/playlists/${id}/favorite`)
+}
+
+export function addPlaylistFavoriteApi(id: string) {
+  return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/playlists/${id}/favorite`, 'POST')
+}
+
+export function removePlaylistFavoriteApi(id: string) {
+  return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/playlists/${id}/favorite`, 'DELETE')
+}
+
 export type RankingPeriod = '1d' | '7d' | '30d' | '365d' | 'all'
 
 export interface RankingResponse {

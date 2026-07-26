@@ -155,7 +155,7 @@ async function playSong(event: Event, songId: number, albumId: number) {
             <span class="text-sm truncate min-w-0">{{ song.name }}</span>
             <span class="text-xs text-gray-400 shrink-0 ml-auto">{{ song.roles.join(' / ') }}</span>
           </div>
-          <FavoriteButton :song-id="song.id" />
+          <SongFavoriteButton :song-id="song.id" />
           <button
             class="hidden md:block shrink-0 text-gray-400 hover:text-gray-500 opacity-0 md:group-hover/song:opacity-100 transition-all hover:scale-105 active:scale-95 cursor-pointer"
             title="播放歌曲"

@@ -1,6 +1,6 @@
 import type { AlbumListItemInfo, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
 import { defineStore } from 'pinia'
-import { addFavoriteApi, getAllFavoritesApi, removeFavoriteApi } from '@/api/music'
+import { addFavoriteApi, addPlaylistFavoriteApi, getAllFavoritesApi, getFavoritePlaylistsApi, removeFavoriteApi, removePlaylistFavoriteApi } from '@/api/music'
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -19,7 +19,8 @@ export const useMainStore = defineStore('main', {
     randomPlaylistAlbums: [] as number[],
     randomPlaylist: [] as PlaylistSongItem[],
     // 收藏
-    favoriteIds: [] as number[],
+    favoriteSongIds: [] as number[],
+    favoritePlaylistIds: [] as string[],
   }),
   actions: {
     setBackground(url = '') {
@@ -28,39 +29,73 @@ export const useMainStore = defineStore('main', {
     setAlbumLayout(key: string, layout: 'grid' | 'list') {
       this.albumLayoutMap[key] = layout
     },
-    async fetchFavorites() {
+    clearFavorites() {
+      this.favoriteSongIds = []
+      this.favoritePlaylistIds = []
+    },
+    async fetchFavoriteSongs() {
       try {
         const res = await getAllFavoritesApi()
-        this.favoriteIds = res.songIds
+        this.favoriteSongIds = res.songIds
       }
       catch {
-        this.favoriteIds = []
+        this.favoriteSongIds = []
       }
     },
-    clearFavorites() {
-      this.favoriteIds = []
-    },
-    async addFavorite(songId: number) {
-      if (this.favoriteIds.includes(songId))
+    async addFavoriteSong(songId: number) {
+      if (this.favoriteSongIds.includes(songId))
         return
-      this.favoriteIds.push(songId)
+      this.favoriteSongIds.push(songId)
       try {
         await addFavoriteApi(songId)
       }
       catch {
-        this.favoriteIds = this.favoriteIds.filter(id => id !== songId)
+        this.favoriteSongIds = this.favoriteSongIds.filter(id => id !== songId)
         throw new Error('收藏失败')
       }
     },
-    async removeFavorite(songId: number) {
-      if (!this.favoriteIds.includes(songId))
+    async removeFavoriteSong(songId: number) {
+      if (!this.favoriteSongIds.includes(songId))
         return
-      this.favoriteIds = this.favoriteIds.filter(id => id !== songId)
+      this.favoriteSongIds = this.favoriteSongIds.filter(id => id !== songId)
       try {
         await removeFavoriteApi(songId)
       }
       catch {
-        this.favoriteIds.push(songId)
+        this.favoriteSongIds.push(songId)
+        throw new Error('取消收藏失败')
+      }
+    },
+    async fetchFavoritePlaylists() {
+      try {
+        const res = await getFavoritePlaylistsApi()
+        this.favoritePlaylistIds = res.items.map(item => item.id)
+      }
+      catch {
+        this.favoritePlaylistIds = []
+      }
+    },
+    async addFavoritePlaylist(id: string) {
+      if (this.favoritePlaylistIds.includes(id))
+        return
+      this.favoritePlaylistIds.push(id)
+      try {
+        await addPlaylistFavoriteApi(id)
+      }
+      catch {
+        this.favoritePlaylistIds = this.favoritePlaylistIds.filter(pid => pid !== id)
+        throw new Error('收藏失败')
+      }
+    },
+    async removeFavoritePlaylist(id: string) {
+      if (!this.favoritePlaylistIds.includes(id))
+        return
+      this.favoritePlaylistIds = this.favoritePlaylistIds.filter(pid => pid !== id)
+      try {
+        await removePlaylistFavoriteApi(id)
+      }
+      catch {
+        this.favoritePlaylistIds.push(id)
         throw new Error('取消收藏失败')
       }
     },

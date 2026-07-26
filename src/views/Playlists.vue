@@ -3,7 +3,7 @@ import type { PlaylistListItem } from '@/types/core'
 import { useElementSize, useIntersectionObserver, useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { deletePlaylistApi, getPublicPlaylistsApi } from '@/api/music'
-import { useMyPlaylistsQuery } from '@/composables/queries'
+import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 
@@ -30,6 +30,7 @@ const gridColumns = computed(() => {
 const tabOptions = [
   { key: 'public', label: '广场' },
   { key: 'mine', label: '我的' },
+  { key: 'favorites', label: '收藏' },
 ]
 
 watch(isLoggedIn, (v) => {
@@ -38,7 +39,7 @@ watch(isLoggedIn, (v) => {
 })
 
 watch(tab, (val) => {
-  if (val === 'mine' && !isLoggedIn.value) {
+  if ((val === 'mine' || val === 'favorites') && !isLoggedIn.value) {
     auth.requireLogin()
     tab.value = 'public'
   }
@@ -95,10 +96,28 @@ watch(tab, (val) => {
 
 const { data: myPlaylists, isLoading: isMyLoading, isError: isMyError, error: myError, refetch: refetchMine } = useMyPlaylistsQuery()
 
+const {
+  data: favoritePlaylists,
+  isLoading: isFavLoading,
+  isError: isFavError,
+  error: favError,
+  refetch: refetchFavorites,
+} = useFavoritePlaylistsQuery()
+
 watch(isMyError, (v) => {
   if (v && isLoggedIn.value)
     toast.error(`我的歌单加载失败：${myError.value?.message ?? '未知错误'}`)
 })
+
+watch(isFavError, (v) => {
+  if (v && isLoggedIn.value)
+    toast.error(`收藏歌单加载失败：${favError.value?.message ?? '未知错误'}`)
+})
+
+watch(() => store.favoritePlaylistIds, () => {
+  if (isLoggedIn.value)
+    refetchFavorites()
+}, { deep: false })
 
 async function deletePlaylist(id: string) {
   try {
@@ -162,6 +181,32 @@ onMounted(() => {
       <div ref="sentinel" class="h-10 flex items-center justify-center mt-4">
         <LucideLoader2 v-if="publicLoading && publicItems.length > 0" class="size-5 text-gray-300 animate-spin" />
         <span v-else-if="publicFinished && publicItems.length > 0" class="text-xs text-gray-300">已加载全部</span>
+      </div>
+    </div>
+
+    <div v-else-if="tab === 'favorites'">
+      <div v-if="!isLoggedIn" class="text-center py-16 text-gray-400">
+        请先登录以查看收藏歌单
+      </div>
+      <div v-else-if="isFavLoading" class="flex justify-center py-16">
+        <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
+      </div>
+      <div v-else-if="isFavError" class="flex items-center justify-center py-16 text-red-400">
+        加载失败，请刷新重试
+      </div>
+      <div v-else-if="favoritePlaylists?.length === 0" class="text-center py-16">
+        <LucideHeart class="size-12 text-gray-200 mx-auto mb-3" />
+        <p class="text-sm text-gray-400">
+          暂无收藏歌单
+        </p>
+      </div>
+      <div
+        v-else class="grid justify-center"
+        :style="{
+          gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
+        }"
+      >
+        <PlaylistCard v-for="pl in favoritePlaylists" :key="pl.id" :playlist="pl" />
       </div>
     </div>
 

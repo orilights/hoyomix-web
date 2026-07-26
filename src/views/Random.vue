@@ -308,7 +308,7 @@ onMounted(() => {
               <div class="text-xs text-gray-400 shrink-0 tabular-nums">
                 {{ formatDuration(song.duration) }}
               </div>
-              <FavoriteButton :song-id="song.songId" />
+              <SongFavoriteButton :song-id="song.songId" />
             </div>
           </div>
         </template>

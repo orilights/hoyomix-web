@@ -1,12 +1,17 @@
 <script setup lang="ts">
+import { useMainStore } from '@/store/main'
+
 interface Props {
   isOwner?: boolean
   multiSelectActive?: boolean
+  playlistId?: string
+  showFavorite?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   isOwner: false,
   multiSelectActive: false,
+  showFavorite: true,
 })
 
 const emit = defineEmits<{
@@ -16,6 +21,12 @@ const emit = defineEmits<{
   edit: []
   delete: []
 }>()
+
+const store = useMainStore()
+
+const favoriteTooltip = computed(() =>
+  store.favoritePlaylistIds.includes(props.playlistId ?? '') ? '取消收藏歌单' : '收藏歌单',
+)
 </script>
 
 <template>
@@ -37,6 +48,13 @@ const emit = defineEmits<{
       <LucidePlus class="size-4" />
       加入播放列表
     </button>
+  </Tooltip>
+
+  <Tooltip v-if="showFavorite && playlistId" placement="top" theme="light" :content="favoriteTooltip">
+    <PlaylistFavoriteButton
+      :playlist-id="playlistId"
+      variant="action"
+    />
   </Tooltip>
 
   <Tooltip placement="top" theme="light" content="切换多选模式">

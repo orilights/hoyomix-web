@@ -17,7 +17,7 @@ const auth = useAuthStore()
 const mainStore = useMainStore()
 const loading = ref(false)
 
-const isFavorited = computed(() => mainStore.favoriteIds.includes(props.songId))
+const isFavorited = computed(() => mainStore.favoriteSongIds.includes(props.songId))
 
 async function handleClick() {
   if (!auth.requireLogin())
@@ -26,9 +26,9 @@ async function handleClick() {
   loading.value = true
   try {
     if (isFavorited.value)
-      await mainStore.removeFavorite(props.songId)
+      await mainStore.removeFavoriteSong(props.songId)
     else
-      await mainStore.addFavorite(props.songId)
+      await mainStore.addFavoriteSong(props.songId)
   }
   catch (error: any) {
     toast.error(error instanceof Error ? error.message : '操作失败')

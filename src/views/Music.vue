@@ -208,7 +208,7 @@ onMounted(() => {
             @next="goNextMusic"
             @add-to-playlist="addSongToUserPlaylist"
           />
-          <FavoriteButton :song-id="musicInfo.id" variant="action" />
+          <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
         </div>
       </div>
     </div>
@@ -222,7 +222,7 @@ onMounted(() => {
         @next="goNextMusic"
         @add-to-playlist="addSongToUserPlaylist"
       />
-      <FavoriteButton :song-id="musicInfo.id" variant="action" />
+      <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
     </div>
 
     <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="mt-4 lg:hidden">

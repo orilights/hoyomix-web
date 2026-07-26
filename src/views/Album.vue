@@ -295,12 +295,12 @@ onMounted(() => {
                   <td class="hidden md:table-cell p-2">
                     <div class="flex gap-1">
                       <div
-                        v-if="!store.favoriteIds.includes(songInfo.id)"
+                        v-if="!store.favoriteSongIds.includes(songInfo.id)"
                         class="opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <FavoriteButton :song-id="songInfo.id" />
+                        <SongFavoriteButton :song-id="songInfo.id" />
                       </div>
-                      <FavoriteButton
+                      <SongFavoriteButton
                         v-else
                         :song-id="songInfo.id"
                       />

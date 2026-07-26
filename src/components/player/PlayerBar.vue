@@ -230,7 +230,7 @@ onMounted(() => {
                 </Tooltip>
               </Dropdown>
 
-              <FavoriteButton
+              <SongFavoriteButton
                 v-if="currentSong"
                 :song-id="currentSong.songId"
                 size="md"

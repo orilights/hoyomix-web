@@ -8,11 +8,12 @@ import {
   getArtistInfoApi,
   getChangelog,
   getCreditInfoApi,
+  getFavoritePlaylistsApi,
   getLyricsApi,
   getMyPlaylistsApi,
   getPlaylistDetailApi,
-  getPublicPlaylistsApi,
   getProductListApi,
+  getPublicPlaylistsApi,
   getSearchApi,
   getSongInfoApi,
 } from '@/api/music'
@@ -108,7 +109,7 @@ export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>) 
   })
 }
 
-export function usePlaylistsQuery(params: Ref<PlaylistsQueryParams>) {
+export function usePublicPlaylistsQuery(params: Ref<PlaylistsQueryParams>) {
   return useQuery({
     queryKey: computed(() => ['playlists', params.value]),
     queryFn: () => getPublicPlaylistsApi(params.value),
@@ -120,7 +121,15 @@ export function useMyPlaylistsQuery() {
   return useQuery({
     queryKey: ['myPlaylists'],
     queryFn: () => getMyPlaylistsApi(),
-    staleTime: 1000 * 30,
+    staleTime: 0,
+  })
+}
+
+export function useFavoritePlaylistsQuery() {
+  return useQuery({
+    queryKey: ['favoritePlaylists'],
+    queryFn: () => getFavoritePlaylistsApi().then(res => res.items),
+    staleTime: 0,
   })
 }
 

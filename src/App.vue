@@ -32,10 +32,13 @@ watch(isAlbumListError, (val) => {
 })
 
 watch(() => auth.isLoggedIn, (loggedIn) => {
-  if (loggedIn)
-    store.fetchFavorites()
-  else
+  if (loggedIn) {
+    store.fetchFavoriteSongs()
+    store.fetchFavoritePlaylists()
+  }
+  else {
     store.clearFavorites()
+  }
 }, { immediate: true })
 
 const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({

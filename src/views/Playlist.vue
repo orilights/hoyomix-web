@@ -75,7 +75,7 @@ watch(playlist, (val) => {
 }, { immediate: true })
 
 // 收藏歌单所有者收藏操作后刷新列表
-watch(store.favoriteIds, () => {
+watch(store.favoriteSongIds, () => {
   if (isFavoritesPlaylist.value && isOwner.value)
     refetch()
 }, { deep: false })
@@ -380,6 +380,8 @@ onMounted(() => {
           <PlaylistActions
             :is-owner="canManagePlaylist"
             :multi-select-active="showMultiSelect"
+            :playlist-id="playlist.id"
+            :show-favorite="!isFavoritesPlaylist"
             @play-all="playAll"
             @add-all="addAllToPlaylist"
             @toggle-multi-select="toggleMultiSelect"
@@ -394,6 +396,8 @@ onMounted(() => {
       <PlaylistActions
         :is-owner="canManagePlaylist"
         :multi-select-active="showMultiSelect"
+        :playlist-id="playlist.id"
+        :show-favorite="!isFavoritesPlaylist"
         @play-all="playAll"
         @add-all="addAllToPlaylist"
         @toggle-multi-select="toggleMultiSelect"
@@ -468,12 +472,12 @@ onMounted(() => {
               <td class="hidden md:table-cell p-2">
                 <div class="flex gap-1">
                   <div
-                    v-if="!store.favoriteIds.includes(song.songId)"
+                    v-if="!store.favoriteSongIds.includes(song.songId)"
                     class="opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <FavoriteButton :song-id="song.songId" />
+                    <SongFavoriteButton :song-id="song.songId" />
                   </div>
-                  <FavoriteButton
+                  <SongFavoriteButton
                     v-else
                     :song-id="song.songId"
                   />
