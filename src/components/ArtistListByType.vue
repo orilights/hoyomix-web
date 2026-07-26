@@ -16,7 +16,7 @@ const { data: rawData, isLoading } = useCreditInfoQuery(id, type)
 function sortArtists(info: ArtistTypeInfo) {
   const sorted: ArtistTypeInfo = {}
   for (const typeName in info) {
-    sorted[typeName] = [...info[typeName]].sort((a, b) => (b.songs?.length ?? 0) - (a.songs?.length ?? 0))
+    sorted[typeName] = [...info[typeName]].sort((a, b) => (b.songCount ?? 0) - (a.songCount ?? 0))
   }
   return sorted
 }
@@ -56,15 +56,15 @@ const sortedEntries = computed(() => {
           <Tooltip>
             <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
               {{ artist.name }}
-              <span v-if="artist.songs" class="text-xs text-gray-600">{{ artist.songs.length }}&nbsp;</span>
+              <span class="text-xs text-gray-600">{{ artist.songCount }}&nbsp;</span>
             </RouterLink>
-            <template v-if="artist.songs" #tooltip>
+            <template v-if="artist.songs?.length" #tooltip>
               <div class="p-2 max-w-[300px] bg-white w-fit text-xs rounded-lg shadow">
-                <div v-for="song, index in artist.songs?.slice(0, 10)" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">
+                <div v-for="song, index in artist.songs" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">
                   {{ song.name }}
                 </div>
-                <div v-if="artist.songs.length > 10" class="text-gray-500">
-                  和其他 {{ artist.songs.length - 10 }} 首音乐
+                <div v-if="artist.songCount > artist.songs.length" class="text-gray-500">
+                  和其他 {{ artist.songCount - artist.songs.length }} 首音乐
                 </div>
               </div>
             </template>

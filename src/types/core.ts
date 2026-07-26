@@ -72,7 +72,9 @@ export interface ArtistTypeInfo {
   [typeName: string]: {
     name: string
     alias: string[]
-    songs?: { id: number, name: string }[]
+    isHoyomix: boolean
+    songCount: number
+    songs: { id: number, name: string }[]
   }[]
 }
 
