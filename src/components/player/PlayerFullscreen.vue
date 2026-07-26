@@ -170,10 +170,6 @@ function onHeaderTouchEnd() {
           </div>
 
           <div class="flex items-center gap-1">
-            <FavoriteButton
-              :song-id="currentSong.songId"
-              size="md"
-            />
             <Tooltip
               placement="bottom"
               align="center"
