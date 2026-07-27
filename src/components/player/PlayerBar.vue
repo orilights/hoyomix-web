@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PlayMode } from '@/types/player'
 import { audioQualityOptions, getQualityLabel } from '@/constants'
+import { isIOS } from '@/utils'
 import { usePlayerStore } from '@/store/player'
 
 const player = usePlayerStore()
@@ -249,7 +250,7 @@ onMounted(() => {
                 </button>
               </Tooltip>
 
-              <div class="hidden md:block relative" @wheel.prevent="onVolumeWheel">
+              <div v-if="!isIOS()" class="hidden md:block relative" @wheel.prevent="onVolumeWheel">
                 <button
                   class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
                   @click="toggleMute"

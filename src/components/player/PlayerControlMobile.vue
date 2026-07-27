@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePlayerStore } from '@/store/player'
+import { isIOS } from '@/utils'
 
 const player = usePlayerStore()
 const { volume } = storeToRefs(player)
@@ -8,6 +9,7 @@ const { volume } = storeToRefs(player)
 <template>
   <div class="flex items-center gap-5 bg-black/40 backdrop-blur-md rounded-full px-6 py-3">
     <input
+      v-if="!isIOS()"
       type="range"
       :value="volume"
       min="0"

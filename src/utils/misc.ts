@@ -1,6 +1,6 @@
 import type { PlatformInfoMap } from '@/types/core'
 import type { NeteaseClientSchemeParams } from '@/types/netease'
-import { feedbackPageUrl, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
+import { feedbackPageUrl, iOSUserAgentRegex, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
 
 export function getCoverUrl(platforms: PlatformInfoMap, size: '96px' | '128px' | '256px' | '512px' | '800px') {
   if (platforms.ncm) {
@@ -38,6 +38,15 @@ export function goFeedbackPage() {
 export function isMobile() {
   const ua = navigator.userAgent
   return mobileUserAgentRegex.test(ua)
+}
+
+export function isIOS() {
+  const ua = navigator.userAgent
+  return iOSUserAgentRegex.test(ua)
+    || (
+      navigator.platform === 'MacIntel'
+      && navigator.maxTouchPoints > 1
+    )
 }
 
 export function toBase64(text: string) {
