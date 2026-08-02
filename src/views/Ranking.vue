@@ -79,6 +79,7 @@ function addSongToPlaylist(song: PlaylistSongItem) {
 }
 
 onMounted(() => {
+  store.setBackground()
   document.title = `热榜 - ${appTitle}`
   fetchRanking()
 })

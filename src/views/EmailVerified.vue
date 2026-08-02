@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/store/auth'
+import { useMainStore } from '@/store/main'
 
 const auth = useAuthStore()
+const store = useMainStore()
+
+onMounted(() => {
+  store.setBackground()
+})
 </script>
 
 <template>
