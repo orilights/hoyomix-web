@@ -148,157 +148,164 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
-    <LucideLoader2 class="size-6 animate-spin mr-2" />
-    加载中...
-  </div>
+  <AsyncFade>
+    <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
+      <LucideLoader2 class="size-6 animate-spin mr-2" />
+      加载中...
+    </div>
 
-  <div v-else-if="isAlbumError" class="flex items-center justify-center py-20 text-red-400">
-    加载失败，请刷新重试
-  </div>
+    <div v-else-if="isAlbumError" class="flex items-center justify-center py-20 text-red-400">
+      加载失败，请刷新重试
+    </div>
 
-  <div v-else-if="albumInfo && musicInfo" class="overflow-hidden">
-    <div class="flex md:h-[200px] lg:h-[300px]">
-      <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
-        <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
+    <div v-else-if="albumInfo && musicInfo" class="overflow-hidden">
+      <div class="flex md:h-[200px] lg:h-[300px]">
+        <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
+          <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
+        </div>
+
+        <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
+          <div class="truncate md:text-xl lg:text-3xl font-bold">
+            {{ musicInfo.name }}
+          </div>
+
+          <div v-if="musicInfo.description" class="truncate text-sm mt-1 md:text-base lg:text-lg text-gray-500">
+            {{ musicInfo.description }}
+          </div>
+
+          <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base">
+            <span class="text-gray-500 hidden md:inline">所属</span>
+            <RouterLink
+              :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
+              class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors shrink-0"
+              :title="albumInfo.productName"
+            >
+              <LazyImg class="size-5 md:size-8 rounded-full" :src="getProductIconUrl(albumInfo.productName, '48px')" />
+            </RouterLink>
+            <span class="text-gray-500 hidden md:inline">收录于</span>
+            <RouterLink
+              :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"
+              class="hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors truncate"
+            >
+              {{ albumInfo.name }}
+            </RouterLink>
+          </div>
+
+          <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base">
+            <span class="text-gray-500">时长</span>
+            <span class="ml-4">
+              {{ formatDuration(musicInfo.duration) }}
+            </span>
+          </div>
+
+          <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
+            <MusicActions
+              dropdown-position="up"
+              :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
+              :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
+              @play="handlePlay"
+              @prev="goPrevMusic"
+              @next="goNextMusic"
+              @add-to-playlist="addSongToUserPlaylist"
+            />
+            <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
+          </div>
+        </div>
       </div>
 
-      <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
-        <div class="truncate md:text-xl lg:text-3xl font-bold">
-          {{ musicInfo.name }}
-        </div>
-
-        <div v-if="musicInfo.description" class="truncate text-sm mt-1 md:text-base lg:text-lg text-gray-500">
-          {{ musicInfo.description }}
-        </div>
-
-        <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base">
-          <span class="text-gray-500 hidden md:inline">所属</span>
-          <RouterLink
-            :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
-            class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors shrink-0"
-            :title="albumInfo.productName"
-          >
-            <img class="size-5 md:size-8" :src="getProductIconUrl(albumInfo.productName, '48px')">
-          </RouterLink>
-          <span class="text-gray-500 hidden md:inline">收录于</span>
-          <RouterLink
-            :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"
-            class="hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors truncate"
-          >
-            {{ albumInfo.name }}
-          </RouterLink>
-        </div>
-
-        <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base">
-          <span class="text-gray-500">时长</span>
-          <span class="ml-4">
-            {{ formatDuration(musicInfo.duration) }}
-          </span>
-        </div>
-
-        <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
-          <MusicActions
-            show-tooltip
-            dropdown-position="up"
-            :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
-            :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
-            @play="handlePlay"
-            @prev="goPrevMusic"
-            @next="goNextMusic"
-            @add-to-playlist="addSongToUserPlaylist"
-          />
-          <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
-        </div>
+      <div class="flex gap-2 flex-wrap md:hidden mt-4">
+        <MusicActions
+          :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
+          :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
+          @play="handlePlay"
+          @prev="goPrevMusic"
+          @next="goNextMusic"
+          @add-to-playlist="addSongToUserPlaylist"
+        />
+        <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
       </div>
-    </div>
 
-    <div class="flex gap-2 flex-wrap md:hidden mt-4">
-      <MusicActions
-        :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
-        :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
-        @play="handlePlay"
-        @prev="goPrevMusic"
-        @next="goNextMusic"
-        @add-to-playlist="addSongToUserPlaylist"
-      />
-      <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
-    </div>
-
-    <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="mt-4 lg:hidden">
-      <template v-if="isSongLoading">
-        <LucideLoader2 class="size-6 animate-spin mr-2" />
-        加载中...
-      </template>
-      <div v-if="isSongError" class="text-gray-400 text-sm text-center py-4">
-        加载失败，请刷新重试
-      </div>
-      <TagList v-if="songInfo?.tags.length" :tags="songInfo.tags" />
-    </div>
-
-    <div class="flex gap-2 mt-4 lg:hidden">
-      <button
-        class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
-        :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
-        @click="activeTab = 'lyrics'"
-      >
-        歌词
-      </button>
-      <button
-        class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
-        :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
-        @click="activeTab = 'artists'"
-      >
-        制作人员
-      </button>
-    </div>
-
-    <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
-      <div class="w-full lg:w-[400px]">
-        <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
-          <template v-if="isSongLoading">
+      <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="mt-4 lg:hidden">
+        <AsyncFade>
+          <div v-if="isSongLoading" class="flex items-center justify-center py-2 text-gray-400">
             <LucideLoader2 class="size-6 animate-spin mr-2" />
             加载中...
-          </template>
-          <div v-if="isSongError" class="text-gray-400 text-sm text-center py-4">
+          </div>
+          <div v-else-if="isSongError" class="flex items-center justify-center py-2 text-red-400">
             加载失败，请刷新重试
           </div>
-          <TagList v-if="songInfo?.tags.length" :tags="songInfo.tags" />
+          <TagList v-else-if="songInfo?.tags.length" :tags="songInfo.tags" />
+        </AsyncFade>
+      </div>
+
+      <div class="flex gap-2 mt-4 lg:hidden">
+        <button
+          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          @click="activeTab = 'lyrics'"
+        >
+          歌词
+        </button>
+        <button
+          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          @click="activeTab = 'artists'"
+        >
+          制作人员
+        </button>
+      </div>
+
+      <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
+        <div class="w-full lg:w-[400px]">
+          <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
+            <AsyncFade>
+              <div v-if="isSongLoading" class="flex items-center justify-center py-2 text-gray-400">
+                <LucideLoader2 class="size-6 animate-spin mr-2" />
+                加载中...
+              </div>
+              <div v-else-if="isSongError" class="flex items-center justify-center py-2 text-red-400">
+                加载失败，请刷新重试
+              </div>
+              <TagList v-else-if="songInfo?.tags.length" :tags="songInfo.tags" />
+            </AsyncFade>
+          </div>
+
+          <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+            <ArtistListByType :id="musicId" type="song" />
+          </div>
         </div>
 
-        <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
-          <ArtistListByType :id="musicId" type="song" />
+        <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
+          <div class="bg-black/5 rounded-xl overflow-hidden p-4">
+            <AsyncFade>
+              <div v-if="!lyricProvider" class="text-gray-400 text-sm text-center py-4">
+                暂无数据
+              </div>
+              <div v-else-if="isLyricsLoading" class="flex items-center justify-center py-4 text-gray-400">
+                <LucideLoader2 class="size-4 animate-spin mr-1" />
+                加载中...
+              </div>
+              <div v-else>
+                <div v-if="lyricList.length === 0" class="text-gray-400 text-sm text-center py-4">
+                  暂无数据
+                </div>
+                <div v-for="line, index in lyricList" v-else :key="index" class="my-1">
+                  <span>{{ line.text }}</span>
+                  <span v-if="line.translation" class="text-gray-500 ml-2">/ {{ line.translation }}</span>
+                </div>
+              </div>
+            </AsyncFade>
+          </div>
         </div>
       </div>
 
-      <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
-        <div class="bg-black/5 rounded-xl overflow-hidden p-4">
-          <div v-if="!lyricProvider" class="text-gray-400 text-sm text-center py-4">
-            暂无数据
-          </div>
-          <div v-else-if="isLyricsLoading" class="flex items-center justify-center py-4 text-gray-400">
-            <LucideLoader2 class="size-4 animate-spin mr-1" />
-            加载中...
-          </div>
-          <template v-else>
-            <div v-if="lyricList.length === 0" class="text-gray-400 text-sm text-center py-4">
-              暂无数据
-            </div>
-            <div v-for="line, index in lyricList" v-else :key="index" class="my-1">
-              <span>{{ line.text }}</span>
-              <span v-if="line.translation" class="text-gray-500 ml-2">/ {{ line.translation }}</span>
-            </div>
-          </template>
-        </div>
-      </div>
+      <SelectPlaylistDialog
+        v-model="showSelectPlaylistDialog"
+        :song-ids="currentSongId"
+        mode="add"
+      />
     </div>
-
-    <SelectPlaylistDialog
-      v-model="showSelectPlaylistDialog"
-      :song-ids="currentSongId"
-      mode="add"
-    />
-  </div>
+  </AsyncFade>
 </template>
 
 <style scoped>

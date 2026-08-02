@@ -164,20 +164,22 @@ onMounted(() => {
     />
 
     <div v-if="tab === 'public'">
-      <div v-if="publicItems.length === 0 && publicLoading" class="flex justify-center py-16">
-        <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
-      </div>
-      <div v-else-if="publicItems.length === 0 && !publicLoading" class="text-center py-16 text-gray-400">
-        暂无公开歌单
-      </div>
-      <div
-        v-else class="grid justify-center"
-        :style="{
-          gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
-        }"
-      >
-        <PlaylistCard v-for="pl in publicItems" :key="pl.id" :playlist="pl" show-owner />
-      </div>
+      <AsyncFade>
+        <div v-if="publicItems.length === 0 && publicLoading" class="flex justify-center py-16">
+          <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
+        </div>
+        <div v-else-if="publicItems.length === 0 && !publicLoading" class="text-center py-16 text-gray-400">
+          暂无公开歌单
+        </div>
+        <div
+          v-else class="grid justify-center"
+          :style="{
+            gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
+          }"
+        >
+          <PlaylistCard v-for="pl in publicItems" :key="pl.id" :playlist="pl" show-owner />
+        </div>
+      </AsyncFade>
       <div ref="sentinel" class="h-10 flex items-center justify-center mt-4">
         <LucideLoader2 v-if="publicLoading && publicItems.length > 0" class="size-5 text-gray-300 animate-spin" />
         <span v-else-if="publicFinished && publicItems.length > 0" class="text-xs text-gray-300">已加载全部</span>
@@ -185,61 +187,65 @@ onMounted(() => {
     </div>
 
     <div v-else-if="tab === 'favorites'">
-      <div v-if="!isLoggedIn" class="text-center py-16 text-gray-400">
-        请先登录以查看收藏歌单
-      </div>
-      <div v-else-if="isFavLoading" class="flex justify-center py-16">
-        <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
-      </div>
-      <div v-else-if="isFavError" class="flex items-center justify-center py-16 text-red-400">
-        加载失败，请刷新重试
-      </div>
-      <div v-else-if="favoritePlaylists?.length === 0" class="text-center py-16">
-        <LucideHeart class="size-12 text-gray-200 mx-auto mb-3" />
-        <p class="text-sm text-gray-400">
-          暂无收藏歌单
-        </p>
-      </div>
-      <div
-        v-else class="grid justify-center"
-        :style="{
-          gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
-        }"
-      >
-        <PlaylistCard v-for="pl in favoritePlaylists" :key="pl.id" :playlist="pl" />
-      </div>
+      <AsyncFade>
+        <div v-if="!isLoggedIn" class="text-center py-16 text-gray-400">
+          请先登录以查看收藏歌单
+        </div>
+        <div v-else-if="isFavLoading" class="flex justify-center py-16">
+          <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
+        </div>
+        <div v-else-if="isFavError" class="flex items-center justify-center py-16 text-red-400">
+          加载失败，请刷新重试
+        </div>
+        <div v-else-if="favoritePlaylists?.length === 0" class="text-center py-16">
+          <LucideHeart class="size-12 text-gray-200 mx-auto mb-3" />
+          <p class="text-sm text-gray-400">
+            暂无收藏歌单
+          </p>
+        </div>
+        <div
+          v-else class="grid justify-center"
+          :style="{
+            gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
+          }"
+        >
+          <PlaylistCard v-for="pl in favoritePlaylists" :key="pl.id" :playlist="pl" />
+        </div>
+      </AsyncFade>
     </div>
 
     <div v-else>
-      <div v-if="!isLoggedIn" class="text-center py-16 text-gray-400">
-        请先登录以查看你的歌单
-      </div>
-      <div v-else-if="isMyLoading" class="flex justify-center py-16">
-        <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
-      </div>
-      <div v-else-if="isMyError" class="flex items-center justify-center py-16 text-red-400">
-        加载失败，请刷新重试
-      </div>
-      <div v-else-if="myPlaylists?.length === 0" class="text-center py-16">
-        <LucideMusic class="size-12 text-gray-200 mx-auto mb-3" />
-        <p class="text-sm text-gray-400">
-          还没有歌单，快去创建一个吧
-        </p>
-      </div>
-      <div
-        v-else class="grid justify-center"
-        :style="{
-          gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
-        }"
-      >
-        <PlaylistCard
-          v-for="pl in myPlaylists"
-          :key="pl.id"
-          :playlist="pl"
-          :show-delete="pl.type !== 'favorites'"
-          @delete="deletePlaylist"
-        />
-      </div>
+      <AsyncFade>
+        <div v-if="!isLoggedIn" class="text-center py-16 text-gray-400">
+          请先登录以查看你的歌单
+        </div>
+        <div v-else-if="isMyLoading" class="flex justify-center py-16">
+          <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
+        </div>
+        <div v-else-if="isMyError" class="flex items-center justify-center py-16 text-red-400">
+          加载失败，请刷新重试
+        </div>
+        <div v-else-if="myPlaylists?.length === 0" class="text-center py-16">
+          <LucideMusic class="size-12 text-gray-200 mx-auto mb-3" />
+          <p class="text-sm text-gray-400">
+            还没有歌单，快去创建一个吧
+          </p>
+        </div>
+        <div
+          v-else class="grid justify-center"
+          :style="{
+            gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
+          }"
+        >
+          <PlaylistCard
+            v-for="pl in myPlaylists"
+            :key="pl.id"
+            :playlist="pl"
+            :show-delete="pl.type !== 'favorites'"
+            @delete="deletePlaylist"
+          />
+        </div>
+      </AsyncFade>
     </div>
 
     <CreatePlaylistDialog v-model="showCreateDialog" @success="onCreateSuccess" />

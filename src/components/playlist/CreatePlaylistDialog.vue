@@ -197,9 +197,7 @@ async function submit() {
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">封面专辑（可选）</label>
         <div class="flex items-center gap-2">
-          <div v-if="coverPreviewUrl" class="size-10 rounded-lg overflow-hidden shrink-0">
-            <img :src="coverPreviewUrl" class="size-full object-cover" loading="lazy">
-          </div>
+          <LazyImg v-if="coverPreviewUrl" class="size-10 rounded-lg" :src="coverPreviewUrl" />
           <div v-else class="size-10 rounded-lg bg-gray-100 shrink-0 flex items-center justify-center">
             <LucideImage class="size-5 text-gray-300" />
           </div>

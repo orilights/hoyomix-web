@@ -242,76 +242,78 @@ onMounted(() => {
       </div>
 
       <div class="bg-white/80 rounded-2xl overflow-hidden mt-4 xl:mt-0">
-        <div
-          v-if="!randomPlaylist.length"
-          class="flex flex-col items-center justify-center h-64 text-gray-400 gap-3"
-        >
-          <LucideShuffle class="size-10 opacity-30" />
-          <div class="text-sm">
-            点击生成按钮获取随机歌单
-          </div>
-        </div>
-
-        <template v-else>
-          <div class="px-4 pt-4 pb-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-            <span class="text-sm text-gray-500 mr-1">共 {{ randomPlaylist.length }} 首</span>
-            <button
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 cursor-pointer transition-colors"
-              @click="playAll"
-            >
-              <LucidePlay class="size-3.5" />
-              播放全部
-            </button>
-            <button
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
-              @click="addAll"
-            >
-              <LucidePlus class="size-3.5" />
-              添加到播放列表
-            </button>
-            <button
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
-              @click="saveAsPlaylist"
-            >
-              <LucideListPlus class="size-3.5" />
-              新建歌单
-            </button>
-            <button
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
-              @click="addToPlaylist"
-            >
-              <LucideFolderPlus class="size-3.5" />
-              添加到歌单
-            </button>
-          </div>
-
-          <div class="divide-y divide-gray-50">
-            <div
-              v-for="(song, index) in randomPlaylist"
-              :key="song.songId"
-              class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors group"
-            >
-              <div class="w-6 text-center text-sm text-gray-400 shrink-0 tabular-nums">
-                {{ index + 1 }}
-              </div>
-              <div class="size-10 rounded-lg overflow-hidden shrink-0">
-                <CoverImage :src="getCoverUrl(song.albumPlatforms, '96px')" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium truncate">
-                  {{ song.songName }}
-                </div>
-                <div class="text-xs text-gray-400 truncate mt-0.5">
-                  {{ song.albumName }}
-                </div>
-              </div>
-              <div class="text-xs text-gray-400 shrink-0 tabular-nums">
-                {{ formatDuration(song.duration) }}
-              </div>
-              <SongFavoriteButton :song-id="song.songId" />
+        <AsyncFade>
+          <div
+            v-if="!randomPlaylist.length"
+            class="flex flex-col items-center justify-center h-64 text-gray-400 gap-3"
+          >
+            <LucideShuffle class="size-10 opacity-30" />
+            <div class="text-sm">
+              点击生成按钮获取随机歌单
             </div>
           </div>
-        </template>
+
+          <div v-else>
+            <div class="px-4 pt-4 pb-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+              <span class="text-sm text-gray-500 mr-1">共 {{ randomPlaylist.length }} 首</span>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 cursor-pointer transition-colors"
+                @click="playAll"
+              >
+                <LucidePlay class="size-3.5" />
+                播放全部
+              </button>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                @click="addAll"
+              >
+                <LucidePlus class="size-3.5" />
+                添加到播放列表
+              </button>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                @click="saveAsPlaylist"
+              >
+                <LucideListPlus class="size-3.5" />
+                新建歌单
+              </button>
+              <button
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                @click="addToPlaylist"
+              >
+                <LucideFolderPlus class="size-3.5" />
+                添加到歌单
+              </button>
+            </div>
+
+            <div class="divide-y divide-gray-50">
+              <div
+                v-for="(song, index) in randomPlaylist"
+                :key="song.songId"
+                class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors group"
+              >
+                <div class="w-6 text-center text-sm text-gray-400 shrink-0 tabular-nums">
+                  {{ index + 1 }}
+                </div>
+                <div class="size-10 rounded-lg overflow-hidden shrink-0">
+                  <CoverImage :src="getCoverUrl(song.albumPlatforms, '96px')" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium truncate">
+                    {{ song.songName }}
+                  </div>
+                  <div class="text-xs text-gray-400 truncate mt-0.5">
+                    {{ song.albumName }}
+                  </div>
+                </div>
+                <div class="text-xs text-gray-400 shrink-0 tabular-nums">
+                  {{ formatDuration(song.duration) }}
+                </div>
+                <SongFavoriteButton :song-id="song.songId" />
+              </div>
+            </div>
+          </div>
+        </AsyncFade>
       </div>
     </div>
 

@@ -114,11 +114,10 @@ function clearAll() {
                   <LucideGripVertical class="size-4" />
                 </div>
 
-                <img
+                <LazyImg
+                  class="size-10 rounded"
                   :src="getCoverUrl(element.albumPlatforms, '128px')"
-                  class="size-10 rounded object-cover shrink-0"
-                  loading="lazy"
-                >
+                />
 
                 <div
                   class="flex-1 min-w-0 ml-3 cursor-pointer"

@@ -11,7 +11,7 @@ const props = defineProps<{
 const id = computed(() => props.id || null)
 const type = computed(() => props.type)
 
-const { data: rawData, isLoading } = useCreditInfoQuery(id, type)
+const { data: rawData, isLoading, isError } = useCreditInfoQuery(id, type)
 
 function sortArtists(info: ArtistTypeInfo) {
   const sorted: ArtistTypeInfo = {}
@@ -36,43 +36,50 @@ const sortedEntries = computed(() => {
 </script>
 
 <template>
-  <div v-if="isLoading" class="w-full flex items-center justify-center py-2 text-gray-400">
-    <LucideLoader2 class="size-4 animate-spin mr-2" />
-    加载中...
-  </div>
-  <template v-else>
-    <div
-      v-for="([typeName, artists]) in sortedEntries" :key="typeName"
-      class="pb-1"
-    >
-      <div class="font-bold">
-        {{ typeName }}
-      </div>
-      <div class="flex flex-wrap gap-x-2">
-        <div
-          v-for="artist in artists" :key="artist.name"
-          class="text-sm rounded-md border-gray-400"
-        >
-          <Tooltip>
-            <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
-              {{ artist.name }}
-              <span class="text-xs text-gray-600">{{ artist.songCount }}&nbsp;</span>
-            </RouterLink>
-            <template v-if="artist.songs?.length" #tooltip>
-              <div class="p-2 max-w-[300px] bg-white w-fit text-xs rounded-lg shadow">
-                <div v-for="song, index in artist.songs" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">
-                  {{ song.name }}
+  <AsyncFade>
+    <div v-if="isLoading" class="flex items-center justify-center py-8 text-gray-400">
+      <LucideLoader2 class="size-6 animate-spin mr-2" />
+      加载中...
+    </div>
+
+    <div v-else-if="isError" class="flex items-center justify-center py-8 text-red-400">
+      加载失败，请刷新重试
+    </div>
+
+    <div v-else>
+      <div
+        v-for="([typeName, artists]) in sortedEntries" :key="typeName"
+        class="pb-1"
+      >
+        <div class="font-bold">
+          {{ typeName }}
+        </div>
+        <div class="flex flex-wrap gap-x-2">
+          <div
+            v-for="artist in artists" :key="artist.name"
+            class="text-sm rounded-md border-gray-400"
+          >
+            <Tooltip>
+              <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
+                {{ artist.name }}
+                <span class="text-xs text-gray-600">{{ artist.songCount }}&nbsp;</span>
+              </RouterLink>
+              <template v-if="artist.songs?.length" #tooltip>
+                <div class="p-2 max-w-[300px] bg-white w-fit text-xs rounded-lg shadow">
+                  <div v-for="song, index in artist.songs" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">
+                    {{ song.name }}
+                  </div>
+                  <div v-if="artist.songCount > artist.songs.length" class="text-gray-500">
+                    和其他 {{ artist.songCount - artist.songs.length }} 首音乐
+                  </div>
                 </div>
-                <div v-if="artist.songCount > artist.songs.length" class="text-gray-500">
-                  和其他 {{ artist.songCount - artist.songs.length }} 首音乐
-                </div>
-              </div>
-            </template>
-          </Tooltip>
+              </template>
+            </Tooltip>
+          </div>
         </div>
       </div>
     </div>
-  </template>
+  </AsyncFade>
 </template>
 
 <style scoped>

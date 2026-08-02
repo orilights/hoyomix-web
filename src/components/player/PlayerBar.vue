@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { PlayMode } from '@/types/player'
 import { audioQualityOptions, getQualityLabel } from '@/constants'
-import { isIOS } from '@/utils'
 import { usePlayerStore } from '@/store/player'
+import { isIOS } from '@/utils'
 
 const player = usePlayerStore()
 const {

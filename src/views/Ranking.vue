@@ -118,116 +118,112 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
-      <LucideLoader2 class="size-6 animate-spin mr-2" />
-      加载中...
-    </div>
+    <AsyncFade>
+      <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
+        <LucideLoader2 class="size-6 animate-spin mr-2" />
+        加载中...
+      </div>
 
-    <div v-else-if="!songs.length" class="flex items-center justify-center py-20 text-gray-400">
-      暂无数据
-    </div>
+      <div v-else-if="!songs.length" class="flex items-center justify-center py-20 text-gray-400">
+        暂无数据
+      </div>
 
-    <div v-else class="bg-black/5 rounded-xl pt-2 pb-4">
-      <table class="w-full table-fixed overflow-hidden">
-        <thead>
-          <tr class="text-left">
-            <th class="pl-4 p-2 w-[50px]">
-              #
-            </th>
-            <th class="p-2 w-[56px]" />
-            <th class="p-2">
-              歌曲
-            </th>
-            <th class="p-2 w-[200px] hidden md:table-cell">
-              专辑
-            </th>
-            <th class="p-2 w-[80px]">
-              时长
-            </th>
-            <th class="p-2 w-[100px] hidden md:table-cell" />
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(song, index) in songs"
-            :key="song.songId"
-            class="transition-colors hover:bg-black/8 group"
-          >
-            <td class="pl-4 text-gray-500 text-sm">
-              <span
-                class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
-                :class="index < 3
-                  ? ['text-white', index === 0 ? 'bg-amber-400' : index === 1 ? 'bg-gray-400' : 'bg-orange-400']
-                  : ''"
-              >
-                {{ index + 1 }}
-              </span>
-            </td>
-            <td class="p-2">
-              <div class="size-10 rounded-md overflow-hidden bg-gray-200 shrink-0">
-                <img
-                  :src="getCoverUrl(song.albumPlatforms, '96px')"
-                  class="size-full object-cover"
-                  loading="lazy"
-                >
-              </div>
-            </td>
-            <td
-              class="p-2 cursor-pointer"
-              @click="$router.push({ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.songId } })"
+      <div v-else class="bg-black/5 rounded-xl pt-2 pb-4">
+        <table class="w-full table-fixed overflow-hidden">
+          <thead>
+            <tr class="text-left">
+              <th class="pl-4 p-2 w-[50px]">
+                #
+              </th>
+              <th class="p-2 w-[56px]" />
+              <th class="p-2">
+                歌曲
+              </th>
+              <th class="p-2 w-[200px] hidden md:table-cell">
+                专辑
+              </th>
+              <th class="p-2 w-[80px]">
+                时长
+              </th>
+              <th class="p-2 w-[100px] hidden md:table-cell" />
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(song, index) in songs"
+              :key="song.songId"
+              class="transition-colors hover:bg-black/8 group"
             >
-              <p class="truncate text-sm font-medium" :title="song.songName">
-                {{ song.songName }}
-              </p>
-              <p class="truncate text-xs text-gray-500">
-                {{ song.songDescription }}
-              </p>
-            </td>
-            <td class="p-2 text-sm text-gray-500 hidden md:table-cell truncate" :title="song.albumName">
-              <RouterLink
-                :to="{ name: 'AlbumInfo', params: { id: song.albumId } }"
-                class="hover:text-blue-500 transition-colors"
-                @click.stop
-              >
-                {{ song.albumName }}
-              </RouterLink>
-            </td>
-            <td class="p-2 text-sm text-gray-500">
-              {{ formatDuration(song.duration) }}
-            </td>
-            <td class="hidden md:table-cell p-2">
-              <div class="flex gap-1">
-                <div
-                  v-if="!store.favoriteSongIds.includes(song.songId)"
-                  class="opacity-0 group-hover:opacity-100 transition-opacity"
+              <td class="pl-4 text-gray-500 text-sm">
+                <span
+                  class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
+                  :class="index < 3
+                    ? ['text-white', index === 0 ? 'bg-amber-400' : index === 1 ? 'bg-gray-400' : 'bg-orange-400']
+                    : ''"
                 >
-                  <SongFavoriteButton :song-id="song.songId" />
-                </div>
-                <SongFavoriteButton
-                  v-else
-                  :song-id="song.songId"
-                />
-                <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                    title="播放"
-                    @click="playSong(song)"
+                  {{ index + 1 }}
+                </span>
+              </td>
+              <td class="p-2">
+                <LazyImg class="size-10 rounded-md" :src="getCoverUrl(song.albumPlatforms, '96px')" />
+              </td>
+              <td
+                class="p-2 cursor-pointer"
+                @click="$router.push({ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.songId } })"
+              >
+                <p class="truncate text-sm font-medium" :title="song.songName">
+                  {{ song.songName }}
+                </p>
+                <p class="truncate text-xs text-gray-500">
+                  {{ song.songDescription }}
+                </p>
+              </td>
+              <td class="p-2 text-sm text-gray-500 hidden md:table-cell truncate" :title="song.albumName">
+                <RouterLink
+                  :to="{ name: 'AlbumInfo', params: { id: song.albumId } }"
+                  class="hover:text-blue-500 transition-colors"
+                  @click.stop
+                >
+                  {{ song.albumName }}
+                </RouterLink>
+              </td>
+              <td class="p-2 text-sm text-gray-500">
+                {{ formatDuration(song.duration) }}
+              </td>
+              <td class="hidden md:table-cell p-2">
+                <div class="flex gap-1">
+                  <div
+                    v-if="!store.favoriteSongIds.includes(song.songId)"
+                    class="opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <LucidePlay class="size-4" />
-                  </button>
-                  <button
-                    class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
-                    title="加入播放列表"
-                    @click="addSongToPlaylist(song)"
-                  >
-                    <LucidePlus class="size-4" />
-                  </button>
+                    <SongFavoriteButton :song-id="song.songId" />
+                  </div>
+                  <SongFavoriteButton
+                    v-else
+                    :song-id="song.songId"
+                  />
+                  <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                      title="播放"
+                      @click="playSong(song)"
+                    >
+                      <LucidePlay class="size-4" />
+                    </button>
+                    <button
+                      class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                      title="加入播放列表"
+                      @click="addSongToPlaylist(song)"
+                    >
+                      <LucidePlus class="size-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </AsyncFade>
   </div>
 </template>

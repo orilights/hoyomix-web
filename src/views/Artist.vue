@@ -95,83 +95,85 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
-    <LucideLoader2 class="size-6 animate-spin mr-2" />
-    加载中...
-  </div>
+  <AsyncFade>
+    <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
+      <LucideLoader2 class="size-6 animate-spin mr-2" />
+      加载中...
+    </div>
 
-  <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
-    加载失败，请刷新重试
-  </div>
+    <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
+      加载失败，请刷新重试
+    </div>
 
-  <div v-else class="flex flex-col lg:flex-row gap-4 mt-4">
-    <div class="w-full lg:w-[400px] shrink-0 h-fit p-4 bg-black/5 rounded-xl">
-      <div class="font-bold text-2xl pb-4">
-        {{ artistName }}
-        <div v-if="artistInfo?.isHoyomix" class="font-normal text-base text-gray-500">
-          HOYO-MiX 成员
+    <div v-else class="flex flex-col lg:flex-row gap-4 mt-4">
+      <div class="w-full lg:w-[400px] shrink-0 h-fit p-4 bg-black/5 rounded-xl">
+        <div class="font-bold text-2xl pb-4">
+          {{ artistName }}
+          <div v-if="artistInfo?.isHoyomix" class="font-normal text-base text-gray-500">
+            HOYO-MiX 成员
+          </div>
         </div>
-      </div>
-      <div class="font-bold mt-2 mb-1">
-        参与项目
-      </div>
-      <div v-if="artistInfo" class="flex flex-col gap-0.5">
-        <button
-          v-for="product in artistInfo.products" :key="product"
-          class="flex items-center px-2 py-1.5 rounded-lg transition-colors cursor-pointer text-left"
-          :class="selectedProduct === product ? 'bg-black/10 font-medium' : 'hover:bg-gray-500/15'"
-          @click="selectedProduct = selectedProduct === product ? null : product; selectedRole = null"
-        >
-          <img
-            class="size-[20px] rounded-lg shrink-0"
-            :src="getProductIconUrl(product)"
-            :alt="product"
-          >
-          <span class="ml-2 text-sm truncate flex-1">{{ product }}</span>
-          <span class="text-xs text-gray-400 shrink-0 ml-2">{{ productSongCount.get(product) ?? 0 }}</span>
-        </button>
-      </div>
-
-      <template v-if="allRoles.length">
-        <div class="font-bold mt-4 mb-1">
-          担任职责
+        <div class="font-bold mt-2 mb-1">
+          参与项目
         </div>
-        <div class="flex flex-col gap-0.5">
+        <div v-if="artistInfo" class="flex flex-col gap-0.5">
           <button
-            v-for="item in allRoles" :key="item.role"
-            class="flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors cursor-pointer text-left"
-            :class="selectedRole === item.role ? 'bg-black/10 font-medium' : 'hover:bg-gray-500/15'"
-            @click="selectedRole = selectedRole === item.role ? null : item.role"
+            v-for="product in artistInfo.products" :key="product"
+            class="flex items-center px-2 py-1.5 rounded-lg transition-colors cursor-pointer text-left"
+            :class="selectedProduct === product ? 'bg-black/10 font-medium' : 'hover:bg-gray-500/15'"
+            @click="selectedProduct = selectedProduct === product ? null : product; selectedRole = null"
           >
-            <span class="text-sm truncate mr-2">{{ item.role }}</span>
-            <span class="text-xs text-gray-400 shrink-0">{{ item.count }}</span>
+            <LazyImg
+              class="size-[20px] rounded-lg"
+              :src="getProductIconUrl(product)"
+              :alt="product"
+            />
+            <span class="ml-2 text-sm truncate flex-1">{{ product }}</span>
+            <span class="text-xs text-gray-400 shrink-0 ml-2">{{ productSongCount.get(product) ?? 0 }}</span>
           </button>
         </div>
-      </template>
-    </div>
 
-    <div class="flex-1 overflow-hidden">
-      <div v-if="availableYears.length > 1" class="flex flex-wrap items-center gap-2 mb-2">
-        <button
-          class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-          :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
-          @click="selectedYear = null"
-        >
-          全部
-        </button>
-        <button
-          v-for="year in availableYears"
-          :key="year"
-          class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-          :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
-          @click="selectedYear = year"
-        >
-          {{ year }}
-        </button>
+        <template v-if="allRoles.length">
+          <div class="font-bold mt-4 mb-1">
+            担任职责
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <button
+              v-for="item in allRoles" :key="item.role"
+              class="flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors cursor-pointer text-left"
+              :class="selectedRole === item.role ? 'bg-black/10 font-medium' : 'hover:bg-gray-500/15'"
+              @click="selectedRole = selectedRole === item.role ? null : item.role"
+            >
+              <span class="text-sm truncate mr-2">{{ item.role }}</span>
+              <span class="text-xs text-gray-400 shrink-0">{{ item.count }}</span>
+            </button>
+          </div>
+        </template>
       </div>
-      <ArtistAlbumList v-if="artistInfoResolved" :albums-list="albumsFilteredByYear" :artist-info="artistInfoResolved" :selected-role="selectedRole" :selected-product="selectedProduct" />
+
+      <div class="flex-1 overflow-hidden">
+        <div v-if="availableYears.length > 1" class="flex flex-wrap items-center gap-2 mb-2">
+          <button
+            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
+            :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            @click="selectedYear = null"
+          >
+            全部
+          </button>
+          <button
+            v-for="year in availableYears"
+            :key="year"
+            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
+            :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            @click="selectedYear = year"
+          >
+            {{ year }}
+          </button>
+        </div>
+        <ArtistAlbumList v-if="artistInfoResolved" :albums-list="albumsFilteredByYear" :artist-info="artistInfoResolved" :selected-role="selectedRole" :selected-product="selectedProduct" />
+      </div>
     </div>
-  </div>
+  </AsyncFade>
 </template>
 
 <style scoped>

@@ -169,13 +169,12 @@ onMounted(() => {
       <div v-if="isLoggedIn" class="bg-white/60 rounded-xl border border-gray-200 p-4">
         <div class="flex items-center gap-4">
           <div class="size-14 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
-            <img
+            <LazyImg
               v-if="user?.image"
+              class="size-full rounded-full"
               :src="user.image"
               :alt="user.name"
-              loading="lazy"
-              class="size-full object-cover"
-            >
+            />
             <div v-else class="size-full bg-blue-500 flex items-center justify-center text-white text-xl font-medium">
               {{ getInitial() }}
             </div>
@@ -288,13 +287,19 @@ onMounted(() => {
 
     <div class="font-bold text-2xl mt-4">
       更新日志
-    </div>    <div v-if="isChangelogLoading" class="flex items-center mt-4 py-4 text-gray-400">
-      <LucideLoader2 class="size-5 animate-spin mr-2" />
-      加载中...
     </div>
-    <div v-else class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4 overflow-x-scroll">
-      {{ changelog }}
-    </div>
+    <AsyncFade>
+      <div v-if="isChangelogLoading" class="flex items-center mt-4 py-4 text-gray-400">
+        <LucideLoader2 class="size-5 animate-spin mr-2" />
+        加载中...
+      </div>
+      <div v-else-if="isChangelogError" class="flex items-center justify-center mt-4 py-4 text-red-400">
+        加载失败，请刷新重试
+      </div>
+      <div v-else class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4 overflow-x-scroll">
+        {{ changelog }}
+      </div>
+    </AsyncFade>
 
     <ChangePasswordDialog v-model="showChangePassword" />
   </div>

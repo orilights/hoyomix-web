@@ -93,7 +93,7 @@ async function select(playlist: PlaylistListItem) {
         @click="select(pl)"
       >
         <div class="size-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-          <img v-if="getCover(pl)" :src="getCover(pl)" loading="lazy" class="size-full object-cover">
+          <LazyImg v-if="getCover(pl)" class="size-full rounded-lg" :src="getCover(pl)" />
           <div v-else class="size-full flex items-center justify-center">
             <LucideMusic class="size-5 text-gray-300" />
           </div>

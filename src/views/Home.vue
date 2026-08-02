@@ -180,7 +180,7 @@ onMounted(() => {
           :to="{ name: 'ProductInfo', params: { name: product.productName } }"
           class="flex items-center gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
         >
-          <img :src="getProductIconUrl(product.productName)" class="size-12 rounded-full shadow" loading="lazy">
+          <LazyImg class="size-12 rounded-full shadow" :src="getProductIconUrl(product.productName)" />
           <div class="min-w-0">
             <div class="font-medium truncate">
               {{ product.name }}

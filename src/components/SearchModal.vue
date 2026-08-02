@@ -241,68 +241,69 @@ onUnmounted(() => {
             :style="contentHeight !== null ? { height: `${contentHeight}px` } : {}"
           >
             <div ref="contentRef" class="max-h-[60vh] overflow-y-auto">
-              <div v-if="showLoading && results.length === 0" class="flex items-center justify-center py-12 text-gray-400">
-                <LucideLoader2 class="size-5 animate-spin mr-2" />
-                搜索中...
-              </div>
+              <AsyncFade>
+                <div v-if="showLoading && results.length === 0" class="flex items-center justify-center py-12 text-gray-400">
+                  <LucideLoader2 class="size-5 animate-spin mr-2" />
+                  搜索中...
+                </div>
 
-              <div v-else-if="hasSearched && !showLoading && results.length === 0" class="py-12 text-center text-gray-400">
-                未找到相关结果
-              </div>
+                <div v-else-if="hasSearched && !showLoading && results.length === 0" class="py-12 text-center text-gray-400">
+                  未找到相关结果
+                </div>
 
-              <div v-else-if="results.length > 0" class="py-2">
-                <button
-                  v-for="(item, index) in results"
-                  :key="`${item.type}-${item.id}`"
-                  :ref="(el) => setItemRef(el as HTMLElement, index)"
-                  class="w-full flex items-start gap-3 px-4 py-3 transition-colors cursor-pointer text-left"
-                  :class="activeIndex === index ? 'bg-blue-500/10' : 'hover:bg-black/5'"
-                  @click="toResult(item)"
-                  @mouseenter="activeIndex = index"
-                >
-                  <div class="shrink-0 mt-0.5">
-                    <img
-                      v-if="getItemImageUrl(item)"
-                      :src="getItemImageUrl(item)"
-                      loading="lazy"
-                      class="size-10 rounded-lg object-cover"
-                      :class="item.type === 'product' ? 'rounded-full' : 'rounded-lg'"
-                    >
-                    <div v-else class="size-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <LucideUser v-if="item.type === 'artist'" class="size-5 text-gray-400" />
-                      <LucideDisc v-if="item.type === 'series'" class="size-5 text-gray-400" />
+                <div v-else-if="results.length > 0" class="py-2">
+                  <button
+                    v-for="(item, index) in results"
+                    :key="`${item.type}-${item.id}`"
+                    :ref="(el) => setItemRef(el as HTMLElement, index)"
+                    class="w-full flex items-start gap-3 px-4 py-3 transition-colors cursor-pointer text-left"
+                    :class="activeIndex === index ? 'bg-blue-500/10' : 'hover:bg-black/5'"
+                    @click="toResult(item)"
+                    @mouseenter="activeIndex = index"
+                  >
+                    <div class="shrink-0 mt-0.5">
+                      <LazyImg
+                        v-if="getItemImageUrl(item)"
+                        class="size-10"
+                        :class="item.type === 'product' ? 'rounded-full' : 'rounded-lg'"
+                        :src="getItemImageUrl(item)"
+                      />
+                      <div v-else class="size-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                        <LucideUser v-if="item.type === 'artist'" class="size-5 text-gray-400" />
+                        <LucideDisc v-if="item.type === 'series'" class="size-5 text-gray-400" />
+                      </div>
                     </div>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
-                        {{ getTypeLabel(item.type) }}
-                      </span>
-                      <span
-                        class="search-highlight truncate font-medium"
-                        v-html="getHighlight(item, 'name') || item.name"
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
+                          {{ getTypeLabel(item.type) }}
+                        </span>
+                        <span
+                          class="search-highlight truncate font-medium"
+                          v-html="getHighlight(item, 'name') || item.name"
+                        />
+                      </div>
+                      <div v-if="getSubtitle(item)" class="text-sm text-gray-500 truncate mt-0.5">
+                        {{ getSubtitle(item) }}
+                      </div>
+                      <div
+                        v-if="getHighlight(item, 'description')"
+                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
+                        v-html="getHighlight(item, 'description')"
+                      />
+                      <div
+                        v-if="getHighlight(item, 'lyrics')"
+                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
+                        v-html="getHighlight(item, 'lyrics')"
                       />
                     </div>
-                    <div v-if="getSubtitle(item)" class="text-sm text-gray-500 truncate mt-0.5">
-                      {{ getSubtitle(item) }}
-                    </div>
-                    <div
-                      v-if="getHighlight(item, 'description')"
-                      class="search-highlight text-xs text-gray-400 truncate mt-0.5"
-                      v-html="getHighlight(item, 'description')"
-                    />
-                    <div
-                      v-if="getHighlight(item, 'lyrics')"
-                      class="search-highlight text-xs text-gray-400 truncate mt-0.5"
-                      v-html="getHighlight(item, 'lyrics')"
-                    />
-                  </div>
-                </button>
-              </div>
+                  </button>
+                </div>
 
-              <div v-else-if="!keyword.trim()" class="py-12 text-center text-gray-400">
-                输入关键词开始搜索
-              </div>
+                <div v-else-if="!keyword.trim()" class="py-12 text-center text-gray-400">
+                  输入关键词开始搜索
+                </div>
+              </AsyncFade>
             </div>
           </div>
         </div>

@@ -124,7 +124,7 @@ watch(product, (val) => {
 <template>
   <div>
     <div class="py-4 flex items-center">
-      <img :src="getProductIconUrl(product)" class="rounded-full shadow">
+      <LazyImg class="size-[100px] md:size-[136px] rounded-full shadow" :src="getProductIconUrl(product)" />
       <div class="ml-4 md:ml-8">
         <div class="font-bold text-2xl md:text-3xl">
           {{ getProductName(product) }}
