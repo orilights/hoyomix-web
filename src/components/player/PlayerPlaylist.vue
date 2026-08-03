@@ -14,6 +14,13 @@ const showSelectPlaylistDialog = ref(false)
 
 const playlistSongIds = computed(() => playlist.value.map(item => item.songId))
 
+watch(showPlaylist, async (val) => {
+  if (val && currentIndex.value >= 0) {
+    await nextTick()
+    document.querySelector(`[data-playlist-index="${currentIndex.value}"]`)?.scrollIntoView({ block: 'center' })
+  }
+})
+
 function saveAsNew() {
   if (!auth.requireLogin())
     return
@@ -107,6 +114,7 @@ function clearAll() {
           >
             <template #item="{ element, index }">
               <div
+                :data-playlist-index="index"
                 class="flex items-center px-4 py-2 hover:bg-white/5 transition-colors group mr-1"
                 :class="{ 'bg-white/10': index === currentIndex }"
               >
