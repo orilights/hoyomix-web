@@ -10,6 +10,7 @@ defineProps<{
 const videoSourceMap: Record<string, string> = {
   web: '官网',
   mys: '米游社',
+  bilibili: 'Bilibili',
 }
 
 const layerAIndex = ref(0)
@@ -102,6 +103,7 @@ function goSourceLink(url: string) {
               @click="goSourceLink(source.link)"
             >
               <img v-if="source.source === 'mys'" src="/images/icon/mys.png" class="w-4 h-4 object-contain rounded-full">
+              <img v-else-if="source.source === 'bilibili'" src="/images/icon/bilibili.png" class="w-4 h-4 object-contain rounded-full">
               <LucideGlobe v-else class="w-4 h-4" />
               <span>{{ sourceName(source.source) }}</span>
               <template v-if="source.duration">
