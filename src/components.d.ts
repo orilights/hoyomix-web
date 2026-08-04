@@ -44,6 +44,7 @@ declare module 'vue' {
     LucideClock: typeof import('@lucide/vue')['Clock']
     LucideDisc: typeof import('@lucide/vue')['Disc']
     LucideFolderPlus: typeof import('@lucide/vue')['FolderPlus']
+    LucideGlobe: typeof import('@lucide/vue')['Globe']
     LucideGripVertical: typeof import('@lucide/vue')['GripVertical']
     LucideHeart: typeof import('@lucide/vue')['Heart']
     LucideImage: typeof import('@lucide/vue')['Image']

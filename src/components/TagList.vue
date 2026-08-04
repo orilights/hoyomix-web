@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TagInfo } from '@/types/core'
+import type { VideoTagData } from '@/types/tag'
 import { formatDuration } from '@/utils'
 
 defineProps<{
@@ -8,9 +9,36 @@ defineProps<{
 
 const videoSourceMap: Record<string, string> = {
   web: '官网',
+  mys: '米游社',
 }
 
-function openLink(url: string) {
+const layerAIndex = ref(0)
+const layerBIndex = ref<number | null>(null)
+const visibleLayer = ref<'a' | 'b'>('a')
+
+function getVideoData(tagData: any): VideoTagData {
+  return tagData as VideoTagData
+}
+
+function handleSourceHover(si: number) {
+  const currentIdx = visibleLayer.value === 'a' ? layerAIndex.value : layerBIndex.value!
+  if (si === currentIdx)
+    return
+  if (visibleLayer.value === 'a') {
+    layerBIndex.value = si
+    visibleLayer.value = 'b'
+  }
+  else {
+    layerAIndex.value = si
+    visibleLayer.value = 'a'
+  }
+}
+
+function sourceName(source: string) {
+  return videoSourceMap[source] || source
+}
+
+function goSourceLink(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 </script>
@@ -43,38 +71,46 @@ function openLink(url: string) {
 
       <div
         v-if="tagInfo.tagType === 'video' && tagInfo.tagData"
-        class="relative flex items-center w-full overflow-hidden rounded-xl cursor-pointer group py-4 group"
-        @click="openLink(tagInfo.tagData.link)"
+        class="relative w-full overflow-hidden rounded-xl p-4"
       >
         <img
-          :src="tagInfo.tagData.cover"
+          :src="getVideoData(tagInfo.tagData).sources[layerAIndex].coverUrl"
           :alt="tagInfo.tagName"
           loading="lazy"
-          class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+          :class="visibleLayer === 'a' ? 'opacity-100' : 'opacity-0'"
         >
-        <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/20" />
-        <div class="relative flex-1 min-w-0 px-4">
+        <img
+          v-if="layerBIndex !== null"
+          :src="getVideoData(tagInfo.tagData).sources[layerBIndex].coverUrl"
+          :alt="tagInfo.tagName"
+          loading="lazy"
+          class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+          :class="visibleLayer === 'b' ? 'opacity-100' : 'opacity-0'"
+        >
+        <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/60 to-black/40" />
+        <div class="relative flex flex-col gap-2">
           <p class="text-white text-sm font-medium truncate">
             {{ tagInfo.tagName }}
           </p>
-          <p class="text-gray-300 text-xs mt-1 truncate">
-            {{ formatDuration(tagInfo.tagData.duration) }}
-            <template v-if="tagInfo.tagData.source">
-              {{ ` · ${videoSourceMap[tagInfo.tagData.source] || tagInfo.tagData.source}` }}
-            </template>
-          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <button
+              v-for="(source, si) in getVideoData(tagInfo.tagData).sources"
+              :key="si"
+              class="flex items-center gap-1 px-2 py-1 rounded-full bg-white/15 hover:bg-white/30 transition-colors cursor-pointer text-white text-xs"
+              @mouseenter="handleSourceHover(si)"
+              @click="goSourceLink(source.link)"
+            >
+              <img v-if="source.source === 'mys'" src="/images/icon/mys.png" class="w-4 h-4 object-contain rounded-full">
+              <LucideGlobe v-else class="w-4 h-4" />
+              <span>{{ sourceName(source.source) }}</span>
+              <template v-if="source.duration">
+                <span class="text-white/60">·</span>
+                <span>{{ formatDuration(source.duration) }}</span>
+              </template>
+            </button>
+          </div>
         </div>
-        <a
-          :href="tagInfo.tagData.url"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="relative flex-shrink-0 px-4 transition-opacity opacity-100 md:opacity-0 md:group-hover:opacity-100"
-          @click.stop
-        >
-          <span class="flex items-center justify-center w-10 h-10 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
-            <LucidePlay class="ml-0.5 h-5 w-5 fill-white text-white" />
-          </span>
-        </a>
       </div>
     </template>
   </div>

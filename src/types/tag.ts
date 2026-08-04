@@ -1,7 +1,11 @@
-export interface VideoTagData {
-  source: 'web'
+export interface VideoSource {
+  source: string
   link: string
-  url: string
-  cover: string
-  duration: number
+  id: string
+  coverUrl: string
+  duration?: number
+}
+
+export interface VideoTagData {
+  sources: VideoSource[]
 }
