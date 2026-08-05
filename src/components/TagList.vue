@@ -13,26 +13,16 @@ const videoSourceMap: Record<string, string> = {
   bilibili: 'Bilibili',
 }
 
-const layerAIndex = ref(0)
-const layerBIndex = ref<number | null>(null)
-const visibleLayer = ref<'a' | 'b'>('a')
-
 function getVideoData(tagData: any): VideoTagData {
   return tagData as VideoTagData
 }
 
-function handleSourceHover(si: number) {
-  const currentIdx = visibleLayer.value === 'a' ? layerAIndex.value : layerBIndex.value!
-  if (si === currentIdx)
-    return
-  if (visibleLayer.value === 'a') {
-    layerBIndex.value = si
-    visibleLayer.value = 'b'
+function getFirstCover(videoData: VideoTagData): string {
+  for (const source of videoData.sources) {
+    if (source.coverUrl)
+      return source.coverUrl
   }
-  else {
-    layerAIndex.value = si
-    visibleLayer.value = 'a'
-  }
+  return ''
 }
 
 function sourceName(source: string) {
@@ -75,20 +65,11 @@ function goSourceLink(url: string) {
         class="relative w-full overflow-hidden rounded-xl p-4"
       >
         <img
-          :src="getVideoData(tagInfo.tagData).sources[layerAIndex].coverUrl"
+          v-if="getFirstCover(getVideoData(tagInfo.tagData))"
+          :src="getFirstCover(getVideoData(tagInfo.tagData))"
           :alt="tagInfo.tagName"
           loading="lazy"
-          class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-          :class="visibleLayer === 'a' ? 'opacity-100' : 'opacity-0'"
-          referrerpolicy="no-referrer"
-        >
-        <img
-          v-if="layerBIndex !== null"
-          :src="getVideoData(tagInfo.tagData).sources[layerBIndex].coverUrl"
-          :alt="tagInfo.tagName"
-          loading="lazy"
-          class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-          :class="visibleLayer === 'b' ? 'opacity-100' : 'opacity-0'"
+          class="absolute inset-0 w-full h-full object-cover"
           referrerpolicy="no-referrer"
         >
         <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/60 to-black/40" />
@@ -101,7 +82,6 @@ function goSourceLink(url: string) {
               v-for="(source, si) in getVideoData(tagInfo.tagData).sources"
               :key="si"
               class="flex items-center gap-1 px-2 py-1 rounded-full bg-white/15 hover:bg-white/30 transition-colors cursor-pointer text-white text-xs"
-              @mouseenter="handleSourceHover(si)"
               @click="goSourceLink(source.link)"
             >
               <img v-if="source.source === 'mys'" src="/images/icon/mys.png" class="w-4 h-4 object-contain rounded-full">
