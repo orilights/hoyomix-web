@@ -80,6 +80,7 @@ function goSourceLink(url: string) {
           loading="lazy"
           class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
           :class="visibleLayer === 'a' ? 'opacity-100' : 'opacity-0'"
+          referrerpolicy="no-referrer"
         >
         <img
           v-if="layerBIndex !== null"
@@ -88,6 +89,7 @@ function goSourceLink(url: string) {
           loading="lazy"
           class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
           :class="visibleLayer === 'b' ? 'opacity-100' : 'opacity-0'"
+          referrerpolicy="no-referrer"
         >
         <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/60 to-black/40" />
         <div class="relative flex flex-col gap-2">
