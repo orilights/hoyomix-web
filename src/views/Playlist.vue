@@ -459,7 +459,7 @@ onMounted(() => {
                 <td class="pl-4 text-gray-500 text-sm">
                   {{ index + 1 }}
                 </td>
-                <td class="p-2 cursor-pointer" @click="$router.push({ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.songId } })">
+                <td class="p-2 cursor-pointer" @click="$router.push({ name: 'PlaylistMusicInfo', params: { playlistId, musicId: song.songId } })">
                   <p class="truncate text-sm font-medium" :title="song.songName">
                     {{ song.songName }}
                   </p>

@@ -10,10 +10,18 @@ interface Props {
   ncmOptions?: DropdownOption[]
   qqOptions?: DropdownOption[]
   dropdownPosition?: 'down' | 'up' | 'auto'
+  prevTooltip?: string
+  nextTooltip?: string
+  prevDisabled?: boolean
+  nextDisabled?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   dropdownPosition: 'auto',
+  prevTooltip: '前往专辑上一首歌曲',
+  nextTooltip: '前往专辑下一首歌曲',
+  prevDisabled: false,
+  nextDisabled: false,
 })
 
 const emit = defineEmits<{
@@ -35,18 +43,22 @@ const emit = defineEmits<{
     </button>
   </Tooltip>
 
-  <Tooltip placement="top" theme="light" content="前往专辑上一首歌曲">
+  <Tooltip placement="top" theme="light" :content="prevTooltip">
     <button
       class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+      :class="{ 'opacity-50 cursor-not-allowed hover:bg-gray-500/10': prevDisabled }"
+      :disabled="prevDisabled"
       @click="emit('prev')"
     >
       前一首
     </button>
   </Tooltip>
 
-  <Tooltip placement="top" theme="light" content="前往专辑下一首歌曲">
+  <Tooltip placement="top" theme="light" :content="nextTooltip">
     <button
       class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+      :class="{ 'opacity-50 cursor-not-allowed hover:bg-gray-500/10': nextDisabled }"
+      :disabled="nextDisabled"
       @click="emit('next')"
     >
       后一首

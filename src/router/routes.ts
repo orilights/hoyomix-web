@@ -57,6 +57,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/Playlist.vue'),
   },
   {
+    path: '/playlist/:playlistId/music/:musicId',
+    name: 'PlaylistMusicInfo',
+    component: () => import('@/views/Music.vue'),
+  },
+  {
     path: '/random',
     name: 'Random',
     component: () => import('@/views/Random.vue'),

@@ -2,7 +2,7 @@
 import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
-import { useAlbumInfoQuery, useLyricsQuery, useSongInfoQuery } from '@/composables/queries'
+import { useAlbumInfoQuery, useLyricsQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
 import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -17,13 +17,41 @@ const auth = useAuthStore()
 
 const { lyricsSource } = storeToRefs(player)
 
-const albumId = computed(() => Number(route.params.albumId as string) || null)
+const isPlaylistContext = computed(() => route.name === 'PlaylistMusicInfo')
+const detailPlaylistId = computed(() => (isPlaylistContext.value ? (route.params.playlistId as string) : null))
+const { data: playlistDetail } = usePlaylistDetailQuery(detailPlaylistId)
+
 const musicId = computed(() => Number(route.params.musicId))
+const currentPlaylistSong = computed(() => {
+  if (!isPlaylistContext.value || !playlistDetail.value)
+    return null
+  return playlistDetail.value.songs.find(song => song.songId === musicId.value) || null
+})
+
+const albumId = computed(() => {
+  if (isPlaylistContext.value)
+    return currentPlaylistSong.value?.albumId ?? null
+  return Number(route.params.albumId as string) || null
+})
 
 const { data: albumInfo, isLoading, isError: isAlbumError, error: albumError } = useAlbumInfoQuery(albumId)
 const { data: songInfo, isLoading: isSongLoading, isError: isSongError, error: songError } = useSongInfoQuery(musicId)
 
 const musicInfo = computed<SongListItemInfo | null>(() => {
+  if (isPlaylistContext.value) {
+    const song = currentPlaylistSong.value
+    if (!song)
+      return null
+    return {
+      id: song.songId,
+      name: song.songName,
+      description: song.songDescription,
+      disc: '',
+      track: 0,
+      duration: song.duration,
+      platforms: song.platforms,
+    }
+  }
   if (albumInfo.value) {
     return albumInfo.value.songs.find(song => song.id === musicId.value) || null
   }
@@ -55,6 +83,13 @@ watch(isAlbumError, (val) => {
 // 专辑加载成功但歌曲不存在于该专辑中，跳转 404 页面
 watch([() => !!albumInfo.value, musicInfo], ([hasAlbum, song]) => {
   if (hasAlbum && !song) {
+    router.replace({ path: '/404', query: { errorMessage: '歌曲不存在' } })
+  }
+})
+
+// 歌单加载成功但歌曲不存在于该歌单中，跳转 404 页面
+watch([() => !!playlistDetail.value, musicInfo], ([hasPlaylist, song]) => {
+  if (isPlaylistContext.value && hasPlaylist && !song) {
     router.replace({ path: '/404', query: { errorMessage: '歌曲不存在' } })
   }
 })
@@ -110,24 +145,63 @@ function handlePlay() {
   }
 }
 
+function findCurrentSongIndex() {
+  if (isPlaylistContext.value && playlistDetail.value) {
+    return playlistDetail.value.songs.findIndex(song => song.songId === musicId.value)
+  }
+  return albumInfo.value?.songs.findIndex(song => song.id === musicId.value) ?? -1
+}
+
 function goPrevMusic() {
-  const index = albumInfo.value!.songs.findIndex(song => song.id === musicId.value)
+  const index = findCurrentSongIndex()
+  if (isPlaylistContext.value && playlistDetail.value) {
+    if (index > 0) {
+      router.push({ name: 'PlaylistMusicInfo', params: { playlistId: detailPlaylistId.value, musicId: playlistDetail.value.songs[index - 1].songId } })
+    }
+    return
+  }
   if (index > 0) {
     router.push({ name: 'MusicInfo', params: { albumId: albumId.value, musicId: albumInfo.value!.songs[index - 1].id } })
   }
 }
 
 function goNextMusic() {
-  const index = albumInfo.value!.songs.findIndex(song => song.id === musicId.value)
+  const index = findCurrentSongIndex()
+  if (isPlaylistContext.value && playlistDetail.value) {
+    if (index >= 0 && index < playlistDetail.value.songs.length - 1) {
+      router.push({ name: 'PlaylistMusicInfo', params: { playlistId: detailPlaylistId.value, musicId: playlistDetail.value.songs[index + 1].songId } })
+    }
+    return
+  }
   if (index < albumInfo.value!.songs.length - 1) {
     router.push({ name: 'MusicInfo', params: { albumId: albumId.value, musicId: albumInfo.value!.songs[index + 1].id } })
   }
 }
 
-watch(musicInfo, (val) => {
-  if (val) {
-    document.title = `${val.name} - ${appTitle}`
-    store.setBackground(getCoverUrl(albumInfo.value!.platforms, '128px'))
+const hasPrev = computed(() => {
+  if (isPlaylistContext.value && playlistDetail.value)
+    return playlistDetail.value.songs.findIndex(song => song.songId === musicId.value) > 0
+  if (albumInfo.value)
+    return albumInfo.value.songs.findIndex(song => song.id === musicId.value) > 0
+  return true
+})
+
+const hasNext = computed(() => {
+  if (isPlaylistContext.value && playlistDetail.value) {
+    const index = playlistDetail.value.songs.findIndex(song => song.songId === musicId.value)
+    return index >= 0 && index < playlistDetail.value.songs.length - 1
+  }
+  if (albumInfo.value) {
+    const index = albumInfo.value.songs.findIndex(song => song.id === musicId.value)
+    return index >= 0 && index < albumInfo.value.songs.length - 1
+  }
+  return true
+})
+
+watch([musicInfo, albumInfo], ([song, album]) => {
+  if (song && album) {
+    document.title = `${song.name} - ${appTitle}`
+    store.setBackground(getCoverUrl(album.platforms, '128px'))
   }
 }, { immediate: true })
 
@@ -203,6 +277,10 @@ onMounted(() => {
               dropdown-position="up"
               :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
               :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
+              :prev-tooltip="isPlaylistContext ? '前往歌单上一首歌曲' : '前往专辑上一首歌曲'"
+              :next-tooltip="isPlaylistContext ? '前往歌单下一首歌曲' : '前往专辑下一首歌曲'"
+              :prev-disabled="!hasPrev"
+              :next-disabled="!hasNext"
               @play="handlePlay"
               @prev="goPrevMusic"
               @next="goNextMusic"
@@ -217,6 +295,10 @@ onMounted(() => {
         <MusicActions
           :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
           :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
+          :prev-tooltip="isPlaylistContext ? '前往歌单上一首歌曲' : '前往专辑上一首歌曲'"
+          :next-tooltip="isPlaylistContext ? '前往歌单下一首歌曲' : '前往专辑下一首歌曲'"
+          :prev-disabled="!hasPrev"
+          :next-disabled="!hasNext"
           @play="handlePlay"
           @prev="goPrevMusic"
           @next="goNextMusic"
