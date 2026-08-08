@@ -3,19 +3,45 @@ import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { fetchJsonMutation } from '@/api/music'
 import { useChangelogQuery } from '@/composables/queries'
-import { apiBase, audioQualityOptions } from '@/constants'
+import { apiBase, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
+import { useMediaSourceStore } from '@/store/media-source'
 import { usePlayerStore } from '@/store/player'
 import { goFeedbackPage } from '@/utils'
 
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
+const mediaSource = useMediaSourceStore()
 const { quality, enableAudioContext, lyricsSource } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 const showChangePassword = ref(false)
+
+function formatLatency(ms: number | undefined): string {
+  return ms == null ? '-' : `${Math.round(ms)}ms`
+}
+
+function regionLabel(region: string): string {
+  return mediaSourceRegionOptions.find(o => o.value === region)?.label ?? region
+}
+
+function regionBadgeClass(region: string): string {
+  return mediaSourceRegionOptions.find(o => o.value === region)?.badgeClass ?? 'bg-gray-100 text-gray-600'
+}
+
+function qualityText(qualities: number[]): string {
+  return qualities.map(q => getQualityName(q)).join(' / ')
+}
+
+// 音频质量选项：使用所有媒体源支持的质量（并集）进行过滤；媒体源未加载时显示全部
+const availableQualityOptions = computed(() => {
+  if (!mediaSource.isLoaded || mediaSource.sources.length === 0)
+    return audioQualityOptions
+  const supported = new Set(mediaSource.sources.flatMap(s => s.supportedQualities))
+  return audioQualityOptions.filter(o => supported.has(o.value))
+})
 
 function getInitial(): string {
   return user.value?.name?.charAt(0).toUpperCase() ?? '?'
@@ -90,12 +116,90 @@ onMounted(() => {
     <PageHeader title="设置" subtitle="一些也许有用的设置" />
 
     <div>
+      <div class="font-bold text-lg mb-2 flex items-center gap-2">
+        音频源
+        <button
+          class="text-xs px-2 py-1 rounded-md border transition-colors cursor-pointer flex items-center gap-1"
+          :class="mediaSource.isTestingLatency
+            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'"
+          :disabled="mediaSource.isTestingLatency"
+          @click="mediaSource.testLatency()"
+        >
+          <LucideRefreshCw v-if="!mediaSource.isTestingLatency" class="size-3.5" />
+          <LucideLoader2 v-else class="size-3.5 animate-spin" />
+          重新测试延迟
+        </button>
+      </div>
+      <div v-if="mediaSource.isLoaded" class="flex flex-wrap gap-2">
+        <button
+          class="w-56 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
+          :class="mediaSource.selectedSource === 'auto'
+            ? 'bg-white text-gray-700 border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          @click="mediaSource.selectSource('auto')"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold">自动选择</span>
+          </div>
+          <div class="text-sm mt-1 text-gray-500">
+            <template v-if="mediaSource.isTestingLatency">
+              <LucideLoader2 class="size-4 inline animate-spin mr-1" />
+              延迟检测中…
+            </template>
+            <template v-else-if="mediaSource.autoPreferredNode">
+              {{ mediaSource.autoPreferredNode }}（{{ formatLatency(mediaSource.latencyResults[mediaSource.autoPreferredNode]) }}）
+            </template>
+            <template v-else>
+              暂无可用节点
+            </template>
+          </div>
+        </button>
+
+        <button
+          v-for="source in mediaSource.sources"
+          :key="source.name"
+          class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
+          :class="mediaSource.selectedSource === source.name
+            ? 'bg-white text-gray-700 border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          @click="mediaSource.selectSource(source.name)"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-bold truncate">{{ source.name }}</span>
+              <span
+                class="text-xs px-1.5 py-0.5 rounded shrink-0"
+                :class="regionBadgeClass(source.region)"
+              >
+                {{ regionLabel(source.region) }}
+              </span>
+            </div>
+            <span class="text-sm shrink-0">
+              {{ formatLatency(mediaSource.latencyResults[source.name]) }}
+            </span>
+          </div>
+          <div class="text-xs text-gray-500 mt-1.5">
+            支持音质：{{ qualityText(source.supportedQualities) }}
+          </div>
+        </button>
+      </div>
+      <div v-else class="flex items-center py-4 text-gray-400">
+        <LucideLoader2 class="size-5 animate-spin mr-2" />
+        正在加载音频源配置…
+      </div>
+      <div class="text-sm text-gray-600 mt-2">
+        自动模式将根据延迟选择音频源，也可手动指定优先使用的音频源
+      </div>
+    </div>
+
+    <div class="mt-4">
       <div class="font-bold text-lg mb-2">
         音频质量
       </div>
       <div class="flex gap-2">
         <button
-          v-for="opt in audioQualityOptions"
+          v-for="opt in availableQualityOptions"
           :key="opt.value"
           class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
           :class="quality === opt.value
@@ -105,6 +209,9 @@ onMounted(() => {
         >
           {{ opt.label }}
         </button>
+      </div>
+      <div v-if="availableQualityOptions.length === 0" class="text-sm text-gray-500 mt-2">
+        暂无可用音质选项
       </div>
     </div>
 

@@ -6,9 +6,9 @@ export const feedbackPageUrl = import.meta.env.VITE_FEEDBACK_URL as string
 export const userApiBase = import.meta.env.VITE_USER_API_BASE as string
 
 export const audioQualityOptions: { value: AudioQuality, label: string, key: string, desc: string }[] = [
-  // { value: 9, label: '无损', key: 'flac', desc: 'FLAC 无损音质' },
+  { value: 9, label: '无损', key: 'flac', desc: 'FLAC 无损音质' },
   { value: 5, label: '较高', key: 'mp3_320', desc: 'MP3 320kbps' },
-  // { value: 1, label: '标准', key: 'mp3_128', desc: 'MP3 128kbps' },
+  { value: 1, label: '标准', key: 'mp3_128', desc: 'MP3 128kbps' },
 ]
 
 export function getQualityLabel(q: AudioQuality): string {
@@ -18,6 +18,24 @@ export function getQualityLabel(q: AudioQuality): string {
 export function getQualityKey(q: AudioQuality): string {
   return audioQualityOptions.find(o => o.value === q)?.key ?? 'mp3_320'
 }
+
+// 音质数值 → 中文名（媒体源 supportedQualities 展示用，未知值回退）
+export function getQualityName(q: number): string {
+  return audioQualityOptions.find(o => o.value === q)?.label ?? `音质${q}`
+}
+
+// 媒体源区域标签配置（名称与徽标样式）
+export interface MediaSourceRegionOption {
+  value: string
+  label: string
+  badgeClass: string
+}
+
+export const mediaSourceRegionOptions: MediaSourceRegionOption[] = [
+  { value: 'china', label: '中国大陆', badgeClass: 'bg-green-100 text-green-700' },
+  { value: 'overseas', label: '海外', badgeClass: 'bg-purple-100 text-purple-700' },
+  { value: 'global', label: '全球', badgeClass: 'bg-blue-100 text-blue-700' },
+]
 
 export const productMap: { [key: string]: string }
   = {

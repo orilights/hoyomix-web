@@ -15,7 +15,11 @@ export type PlayMode = 'sequential' | 'loop' | 'single' | 'shuffle'
 export type AudioQuality = 9 | 5 | 1
 export type LyricsSource = 'ncm' | 'qq'
 
+export type MediaSourceSelection = 'auto' | string
+
 export interface SongMediaItem {
-  quality: string
+  sourceName: string
+  region: string
+  quality: AudioQuality
   url: string
 }

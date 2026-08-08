@@ -88,8 +88,27 @@ export interface PlatformInfoMap {
   ncm?: PlatformInfo
 }
 
-export interface SongMediaInfo {
-  medias: string[]
+export interface MediaSourceConfig {
+  name: string
+  region: string
+  baseUrl: string
+  priority: number
+  supportedQualities: number[]
+}
+
+export interface AppConfigResponse {
+  sources: MediaSourceConfig[]
+}
+
+export interface SongMediaItemResponse {
+  sourceName: string
+  region: string
+  quality: number
+  url: string
+}
+
+export interface SongMediaResponse {
+  medias: SongMediaItemResponse[]
 }
 
 export type PlaylistReviewStatus = 'none' | 'pending' | 'approved' | 'rejected'

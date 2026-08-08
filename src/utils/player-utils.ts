@@ -1,23 +1,22 @@
-import type { AlbumInfo, SongListItemInfo } from '@/types/core'
+import type { AlbumInfo, SongListItemInfo, SongMediaResponse } from '@/types/core'
 import type { AudioQuality, PlaylistItem, SongMediaItem } from '@/types/player'
 import { audioQualityOptions, getQualityKey } from '@/constants'
 import { getCoverUrl } from './misc'
 
-// 解析服务端返回的 medias 数组（格式："quality|url"）
-export function parseSongMedia(medias: string[]): SongMediaItem[] {
-  return medias.map((item) => {
-    const separatorIndex = item.indexOf('|')
-    return {
-      quality: item.slice(0, separatorIndex),
-      url: item.slice(separatorIndex + 1),
-    }
-  })
+// 将服务端返回的媒体信息映射为播放器内部结构
+export function parseSongMediaResponse(response: SongMediaResponse): SongMediaItem[] {
+  return response.medias.map(item => ({
+    sourceName: item.sourceName,
+    region: item.region,
+    quality: item.quality as AudioQuality,
+    url: item.url,
+  }))
 }
 
 // 根据目标音质选择 URL 列表，优先降级、其次升级
 export function selectMediaUrls(items: SongMediaItem[], quality: AudioQuality): string[] {
   const targetKey = getQualityKey(quality)
-  const matched = items.filter(i => i.quality === targetKey).map(i => i.url)
+  const matched = items.filter(i => getQualityKey(i.quality) === targetKey).map(i => i.url)
   if (matched.length > 0)
     return matched
 
@@ -27,7 +26,7 @@ export function selectMediaUrls(items: SongMediaItem[], quality: AudioQuality): 
   // 降级：找值更低的可用音质
   const lowerOptions = sorted.filter(o => o.value < quality)
   for (const opt of lowerOptions) {
-    const urls = items.filter(i => i.quality === opt.key).map(i => i.url)
+    const urls = items.filter(i => getQualityKey(i.quality) === opt.key).map(i => i.url)
     if (urls.length > 0)
       return urls
   }
@@ -35,7 +34,7 @@ export function selectMediaUrls(items: SongMediaItem[], quality: AudioQuality): 
   // 升级：找值更高的可用音质
   const higherOptions = sorted.filter(o => o.value > quality).reverse()
   for (const opt of higherOptions) {
-    const urls = items.filter(i => i.quality === opt.key).map(i => i.url)
+    const urls = items.filter(i => getQualityKey(i.quality) === opt.key).map(i => i.url)
     if (urls.length > 0)
       return urls
   }
@@ -43,11 +42,25 @@ export function selectMediaUrls(items: SongMediaItem[], quality: AudioQuality): 
   return []
 }
 
+export function selectMediaUrlsWithSource(
+  items: SongMediaItem[],
+  quality: AudioQuality,
+  preferredSource: string | null,
+): string[] {
+  if (!preferredSource)
+    return selectMediaUrls(items, quality)
+
+  const preferred = items.filter(i => i.sourceName === preferredSource)
+  const others = items.filter(i => i.sourceName !== preferredSource)
+
+  return [...selectMediaUrls(preferred, quality), ...selectMediaUrls(others, quality)]
+}
+
 // 获取 media 列表中可用的音质集合
 export function getAvailableQualities(items: SongMediaItem[]): Set<AudioQuality> {
   const result = new Set<AudioQuality>()
   for (const opt of audioQualityOptions) {
-    if (items.some(i => i.quality === opt.key))
+    if (items.some(i => getQualityKey(i.quality) === opt.key))
       result.add(opt.value)
   }
   return result

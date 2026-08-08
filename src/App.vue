@@ -4,13 +4,15 @@ import { toast, Toaster } from 'vue-sonner'
 import { useAlbumListQuery, useProductListQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
+import { useMediaSourceStore } from '@/store/media-source'
 import { usePlayerStore } from '@/store/player'
 
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
+const mediaSource = useMediaSourceStore()
 const { albumList, showSearch } = storeToRefs(store)
-const { volume, isFullscreen, showPlaylist } = storeToRefs(player)
+const { volume, isFullscreen, showPlaylist, isLoading } = storeToRefs(player)
 
 const { data: albumListData, isError: isAlbumListError, error: albumListError } = useAlbumListQuery()
 
@@ -81,9 +83,15 @@ watch(() => isFullscreen.value || showPlaylist.value || showSearch.value, (val) 
   })
 }, { immediate: true })
 
+watch(() => mediaSource.selectedSource, () => {
+  if (!isLoading.value)
+    player.reloadCurrentSong()
+})
+
 onMounted(() => {
   initBodyScrollbars({ target: document.body })
   player.initPlayer()
+  mediaSource.fetchAndConfigure()
   window.addEventListener('keydown', onKeydown)
 })
 

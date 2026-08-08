@@ -3,9 +3,10 @@ import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api/music'
 import { audioQualityOptions } from '@/constants'
-import { clearMediaSession, getAvailableQualities, parseSongMedia, selectLyricProvider, selectMediaUrls, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
+import { clearMediaSession, getAvailableQualities, parseSongMediaResponse, selectLyricProvider, selectMediaUrlsWithSource, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 import { queryClient } from '@/utils/query-client'
+import { useMediaSourceStore } from './media-source'
 
 export const usePlayerStore = defineStore('player', {
   state: () => ({
@@ -34,6 +35,8 @@ export const usePlayerStore = defineStore('player', {
     lyricData: '',
     lyricTranslation: '',
     showPlaylist: false,
+    consecutiveErrorCount: 0,
+    isRecoveringFromError: false,
   }),
 
   getters: {
@@ -108,15 +111,35 @@ export const usePlayerStore = defineStore('player', {
         this.playNext()
       })
       player.on('error', () => {
+        if (this.isRecoveringFromError) {
+          this.consecutiveErrorCount++
+          return
+        }
+        this.isRecoveringFromError = true
+        this.consecutiveErrorCount++
+
+        if (this.consecutiveErrorCount >= 2) {
+          toast.error('音频服务暂时不可用，请稍后再试')
+          this.isPlaying = false
+          this.isLoading = false
+          player.pause()
+          player.urls = []
+          this.isRecoveringFromError = false
+          return
+        }
+
         // 播放出错时尝试下一首
         if (this.playlist.length > 1) {
           toast.error('播放失败，已切换下一首', { duration: 2000 })
-          this.playNext()
+          this.playNext().finally(() => {
+            this.isRecoveringFromError = false
+          })
         }
         else {
           toast.error('播放失败')
           this.isPlaying = false
           this.isLoading = false
+          this.isRecoveringFromError = false
         }
       })
     },
@@ -137,13 +160,16 @@ export const usePlayerStore = defineStore('player', {
       this.lyricTranslation = ''
       this.fetchLyric()
 
+      const mediaSource = useMediaSourceStore()
+      const preferredSource = mediaSource.effectiveSource
+
       try {
         const data = await queryClient.fetchQuery({
-          queryKey: ['songMedia', song.songId],
+          queryKey: ['songMedia', song.songId, preferredSource ?? 'default'],
           queryFn: () => getSongMediaApi(song.songId),
           staleTime: 1000 * 60 * 5,
         })
-        this.currentMediaItems = parseSongMedia(data.medias)
+        this.currentMediaItems = parseSongMediaResponse(data)
         this.availableQualities = getAvailableQualities(this.currentMediaItems)
       }
       catch (error) {
@@ -155,7 +181,7 @@ export const usePlayerStore = defineStore('player', {
         return
       }
 
-      const urls = selectMediaUrls(this.currentMediaItems, this.quality)
+      const urls = selectMediaUrlsWithSource(this.currentMediaItems, this.quality, preferredSource)
       if (urls.length === 0) {
         this.isPlaying = false
         this.isLoading = false
@@ -173,6 +199,8 @@ export const usePlayerStore = defineStore('player', {
       if (this.isLoading) {
         return
       }
+      // 用户手动操作，重置连续错误计数
+      this.consecutiveErrorCount = 0
       const player = getAudioPlayer()
       if (this.isPlaying) {
         player.pause()
@@ -263,6 +291,8 @@ export const usePlayerStore = defineStore('player', {
 
     async replacePlaylist(items: PlaylistItem[], startIndex = 0) {
       this.playlist = items
+      // 用户手动操作，重置连续错误计数
+      this.consecutiveErrorCount = 0
       if (items.length > 0) {
         await this.playSong(startIndex)
       }
@@ -358,7 +388,7 @@ export const usePlayerStore = defineStore('player', {
       const savedTime = this.currentTime
       const wasPlaying = this.isPlaying
 
-      const urls = selectMediaUrls(this.currentMediaItems, q)
+      const urls = selectMediaUrlsWithSource(this.currentMediaItems, q, useMediaSourceStore().effectiveSource)
       if (urls.length === 0)
         return
 
@@ -373,6 +403,16 @@ export const usePlayerStore = defineStore('player', {
         }
       }
       player.on('canplay', onCanPlay)
+    },
+
+    async reloadCurrentSong() {
+      if (!this.currentSong)
+        return
+      const wasPlaying = this.isPlaying
+      await this.playSong(this.currentIndex)
+      if (!wasPlaying) {
+        getAudioPlayer().pause()
+      }
     },
 
     togglePlayMode() {

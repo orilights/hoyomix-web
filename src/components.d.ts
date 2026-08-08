@@ -65,6 +65,7 @@ declare module 'vue' {
     LucidePencil: typeof import('@lucide/vue')['Pencil']
     LucidePlay: typeof import('@lucide/vue')['Play']
     LucidePlus: typeof import('@lucide/vue')['Plus']
+    LucideRefreshCw: typeof import('@lucide/vue')['RefreshCw']
     LucideRepeat: typeof import('@lucide/vue')['Repeat']
     LucideRepeat1: typeof import('@lucide/vue')['Repeat1']
     LucideRotateCcw: typeof import('@lucide/vue')['RotateCcw']

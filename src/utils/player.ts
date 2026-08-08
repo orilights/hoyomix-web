@@ -81,6 +81,12 @@ export class AudioPlayer {
       if (this.urlIndex < this.urls.length - 1) {
         this.urlIndex++
         this.loadUrl(this.urls[this.urlIndex])
+        // 自动重试播放：等新 URL 可播放后自动调用 play()
+        const onCanPlay = () => {
+          this.audio.removeEventListener('canplay', onCanPlay)
+          this.audio.play().catch(() => {})
+        }
+        this.audio.addEventListener('canplay', onCanPlay)
       }
       else {
         this.emit('error', new Error(this.audio.error?.message || 'Audio load error'))
