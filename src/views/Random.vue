@@ -19,6 +19,7 @@ const {
   randomPlaylistDateFrom,
   randomPlaylistDateTo,
   randomPlaylistExcludeAlbums,
+  randomPlaylistExcludeInstrumental,
   randomPlaylistAlbums,
   randomPlaylist,
 } = storeToRefs(store)
@@ -67,6 +68,7 @@ async function generate() {
         dateFrom: randomPlaylistDateFrom.value || undefined,
         dateTo: randomPlaylistDateTo.value || undefined,
         excludeAlbums: randomPlaylistExcludeAlbums.value.length ? randomPlaylistExcludeAlbums.value : undefined,
+        excludeInstrumental: randomPlaylistExcludeInstrumental.value || undefined,
       })
     }
   }
@@ -210,6 +212,15 @@ onMounted(() => {
               <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
             </button>
           </div>
+
+          <label class="flex items-center gap-2.5 py-1 cursor-pointer select-none">
+            <input
+              v-model="randomPlaylistExcludeInstrumental"
+              type="checkbox"
+              class="size-4 rounded border-gray-300 text-blue-500 focus:ring-blue-400 accent-blue-500 cursor-pointer"
+            >
+            <span class="text-sm text-gray-700">排除伴奏</span>
+          </label>
         </template>
 
         <template v-else>

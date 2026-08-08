@@ -152,6 +152,7 @@ export interface RandomPlaylistParams {
   products?: string[]
   albums?: number[]
   excludeAlbums?: number[]
+  excludeInstrumental?: boolean
   dateFrom?: string
   dateTo?: string
 }
@@ -166,6 +167,8 @@ export function getRandomPlaylistApi(params?: RandomPlaylistParams) {
     query.set('albums', params.albums.join(','))
   if (params?.excludeAlbums?.length)
     query.set('excludeAlbums', params.excludeAlbums.join(','))
+  if (params?.excludeInstrumental)
+    query.set('excludeInstrumental', 'true')
   if (params?.dateFrom)
     query.set('dateFrom', params.dateFrom)
   if (params?.dateTo)

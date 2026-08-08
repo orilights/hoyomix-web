@@ -16,6 +16,7 @@ export const useMainStore = defineStore('main', {
     randomPlaylistDateFrom: '',
     randomPlaylistDateTo: '',
     randomPlaylistExcludeAlbums: [] as number[],
+    randomPlaylistExcludeInstrumental: false,
     randomPlaylistAlbums: [] as number[],
     randomPlaylist: [] as PlaylistSongItem[],
     // 收藏
@@ -101,6 +102,6 @@ export const useMainStore = defineStore('main', {
     },
   },
   persist: {
-    pick: ['albumLayoutMap', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistAlbums', 'randomPlaylist'],
+    pick: ['albumLayoutMap', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistExcludeInstrumental', 'randomPlaylistAlbums', 'randomPlaylist'],
   },
 })
