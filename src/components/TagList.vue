@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { TagInfo } from '@/types/core'
+import type { SongMapInfo, TagInfo } from '@/types/core'
 import type { VideoTagData } from '@/types/tag'
 import { formatDuration } from '@/utils'
 
 defineProps<{
   tags: TagInfo[]
+  maps?: SongMapInfo[]
 }>()
 
 const videoSourceMap: Record<string, string> = {
@@ -36,6 +37,18 @@ function goSourceLink(url: string) {
 
 <template>
   <div class="flex flex-wrap gap-x-2 gap-y-1">
+    <div
+      v-for="(map, mi) in maps"
+      :key="`map-${mi}`"
+      class="px-2 py-0.5 bg-black/5 rounded-xl flex flex-wrap items-center gap-1 text-sm"
+    >
+      <template v-for="(segment, si) in map.path" :key="si">
+        <LucideChevronRight v-if="si > 0" class="h-3 w-3 text-gray-400" />
+        <span>{{ segment }}</span>
+      </template>
+      <span v-if="map.note" class="text-gray-500">（{{ map.note }}）</span>
+    </div>
+
     <template v-for="(tagInfo, index) in tags" :key="index">
       <div v-if="tagInfo.tagType === 'version'" class="px-2 py-0.5 bg-black/5 rounded-xl">
         发布版本：{{ tagInfo.tagName }}
@@ -48,17 +61,6 @@ function goSourceLink(url: string) {
       >
         {{ tagInfo.tagName }} 系列专辑
       </RouterLink>
-
-      <div
-        v-if="tagInfo.tagType === 'area' && tagInfo.tagData"
-        class="px-2 py-0.5 bg-black/5 rounded-xl flex flex-wrap items-center gap-1 text-sm"
-      >
-        <span class="text-gray-500">{{ tagInfo.tagName }}：</span>
-        <template v-for="(levelKey, li) in Object.keys(tagInfo.tagData).sort()" :key="li">
-          <LucideChevronRight v-if="li > 0" class="h-3 w-3 text-gray-400" />
-          <span>{{ tagInfo.tagData[levelKey] }}</span>
-        </template>
-      </div>
 
       <div
         v-if="tagInfo.tagType === 'video' && tagInfo.tagData"

@@ -307,7 +307,7 @@ onMounted(() => {
         <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
       </div>
 
-      <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="mt-4 lg:hidden">
+      <div v-if="isSongLoading || isSongError || songInfo?.tags.length || songInfo?.maps?.length" class="mt-4 lg:hidden">
         <AsyncFade>
           <div v-if="isSongLoading" class="flex items-center justify-center py-2 text-gray-400">
             <LucideLoader2 class="size-6 animate-spin mr-2" />
@@ -316,7 +316,7 @@ onMounted(() => {
           <div v-else-if="isSongError" class="flex items-center justify-center py-2 text-red-400">
             加载失败，请刷新重试
           </div>
-          <TagList v-else-if="songInfo?.tags.length" :tags="songInfo.tags" />
+          <TagList v-else-if="songInfo?.tags.length || songInfo?.maps?.length" :tags="songInfo.tags" :maps="songInfo.maps" />
         </AsyncFade>
       </div>
 
@@ -339,7 +339,7 @@ onMounted(() => {
 
       <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
         <div class="w-full lg:w-[400px]">
-          <div v-if="isSongLoading || isSongError || songInfo?.tags.length" class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
+          <div v-if="isSongLoading || isSongError || songInfo?.tags.length || songInfo?.maps?.length" class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
             <AsyncFade>
               <div v-if="isSongLoading" class="flex items-center justify-center py-2 text-gray-400">
                 <LucideLoader2 class="size-6 animate-spin mr-2" />
@@ -348,7 +348,7 @@ onMounted(() => {
               <div v-else-if="isSongError" class="flex items-center justify-center py-2 text-red-400">
                 加载失败，请刷新重试
               </div>
-              <TagList v-else-if="songInfo?.tags.length" :tags="songInfo.tags" />
+              <TagList v-else-if="songInfo?.tags.length || songInfo?.maps?.length" :tags="songInfo.tags" :maps="songInfo.maps" />
             </AsyncFade>
           </div>
 

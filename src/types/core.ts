@@ -10,9 +10,16 @@ export interface AlbumInfo {
   totalDuration: string
 }
 
+export interface SongMapInfo {
+  id: number
+  path: string[]
+  note?: string
+}
+
 export interface SongInfo {
   id: number
   tags: TagInfo[]
+  maps?: SongMapInfo[]
 }
 
 export interface ArtistInfo {
