@@ -1,4 +1,4 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, ProductListItemInfo, SongInfo, SongLyricInfo, SongMediaResponse } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongLyricInfo, SongMediaResponse } from '@/types/core'
 import type { NotificationListResponse } from '@/types/notification'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
@@ -40,10 +40,6 @@ export function getChangelog() {
 
 export function getAlbumListApi() {
   return fetchJson<AlbumListItemInfo[]>(`${apiBase}/albums`)
-}
-
-export function getProductListApi() {
-  return fetchJson<ProductListItemInfo[]>(`${apiBase}/products`)
 }
 
 export function getAlbumInfoApi(albumId: number) {

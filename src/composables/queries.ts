@@ -2,6 +2,7 @@ import type { PlaylistsQueryParams } from '@/api/music'
 import type { SearchType } from '@/types/search'
 import { useQuery } from '@tanstack/vue-query'
 import {
+  fetchAppConfig,
   getAlbumInfoApi,
   getAlbumListApi,
   getAlbumsByTagApi,
@@ -12,17 +13,16 @@ import {
   getLyricsApi,
   getMyPlaylistsApi,
   getPlaylistDetailApi,
-  getProductListApi,
   getPublicPlaylistsApi,
   getSearchApi,
   getSongInfoApi,
 } from '@/api/music'
 
-export function useProductListQuery() {
+export function useAppConfigQuery() {
   return useQuery({
-    queryKey: ['productList'],
-    queryFn: () => getProductListApi(),
-    staleTime: 1000 * 60 * 10,
+    queryKey: ['appConfig'],
+    queryFn: () => fetchAppConfig(),
+    staleTime: Infinity,
   })
 }
 

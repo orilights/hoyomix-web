@@ -1,7 +1,7 @@
 import type { MediaSourceConfig } from '@/types/core'
 import type { MediaSourceSelection } from '@/types/player'
 import { defineStore } from 'pinia'
-import { fetchAppConfig, pingMediaSource } from '@/api/music'
+import { pingMediaSource } from '@/api/music'
 
 // 每个源的延迟测试轮数
 const LATENCY_TEST_ROUNDS = 3
@@ -79,10 +79,9 @@ export const useMediaSourceStore = defineStore('media-source', () => {
   }
 
   // 获取媒体源配置，并后台测试各源延迟
-  async function fetchAndConfigure() {
+  async function fetchAndConfigure(sourceList: MediaSourceConfig[]) {
     try {
-      const data = await fetchAppConfig()
-      sources.value = data.sources
+      sources.value = sourceList
     }
     catch (err) {
       console.warn('获取媒体源配置失败:', err)

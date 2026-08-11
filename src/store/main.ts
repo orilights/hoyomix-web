@@ -1,10 +1,11 @@
-import type { AlbumListItemInfo, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
+import type { AlbumListItemInfo, AppConfigResponse, MediaSourceConfig, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
 import { defineStore } from 'pinia'
 import { addFavoriteApi, addPlaylistFavoriteApi, getAllFavoritesApi, getFavoritePlaylistsApi, removeFavoriteApi, removePlaylistFavoriteApi } from '@/api/music'
 
 export const useMainStore = defineStore('main', {
   state: () => ({
     productList: [] as ProductListItemInfo[],
+    mediaSources: [] as MediaSourceConfig[],
     albumList: [] as AlbumListItemInfo[],
     backgroundUrl: '',
     showSearch: false,
@@ -26,6 +27,10 @@ export const useMainStore = defineStore('main', {
   actions: {
     setBackground(url = '') {
       this.backgroundUrl = url
+    },
+    setAppConfig(data: AppConfigResponse) {
+      this.productList = data.products
+      this.mediaSources = data.sources
     },
     setAlbumLayout(key: string, layout: 'grid' | 'list') {
       this.albumLayoutMap[key] = layout

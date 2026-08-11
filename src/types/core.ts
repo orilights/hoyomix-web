@@ -50,6 +50,7 @@ export interface TagInfo {
 }
 
 export interface ProductListItemInfo {
+  productId: number
   name: string
   tags: TagInfo[]
 }
@@ -105,6 +106,7 @@ export interface MediaSourceConfig {
 
 export interface AppConfigResponse {
   sources: MediaSourceConfig[]
+  products: ProductListItemInfo[]
 }
 
 export interface SongMediaItemResponse {

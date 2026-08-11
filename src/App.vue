@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useOverlayScrollbars } from 'overlayscrollbars-vue'
 import { toast, Toaster } from 'vue-sonner'
-import { useAlbumListQuery, useProductListQuery } from '@/composables/queries'
+import { useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
@@ -16,16 +16,18 @@ const { volume, isFullscreen, showPlaylist, isLoading } = storeToRefs(player)
 
 const { data: albumListData, isError: isAlbumListError, error: albumListError } = useAlbumListQuery()
 
-const { data: productListData } = useProductListQuery()
+const { data: appConfigData } = useAppConfigQuery()
 
 watch(albumListData, (data) => {
   if (data)
     albumList.value = [...data].reverse()
 }, { immediate: true })
 
-watch(productListData, (data) => {
-  if (data)
-    store.productList = data
+watch(appConfigData, (data) => {
+  if (!data)
+    return
+  store.setAppConfig(data)
+  mediaSource.fetchAndConfigure(data.sources)
 }, { immediate: true })
 
 watch(isAlbumListError, (val) => {
@@ -91,7 +93,6 @@ watch(() => mediaSource.selectedSource, () => {
 onMounted(() => {
   initBodyScrollbars({ target: document.body })
   player.initPlayer()
-  mediaSource.fetchAndConfigure()
   window.addEventListener('keydown', onKeydown)
 })
 
