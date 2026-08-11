@@ -82,6 +82,7 @@ declare module 'vue' {
     LucideVolumeX: typeof import('@lucide/vue')['VolumeX']
     LucideX: typeof import('@lucide/vue')['X']
     MusicActions: typeof import('./components/MusicActions.vue')['default']
+    MusicLyrics: typeof import('./components/MusicLyrics.vue')['default']
     NotificationBell: typeof import('./components/user/NotificationBell.vue')['default']
     NotificationDialog: typeof import('./components/user/NotificationDialog.vue')['default']
     NotificationPanel: typeof import('./components/user/NotificationPanel.vue')['default']

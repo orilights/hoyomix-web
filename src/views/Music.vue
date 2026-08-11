@@ -2,12 +2,12 @@
 import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
-import { useAlbumInfoQuery, useLyricsQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
+import { useAlbumInfoQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
 import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
-import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient, mergeLyrics, selectLyricProvider } from '@/utils'
+import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient, selectLyricProvider } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -63,13 +63,8 @@ const lyricProvider = computed(() => {
 })
 const lyricSongId = computed(() => musicInfo.value?.id ?? null)
 
-const { data: lyricsData, isLoading: isLyricsLoading, isError: isLyricsError, error: lyricsError } = useLyricsQuery(lyricProvider, lyricSongId)
-
-const lyricList = computed(() => {
-  if (!lyricsData.value)
-    return []
-  return mergeLyrics(lyricsData.value.content, lyricsData.value.translation ?? '')
-})
+const hasNcmPlatform = computed(() => !!musicInfo.value?.platforms?.ncm)
+const hasQQPlatform = computed(() => !!musicInfo.value?.platforms?.qq)
 
 watch(isAlbumError, (val) => {
   if (!val)
@@ -99,12 +94,6 @@ watch(isSongError, (val) => {
     return
   if (songError.value instanceof NotFoundError)
     router.replace({ path: '/404', query: { errorMessage: songError.value?.message } })
-})
-
-watch(isLyricsError, (val) => {
-  if (!val || lyricsError.value instanceof NotFoundError)
-    return
-  toast.error(`歌词加载失败：${lyricsError.value?.message ?? '未知错误'}`)
 })
 
 const neteaseOptions = computed(() => [
@@ -358,26 +347,12 @@ onMounted(() => {
         </div>
 
         <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
-          <div class="bg-black/5 rounded-xl overflow-hidden p-4">
-            <AsyncFade>
-              <div v-if="!lyricProvider" class="text-gray-400 text-sm text-center py-4">
-                暂无数据
-              </div>
-              <div v-else-if="isLyricsLoading" class="flex items-center justify-center py-4 text-gray-400">
-                <LucideLoader2 class="size-4 animate-spin mr-1" />
-                加载中...
-              </div>
-              <div v-else>
-                <div v-if="lyricList.length === 0" class="text-gray-400 text-sm text-center py-4">
-                  暂无数据
-                </div>
-                <div v-for="line, index in lyricList" v-else :key="index" class="my-1">
-                  <span>{{ line.text }}</span>
-                  <span v-if="line.translation" class="text-gray-500 ml-2">/ {{ line.translation }}</span>
-                </div>
-              </div>
-            </AsyncFade>
-          </div>
+          <MusicLyrics
+            :lyric-provider="lyricProvider"
+            :lyric-song-id="lyricSongId"
+            :has-ncm-platform="hasNcmPlatform"
+            :has-qq-platform="hasQQPlatform"
+          />
         </div>
       </div>
 
