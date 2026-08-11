@@ -4,16 +4,35 @@ import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
-import buildInfo from './plugins/buildInfo'
-import injectHead from './plugins/injectHead'
+import buildInfo from './plugins/buildInfo.ts'
+import injectHead from './plugins/injectHead.ts'
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
+      '@': path.resolve(import.meta.dirname, 'src'),
     },
   },
   base: '/',
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+
+            {
+              name: 'vendor',
+              test: id => id.includes('node_nodules') && !id.includes('echarts'),
+            },
+            {
+              name: 'pages',
+              test: id => id.includes('views') && !id.includes('Statistics'),
+            },
+          ],
+        },
+      },
+    },
+  },
   plugins: [
     vue(),
     tailwindcss(),
