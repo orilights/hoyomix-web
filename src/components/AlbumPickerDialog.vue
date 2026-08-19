@@ -94,13 +94,13 @@ function confirm() {
     <template #footer>
       <div class="px-6 py-3 flex justify-end gap-2">
         <button
-          class="px-4 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
+          class="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
           @click="visible = false"
         >
           取消
         </button>
         <button
-          class="px-4 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600 cursor-pointer transition-colors"
+          class="px-3 py-2 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600 cursor-pointer transition-colors"
           @click="confirm"
         >
           确定

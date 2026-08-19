@@ -284,13 +284,13 @@ async function submit() {
     <template #footer>
       <div class="px-6 py-4 flex justify-end gap-3">
         <button
-          class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer"
+          class="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 cursor-pointer"
           @click="visible = false"
         >
           取消
         </button>
         <button
-          class="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50"
+          class="px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50"
           :disabled="loading || !name.trim()"
           @click="submit"
         >

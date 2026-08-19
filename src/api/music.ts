@@ -1,4 +1,4 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongLyricInfo, SongMediaResponse } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
 import type { NotificationListResponse } from '@/types/notification'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
@@ -48,6 +48,34 @@ export function getAlbumInfoApi(albumId: number) {
 
 export function getSongInfoApi(songId: number) {
   return fetchJson<SongInfo>(`${apiBase}/songs/${songId}`)
+}
+
+export function getMapTreeApi(game: string) {
+  return fetchJson<MapTreeNode[]>(`${apiBase}/maps?game=${encodeURIComponent(game)}`)
+}
+
+export function submitSongRegionEditApi(songId: number, maps: SongMapsChange) {
+  return fetchJsonMutation<EditRequestResponse>(`${apiBase}/edit-requests`, 'POST', {
+    resourceType: 'song',
+    resourceId: songId,
+    changes: { maps },
+  })
+}
+
+export function submitSongTagsEditApi(songId: number, tags: SongTagsChange) {
+  return fetchJsonMutation<EditRequestResponse>(`${apiBase}/edit-requests`, 'POST', {
+    resourceType: 'song',
+    resourceId: songId,
+    changes: { tags },
+  })
+}
+
+export function submitSongInfoEditApi(songId: number, changes: SongInfoChange) {
+  return fetchJsonMutation<EditRequestResponse>(`${apiBase}/edit-requests`, 'POST', {
+    resourceType: 'song',
+    resourceId: songId,
+    changes,
+  })
 }
 
 export function getCreditInfoApi(id: number | string, type: 'album' | 'song' | 'product') {

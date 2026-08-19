@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SongListItemInfo } from '@/types/core'
+import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
@@ -7,13 +8,14 @@ import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
-import { buildPlaylistItem, formatDuration, getCoverUrl, getProductIconUrl, goNeteaseClient, selectLyricProvider } from '@/utils'
+import { buildPlaylistItem, formatDuration, getCoverUrl, getProductCode, getProductIconUrl, selectLyricProvider } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
+const queryClient = useQueryClient()
 
 const { lyricsSource } = storeToRefs(player)
 
@@ -96,34 +98,6 @@ watch(isSongError, (val) => {
     router.replace({ path: '/404', query: { errorMessage: songError.value?.message } })
 })
 
-const neteaseOptions = computed(() => [
-  {
-    label: '跳转至详情页',
-    onClick: () => {
-      window.open(`https://music.163.com/#/song?id=${musicInfo.value!.platforms.ncm!.id}`)
-    },
-  },
-  {
-    label: '在 APP 中播放',
-    onClick: () => {
-      goNeteaseClient({
-        type: 'song',
-        id: musicInfo.value!.platforms.ncm!.id,
-        cmd: 'play',
-      })
-    },
-  },
-])
-
-const qqMusicOptions = computed(() => [
-  {
-    label: '跳转至详情页',
-    onClick: () => {
-      window.open(`https://y.qq.com/n/ryqq_v2/songDetail/${musicInfo.value!.platforms.qq!.id}`)
-    },
-  },
-])
-
 function handlePlay() {
   if (musicInfo.value) {
     const { index, isNew } = player.addToPlaylist(buildPlaylistItem(musicInfo.value, albumInfo.value!))
@@ -205,6 +179,34 @@ function addSongToUserPlaylist() {
   showSelectPlaylistDialog.value = true
 }
 
+const productCode = computed(() => getProductCode(albumInfo.value?.productName ?? ''))
+
+const showEditRegionDialog = ref(false)
+const showEditVideoDialog = ref(false)
+const showEditInfoDialog = ref(false)
+
+function openEditInfo() {
+  if (!auth.requireLogin())
+    return
+  showEditInfoDialog.value = true
+}
+
+function openEditRegion() {
+  if (!auth.requireLogin())
+    return
+  showEditRegionDialog.value = true
+}
+
+function openEditVideo() {
+  if (!auth.requireLogin())
+    return
+  showEditVideoDialog.value = true
+}
+
+function refreshSongInfo() {
+  queryClient.invalidateQueries({ queryKey: ['songInfo', musicId.value] })
+}
+
 onMounted(() => {
   document.documentElement.scrollTo(0, 0)
 })
@@ -228,11 +230,11 @@ onMounted(() => {
         </div>
 
         <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
-          <div class="truncate md:text-xl lg:text-3xl font-bold">
+          <div class="truncate shrink-0 md:text-xl lg:text-3xl font-bold">
             {{ musicInfo.name }}
           </div>
 
-          <div v-if="musicInfo.description" class="truncate text-sm mt-1 md:text-base lg:text-lg text-gray-500">
+          <div v-if="musicInfo.description" class="truncate shrink-0 text-sm mt-1 md:text-base lg:text-lg text-gray-500">
             {{ musicInfo.description }}
           </div>
 
@@ -264,36 +266,38 @@ onMounted(() => {
           <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <MusicActions
               dropdown-position="up"
-              :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
-              :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
-              :prev-tooltip="isPlaylistContext ? '前往歌单上一首歌曲' : '前往专辑上一首歌曲'"
-              :next-tooltip="isPlaylistContext ? '前往歌单下一首歌曲' : '前往专辑下一首歌曲'"
+              :music-info="musicInfo"
+              :is-playlist-context="isPlaylistContext"
               :prev-disabled="!hasPrev"
               :next-disabled="!hasNext"
+              :can-edit-region="productCode === 'genshin'"
               @play="handlePlay"
               @prev="goPrevMusic"
               @next="goNextMusic"
               @add-to-playlist="addSongToUserPlaylist"
+              @edit-info="openEditInfo"
+              @edit-region="openEditRegion"
+              @edit-video="openEditVideo"
             />
-            <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
           </div>
         </div>
       </div>
 
       <div class="flex gap-2 flex-wrap md:hidden mt-4">
         <MusicActions
-          :ncm-options="musicInfo.platforms.ncm ? neteaseOptions : undefined"
-          :qq-options="musicInfo.platforms.qq ? qqMusicOptions : undefined"
-          :prev-tooltip="isPlaylistContext ? '前往歌单上一首歌曲' : '前往专辑上一首歌曲'"
-          :next-tooltip="isPlaylistContext ? '前往歌单下一首歌曲' : '前往专辑下一首歌曲'"
+          :music-info="musicInfo"
+          :is-playlist-context="isPlaylistContext"
           :prev-disabled="!hasPrev"
           :next-disabled="!hasNext"
+          :can-edit-region="productCode === 'genshin'"
           @play="handlePlay"
           @prev="goPrevMusic"
           @next="goNextMusic"
           @add-to-playlist="addSongToUserPlaylist"
+          @edit-info="openEditInfo"
+          @edit-region="openEditRegion"
+          @edit-video="openEditVideo"
         />
-        <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
       </div>
 
       <div v-if="isSongLoading || isSongError || songInfo?.tags.length || songInfo?.maps?.length" class="mt-4 lg:hidden">
@@ -311,14 +315,14 @@ onMounted(() => {
 
       <div class="flex gap-2 mt-4 lg:hidden">
         <button
-          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
           @click="activeTab = 'lyrics'"
         >
           歌词
         </button>
         <button
-          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
           @click="activeTab = 'artists'"
         >
@@ -360,6 +364,29 @@ onMounted(() => {
         v-model="showSelectPlaylistDialog"
         :song-ids="currentSongId"
         mode="add"
+      />
+
+      <SongInfoEditDialog
+        v-model="showEditInfoDialog"
+        :song-id="musicId"
+        :name="musicInfo?.name ?? ''"
+        :description="musicInfo?.description ?? ''"
+        @success="refreshSongInfo"
+      />
+
+      <SongRegionEditDialog
+        v-model="showEditRegionDialog"
+        :song-id="musicId"
+        :game="productCode"
+        :maps="songInfo?.maps ?? []"
+        @success="refreshSongInfo"
+      />
+
+      <SongVideoEditDialog
+        v-model="showEditVideoDialog"
+        :song-id="musicId"
+        :tags="songInfo?.tags ?? []"
+        @success="refreshSongInfo"
       />
     </div>
   </AsyncFade>

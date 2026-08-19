@@ -133,7 +133,7 @@ onMounted(() => {
       </div>
       <div v-if="mediaSource.isLoaded" class="flex flex-wrap gap-2">
         <button
-          class="w-56 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
+          class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
           :class="mediaSource.selectedSource === 'auto'
             ? 'bg-white text-gray-700 border-blue-500'
             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
@@ -201,7 +201,7 @@ onMounted(() => {
         <button
           v-for="opt in availableQualityOptions"
           :key="opt.value"
-          class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
           :class="quality === opt.value
             ? 'bg-blue-500 text-white border-blue-500'
             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
@@ -221,7 +221,7 @@ onMounted(() => {
       </div>
       <div class="flex gap-2">
         <button
-          class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
           :class="lyricsSource === 'ncm'
             ? 'bg-blue-500 text-white border-blue-500'
             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
@@ -230,7 +230,7 @@ onMounted(() => {
           网易云音乐
         </button>
         <button
-          class="px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
           :class="lyricsSource === 'qq'
             ? 'bg-blue-500 text-white border-blue-500'
             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
@@ -333,7 +333,7 @@ onMounted(() => {
       一个 HOYO-MiX 音乐信息收集网站
       <br>
       <div class="mt-2">
-        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.4.0</span>
+        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.5.0</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">早期预览版</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
@@ -378,7 +378,7 @@ onMounted(() => {
           placeholder="Body"
         />
         <button
-          class="px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+          class="px-3 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
           :disabled="debugLoading || !debugUrl.trim()"
           @click="sendDebugRequest"
         >

@@ -476,10 +476,11 @@ onMounted(() => {
                       v-if="!store.favoriteSongIds.includes(song.songId)"
                       class="opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <SongFavoriteButton :song-id="song.songId" />
+                      <FavoriteButton type="song" :song-id="song.songId" />
                     </div>
-                    <SongFavoriteButton
+                    <FavoriteButton
                       v-else
+                      type="song"
                       :song-id="song.songId"
                     />
                     <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

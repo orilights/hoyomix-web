@@ -16,6 +16,8 @@ const {
   playMode,
   quality,
   isFullscreen,
+  isImmersive,
+  immersiveControlsVisible,
   showPlaylist,
   availableQualities,
 } = storeToRefs(player)
@@ -154,149 +156,156 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="fixed bottom-0 left-0 right-0 z-60">
-    <div class="md:hidden">
-      <PlayerProgress
-        :current-time="currentTime"
-        :duration="duration"
-        :buffered-end="bufferedEnd"
-        thin
-        @seek="player.seek"
-      />
-    </div>
-
+  <Transition name="player-bar">
     <div
-      class="backdrop-blur-xl border-t border-white/10 transition-colors"
-      :class="{
-        'bg-gray-900/95': !isFullscreen,
-        'bg-gray-900/20': isFullscreen,
-      }"
+      v-show="!isImmersive || immersiveControlsVisible"
+      class="fixed bottom-0 left-0 right-0 z-60"
     >
+      <div class="md:hidden">
+        <PlayerProgress
+          :current-time="currentTime"
+          :duration="duration"
+          :buffered-end="bufferedEnd"
+          thin
+          @seek="player.seek"
+        />
+      </div>
+
       <div
-        class="h-[72px] relative"
-        :class="{ 'overflow-hidden': swipeActive }"
-        @touchstart="onBarTouchStart"
-        @touchmove="onBarTouchMove"
-        @touchend="onBarTouchEnd"
+        class="backdrop-blur-xl border-t border-white/10 transition-colors"
+        :class="{
+          'bg-gray-900/95': !isFullscreen,
+          'bg-gray-900/20': isFullscreen,
+        }"
       >
         <div
-          v-if="swipeActive"
-          class="absolute inset-0 md:hidden flex items-center px-4"
-          :style="{
-            transform: `translateX(calc(-100% + ${swipeOffset}px))`,
-            transition: swipeTransition ? 'transform 0.3s ease' : undefined,
-          }"
+          class="h-[72px] relative"
+          :class="{ 'overflow-hidden': swipeActive }"
+          @touchstart="onBarTouchStart"
+          @touchmove="onBarTouchMove"
+          @touchend="onBarTouchEnd"
         >
-          <PlayerBarSongInfo :song="prevSong" />
-        </div>
-
-        <div
-          v-if="swipeActive"
-          class="absolute inset-0 md:hidden flex items-center px-4"
-          :style="{
-            transform: `translateX(calc(100% + ${swipeOffset}px))`,
-            transition: swipeTransition ? 'transform 0.3s ease' : undefined,
-          }"
-        >
-          <PlayerBarSongInfo :song="nextSong" />
-        </div>
-
-        <div
-          class="absolute inset-0 flex items-center px-4 gap-4"
-          :style="{
-            transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
-            transition: swipeTransition ? 'transform 0.3s ease' : undefined,
-          }"
-        >
-          <PlayerBarSongInfo :song="currentSong" :class="{ 'min-w-0 max-w-[240px] md:w-[240px]': !swipeActive }" />
-
-          <div class="hidden md:block flex-1 shrink-0">
-            <PlayerControl />
+          <div
+            v-if="swipeActive"
+            class="absolute inset-0 md:hidden flex items-center px-4"
+            :style="{
+              transform: `translateX(calc(-100% + ${swipeOffset}px))`,
+              transition: swipeTransition ? 'transform 0.3s ease' : undefined,
+            }"
+          >
+            <PlayerBarSongInfo :song="prevSong" />
           </div>
 
-          <Transition name="fade">
-            <div v-show="!swipeActive" class="flex items-center gap-2 w-[240px] ml-auto justify-end">
-              <PlayerPlayBtn class="md:hidden" />
+          <div
+            v-if="swipeActive"
+            class="absolute inset-0 md:hidden flex items-center px-4"
+            :style="{
+              transform: `translateX(calc(100% + ${swipeOffset}px))`,
+              transition: swipeTransition ? 'transform 0.3s ease' : undefined,
+            }"
+          >
+            <PlayerBarSongInfo :song="nextSong" />
+          </div>
 
-              <Dropdown :options="qualityOptions" alignment="center" position="up" dark>
-                <Tooltip content="音频质量" placement="top" align="center">
+          <div
+            class="absolute inset-0 flex items-center px-4 gap-4"
+            :style="{
+              transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
+              transition: swipeTransition ? 'transform 0.3s ease' : undefined,
+            }"
+          >
+            <PlayerBarSongInfo :song="currentSong" :class="{ 'min-w-0 max-w-[240px] md:w-[240px]': !swipeActive }" />
+
+            <div class="hidden md:block flex-1 shrink-0">
+              <PlayerControl />
+            </div>
+
+            <Transition name="fade">
+              <div v-show="!swipeActive" class="flex items-center gap-1 md:gap-2 w-[240px] ml-auto justify-end">
+                <PlayerPlayBtn class="md:hidden mr-2 md:mr-0" />
+
+                <Dropdown :options="qualityOptions" alignment="center" position="up" dark>
+                  <Tooltip content="音频质量" placement="top" align="center">
+                    <button
+                      class="text-xs font-bold px-2 py-1 rounded border cursor-pointer transition-colors"
+                      :class="quality === 9
+                        ? 'text-amber-400 border-amber-400/50 hover:bg-amber-400/10'
+                        : 'text-white/60 border-white/30 hover:bg-white/10'"
+                    >
+                      {{ qualityLabel }}
+                    </button>
+                  </Tooltip>
+                </Dropdown>
+
+                <FavoriteButton
+                  v-if="currentSong"
+                  type="song"
+                  :song-id="currentSong.songId"
+                  size="md"
+                  class="text-white/60"
+                />
+
+                <Tooltip :content="playModeTip" placement="top" align="center">
                   <button
-                    class="text-xs font-bold px-2 py-1 rounded border cursor-pointer transition-colors"
-                    :class="quality === 9
-                      ? 'text-amber-400 border-amber-400/50 hover:bg-amber-400/10'
-                      : 'text-white/60 border-white/30 hover:bg-white/10'"
+                    class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                    :title="playModeTip"
+                    @click="player.togglePlayMode()"
                   >
-                    {{ qualityLabel }}
+                    <LucideListEnd v-if="playMode === 'sequential'" class="size-4" />
+                    <LucideRepeat v-else-if="playMode === 'loop'" class="size-4" />
+                    <LucideRepeat1 v-else-if="playMode === 'single'" class="size-4" />
+                    <LucideShuffle v-else class="size-4" />
                   </button>
                 </Tooltip>
-              </Dropdown>
 
-              <SongFavoriteButton
-                v-if="currentSong"
-                :song-id="currentSong.songId"
-                size="md"
-              />
-
-              <Tooltip :content="playModeTip" placement="top" align="center">
-                <button
-                  class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
-                  :title="playModeTip"
-                  @click="player.togglePlayMode()"
-                >
-                  <LucideListEnd v-if="playMode === 'sequential'" class="size-4" />
-                  <LucideRepeat v-else-if="playMode === 'loop'" class="size-4" />
-                  <LucideRepeat1 v-else-if="playMode === 'single'" class="size-4" />
-                  <LucideShuffle v-else class="size-4" />
-                </button>
-              </Tooltip>
-
-              <div v-if="!isIOS()" class="hidden md:block relative" @wheel.prevent="onVolumeWheel">
-                <button
-                  class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
-                  @click="toggleMute"
-                  @mouseenter="showVolumeSlider = true"
-                  @mouseleave="showVolumeSlider = false"
-                >
-                  <LucideVolume2 v-if="volume > 0" class="size-4" />
-                  <LucideVolumeX v-else class="size-4" />
-                </button>
-                <Transition name="dropdown">
-                  <div
-                    v-show="showVolumeSlider"
-                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 rounded-lg p-3 shadow-xl"
+                <div v-if="!isIOS()" class="hidden md:block relative" @wheel.prevent="onVolumeWheel">
+                  <button
+                    class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                    @click="toggleMute"
                     @mouseenter="showVolumeSlider = true"
                     @mouseleave="showVolumeSlider = false"
                   >
-                    <div class="h-24 flex justify-center">
-                      <input
-                        type="range"
-                        :value="volume"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        class="volume-slider"
-                        @input="player.setVolume(Number(($event.target as HTMLInputElement).value))"
-                      >
+                    <LucideVolume2 v-if="volume > 0" class="size-4" />
+                    <LucideVolumeX v-else class="size-4" />
+                  </button>
+                  <Transition name="dropdown">
+                    <div
+                      v-show="showVolumeSlider"
+                      class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 rounded-lg p-3 shadow-xl"
+                      @mouseenter="showVolumeSlider = true"
+                      @mouseleave="showVolumeSlider = false"
+                    >
+                      <div class="h-24 flex justify-center">
+                        <input
+                          type="range"
+                          :value="volume"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          class="volume-slider"
+                          @input="player.setVolume(Number(($event.target as HTMLInputElement).value))"
+                        >
+                      </div>
                     </div>
-                  </div>
-                </Transition>
-              </div>
+                  </Transition>
+                </div>
 
-              <Tooltip content="播放列表" placement="top" align="center">
-                <button
-                  class="p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
-                  :class="{ 'text-blue-400': showPlaylist, 'text-white/60 hover:text-white': !showPlaylist }"
-                  @click="showPlaylist = !showPlaylist"
-                >
-                  <LucideList class="size-4" />
-                </button>
-              </Tooltip>
-            </div>
-          </Transition>
+                <Tooltip content="播放列表" placement="top" align="center">
+                  <button
+                    class="p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                    :class="{ 'text-blue-400': showPlaylist, 'text-white/60 hover:text-white': !showPlaylist }"
+                    @click="showPlaylist = !showPlaylist"
+                  >
+                    <LucideList class="size-4" />
+                  </button>
+                </Tooltip>
+              </div>
+            </Transition>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </Transition>
 </template>
 
 <style scoped>
@@ -307,6 +316,21 @@ onMounted(() => {
   width: 4px;
   height: 100%;
   accent-color: white;
+}
+
+.player-bar-enter-active,
+.player-bar-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.player-bar-enter-from,
+.player-bar-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
+}
+.player-bar-enter-to,
+.player-bar-leave-from {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .dropdown-enter-active,

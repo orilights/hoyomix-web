@@ -296,7 +296,7 @@ onUnmounted(() => {
                         class="search-highlight text-xs text-gray-400 truncate mt-0.5"
                         v-html="getHighlight(item, 'lyrics')"
                       />
-                       <div
+                      <div
                         v-if="getHighlight(item, 'alias')"
                         class="search-highlight text-xs text-gray-400 truncate mt-0.5"
                         v-html="getHighlight(item, 'alias')"
