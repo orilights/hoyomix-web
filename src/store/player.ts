@@ -32,6 +32,8 @@ export const usePlayerStore = defineStore('player', {
     bufferedEnd: 0,
     isLoading: false,
     isFullscreen: false,
+    isImmersive: false,
+    immersiveControlsVisible: true,
     lyricData: '',
     lyricTranslation: '',
     showPlaylist: false,
@@ -444,6 +446,20 @@ export const usePlayerStore = defineStore('player', {
 
     setFullscreen(value: boolean) {
       this.isFullscreen = value
+      if (!value) {
+        this.isImmersive = false
+      }
+    },
+
+    setImmersive(value: boolean) {
+      this.isImmersive = value
+      if (value) {
+        this.immersiveControlsVisible = true
+      }
+    },
+
+    setImmersiveControlsVisible(value: boolean) {
+      this.immersiveControlsVisible = value
     },
 
     fetchLyric() {

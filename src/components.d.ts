@@ -61,6 +61,8 @@ declare module 'vue' {
     LucideLoader2: typeof import('@lucide/vue')['Loader2']
     LucideLogOut: typeof import('@lucide/vue')['LogOut']
     LucideMailCheck: typeof import('@lucide/vue')['MailCheck']
+    LucideMaximize: typeof import('@lucide/vue')['Maximize']
+    LucideMinimize: typeof import('@lucide/vue')['Minimize']
     LucideMusic: typeof import('@lucide/vue')['Music']
     LucidePause: typeof import('@lucide/vue')['Pause']
     LucidePencil: typeof import('@lucide/vue')['Pencil']

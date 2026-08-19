@@ -10,6 +10,8 @@ const {
   isPlaying,
   currentTime,
   isFullscreen,
+  isImmersive,
+  immersiveControlsVisible,
   lyricData,
   lyricTranslation,
   showTranslation,
@@ -29,6 +31,41 @@ const bg2 = ref(FALLBACK_BG)
 const showBackground = ref(1)
 const lyricViewRef = useTemplateRef('lyricView')
 const transformPosition = ref('')
+
+let immersiveTimer: ReturnType<typeof setTimeout> | null = null
+const IMMERSIVE_HIDE_DELAY = 3000
+
+function showImmersiveControls() {
+  player.setImmersiveControlsVisible(true)
+  if (immersiveTimer)
+    clearTimeout(immersiveTimer)
+  immersiveTimer = setTimeout(() => {
+    player.setImmersiveControlsVisible(false)
+  }, IMMERSIVE_HIDE_DELAY)
+}
+
+function onImmersiveActivity() {
+  if (!isImmersive.value)
+    return
+  showImmersiveControls()
+}
+
+watch(isImmersive, (val) => {
+  if (val) {
+    showImmersiveControls()
+  }
+  else {
+    if (immersiveTimer)
+      clearTimeout(immersiveTimer)
+    immersiveTimer = null
+    player.setImmersiveControlsVisible(true)
+  }
+})
+
+onUnmounted(() => {
+  if (immersiveTimer)
+    clearTimeout(immersiveTimer)
+})
 
 watch(coverUrl, async (url) => {
   let gradient = FALLBACK_BG
@@ -125,11 +162,14 @@ function onHeaderTouchEnd() {
   <Transition name="fullscreen-player">
     <div
       v-if="isFullscreen && currentSong"
-      class="fixed inset-0 z-50 flex flex-col pb-[72px]"
+      class="fixed inset-0 z-50 flex flex-col"
+      :class="isImmersive && !immersiveControlsVisible ? 'pb-0' : 'pb-[72px]'"
       :style="{
         transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
         transition: snapBack ? 'transform 0.3s ease' : undefined,
       }"
+      @mousemove="onImmersiveActivity"
+      @touchstart="onImmersiveActivity"
     >
       <div class="absolute inset-0 bg-gray-900">
         <div
@@ -147,62 +187,85 @@ function onHeaderTouchEnd() {
 
       <div class="relative flex-1 flex flex-col z-10 min-h-0">
         <div
-          class="flex items-center justify-between px-6 py-4 shrink-0"
+          class="flex items-center justify-between px-6 py-4 shrink-0 transition-opacity duration-300"
+          :class="{ 'opacity-0': isImmersive && !immersiveControlsVisible }"
           @touchstart="onHeaderTouchStart"
           @touchmove.prevent="onHeaderTouchMove"
           @touchend="onHeaderTouchEnd"
         >
-          <Tooltip
-            placement="bottom"
-            align="center"
-            content="退出全屏"
-          >
-            <button
-              class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-              @click="close"
-            >
-              <LucideChevronDown class="size-6" />
-            </button>
-          </Tooltip>
-
-          <div class="text-white/60 text-sm text-nowrap truncate cursor-pointer" @click="toAlbum">
-            {{ currentSong.albumName }}
-          </div>
-
           <div class="flex items-center gap-1">
             <Tooltip
               placement="bottom"
               align="center"
-              :content="!lyricTranslation ? '当前歌曲无歌词翻译' : '歌词翻译'"
+              content="退出全屏"
             >
               <button
-                class="p-2 rounded-full transition-colors"
-                :class="!lyricTranslation
-                  ? 'text-white/20'
-                  : showTranslation ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
-                :disabled="!lyricTranslation"
-                @click="player.toggleTranslation()"
+                class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                @click="close"
               >
-                <LucideLanguages class="size-5" />
+                <LucideChevronDown class="size-6" />
               </button>
             </Tooltip>
 
             <Tooltip
               placement="bottom"
               align="center"
-              :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
+              :content="isImmersive ? '退出沉浸模式' : '沉浸模式'"
             >
               <button
-                class="p-2 rounded-full transition-colors"
-                :class="!enableAudioContext
-                  ? 'text-white/20'
-                  : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
-                :disabled="!enableAudioContext"
-                @click="player.toggleSpectrum()"
+                class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                @click="player.setImmersive(!isImmersive)"
               >
-                <LucideAudioLines class="size-5" />
+                <LucideMaximize v-if="!isImmersive" class="size-5" />
+                <LucideMinimize v-else class="size-5" />
               </button>
             </Tooltip>
+          </div>
+
+          <div
+            v-show="!isImmersive"
+            class="text-white/60 text-sm text-nowrap truncate cursor-pointer"
+            @click="toAlbum"
+          >
+            {{ currentSong.albumName }}
+          </div>
+
+          <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1">
+              <Tooltip
+                placement="bottom"
+                align="center"
+                :content="!lyricTranslation ? '当前歌曲无歌词翻译' : '歌词翻译'"
+              >
+                <button
+                  class="p-2 rounded-full transition-colors"
+                  :class="!lyricTranslation
+                    ? 'text-white/20'
+                    : showTranslation ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
+                  :disabled="!lyricTranslation"
+                  @click="player.toggleTranslation()"
+                >
+                  <LucideLanguages class="size-5" />
+                </button>
+              </Tooltip>
+
+              <Tooltip
+                placement="bottom"
+                align="center"
+                :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
+              >
+                <button
+                  class="p-2 rounded-full transition-colors"
+                  :class="!enableAudioContext
+                    ? 'text-white/20'
+                    : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
+                  :disabled="!enableAudioContext"
+                  @click="player.toggleSpectrum()"
+                >
+                  <LucideAudioLines class="size-5" />
+                </button>
+              </Tooltip>
+            </div>
           </div>
         </div>
 
@@ -218,7 +281,7 @@ function onHeaderTouchEnd() {
               <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
                 {{ currentSong.songName }}
               </div>
-              <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">
+              <div v-if="currentSong.songDescription && !isImmersive" class="text-white/50 text-sm mt-1">
                 {{ currentSong.songDescription }}
               </div>
             </div>
@@ -237,7 +300,7 @@ function onHeaderTouchEnd() {
           </div>
         </div>
 
-        <div class="md:hidden shrink-0 flex justify-end px-6 py-4">
+        <div v-if="!isImmersive" class="md:hidden shrink-0 flex justify-end px-6 py-4">
           <PlayerControlMobile />
         </div>
 
