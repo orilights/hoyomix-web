@@ -22,6 +22,36 @@ export interface SongInfo {
   maps?: SongMapInfo[]
 }
 
+/** 地图树节点（GET /maps 返回的嵌套结构） */
+export interface MapTreeNode {
+  id: number
+  name: string
+  children: MapTreeNode[]
+}
+
+/** 歌曲地图（地区）关联的增量变更 */
+export interface SongMapsChange {
+  add?: { mapId: number, note?: string | null }[]
+  remove?: { mapId: number }[]
+}
+
+/** 歌曲标签（如视频）的增量变更 */
+export interface SongTagsChange {
+  add?: { tagType: string, tagName: string, tagData?: string }[]
+  remove?: { tagType: string, tagName: string }[]
+}
+
+/** 歌曲基础信息（名称/描述）的变更 */
+export interface SongInfoChange {
+  name?: string
+  description?: string
+}
+
+/** 提交编辑申请响应（普通用户待审核 ｜ 管理员直接生效） */
+export type EditRequestResponse
+  = | { directApproved: true, requestId: number, contributionId: number }
+    | { directApproved?: undefined, id: number, status: string }
+
 export interface ArtistInfo {
   name: string
   alias: string[]

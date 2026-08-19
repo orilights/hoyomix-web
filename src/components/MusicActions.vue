@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { SongListItemInfo } from '@/types/core'
+import { goNeteaseClient } from '@/utils'
+
 interface DropdownOption {
   label: string
   desc?: string
@@ -7,21 +10,20 @@ interface DropdownOption {
 }
 
 interface Props {
-  ncmOptions?: DropdownOption[]
-  qqOptions?: DropdownOption[]
+  musicInfo: SongListItemInfo
+  isPlaylistContext?: boolean
   dropdownPosition?: 'down' | 'up' | 'auto'
-  prevTooltip?: string
-  nextTooltip?: string
   prevDisabled?: boolean
   nextDisabled?: boolean
+  canEditRegion?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
+  isPlaylistContext: false,
   dropdownPosition: 'auto',
-  prevTooltip: '前往专辑上一首歌曲',
-  nextTooltip: '前往专辑下一首歌曲',
   prevDisabled: false,
   nextDisabled: false,
+  canEditRegion: false,
 })
 
 const emit = defineEmits<{
@@ -29,7 +31,61 @@ const emit = defineEmits<{
   prev: []
   next: []
   addToPlaylist: []
+  editInfo: []
+  editRegion: []
+  editVideo: []
 }>()
+
+const ncmOptions = computed<DropdownOption[]>(() => {
+  const ncm = props.musicInfo.platforms.ncm
+  if (!ncm)
+    return []
+  return [
+    {
+      label: '跳转至详情页',
+      onClick: () => {
+        window.open(`https://music.163.com/#/song?id=${ncm.id}`)
+      },
+    },
+    {
+      label: '在 APP 中播放',
+      onClick: () => {
+        goNeteaseClient({
+          type: 'song',
+          id: ncm.id,
+          cmd: 'play',
+        })
+      },
+    },
+  ]
+})
+
+const qqOptions = computed<DropdownOption[]>(() => {
+  const qq = props.musicInfo.platforms.qq
+  if (!qq)
+    return []
+  return [
+    {
+      label: '跳转至详情页',
+      onClick: () => {
+        window.open(`https://y.qq.com/n/ryqq_v2/songDetail/${qq.id}`)
+      },
+    },
+  ]
+})
+
+const prevTooltip = computed(() => props.isPlaylistContext ? '前往歌单上一首歌曲' : '前往专辑上一首歌曲')
+const nextTooltip = computed(() => props.isPlaylistContext ? '前往歌单下一首歌曲' : '前往专辑下一首歌曲')
+
+const infoEditOptions = computed<DropdownOption[]>(() => {
+  const options: DropdownOption[] = []
+  options.push({ label: '歌曲信息', onClick: () => emit('editInfo') })
+  if (props.canEditRegion) {
+    options.push({ label: '地区关联', onClick: () => emit('editRegion') })
+  }
+  // options.push({ label: '视频关联', onClick: () => emit('editVideo') })
+  return options
+})
 </script>
 
 <template>
@@ -43,6 +99,41 @@ const emit = defineEmits<{
     </button>
   </Tooltip>
 
+  <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
+
+  <button
+    class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
+    @click="emit('addToPlaylist')"
+  >
+    <LucideListMusic class="size-4" />
+    添加至歌单
+  </button>
+
+  <Dropdown :position="dropdownPosition" :options="infoEditOptions">
+    <button
+      class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
+    >
+      <LucidePencil class="size-4" />
+      信息修改
+    </button>
+  </Dropdown>
+
+  <Dropdown v-if="ncmOptions.length" :position="dropdownPosition" :options="ncmOptions">
+    <button
+      class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+    >
+      <IconNcm class="size-5 text-[#fc3b5b]" />
+    </button>
+  </Dropdown>
+
+  <Dropdown v-if="qqOptions.length" :position="dropdownPosition" :options="qqOptions">
+    <button
+      class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+    >
+      <IconQQ class="size-5" />
+    </button>
+  </Dropdown>
+
   <Tooltip placement="top" theme="light" :content="prevTooltip">
     <button
       class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
@@ -50,7 +141,7 @@ const emit = defineEmits<{
       :disabled="prevDisabled"
       @click="emit('prev')"
     >
-      前一首
+      <LucideChevronLeft class="size-5" />
     </button>
   </Tooltip>
 
@@ -61,33 +152,7 @@ const emit = defineEmits<{
       :disabled="nextDisabled"
       @click="emit('next')"
     >
-      后一首
-    </button>
-  </Tooltip>
-
-  <Dropdown v-if="ncmOptions" :position="dropdownPosition" :options="ncmOptions">
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-    >
-      <IconNcm class="size-5 text-[#fc3b5b]" />
-    </button>
-  </Dropdown>
-
-  <Dropdown v-if="qqOptions" :position="dropdownPosition" :options="qqOptions">
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-    >
-      <IconQQ class="size-5" />
-    </button>
-  </Dropdown>
-
-  <Tooltip placement="top" theme="light" content="将歌曲添加至歌单">
-    <button
-      class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
-      @click="emit('addToPlaylist')"
-    >
-      <LucideListMusic class="size-4" />
-      添加至歌单
+      <LucideChevronRight class="size-5" />
     </button>
   </Tooltip>
 </template>
