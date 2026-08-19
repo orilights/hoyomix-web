@@ -215,8 +215,8 @@ onMounted(() => {
           </div>
 
           <Transition name="fade">
-            <div v-show="!swipeActive" class="flex items-center gap-2 w-[240px] ml-auto justify-end">
-              <PlayerPlayBtn class="md:hidden" />
+            <div v-show="!swipeActive" class="flex items-center gap-1 md:gap-2 w-[240px] ml-auto justify-end">
+              <PlayerPlayBtn class="md:hidden mr-2 md:mr-0" />
 
               <Dropdown :options="qualityOptions" alignment="center" position="up" dark>
                 <Tooltip content="音频质量" placement="top" align="center">
@@ -236,6 +236,7 @@ onMounted(() => {
                 type="song"
                 :song-id="currentSong.songId"
                 size="md"
+                class="text-white/60"
               />
 
               <Tooltip :content="playModeTip" placement="top" align="center">

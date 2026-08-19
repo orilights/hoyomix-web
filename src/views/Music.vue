@@ -230,11 +230,11 @@ onMounted(() => {
         </div>
 
         <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
-          <div class="truncate md:text-xl lg:text-3xl font-bold">
+          <div class="truncate shrink-0 md:text-xl lg:text-3xl font-bold">
             {{ musicInfo.name }}
           </div>
 
-          <div v-if="musicInfo.description" class="truncate text-sm mt-1 md:text-base lg:text-lg text-gray-500">
+          <div v-if="musicInfo.description" class="truncate shrink-0 text-sm mt-1 md:text-base lg:text-lg text-gray-500">
             {{ musicInfo.description }}
           </div>
 
