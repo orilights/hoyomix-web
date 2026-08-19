@@ -15,18 +15,27 @@ export default defineConfig({
   },
   base: '/',
   build: {
+    cssCodeSplit: false,
     rolldownOptions: {
       output: {
         codeSplitting: {
           groups: [
-
+            {
+              name: 'core',
+              test: /node_modules[\\/](vue|vue-router|pinia)[\\/]/,
+              priority: 30,
+            },
             {
               name: 'vendor',
-              test: id => id.includes('node_nodules') && !id.includes('echarts'),
+              test: id => id.includes('node_modules')
+                && !id.includes('echarts')
+                && !id.includes('zrender'),
+              priority: 20,
             },
             {
               name: 'pages',
-              test: id => id.includes('views') && !id.includes('Statistics'),
+              test: /views[\\/]/,
+              priority: 10,
             },
           ],
         },
