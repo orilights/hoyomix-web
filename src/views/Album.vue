@@ -214,14 +214,14 @@ onMounted(() => {
 
       <div class="flex gap-2 mt-4 lg:hidden">
         <button
-          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
           @click="activeTab = 'songs'"
         >
           歌曲列表
         </button>
         <button
-          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
           @click="activeTab = 'artists'"
         >
@@ -229,7 +229,7 @@ onMounted(() => {
         </button>
         <button
           v-if="albumInfo.tags.length"
-          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'tags' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
           @click="activeTab = 'tags'"
         >
@@ -299,10 +299,11 @@ onMounted(() => {
                           v-if="!store.favoriteSongIds.includes(songInfo.id)"
                           class="opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <SongFavoriteButton :song-id="songInfo.id" />
+                          <FavoriteButton type="song" :song-id="songInfo.id" />
                         </div>
-                        <SongFavoriteButton
+                        <FavoriteButton
                           v-else
+                          type="song"
                           :song-id="songInfo.id"
                         />
                         <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

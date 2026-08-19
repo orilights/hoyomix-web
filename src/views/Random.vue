@@ -268,28 +268,28 @@ onMounted(() => {
             <div class="px-4 pt-4 pb-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
               <span class="text-sm text-gray-500 mr-1">共 {{ randomPlaylist.length }} 首</span>
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 cursor-pointer transition-colors"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 cursor-pointer transition-colors"
                 @click="playAll"
               >
                 <LucidePlay class="size-3.5" />
                 播放全部
               </button>
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                 @click="addAll"
               >
                 <LucidePlus class="size-3.5" />
                 添加到播放列表
               </button>
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                 @click="saveAsPlaylist"
               >
                 <LucideListPlus class="size-3.5" />
                 新建歌单
               </button>
               <button
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+                class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
                 @click="addToPlaylist"
               >
                 <LucideFolderPlus class="size-3.5" />
@@ -320,7 +320,7 @@ onMounted(() => {
                 <div class="text-xs text-gray-400 shrink-0 tabular-nums">
                   {{ formatDuration(song.duration) }}
                 </div>
-                <SongFavoriteButton :song-id="song.songId" />
+                <FavoriteButton type="song" :song-id="song.songId" />
               </div>
             </div>
           </div>

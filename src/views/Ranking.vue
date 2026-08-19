@@ -100,7 +100,7 @@ onMounted(() => {
       <div class="flex-1" />
       <div class="flex gap-2">
         <button
-          class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+          class="text-sm bg-blue-500/90 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
           :disabled="!songs.length"
           @click="playAll"
         >
@@ -196,10 +196,11 @@ onMounted(() => {
                     v-if="!store.favoriteSongIds.includes(song.songId)"
                     class="opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <SongFavoriteButton :song-id="song.songId" />
+                    <FavoriteButton type="song" :song-id="song.songId" />
                   </div>
-                  <SongFavoriteButton
+                  <FavoriteButton
                     v-else
+                    type="song"
                     :song-id="song.songId"
                   />
                   <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

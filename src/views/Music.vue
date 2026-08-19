@@ -315,14 +315,14 @@ onMounted(() => {
 
       <div class="flex gap-2 mt-4 lg:hidden">
         <button
-          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
           @click="activeTab = 'lyrics'"
         >
           歌词
         </button>
         <button
-          class="text-sm px-4 py-2 rounded-lg transition-colors cursor-pointer"
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
           @click="activeTab = 'artists'"
         >

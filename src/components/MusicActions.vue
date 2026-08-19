@@ -91,7 +91,7 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
 <template>
   <Tooltip placement="top" theme="light" content="添加至播放列表并播放">
     <button
-      class="text-sm bg-blue-500/90 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+      class="text-sm bg-blue-500/90 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
       @click="emit('play')"
     >
       <LucidePlay class="size-4" fill="currentColor" />
@@ -99,7 +99,7 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
     </button>
   </Tooltip>
 
-  <SongFavoriteButton :song-id="musicInfo.id" variant="action" />
+  <FavoriteButton type="song" :song-id="musicInfo.id" variant="action" />
 
   <button
     class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
