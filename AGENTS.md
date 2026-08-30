@@ -1,6 +1,6 @@
 # AGENTS.md — 项目指引
 
-> HOYO-MiX Online:米哈游游戏原声带(OST)在线收听网站。纯前端 SPA,数据来自独立音乐/用户 API。
+> 米哈游游戏原声带(OST)在线收听网站。纯前端 SPA,数据来自独立音乐/用户 API。
 > 完整架构见 [docs/frontend-design-spec.md](docs/frontend-design-spec.md),视觉样式见 [docs/visual-style-spec.md](docs/visual-style-spec.md)。
 
 ## 技术栈

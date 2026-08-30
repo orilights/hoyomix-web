@@ -3,7 +3,8 @@ import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { fetchJsonMutation } from '@/api/music'
 import { useChangelogQuery } from '@/composables/queries'
-import { apiBase, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
+import { apiBase, appDescription, appTitle, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
@@ -16,6 +17,13 @@ const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
 const { quality, enableAudioContext, lyricsSource } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
+
+usePageSeo({
+  title: '设置',
+  description: '用户设置',
+  path: '/settings',
+  noindex: true,
+})
 
 const showChangePassword = ref(false)
 
@@ -321,20 +329,23 @@ onMounted(() => {
     </div>
 
     <div class="font-bold text-2xl mt-4">
-      关于
+      关于 {{ appTitle }}
     </div>
-    <div class="mt-4 px-4 py-2 bg-red-50 rounded-lg border border-red-500">
-      <div class="font-bold text-red-500">
-        须知
+
+    <div class="mt-2 flex gap-4">
+      <img
+        src="/favicon.png"
+        alt="应用图标"
+        class="size-16 shrink-0"
+      >
+      <div>
+        {{ appDescription }}
       </div>
-      本网站由爱好者制作，并非 HOYO-MiX 官方网站。 网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司
     </div>
     <div class="mt-2">
-      一个 HOYO-MiX 音乐信息收集网站
-      <br>
-      <div class="mt-2">
+      <div>
         当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.5.0</span>
-        <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">早期预览版</span>
+        <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">测试版</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
       <div class="mt-2">
@@ -345,6 +356,13 @@ onMounted(() => {
           反馈问题
         </button>
         <br>
+      </div>
+
+      <div class="mt-2 px-4 py-2 bg-red-50 rounded-lg border border-red-500">
+        <div class="font-bold text-red-500">
+          须知
+        </div>
+        本网站由爱好者制作，并非 HOYO-MiX 官方网站。 网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司
       </div>
     </div>
 

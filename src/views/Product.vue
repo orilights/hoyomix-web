@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
 
@@ -111,10 +111,18 @@ watch(product, () => {
 
 const activeTab = ref<'albums' | 'artists'>('albums')
 
+usePageSeo({
+  title: computed(() => (product.value ? getProductName(product.value) : null)),
+  description: computed(() => {
+    if (!product.value)
+      return null
+    return `${getProductName(product.value)}专辑列表`
+  }),
+  path: computed(() => (product.value ? `/product/${product.value}` : null)),
+})
+
 watch(product, (val) => {
   if (val) {
-    document.title = `${getProductName(val)} - ${appTitle}`
-
     if (albumsFiltered.value[0])
       store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '128px'))
   }

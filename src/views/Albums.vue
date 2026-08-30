@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
 
 const store = useMainStore()
 const { albumList } = storeToRefs(store)
 
+usePageSeo({
+  title: '全部专辑',
+  description: '已收录的所有专辑',
+  path: '/albums',
+})
+
 onMounted(() => {
-  document.title = `全部专辑 - ${appTitle}`
   store.setBackground()
 })
 </script>

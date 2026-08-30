@@ -4,12 +4,19 @@ import { useElementSize, useIntersectionObserver, useUrlSearchParams } from '@vu
 import { toast } from 'vue-sonner'
 import { deletePlaylistApi, getPublicPlaylistsApi } from '@/api/music'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 
 const store = useMainStore()
 const auth = useAuthStore()
 const { isLoggedIn } = storeToRefs(auth)
+
+usePageSeo({
+  title: '歌单',
+  description: '发现和管理歌单',
+  path: '/playlists',
+})
 
 const params = useUrlSearchParams('history', { removeFalsyValues: true })
 const tab = computed<string>({

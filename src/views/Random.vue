@@ -2,7 +2,8 @@
 import type { PlaylistItem } from '@/types/player'
 import { toast } from 'vue-sonner'
 import { getRandomPlaylistApi } from '@/api/music'
-import { appTitle, productMap } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
+import { productMap } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -11,6 +12,12 @@ import { formatDuration, getCoverUrl } from '@/utils'
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
+
+usePageSeo({
+  title: '随机播放列表',
+  description: '随机生成播放列表',
+  path: '/random',
+})
 
 const {
   randomPlaylistMode,
@@ -108,14 +115,13 @@ function addToPlaylist() {
 }
 
 onMounted(() => {
-  document.title = `随机歌单 - ${appTitle}`
   store.setBackground()
 })
 </script>
 
 <template>
   <div>
-    <PageHeader title="随机歌单" subtitle="随机生成播放列表" />
+    <PageHeader title="随机播放列表" subtitle="随机生成播放列表" />
 
     <div class="xl:grid xl:grid-cols-[320px_1fr] gap-6">
       <div class="bg-white/80 rounded-2xl p-4 space-y-4">
@@ -248,7 +254,7 @@ onMounted(() => {
         >
           <LucideLoader2 v-if="isLoading" class="size-4 animate-spin" />
           <LucideShuffle v-else class="size-4" />
-          {{ isLoading ? '生成中...' : '生成随机歌单' }}
+          {{ isLoading ? '生成中...' : '生成随机播放列表' }}
         </button>
       </div>
 
@@ -260,7 +266,7 @@ onMounted(() => {
           >
             <LucideShuffle class="size-10 opacity-30" />
             <div class="text-sm">
-              点击生成按钮获取随机歌单
+              点击生成按钮获取随机播放列表
             </div>
           </div>
 

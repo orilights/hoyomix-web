@@ -3,7 +3,7 @@ import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery } from '@/composables/queries'
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -58,9 +58,19 @@ const showDiscName = computed(() => {
   return discList.value.length > 1
 })
 
+const albumCoverUrl = computed(() =>
+  albumInfo.value ? getCoverUrl(albumInfo.value.platforms, '512px') : '',
+)
+
+usePageSeo({
+  title: computed(() => albumInfo.value?.name ?? null),
+  description: computed(() => albumInfo.value?.description || null),
+  path: computed(() => (albumId.value ? `/album/${albumId.value}` : null)),
+  image: albumCoverUrl,
+})
+
 watch(albumInfo, (val) => {
   if (val) {
-    document.title = `${val.name} - ${appTitle}`
     store.setBackground(getCoverUrl(val.platforms, '128px'))
   }
 }, { immediate: true })

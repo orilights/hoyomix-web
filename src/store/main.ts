@@ -9,7 +9,7 @@ export const useMainStore = defineStore('main', {
     backgroundUrl: '',
     showSearch: false,
     albumLayoutMap: {} as Record<string, 'grid' | 'list'>,
-    // 随机歌单
+    // 随机播放列表
     randomPlaylistMode: 'random' as 'random' | 'album',
     randomPlaylistLimit: 20,
     randomPlaylistProducts: [] as string[],

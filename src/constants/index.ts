@@ -5,6 +5,8 @@ export const resourceBase = import.meta.env.VITE_RESOURCE_BASE as string
 export const feedbackPageUrl = import.meta.env.VITE_FEEDBACK_URL as string
 export const userApiBase = import.meta.env.VITE_USER_API_BASE as string
 
+export const siteUrl = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, '') ?? ''
+
 export const audioQualityOptions: { value: AudioQuality, label: string, key: string, desc: string }[] = [
   { value: 9, label: '无损', key: 'flac', desc: 'FLAC 无损音质' },
   { value: 5, label: '较高', key: 'mp3_320', desc: 'MP3 320kbps' },
@@ -68,3 +70,4 @@ export const mobileUserAgentRegex = /iPhone|phone|android|iPod|pad|iPad/i
 export const iOSUserAgentRegex = /iPhone|iPad|iPod/i
 
 export const appTitle = 'HOYO-MiX Online'
+export const appDescription = 'HOYO-MiX Online 是一个米哈游游戏原声带数据网站，收录 HOYO-MiX 团队为《原神》、《崩坏》系列等作品创作的原声音乐，支持在线试听、专辑浏览、歌曲检索、创建与分享歌单。'

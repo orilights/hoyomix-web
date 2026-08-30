@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
 
 const route = useRoute()
@@ -8,8 +8,13 @@ const store = useMainStore()
 
 const errorMessage = computed(() => route.query.errorMessage as string | undefined)
 
+usePageSeo({
+  title: '页面不存在',
+  description: '你访问的页面或内容可能不存在',
+  noindex: true,
+})
+
 onMounted(() => {
-  document.title = `页面不存在 - ${appTitle}`
   store.setBackground()
 })
 </script>

@@ -4,13 +4,19 @@ import type { PlaylistSongItem } from '@/types/core'
 import { useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { getRankingApi } from '@/api/music'
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
 
 const player = usePlayerStore()
 const store = useMainStore()
+
+usePageSeo({
+  title: '热榜',
+  description: '热门歌曲榜单',
+  path: '/ranking',
+})
 
 const periods: { key: RankingPeriod, label: string }[] = [
   { key: '1d', label: '日榜' },
@@ -80,7 +86,6 @@ function addSongToPlaylist(song: PlaylistSongItem) {
 
 onMounted(() => {
   store.setBackground()
-  document.title = `热榜 - ${appTitle}`
   fetchRanking()
 })
 </script>
