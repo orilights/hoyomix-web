@@ -344,7 +344,7 @@ onMounted(() => {
     </div>
     <div class="mt-2">
       <div>
-        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.5.0</span>
+        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.6.0</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">测试版</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
