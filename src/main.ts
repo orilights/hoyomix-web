@@ -1,4 +1,5 @@
 import { VueQueryPlugin } from '@tanstack/vue-query'
+import { createHead } from '@unhead/vue/client'
 import { ClickScrollPlugin, OverlayScrollbars } from 'overlayscrollbars'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
@@ -15,9 +16,12 @@ OverlayScrollbars.plugin(ClickScrollPlugin)
 
 const app = createApp(App)
 
+const head = createHead()
+
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
+app.use(head)
 app.use(router)
 app.use(pinia)
 app.use(VueQueryPlugin, { queryClient })

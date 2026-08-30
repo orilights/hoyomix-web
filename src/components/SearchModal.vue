@@ -301,6 +301,16 @@ onUnmounted(() => {
                         class="search-highlight text-xs text-gray-400 truncate mt-0.5"
                         v-html="getHighlight(item, 'alias')"
                       />
+                      <div
+                        v-if="getHighlight(item, 'mapNames')"
+                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
+                        v-html="getHighlight(item, 'mapNames')"
+                      />
+                      <div
+                        v-if="getHighlight(item, 'videoNames')"
+                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
+                        v-html="getHighlight(item, 'videoNames')"
+                      />
                     </div>
                   </button>
                 </div>

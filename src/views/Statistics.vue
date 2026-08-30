@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EChartsOption } from 'echarts'
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
 import { formatDuration } from '@/utils'
 
@@ -11,8 +11,13 @@ const VChart = defineAsyncComponent(() =>
 const store = useMainStore()
 const { albumList } = storeToRefs(store)
 
+usePageSeo({
+  title: '数据统计',
+  description: '收录音乐数据统计',
+  path: '/statistics',
+})
+
 onMounted(() => {
-  document.title = `数据统计 - ${appTitle}`
   store.setBackground()
 })
 

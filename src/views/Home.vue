@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { appTitle, productMap } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
+import { appDescription, productMap } from '@/constants'
 import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl } from '@/utils'
 
 const store = useMainStore()
 const { albumList } = storeToRefs(store)
+
+usePageSeo({
+  title: '首页',
+  description: appDescription,
+  path: '/',
+})
 
 const playlistScrollContainer = useTemplateRef('playlistScrollContainer')
 
@@ -58,7 +65,6 @@ function handleWheel(event: WheelEvent) {
 }
 
 onMounted(() => {
-  document.title = appTitle
   store.setBackground()
 })
 </script>
@@ -140,7 +146,7 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900">
-            随机歌单
+            随机列表列表
           </div>
           <div class="text-sm text-gray-500 mt-0.5">
             随机生成播放列表

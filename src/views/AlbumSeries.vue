@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
 import { useTagAlbumsQuery } from '@/composables/queries'
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
 import { getProductIconUrl } from '@/utils'
 
@@ -14,15 +14,16 @@ const productName = computed(() => seriesName.value?.split('-')[0] ?? '')
 
 const { data: albums, isLoading, isError, error } = useTagAlbumsQuery('series', seriesName)
 
+usePageSeo({
+  title: computed(() => (seriesName.value ? `${seriesName.value} 系列专辑` : null)),
+  description: computed(() => (seriesName.value ? `${seriesName.value} 系列专辑` : null)),
+  path: computed(() => (seriesName.value ? `/album/series/${seriesName.value}` : null)),
+})
+
 watch(isError, (val) => {
   if (val)
     toast.error(`系列专辑加载失败：${error.value?.message ?? '未知错误'}`)
 })
-
-watch(seriesName, (val) => {
-  if (val)
-    document.title = `${val} 系列专辑 - ${appTitle}`
-}, { immediate: true })
 
 onMounted(() => {
   store.setBackground()

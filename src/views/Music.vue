@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -161,9 +161,36 @@ const hasNext = computed(() => {
   return true
 })
 
+const musicCoverUrl = computed(() =>
+  albumInfo.value ? getCoverUrl(albumInfo.value.platforms, '512px') : '',
+)
+
+const musicPagePath = computed(() => {
+  if (isPlaylistContext.value && detailPlaylistId.value && musicId.value)
+    return `/playlist/${detailPlaylistId.value}/music/${musicId.value}`
+  if (albumId.value && musicId.value)
+    return `/album/${albumId.value}/music/${musicId.value}`
+  return null
+})
+
+usePageSeo({
+  title: computed(() => musicInfo.value?.name ?? null),
+  description: computed(() => {
+    const song = musicInfo.value
+    const album = albumInfo.value
+    if (!song)
+      return null
+    const parts = [song.description]
+    if (album)
+      parts.push(`收录于专辑《${album.name}》`)
+    return parts.filter(Boolean).join('，') || null
+  }),
+  path: musicPagePath,
+  image: musicCoverUrl,
+})
+
 watch([musicInfo, albumInfo], ([song, album]) => {
   if (song && album) {
-    document.title = `${song.name} - ${appTitle}`
     store.setBackground(getCoverUrl(album.platforms, '128px'))
   }
 }, { immediate: true })

@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 
 const auth = useAuthStore()
 const store = useMainStore()
+
+usePageSeo({
+  title: '邮箱验证成功',
+  description: '邮箱验证成功',
+  noindex: true,
+})
 
 onMounted(() => {
   store.setBackground()

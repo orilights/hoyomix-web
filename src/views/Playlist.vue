@@ -5,7 +5,7 @@ import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
 import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, NotFoundError, updatePlaylistSongsApi } from '@/api/music'
 import { usePlaylistDetailQuery } from '@/composables/queries'
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -54,7 +54,7 @@ const coverAlbum = computed(() =>
 )
 
 const coverUrl = computed(() =>
-  coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '800px') : '',
+  coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '512px') : '',
 )
 
 const coverThumbUrl = computed(() =>
@@ -67,9 +67,15 @@ const isFavoritesPlaylist = computed(() => playlist.value?.type === 'favorites')
 const canEdit = computed(() => isOwner.value)
 const canManagePlaylist = computed(() => isOwner.value && !isFavoritesPlaylist.value)
 
+usePageSeo({
+  title: computed(() => playlist.value?.name ?? null),
+  description: computed(() => playlist.value?.description || null),
+  path: computed(() => (playlistId.value ? `/playlist/${playlistId.value}` : null)),
+  image: coverUrl,
+})
+
 watch(playlist, (val) => {
   if (val) {
-    document.title = `${val.name} - ${appTitle}`
     store.setBackground(coverThumbUrl.value || undefined)
   }
 }, { immediate: true })

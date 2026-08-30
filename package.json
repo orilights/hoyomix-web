@@ -1,7 +1,7 @@
 {
   "name": "hoyomix-web",
   "type": "module",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -13,6 +13,7 @@
   "dependencies": {
     "@lucide/vue": "^1.31.0",
     "@tanstack/vue-query": "^5.101.4",
+    "@unhead/vue": "^3.3.2",
     "@vueuse/core": "^14.4.0",
     "better-auth": "^1.6.26",
     "echarts": "^6.1.0",

@@ -3,9 +3,9 @@ import type { ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { NotFoundError } from '@/api/music'
 import { useArtistInfoQuery } from '@/composables/queries'
-import { appTitle } from '@/constants'
+import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
-import { getProductIconUrl } from '@/utils'
+import { getProductIconUrl, getProductName } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -34,6 +34,18 @@ const albumsFiltered = computed(() => {
 })
 
 const artistInfoResolved = computed(() => artistInfo.value as ArtistInfo | undefined)
+
+usePageSeo({
+  title: artistName,
+  description: computed(() => {
+    const info = artistInfoResolved.value
+    if (!info)
+      return null
+    const products = info.products.map(p => getProductName(p)).join('、')
+    return `${info.name}，${info.isHoyomix ? 'HOYO-MiX 团队成员，' : ''}参与了${products}的音乐制作`
+  }),
+  path: computed(() => (artistName.value ? `/artist/${artistName.value}` : null)),
+})
 
 const selectedRole = ref<string | null>(null)
 const selectedProduct = ref<string | null>(null)
@@ -81,9 +93,7 @@ const allRoles = computed(() => {
     .sort((a, b) => b.count - a.count)
 })
 
-watch(artistName, (val) => {
-  if (val)
-    document.title = `${val} - ${appTitle}`
+watch(artistName, () => {
   selectedRole.value = null
   selectedProduct.value = null
   selectedYear.value = null
