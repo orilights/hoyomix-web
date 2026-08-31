@@ -1,9 +1,13 @@
 <script setup lang="ts">
-type Placement = 'top' | 'bottom' | 'left' | 'right'
+import type { Placement } from '@floating-ui/vue'
+import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/vue'
+import { computed, ref } from 'vue'
+
+type PlacementProp = 'top' | 'bottom' | 'left' | 'right'
 type Align = 'start' | 'center' | 'end'
 
 const props = withDefaults(defineProps<{
-  placement?: Placement
+  placement?: PlacementProp
   align?: Align
   content?: string
   theme?: 'dark' | 'light'
@@ -14,6 +18,26 @@ const props = withDefaults(defineProps<{
 })
 
 const show = ref(false)
+
+const reference = useTemplateRef<HTMLElement>('reference')
+const floating = useTemplateRef<HTMLElement>('floating')
+
+const floatingPlacement = computed<Placement>(() => {
+  const base = props.placement
+  if (props.align === 'start')
+    return `${base}-start` as Placement
+  if (props.align === 'end')
+    return `${base}-end` as Placement
+  return base
+})
+
+const { floatingStyles } = useFloating(reference, floating, {
+  placement: floatingPlacement,
+  middleware: [offset(6), flip(), shift({ padding: 8 })],
+  strategy: 'fixed',
+  open: show,
+  whileElementsMounted: autoUpdate,
+})
 
 function onTouchStart() {
   show.value = !show.value
@@ -33,79 +57,22 @@ function onMouseEnter() {
 function onMouseLeave() {
   show.value = false
 }
-
-const tooltipStyle = computed(() => {
-  const { placement, align } = props
-  const style: Record<string, string> = {}
-  const gap = '6px'
-
-  if (placement === 'right') {
-    style.left = `calc(100% + ${gap})`
-    if (align === 'center') {
-      style.top = '50%'
-      style.transform = 'translateY(-50%)'
-    }
-    else if (align === 'end') {
-      style.bottom = '0'
-    }
-    else {
-      style.top = '0'
-    }
-  }
-  else if (placement === 'left') {
-    style.right = `calc(100% + ${gap})`
-    if (align === 'center') {
-      style.top = '50%'
-      style.transform = 'translateY(-50%)'
-    }
-    else if (align === 'end') {
-      style.bottom = '0'
-    }
-    else {
-      style.top = '0'
-    }
-  }
-  else if (placement === 'top') {
-    style.bottom = `calc(100% + ${gap})`
-    if (align === 'center') {
-      style.left = '50%'
-      style.transform = 'translateX(-50%)'
-    }
-    else if (align === 'end') {
-      style.right = '0'
-    }
-    else {
-      style.left = '0'
-    }
-  }
-  else {
-    style.top = `calc(100% + ${gap})`
-    if (align === 'center') {
-      style.left = '50%'
-      style.transform = 'translateX(-50%)'
-    }
-    else if (align === 'end') {
-      style.right = '0'
-    }
-    else {
-      style.left = '0'
-    }
-  }
-
-  return style
-})
 </script>
 
 <template>
-  <div class="relative">
+  <div ref="reference" class="relative" v-bind="$attrs">
     <div @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @touchstart="onTouchStart">
       <slot />
     </div>
+  </div>
+
+  <Teleport to="body">
     <Transition name="tooltip">
       <div
         v-if="show"
-        class="absolute z-100 pointer-events-none"
-        :style="tooltipStyle"
+        ref="floating"
+        class="z-100 pointer-events-none"
+        :style="floatingStyles"
       >
         <slot name="tooltip">
           <div
@@ -120,7 +87,7 @@ const tooltipStyle = computed(() => {
         </slot>
       </div>
     </Transition>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>

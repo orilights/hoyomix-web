@@ -292,7 +292,6 @@ onMounted(() => {
 
           <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <MusicActions
-              dropdown-position="up"
               :music-info="musicInfo"
               :is-playlist-context="isPlaylistContext"
               :prev-disabled="!hasPrev"

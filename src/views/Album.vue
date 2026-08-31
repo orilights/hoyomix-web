@@ -201,7 +201,6 @@ onMounted(() => {
 
           <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <AlbumActions
-              dropdown-position="up"
               :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
               :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
               @play-all="playAll"
