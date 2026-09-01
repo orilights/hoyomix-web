@@ -7,6 +7,7 @@ const { user, isLoggedIn, isPending, showAuthDialog } = storeToRefs(auth)
 
 const showDropdown = ref(false)
 const showChangePassword = ref(false)
+const showChangeName = ref(false)
 
 function getInitial(): string {
   return user.value?.name?.charAt(0).toUpperCase() ?? '?'
@@ -105,6 +106,13 @@ onUnmounted(() => {
         <div class="p-2">
           <button
             class="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            @click="showChangeName = true"
+          >
+            <LucidePenLine class="size-4" />
+            修改用户名
+          </button>
+          <button
+            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
             @click="showChangePassword = true"
           >
             <LucideKeyRound class="size-4" />
@@ -124,6 +132,7 @@ onUnmounted(() => {
 
   <AuthDialog v-model="showAuthDialog" />
   <ChangePasswordDialog v-model="showChangePassword" />
+  <ChangeUsernameDialog v-model="showChangeName" />
 </template>
 
 <style scoped>

@@ -26,6 +26,7 @@ usePageSeo({
 })
 
 const showChangePassword = ref(false)
+const showChangeName = ref(false)
 
 function formatLatency(ms: number | undefined): string {
   return ms == null ? '-' : `${Math.round(ms)}ms`
@@ -306,6 +307,12 @@ onMounted(() => {
         <div class="flex gap-2 mt-4">
           <button
             class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+            @click="showChangeName = true"
+          >
+            修改用户名
+          </button>
+          <button
+            class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             @click="showChangePassword = true"
           >
             修改密码
@@ -427,6 +434,7 @@ onMounted(() => {
     </AsyncFade>
 
     <ChangePasswordDialog v-model="showChangePassword" />
+    <ChangeUsernameDialog v-model="showChangeName" />
   </div>
 </template>
 

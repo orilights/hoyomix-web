@@ -29,5 +29,9 @@ export const useAuthStore = defineStore('auth', () => {
     await authClient.signOut()
   }
 
-  return { user, token, isLoggedIn, isPending, showAuthDialog, openAuthDialog, requireLogin, logout }
+  async function refreshSession() {
+    await session.value?.refetch()
+  }
+
+  return { user, token, isLoggedIn, isPending, showAuthDialog, openAuthDialog, requireLogin, logout, refreshSession }
 })
