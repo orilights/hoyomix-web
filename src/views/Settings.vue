@@ -26,6 +26,7 @@ usePageSeo({
 })
 
 const showChangePassword = ref(false)
+const showChangeName = ref(false)
 
 function formatLatency(ms: number | undefined): string {
   return ms == null ? '-' : `${Math.round(ms)}ms`
@@ -306,6 +307,12 @@ onMounted(() => {
         <div class="flex gap-2 mt-4">
           <button
             class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+            @click="showChangeName = true"
+          >
+            修改用户名
+          </button>
+          <button
+            class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
             @click="showChangePassword = true"
           >
             修改密码
@@ -344,7 +351,7 @@ onMounted(() => {
     </div>
     <div class="mt-2">
       <div>
-        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.6.0</span>
+        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.6.1</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">测试版</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
@@ -421,12 +428,13 @@ onMounted(() => {
       <div v-else-if="isChangelogError" class="flex items-center justify-center mt-4 py-4 text-red-400">
         加载失败，请刷新重试
       </div>
-      <div v-else class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4 overflow-x-scroll">
+      <div v-else class="font-mono whitespace-pre-wrap bg-gray-100 rounded-lg p-4 mt-4">
         {{ changelog }}
       </div>
     </AsyncFade>
 
     <ChangePasswordDialog v-model="showChangePassword" />
+    <ChangeUsernameDialog v-model="showChangeName" />
   </div>
 </template>
 

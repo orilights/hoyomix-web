@@ -1,7 +1,7 @@
 {
   "name": "hoyomix-web",
   "type": "module",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,7 @@
     "lintf": "eslint . --fix"
   },
   "dependencies": {
+    "@floating-ui/vue": "^2.0.1",
     "@lucide/vue": "^1.31.0",
     "@tanstack/vue-query": "^5.101.4",
     "@unhead/vue": "^3.3.2",

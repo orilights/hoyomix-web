@@ -162,8 +162,7 @@ function onHeaderTouchEnd() {
   <Transition name="fullscreen-player">
     <div
       v-if="isFullscreen && currentSong"
-      class="fixed inset-0 z-50 flex flex-col"
-      :class="isImmersive && !immersiveControlsVisible ? 'pb-0' : 'pb-[72px]'"
+      class="fixed inset-0 z-50 flex flex-col pb-[72px]"
       :style="{
         transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
         transition: snapBack ? 'transform 0.3s ease' : undefined,
@@ -197,7 +196,7 @@ function onHeaderTouchEnd() {
             <Tooltip
               placement="bottom"
               align="center"
-              content="退出全屏"
+              content="退出全屏播放器"
             >
               <button
                 class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
@@ -304,7 +303,10 @@ function onHeaderTouchEnd() {
           <PlayerControlMobile />
         </div>
 
-        <div v-if="showSpectrum" class="h-16 shrink-0">
+        <div
+          v-if="showSpectrum" class="h-16 shrink-0 duration-300 ease"
+          :class="{ 'translate-y-[72px]': isImmersive && !immersiveControlsVisible }"
+        >
           <PlayerSpectrum :active="showSpectrum && isPlaying" />
         </div>
       </div>
