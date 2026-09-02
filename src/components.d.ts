@@ -44,6 +44,7 @@ declare module 'vue' {
     LucideCircleCheck: typeof import('@lucide/vue')['CircleCheck']
     LucideCircleX: typeof import('@lucide/vue')['CircleX']
     LucideClock: typeof import('@lucide/vue')['Clock']
+    LucideCloudAlert: typeof import('@lucide/vue')['CloudAlert']
     LucideDisc: typeof import('@lucide/vue')['Disc']
     LucideFolderPlus: typeof import('@lucide/vue')['FolderPlus']
     LucideGlobe: typeof import('@lucide/vue')['Globe']
