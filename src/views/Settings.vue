@@ -428,7 +428,7 @@ onMounted(() => {
       <div v-else-if="isChangelogError" class="flex items-center justify-center mt-4 py-4 text-red-400">
         加载失败，请刷新重试
       </div>
-      <div v-else class="font-mono whitespace-pre bg-gray-100 rounded-lg p-4 mt-4 overflow-x-scroll">
+      <div v-else class="font-mono whitespace-pre-wrap bg-gray-100 rounded-lg p-4 mt-4">
         {{ changelog }}
       </div>
     </AsyncFade>

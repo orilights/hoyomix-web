@@ -196,7 +196,7 @@ function onHeaderTouchEnd() {
             <Tooltip
               placement="bottom"
               align="center"
-              content="退出全屏"
+              content="退出全屏播放器"
             >
               <button
                 class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
