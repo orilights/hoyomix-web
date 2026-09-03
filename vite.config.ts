@@ -4,10 +4,14 @@ import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
+import pkg from './package.json'
 import buildInfo from './plugins/buildInfo.ts'
 import injectHead from './plugins/injectHead.ts'
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
