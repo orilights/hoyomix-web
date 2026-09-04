@@ -9,7 +9,7 @@ import { queryClient } from '@/utils/query-client'
 
 import 'overlayscrollbars/overlayscrollbars.css'
 import 'vue-sonner/style.css'
-import '@/assets/tailwind.css'
+import 'virtual:uno.css'
 import '@/assets/style.css'
 
 OverlayScrollbars.plugin(ClickScrollPlugin)
