@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
-import pkg from './package.json'
+import pkg from './package.json' with { type: 'json' }
 import buildInfo from './plugins/buildInfo.ts'
 import injectHead from './plugins/injectHead.ts'
 
