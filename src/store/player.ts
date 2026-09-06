@@ -248,7 +248,7 @@ export const usePlayerStore = defineStore('player', {
             nextIndex = this.currentIndex + 1
           }
           else {
-            this.isPlaying = false
+            toast.info('当前已是最后一首歌曲')
             return
           }
       }
@@ -284,6 +284,7 @@ export const usePlayerStore = defineStore('player', {
             prevIndex = this.currentIndex - 1
           }
           else {
+            toast.info('当前已是第一首歌曲')
             return
           }
       }
