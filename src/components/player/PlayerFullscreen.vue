@@ -270,12 +270,10 @@ function onHeaderTouchEnd() {
 
         <div class="flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0">
           <div class="hidden md:block w-[40%] max-w-[40vh] shrink-0 mx-[5vw]">
-            <div class="rounded-2xl overflow-hidden shadow-2xl ">
-              <LazyImg
-                class="w-full aspect-square"
-                :src="coverUrl"
-              />
-            </div>
+            <LazyImg
+              class="w-full aspect-square rounded-2xl shadow-2xl"
+              :src="coverUrl"
+            />
             <div class="mt-4 text-center">
               <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
                 {{ currentSong.songName }}
