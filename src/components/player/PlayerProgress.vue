@@ -22,6 +22,7 @@ const progressBar = useTemplateRef<HTMLElement>('progressBar')
 const isDragging = ref(false)
 const hoverTime = ref(-1)
 const dragTime = ref(-1)
+const hasDuration = computed(() => Number.isFinite(props.duration) && props.duration > 0)
 
 const progressPercent = computed(() => {
   if (!props.duration)
@@ -177,14 +178,14 @@ const hoverPercent = computed(() => {
     </div>
 
     <div
-      v-if="!thin || isDragging"
+      v-if="hasDuration && (!thin || isDragging)"
       class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity z-100"
       :class="{ '!opacity-100': isDragging }"
       :style="{ left: `${displayPercent}%` }"
     />
 
     <div
-      v-if="displayTime >= 0 "
+      v-if="hasDuration && displayTime >= 0"
       class="absolute -top-8 -translate-x-1/2 bg-black/70 text-white text-xs px-2 py-1 rounded pointer-events-none"
       :style="{ left: `${isDragging ? displayPercent : (hoverPercent >= 0 ? hoverPercent : displayPercent)}%` }"
     >
