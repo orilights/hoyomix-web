@@ -107,6 +107,7 @@ declare module 'vue' {
     PlayerPlaylist: typeof import('./components/player/PlayerPlaylist.vue')['default']
     PlayerProgress: typeof import('./components/player/PlayerProgress.vue')['default']
     PlayerSpectrum: typeof import('./components/player/PlayerSpectrum.vue')['default']
+    PlayerSpectrumSettings: typeof import('./components/player/PlayerSpectrumSettings.vue')['default']
     PlaylistActions: typeof import('./components/playlist/PlaylistActions.vue')['default']
     PlaylistCard: typeof import('./components/playlist/PlaylistCard.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

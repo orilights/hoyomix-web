@@ -278,6 +278,8 @@ onMounted(() => {
       </div>
     </div>
 
+    <PlayerSpectrumSettings />
+
     <div class="font-bold text-2xl mt-4">
       账号
     </div>

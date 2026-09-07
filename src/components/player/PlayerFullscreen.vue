@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { usePlayerCoverColors } from '@/composables/usePlayerCoverColors'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
-import { getImageGradient } from '@/utils/cover'
+import { fallbackCoverColors } from '@/utils/cover'
 
 const router = useRouter()
 const player = usePlayerStore()
@@ -25,9 +26,9 @@ const coverUrl = computed(() => {
   return getCoverUrl(currentSong.value.albumPlatforms, '800px')
 })
 
-const FALLBACK_BG = 'linear-gradient(to bottom, #111827, #111827)'
-const bg1 = ref(FALLBACK_BG)
-const bg2 = ref(FALLBACK_BG)
+const { gradient: coverGradient } = usePlayerCoverColors()
+const bg1 = ref(fallbackCoverColors.gradient)
+const bg2 = ref(fallbackCoverColors.gradient)
 const showBackground = ref(1)
 const lyricViewRef = useTemplateRef('lyricView')
 const transformPosition = ref('')
@@ -67,22 +68,7 @@ onUnmounted(() => {
     clearTimeout(immersiveTimer)
 })
 
-watch(coverUrl, async (url) => {
-  let gradient = FALLBACK_BG
-  if (url) {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.src = url
-    await img.decode()
-    const canvas = document.createElement('canvas')
-    canvas.width = img.naturalWidth
-    canvas.height = img.naturalHeight
-    canvas.getContext('2d')!.drawImage(img, 0, 0)
-    const imageData = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height)
-    const gradientColor = getImageGradient(imageData)
-    if (gradientColor)
-      gradient = gradientColor
-  }
+watch(coverGradient, (gradient) => {
   if (showBackground.value !== 1) {
     bg1.value = gradient
     showBackground.value = 1
@@ -302,7 +288,8 @@ function onHeaderTouchEnd() {
         </div>
 
         <div
-          v-if="showSpectrum" class="h-16 shrink-0 duration-300 ease"
+          v-if="showSpectrum && enableAudioContext" class="shrink-0 duration-300 ease"
+          :style="{ height: `${player.spectrumSettings.height}px`, maxHeight: '30vh' }"
           :class="{ 'translate-y-[72px]': isImmersive && !immersiveControlsVisible }"
         >
           <PlayerSpectrum :active="showSpectrum && isPlaying" />

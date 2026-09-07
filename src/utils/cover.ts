@@ -561,15 +561,20 @@ class Palette {
   }
 }
 
-/**
- * 完整流程：从图片 URL 获取背景渐变 CSS
- */
-function getImageGradient(image: ImageData): string {
-  const dominantColor = new Palette(image).getDominantColor()
-  const [top, bottom] = computeGradientColors(dominantColor)
-  return `linear-gradient(to bottom, ${top} 0%, ${bottom} 100%)`
+export const fallbackCoverColors = {
+  gradient: 'linear-gradient(to bottom, #111827, #111827)',
+  accent: '#ffffff',
 }
 
-export {
-  getImageGradient,
+/** 只提取一次主色，同时生成播放器背景和频谱强调色。 */
+export function getImageColors(image: ImageData): typeof fallbackCoverColors {
+  const color = new Palette(image).getDominantColor()
+  if (color.r < 0)
+    return { ...fallbackCoverColors }
+  const [top, bottom] = computeGradientColors(color)
+  const { h, s, l } = rgbToHsl(color)
+  return {
+    gradient: `linear-gradient(to bottom, ${top} 0%, ${bottom} 100%)`,
+    accent: `hsl(${h}, ${s}%, ${Math.max(65, l)}%)`,
+  }
 }

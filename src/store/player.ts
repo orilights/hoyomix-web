@@ -6,6 +6,7 @@ import { audioQualityOptions } from '@/constants'
 import { clearMediaSession, getAvailableQualities, parseSongMediaResponse, selectLyricProvider, selectMediaUrlsWithSource, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 import { queryClient } from '@/utils/query-client'
+import { createSpectrumSettings, normalizeSpectrumSettings } from '@/utils/spectrum'
 import { useMediaSourceStore } from './media-source'
 
 export const usePlayerStore = defineStore('player', {
@@ -17,6 +18,7 @@ export const usePlayerStore = defineStore('player', {
     volume: 0.8,
     quality: 5 as AudioQuality,
     showSpectrum: false,
+    spectrumSettings: createSpectrumSettings(),
     enableAudioContext: true,
     showTranslation: true,
     lyricsOffset: 0,
@@ -494,6 +496,9 @@ export const usePlayerStore = defineStore('player', {
   },
 
   persist: {
+    afterHydrate: ({ store }) => {
+      store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
+    },
     pick: [
       'playlist',
       'currentIndex',
@@ -501,6 +506,7 @@ export const usePlayerStore = defineStore('player', {
       'volume',
       'quality',
       'showSpectrum',
+      'spectrumSettings',
       'enableAudioContext',
       'showTranslation',
       'lyricsOffset',
