@@ -70,4 +70,5 @@ export const mobileUserAgentRegex = /iPhone|phone|android|iPod|pad|iPad/i
 export const iOSUserAgentRegex = /iPhone|iPad|iPod/i
 
 export const appTitle = 'HOYO-MiX Online'
+export const appVersion = __APP_VERSION__
 export const appDescription = 'HOYO-MiX Online 是一个米哈游游戏原声带数据网站，收录 HOYO-MiX 团队为《原神》、《崩坏》系列等作品创作的原声音乐，支持在线试听、专辑浏览、歌曲检索、创建与分享歌单。'

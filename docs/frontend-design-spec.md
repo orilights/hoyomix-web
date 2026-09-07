@@ -19,7 +19,7 @@
 | 框架/构建 | Vue 3.5（`<script setup>` + TS 6）、Vite 8 + rolldown |
 | 路由/状态 | vue-router 5（History 模式）、Pinia 4 + `pinia-plugin-persistedstate` |
 | 数据请求 | @tanstack/vue-query 5（读取）、原生 fetch 封装（写入） |
-| 样式/图标 | Tailwind CSS 4（`@tailwindcss/vite`）、@lucide/vue |
+| 样式/图标 | UnoCSS（`unocss/vite` + `@unocss/preset-wind4`）、@lucide/vue |
 | 其他 | OverlayScrollbars、ECharts 6 + vue-echarts、better-auth、vue-sonner、vuedraggable、@vueuse/core |
 | 代码规范 | @antfu/eslint-config（无分号、单引号、2 空格） |
 
@@ -177,7 +177,7 @@ Toaster（全局提示）
 ## 13. 工程化与构建
 
 - **Vite**：别名 `@ → src`；代码分割 `vendor`（echarts 外 node_modules）+ `pages`（views 除 Statistics）。
-- **插件**：`vue()`、`tailwindcss()`、`AutoImport`（vue/vue-router/pinia）、`Components`（自动解析组件 + 透传 `Lucide*`/`OverlayScrollbarsComponent`）、`buildInfo()`（注入 `__BUILD_TIME__`）、`injectHead()`（构建时注入 base64 到 `<head>`）。
+- **插件**：`vue()`、`UnoCSS()`（`uno.config.ts` 配置 `presetWind4`）、`AutoImport`（vue/vue-router/pinia）、`Components`（自动解析组件 + 透传 `Lucide*`/`OverlayScrollbarsComponent`）、`buildInfo()`（注入 `__BUILD_TIME__`）、`injectHead()`（构建时注入 base64 到 `<head>`）。
 - **约定**：`ref`/`computed`/`watch`/`useRoute`/`storeToRefs` 等由 auto-import 自动引入，无需手写 import；`auto-imports.d.ts`/`components.d.ts` 勿手改。
 - **脚本**：`dev`/`build`（`vue-tsc -b && vite build`）/`preview`/`lint`/`lintf`；包管理器 **pnpm**。
 
@@ -187,7 +187,7 @@ Toaster（全局提示）
 
 1. 新查询一律进 `composables/queries.ts`；纯函数放 `utils/`。
 2. 全局共享的查询结果用 `watch(..., { immediate: true })` 反填 Pinia。
-3. 样式优先 Tailwind 工具类；定制滚动条/过渡放 `assets/style.css`。
+3. 样式优先 UnoCSS 工具类；定制滚动条/过渡放 `assets/style.css`。
 4. 图标用 `Lucide*`，品牌图标放 `components/icon`。
 5. 所有交互反馈经 toast；所有异步有 loading 态。
 6. 播放/歌词 UI 挂在 `App.vue` 全局层，路由切换不影响播放器。

@@ -5,7 +5,7 @@
 
 ## 技术栈
 - Vue 3.5(`<script setup>` + TS 严格模式)、Vite 8 + rolldown、TypeScript 6、vue-router 5、Pinia 4、@tanstack/vue-query 5
-- 样式:Tailwind CSS 4(`@tailwindcss/vite`),视觉体系为「浅色玻璃拟态 + 主题化背景」
+- 样式:UnoCSS(`unocss/vite` + `@unocss/preset-wind4`),视觉体系为「浅色玻璃拟态 + 主题化背景」
 - 图标:@lucide/vue;图表:ECharts 6 + vue-echarts;认证:better-auth;提示:vue-sonner;工具:@vueuse/core
 - 代码规范:@antfu/eslint-config(无分号、单引号、2 空格缩进)
 

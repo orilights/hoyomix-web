@@ -1,13 +1,17 @@
 import path from 'node:path'
-import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
+import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
+import pkg from './package.json' with { type: 'json' }
 import buildInfo from './plugins/buildInfo.ts'
 import injectHead from './plugins/injectHead.ts'
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
@@ -44,7 +48,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
-    tailwindcss(),
+    UnoCSS(),
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia'],
       dts: 'src/auto-imports.d.ts',

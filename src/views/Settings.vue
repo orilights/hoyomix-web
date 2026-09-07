@@ -4,7 +4,7 @@ import { toast } from 'vue-sonner'
 import { fetchJsonMutation } from '@/api/music'
 import { useChangelogQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
-import { apiBase, appDescription, appTitle, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { apiBase, appDescription, appTitle, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
@@ -278,6 +278,8 @@ onMounted(() => {
       </div>
     </div>
 
+    <PlayerSpectrumSettings />
+
     <div class="font-bold text-2xl mt-4">
       账号
     </div>
@@ -351,7 +353,7 @@ onMounted(() => {
     </div>
     <div class="mt-2">
       <div>
-        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v0.6.1</span>
+        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v{{ appVersion }}</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">测试版</span>
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
