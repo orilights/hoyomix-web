@@ -127,18 +127,16 @@ onMounted(() => {
     <div>
       <div class="font-bold text-lg mb-2 flex items-center gap-2">
         音频源
-        <button
-          class="text-xs px-2 py-1 rounded-md border transition-colors cursor-pointer flex items-center gap-1"
-          :class="mediaSource.isTestingLatency
-            ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-            : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'"
+        <AppButton
+          variant="outline"
+          size="xs"
           :disabled="mediaSource.isTestingLatency"
           @click="mediaSource.testLatency()"
         >
           <LucideRefreshCw v-if="!mediaSource.isTestingLatency" class="size-3.5" />
           <LucideLoader2 v-else class="size-3.5 animate-spin" />
           重新测试延迟
-        </button>
+        </AppButton>
       </div>
       <div v-if="mediaSource.isLoaded" class="flex flex-wrap gap-2">
         <button
@@ -307,33 +305,30 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex gap-2 mt-4">
-          <button
-            class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+          <AppButton
             @click="showChangeName = true"
           >
             修改用户名
-          </button>
-          <button
-            class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+          </AppButton>
+          <AppButton
             @click="showChangePassword = true"
           >
             修改密码
-          </button>
-          <button
-            class="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors cursor-pointer"
+          </AppButton>
+          <AppButton
+            variant="danger"
             @click="logout"
           >
             退出登录
-          </button>
+          </AppButton>
         </div>
       </div>
       <div v-else>
-        <button
-          class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+        <AppButton
           @click="auth.openAuthDialog()"
         >
           登录
-        </button>
+        </AppButton>
       </div>
     </div>
 
@@ -358,12 +353,12 @@ onMounted(() => {
         <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
       </div>
       <div class="mt-2">
-        <button
-          class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer my-2"
+        <AppButton
+          class="my-2"
           @click="goFeedbackPage"
         >
           反馈问题
-        </button>
+        </AppButton>
         <br>
       </div>
 
@@ -404,14 +399,14 @@ onMounted(() => {
           class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
           placeholder="Body"
         />
-        <button
-          class="px-3 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+        <AppButton
+          variant="primary"
           :disabled="debugLoading || !debugUrl.trim()"
           @click="sendDebugRequest"
         >
           <LucideLoader2 v-if="debugLoading" class="size-4 animate-spin" />
           发送
-        </button>
+        </AppButton>
         <pre
           v-if="debugResult !== null"
           class="bg-gray-100 rounded-lg p-3 text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto max-h-96"

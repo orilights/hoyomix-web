@@ -283,14 +283,14 @@ async function submit() {
         </div>
       </div>
 
-      <button
+      <AppButton
         type="button"
-        class="w-full px-3 py-2 text-sm rounded-lg bg-gray-500/10 hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center justify-center gap-1"
+        class="w-full"
         @click="addToPending"
       >
         <LucideListPlus class="size-4" />
         加入待提交列表
-      </button>
+      </AppButton>
 
       <div v-if="pendingVideos.length">
         <p class="text-sm font-medium text-gray-700 mb-1.5">
@@ -318,22 +318,21 @@ async function submit() {
 
     <template #footer>
       <div class="px-6 py-4 flex items-center justify-end gap-2">
-        <button
+        <AppButton
           type="button"
-          class="px-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer text-gray-700"
           @click="close"
         >
           取消
-        </button>
-        <button
+        </AppButton>
+        <AppButton
           type="button"
-          class="px-3 py-2 text-sm rounded-lg bg-blue-500/90 text-white hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          variant="primary"
           :disabled="!canSubmit"
           @click="submit"
         >
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />
           {{ submitting ? '提交中...' : '提交申请' }}
-        </button>
+        </AppButton>
       </div>
     </template>
   </AppDialog>

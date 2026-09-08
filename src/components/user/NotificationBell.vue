@@ -22,10 +22,13 @@ const hasUnread = computed(() => (unreadCountData.value?.count ?? 0) > 0)
 </script>
 
 <template>
-  <button
+  <AppButton
     v-if="isLoggedIn"
-    class="relative text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer"
+    icon-only
+    shape="pill"
+    class="relative"
     title="站内信"
+    aria-label="站内信"
     @click="showNotificationDialog = true"
   >
     <LucideBell class="size-4.5" />
@@ -33,6 +36,6 @@ const hasUnread = computed(() => (unreadCountData.value?.count ?? 0) > 0)
       v-if="hasUnread"
       class="absolute -top-0.5 -right-0.5 size-2 bg-red-500 rounded-full ring-2 ring-white pointer-events-none"
     />
-  </button>
+  </AppButton>
   <NotificationDialog v-if="isLoggedIn" v-model="showNotificationDialog" />
 </template>

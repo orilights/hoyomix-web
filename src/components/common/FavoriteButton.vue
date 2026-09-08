@@ -59,9 +59,9 @@ async function handleClick() {
 </script>
 
 <template>
-  <button
+  <AppButton
     v-if="variant === 'action'"
-    class="group/favorite text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
+    class="group/favorite"
     :disabled="loading"
     @click.stop="handleClick"
   >
@@ -78,16 +78,19 @@ async function handleClick() {
     <span>
       {{ isFavorited ? '已收藏' : '收藏' }}
     </span>
-  </button>
-  <button
+  </AppButton>
+  <AppButton
     v-else
-    class="group/favorite favorite p-1 rounded transition-colors cursor-pointer shrink-0"
+    icon-only
+    variant="ghost"
+    :size="size === 'md' ? 'sm' : 'xs'"
+    class="group/favorite favorite shrink-0"
     :class="{
       'opacity-50': loading,
-      'p-1.5': size === 'md',
     }"
     :disabled="loading"
     :title="isFavorited ? '取消收藏' : '收藏'"
+    :aria-label="isFavorited ? '取消收藏' : '收藏'"
     @click.stop="handleClick"
   >
     <LucideLoader2
@@ -104,5 +107,5 @@ async function handleClick() {
       ]"
       :fill="isFavorited ? 'currentColor' : 'none'"
     />
-  </button>
+  </AppButton>
 </template>

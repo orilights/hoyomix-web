@@ -30,12 +30,12 @@ onMounted(() => {
         <p class="text-sm text-gray-500 text-center">
           恭喜！邮箱验证已完成，点击下方按钮即可登录！
         </p>
-        <button
-          class="mt-2 px-8 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors cursor-pointer"
+        <AppButton
+          variant="primary" size="lg" class="mt-2"
           @click="auth.openAuthDialog()"
         >
           立即登录
-        </button>
+        </AppButton>
       </div>
     </div>
   </div>

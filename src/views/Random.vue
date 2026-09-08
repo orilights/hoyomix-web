@@ -207,8 +207,9 @@ onMounted(() => {
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">排除专辑</label>
-            <button
-              class="flex items-center gap-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 cursor-pointer transition-colors text-left"
+            <AppButton
+              variant="outline"
+              class="w-full !justify-start text-left"
               @click="showExcludeAlbumsDialog = true"
             >
               <LucideListX class="size-4 text-gray-400 shrink-0" />
@@ -216,7 +217,7 @@ onMounted(() => {
                 {{ randomPlaylistExcludeAlbums.length ? `已排除 ${randomPlaylistExcludeAlbums.length} 张` : '点击选择要排除的专辑' }}
               </span>
               <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
-            </button>
+            </AppButton>
           </div>
 
           <label class="flex items-center gap-2.5 py-1 cursor-pointer select-none">
@@ -232,8 +233,9 @@ onMounted(() => {
         <template v-else>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">指定专辑</label>
-            <button
-              class="flex items-center gap-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 cursor-pointer transition-colors text-left"
+            <AppButton
+              variant="outline"
+              class="w-full !justify-start text-left"
               :class="!randomPlaylistAlbums.length ? 'border-red-200' : ''"
               @click="showAlbumsDialog = true"
             >
@@ -242,20 +244,21 @@ onMounted(() => {
                 {{ randomPlaylistAlbums.length ? `已选 ${randomPlaylistAlbums.length} 张` : '点击选择专辑（必选）' }}
               </span>
               <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
-            </button>
+            </AppButton>
           </div>
         </template>
 
-        <button
-          class="w-full py-2.5 rounded-xl font-medium text-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
-          :class="isLoading ? 'bg-blue-400 text-white cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'"
+        <AppButton
+          variant="primary"
+          size="lg"
+          class="w-full"
           :disabled="isLoading"
           @click="generate"
         >
           <LucideLoader2 v-if="isLoading" class="size-4 animate-spin" />
           <LucideShuffle v-else class="size-4" />
           {{ isLoading ? '生成中...' : '生成随机播放列表' }}
-        </button>
+        </AppButton>
       </div>
 
       <div class="bg-white/80 rounded-2xl overflow-hidden mt-4 xl:mt-0">
@@ -273,34 +276,34 @@ onMounted(() => {
           <div v-else>
             <div class="px-4 pt-4 pb-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
               <span class="text-sm text-gray-500 mr-1">共 {{ randomPlaylist.length }} 首</span>
-              <button
-                class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 cursor-pointer transition-colors"
+              <AppButton
+                variant="primary"
                 @click="playAll"
               >
                 <LucidePlay class="size-3.5" />
                 播放全部
-              </button>
-              <button
-                class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+              </AppButton>
+              <AppButton
+                variant="outline"
                 @click="addAll"
               >
                 <LucidePlus class="size-3.5" />
                 添加到播放列表
-              </button>
-              <button
-                class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+              </AppButton>
+              <AppButton
+                variant="outline"
                 @click="saveAsPlaylist"
               >
                 <LucideListPlus class="size-3.5" />
                 新建歌单
-              </button>
-              <button
-                class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+              </AppButton>
+              <AppButton
+                variant="outline"
                 @click="addToPlaylist"
               >
                 <LucideFolderPlus class="size-3.5" />
                 添加到歌单
-              </button>
+              </AppButton>
             </div>
 
             <div class="divide-y divide-gray-50">

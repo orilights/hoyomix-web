@@ -490,29 +490,35 @@ onMounted(() => {
                       :song-id="song.songId"
                     />
                     <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                      <AppButton
+                        icon-only
+                        size="xs"
+                        variant="ghost"
                         title="播放"
                         @click="playSong(song)"
                       >
                         <LucidePlay class="size-4" />
-                      </button>
-                      <button
-                        class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                      </AppButton>
+                      <AppButton
+                        icon-only
+                        size="xs"
+                        variant="ghost"
                         title="加入播放列表"
                         @click="addSongToPlaylist(song)"
                       >
                         <LucidePlus class="size-4" />
-                      </button>
+                      </AppButton>
                       <template v-if="canEdit">
-                        <button
-                          class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                        <AppButton
+                          icon-only
+                          size="xs"
+                          variant="ghost"
                           title="从歌单移除"
                           :disabled="savingOrder"
                           @click="removeSong(song)"
                         >
                           <LucideTrash2 class="size-4" />
-                        </button>
+                        </AppButton>
                         <div class="drag-handle p-1 rounded cursor-grab active:cursor-grabbing">
                           <LucideGripVertical class="size-4" />
                         </div>

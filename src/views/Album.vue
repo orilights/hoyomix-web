@@ -316,20 +316,24 @@ onMounted(() => {
                           :song-id="songInfo.id"
                         />
                         <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                          <AppButton
+                            icon-only
+                            size="xs"
+                            variant="ghost"
                             title="播放"
                             @click.stop="playSong(songInfo)"
                           >
                             <LucidePlay class="size-4" />
-                          </button>
-                          <button
-                            class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                          </AppButton>
+                          <AppButton
+                            icon-only
+                            size="xs"
+                            variant="ghost"
                             title="添加到播放列表"
                             @click.stop="addToPlaylist(songInfo)"
                           >
                             <LucidePlus class="size-4" />
-                          </button>
+                          </AppButton>
                         </div>
                       </div>
                     </td>

@@ -48,14 +48,14 @@ onUnmounted(() => {
 
 <template>
   <div class="relative">
-    <button
+    <AppButton
       v-if="!isLoggedIn && !isPending"
-      class="text-sm bg-gray-500/10 px-3 py-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1.5"
+      shape="pill"
       @click="auth.openAuthDialog()"
     >
       <LucideUser class="size-4.5" />
       <span class="hidden md:inline text-xs">登录</span>
-    </button>
+    </AppButton>
 
     <div v-else-if="isLoggedIn" class="relative">
       <button
@@ -104,27 +104,30 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="p-2">
-          <button
-            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+          <AppButton
+            variant="ghost"
+            class="w-full !justify-start"
             @click="showChangeName = true"
           >
             <LucidePenLine class="size-4" />
             修改用户名
-          </button>
-          <button
-            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+          </AppButton>
+          <AppButton
+            variant="ghost"
+            class="w-full !justify-start"
             @click="showChangePassword = true"
           >
             <LucideKeyRound class="size-4" />
             修改密码
-          </button>
-          <button
-            class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+          </AppButton>
+          <AppButton
+            variant="danger"
+            class="w-full !justify-start"
             @click="logout"
           >
             <LucideLogOut class="size-4" />
             退出登录
-          </button>
+          </AppButton>
         </div>
       </div>
     </Transition>

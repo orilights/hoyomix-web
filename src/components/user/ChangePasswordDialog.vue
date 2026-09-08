@@ -92,17 +92,18 @@ async function handleSubmit() {
       <p v-if="errorMsg" class="text-sm text-red-500">
         {{ errorMsg }}
       </p>
-      <button
+      <AppButton
         type="submit"
+        variant="primary"
+        class="w-full mt-2"
         :disabled="loading"
-        class="w-full mt-2 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-60 transition-colors cursor-pointer"
       >
         <span v-if="loading" class="flex items-center justify-center gap-2">
           <LucideLoader2 class="size-4 animate-spin" />
           提交中...
         </span>
         <span v-else>确认修改</span>
-      </button>
+      </AppButton>
     </form>
   </AppDialog>
 </template>

@@ -252,28 +252,32 @@ onMounted(() => {
                 />
 
                 <Tooltip :content="playModeTip" placement="top" align="center">
-                  <button
-                    class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                  <AppButton
+                    icon-only
+                    variant="dark"
                     :title="playModeTip"
+                    :aria-label="playModeTip"
                     @click="player.togglePlayMode()"
                   >
                     <LucideListEnd v-if="playMode === 'sequential'" class="size-4" />
                     <LucideRepeat v-else-if="playMode === 'loop'" class="size-4" />
                     <LucideRepeat1 v-else-if="playMode === 'single'" class="size-4" />
                     <LucideShuffle v-else class="size-4" />
-                  </button>
+                  </AppButton>
                 </Tooltip>
 
                 <div v-if="!isIOS()" class="hidden md:block relative" @wheel.prevent="onVolumeWheel">
-                  <button
-                    class="text-white/60 hover:text-white p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                  <AppButton
+                    icon-only
+                    variant="dark"
+                    :aria-label="volume > 0 ? '静音' : '取消静音'"
                     @click="toggleMute"
                     @mouseenter="showVolumeSlider = true"
                     @mouseleave="showVolumeSlider = false"
                   >
                     <LucideVolume2 v-if="volume > 0" class="size-4" />
                     <LucideVolumeX v-else class="size-4" />
-                  </button>
+                  </AppButton>
                   <Transition name="dropdown">
                     <div
                       v-show="showVolumeSlider"
@@ -297,13 +301,15 @@ onMounted(() => {
                 </div>
 
                 <Tooltip content="播放列表" placement="top" align="center">
-                  <button
-                    class="p-2 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                  <AppButton
+                    icon-only
+                    variant="dark"
+                    aria-label="播放列表"
                     :class="{ 'text-blue-400': showPlaylist, 'text-white/60 hover:text-white': !showPlaylist }"
                     @click="showPlaylist = !showPlaylist"
                   >
                     <LucideList class="size-4" />
-                  </button>
+                  </AppButton>
                 </Tooltip>
               </div>
             </Transition>

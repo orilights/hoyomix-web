@@ -33,33 +33,42 @@ onUnmounted(() => {
     }"
   >
     <div class="flex items-center">
-      <button
-        class="text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer"
+      <AppButton
+        icon-only
+        shape="pill"
+        aria-label="返回上一页"
         @click="$router.back()"
       >
         <LucideChevronLeft class="size-4.5" />
-      </button>
-      <button
-        class="text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
+      </AppButton>
+      <AppButton
+        icon-only
+        shape="pill"
+        aria-label="返回首页"
+        class="ml-2"
         @click="$router.push({ name: 'Home' })"
       >
         <LucideLayoutGrid class="size-4.5" />
-      </button>
-      <button
-        class="text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer ml-2"
+      </AppButton>
+      <AppButton
+        icon-only
+        shape="pill"
+        aria-label="打开设置"
+        class="ml-2"
         @click="$router.push({ name: 'Settings' })"
       >
         <LucideSlidersHorizontal class="size-4.5" />
-      </button>
+      </AppButton>
     </div>
     <div class="ml-auto flex items-center gap-2">
-      <button
-        class="text-sm bg-gray-500/10 p-2 rounded-full hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1.5"
+      <AppButton
+        shape="pill"
+        aria-label="搜索"
         @click="showSearch = true"
       >
         <LucideSearch class="size-4.5" />
         <kbd class="hidden md:inline text-xs text-gray-400">Ctrl+K</kbd>
-      </button>
+      </AppButton>
       <NotificationBell />
       <UserInfo />
     </div>
