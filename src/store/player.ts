@@ -1,4 +1,4 @@
-import type { AudioQuality, LyricsSource, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
+import type { AudioQuality, LyricsSource, MobileFullscreenLayout, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api/music'
@@ -24,6 +24,7 @@ export const usePlayerStore = defineStore('player', {
     lyricsOffset: 0,
     lyricsFontSize: 16,
     lyricsSource: 'ncm' as LyricsSource,
+    mobileFullscreenLayout: 'lyrics' as MobileFullscreenLayout,
 
     // 运行时状态
     isPlaying: false,
@@ -439,6 +440,10 @@ export const usePlayerStore = defineStore('player', {
       this.fetchLyric()
     },
 
+    setMobileFullscreenLayout(layout: MobileFullscreenLayout) {
+      this.mobileFullscreenLayout = layout
+    },
+
     setAudioContextEnabled(enabled: boolean) {
       this.enableAudioContext = enabled
       getAudioPlayer().setAudioContextEnabled(enabled)
@@ -498,6 +503,8 @@ export const usePlayerStore = defineStore('player', {
   persist: {
     afterHydrate: ({ store }) => {
       store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
+      if (store.mobileFullscreenLayout !== 'lyrics' && store.mobileFullscreenLayout !== 'cover')
+        store.mobileFullscreenLayout = 'lyrics'
     },
     pick: [
       'playlist',
@@ -512,6 +519,7 @@ export const usePlayerStore = defineStore('player', {
       'lyricsOffset',
       'lyricsFontSize',
       'lyricsSource',
+      'mobileFullscreenLayout',
     ],
   },
 })

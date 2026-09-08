@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import type { LyricLine } from '@/utils'
+import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
 import { usePlayerStore } from '@/store/player'
-import { mergeLyrics } from '@/utils'
 
 const props = defineProps<{
   lyricData: string
   lyricTranslation: string
   showTranslation: boolean
   currentTime: number
+  toggleCurrentLine?: boolean
 }>()
 
 const emit = defineEmits<{
   seek: [time: number]
+  toggleLayout: []
 }>()
 
 const player = usePlayerStore()
@@ -44,43 +46,41 @@ function onWheel() {
   onUserScroll()
 }
 
+let touchStartX = 0
 let touchStartY = 0
+let touchMoved = false
+const skipNextClick = ref(false)
 function onTouchStart(e: TouchEvent) {
+  skipNextClick.value = false
+  touchStartX = e.touches[0].clientX
   touchStartY = e.touches[0].clientY
+  touchMoved = false
 }
 function onTouchMove(e: TouchEvent) {
+  const deltaX = Math.abs(e.touches[0].clientX - touchStartX)
   const deltaY = Math.abs(e.touches[0].clientY - touchStartY)
-  if (deltaY > 5) {
+  if (Math.max(deltaX, deltaY) > 5) {
+    touchMoved = true
     onUserScroll()
   }
 }
 
-const parsedLyrics = computed<LyricLine[]>(() =>
-  mergeLyrics(props.lyricData, props.lyricTranslation),
-)
+function onTouchEnd() {
+  if (touchMoved)
+    skipNextClick.value = true
+}
+
+const { parsedLyrics, hasTimestamp, currentLineIndex } = usePlayerLyrics({
+  lyricData: () => props.lyricData,
+  lyricTranslation: () => props.lyricTranslation,
+  currentTime: () => props.currentTime,
+  lyricsOffset,
+})
 
 watch(parsedLyrics, () => {
   nextTick(() => {
     scrollToCurrentLine(false)
   })
-})
-
-const hasTimestamp = computed(() =>
-  parsedLyrics.value.some(l => l.time !== null),
-)
-
-const currentLineIndex = computed(() => {
-  const defaultOffset = 0.4
-
-  if (parsedLyrics.value.length === 0 || !hasTimestamp.value)
-    return -1
-
-  for (let i = parsedLyrics.value.length - 1; i >= 0; i--) {
-    if (props.currentTime + defaultOffset + lyricsOffset.value >= parsedLyrics.value[i].time!) {
-      return i
-    }
-  }
-  return -1
 })
 
 // 自动滚动到当前行
@@ -120,12 +120,20 @@ function handleChangeFontSize(delta: number) {
 }
 
 function onClickLine(line: LyricLine) {
+  if (skipNextClick.value) {
+    skipNextClick.value = false
+    return
+  }
   if (line.time === null)
     return
   // 点击歌词跳转时重置手动滚动状态
   userScrolling.value = false
   if (userScrollTimer)
     clearTimeout(userScrollTimer)
+  if (props.toggleCurrentLine && parsedLyrics.value[currentLineIndex.value] === line) {
+    emit('toggleLayout')
+    return
+  }
   emit('seek', line.time)
 }
 
@@ -159,6 +167,8 @@ onUnmounted(() => {
       @wheel="onWheel"
       @touchstart="onTouchStart"
       @touchmove="onTouchMove"
+      @touchend="onTouchEnd"
+      @touchcancel="onTouchEnd"
     >
       <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
         暂无歌词

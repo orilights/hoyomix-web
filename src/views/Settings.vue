@@ -15,7 +15,7 @@ const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
-const { quality, enableAudioContext, lyricsSource } = storeToRefs(player)
+const { quality, enableAudioContext, lyricsSource, mobileFullscreenLayout } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 usePageSeo({
@@ -248,6 +248,32 @@ onMounted(() => {
       </div>
       <div class="text-sm text-gray-600 mt-2">
         优先使用所选平台的歌词
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="font-bold text-lg mb-2">
+        播放器布局（移动端）
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          :class="mobileFullscreenLayout === 'lyrics'
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          @click="player.setMobileFullscreenLayout('lyrics')"
+        >
+          全屏歌词
+        </button>
+        <button
+          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          :class="mobileFullscreenLayout === 'cover'
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          @click="player.setMobileFullscreenLayout('cover')"
+        >
+          封面与歌词
+        </button>
       </div>
     </div>
 

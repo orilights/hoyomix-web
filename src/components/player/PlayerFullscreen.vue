@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useMediaQuery, useWindowSize } from '@vueuse/core'
 import { usePlayerCoverColors } from '@/composables/usePlayerCoverColors'
+import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { fallbackCoverColors } from '@/utils/cover'
@@ -18,6 +20,9 @@ const {
   showTranslation,
   showSpectrum,
   enableAudioContext,
+  lyricsOffset,
+  lyricsFontSize,
+  mobileFullscreenLayout,
 } = storeToRefs(player)
 
 const coverUrl = computed(() => {
@@ -32,6 +37,39 @@ const bg2 = ref(fallbackCoverColors.gradient)
 const showBackground = ref(1)
 const lyricViewRef = useTemplateRef('lyricView')
 const transformPosition = ref('')
+const isMobileViewport = useMediaQuery('(max-width: 767px)')
+const { width: viewportWidth, height: viewportHeight } = useWindowSize()
+
+const { parsedLyrics, hasTimestamp, currentLineIndex } = usePlayerLyrics({
+  lyricData,
+  lyricTranslation,
+  currentTime,
+  lyricsOffset,
+})
+
+const compactLyricLine = computed(() => {
+  if (parsedLyrics.value.length === 0 || !hasTimestamp.value)
+    return null
+  const index = currentLineIndex.value >= 0 ? currentLineIndex.value : 0
+  return parsedLyrics.value[index] ?? null
+})
+
+const compactCoverSize = computed(() => {
+  const spectrumHeight = showSpectrum.value && enableAudioContext.value
+    ? Math.min(player.spectrumSettings.height, viewportHeight.value * 0.3)
+    : 0
+  const availableHeight = viewportHeight.value
+    - 72 // fixed player bar spacing
+    - 56 // header
+    - (isImmersive.value ? 0 : 80) // mobile controls
+    - spectrumHeight
+    - 96 // lyric text and gap
+  return Math.max(72, Math.min(
+    viewportWidth.value * 0.72,
+    viewportHeight.value * 0.42,
+    availableHeight,
+  ))
+})
 
 let immersiveTimer: ReturnType<typeof setTimeout> | null = null
 const IMMERSIVE_HIDE_DELAY = 3000
@@ -105,6 +143,18 @@ function toAlbum() {
 
 function onSeek(time: number) {
   player.seek(time)
+}
+
+function showLyricsLayout() {
+  player.setMobileFullscreenLayout('lyrics')
+  nextTick(() => {
+    lyricViewRef.value?.scrollToCurrentLine(false)
+  })
+}
+
+function onCurrentLyricToggle() {
+  if (isMobileViewport.value)
+    player.setMobileFullscreenLayout('cover')
 }
 
 const touchStartY = ref(0)
@@ -270,15 +320,64 @@ function onHeaderTouchEnd() {
             </div>
           </div>
 
-          <div class="flex-1 h-full min-w-0">
+          <div
+            v-if="isMobileViewport && mobileFullscreenLayout === 'cover'"
+            class="md:hidden flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-2 overflow-hidden"
+          >
+            <button
+              type="button"
+              class="max-w-full aspect-square rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
+              :style="{ width: `${compactCoverSize}px`, height: `${compactCoverSize}px` }"
+              aria-label="切换到完整歌词布局"
+              title="切换到完整歌词布局"
+              @click="showLyricsLayout"
+            >
+              <LazyImg
+                class="size-full object-cover"
+                :src="coverUrl"
+                :alt="`${currentSong.songName} 封面`"
+              />
+            </button>
+
+            <div class="w-full max-w-[min(88vw,520px)] min-h-[3.5rem] text-center flex items-center justify-center px-2">
+              <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
+                暂无歌词
+              </div>
+              <div v-else-if="!hasTimestamp" class="text-white/70 text-center">
+                当前歌词不支持滚动
+              </div>
+              <div v-else-if="compactLyricLine" class="max-w-full text-white font-bold">
+                <div
+                  class="leading-tight"
+                  :class="showTranslation && compactLyricLine.translation ? 'line-clamp-1' : 'line-clamp-2'"
+                  :style="{ fontSize: `${lyricsFontSize + 4}px` }"
+                  :title="compactLyricLine.text"
+                >
+                  {{ compactLyricLine.text }}
+                </div>
+                <div
+                  v-if="showTranslation && compactLyricLine.translation"
+                  class="leading-tight text-white/70 font-normal mt-1 line-clamp-1"
+                  :style="{ fontSize: `${lyricsFontSize}px` }"
+                  :title="compactLyricLine.translation"
+                >
+                  {{ compactLyricLine.translation }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="flex-1 h-full min-w-0">
             <PlayerLyrics
               ref="lyricView"
               :lyric-data="lyricData"
               :lyric-translation="lyricTranslation"
               :show-translation="showTranslation"
               :current-time="currentTime"
+              :toggle-current-line="isMobileViewport && mobileFullscreenLayout === 'lyrics'"
               class="h-full"
               @seek="onSeek"
+              @toggle-layout="onCurrentLyricToggle"
             />
           </div>
         </div>
