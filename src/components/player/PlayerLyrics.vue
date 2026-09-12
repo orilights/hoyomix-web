@@ -136,7 +136,7 @@ defineExpose({
 })
 
 onMounted(() => {
-  scrollToCurrentLine()
+  scrollToCurrentLine(false)
 })
 
 onUnmounted(() => {
