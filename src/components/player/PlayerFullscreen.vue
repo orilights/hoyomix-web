@@ -230,7 +230,7 @@ function onHeaderTouchEnd() {
               content="退出全屏播放器"
             >
               <button
-                class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                class="size-10 shrink-0 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
                 @click="close"
               >
                 <LucideChevronDown class="size-6" />
@@ -243,7 +243,7 @@ function onHeaderTouchEnd() {
               :content="isImmersive ? '退出沉浸模式' : '沉浸模式'"
             >
               <button
-                class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                class="size-10 shrink-0 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
                 @click="player.setImmersive(!isImmersive)"
               >
                 <LucideMaximize v-if="!isImmersive" class="size-5" />
@@ -268,7 +268,7 @@ function onHeaderTouchEnd() {
                 :content="!lyricTranslation ? '当前歌曲无歌词翻译' : '歌词翻译'"
               >
                 <button
-                  class="p-2 rounded-full transition-colors"
+                  class="size-10 shrink-0 inline-flex items-center justify-center rounded-full transition-colors"
                   :class="!lyricTranslation
                     ? 'text-white/20'
                     : showTranslation ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
@@ -285,7 +285,7 @@ function onHeaderTouchEnd() {
                 :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
               >
                 <button
-                  class="p-2 rounded-full transition-colors"
+                  class="size-10 shrink-0 inline-flex items-center justify-center rounded-full transition-colors"
                   :class="!enableAudioContext
                     ? 'text-white/20'
                     : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
