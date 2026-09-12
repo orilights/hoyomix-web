@@ -20,6 +20,7 @@ export const usePlayerStore = defineStore('player', {
     showSpectrum: false,
     spectrumSettings: createSpectrumSettings(),
     enableAudioContext: true,
+    enableMediaSession: true,
     showTranslation: true,
     lyricsOffset: 0,
     lyricsFontSize: 16,
@@ -73,27 +74,21 @@ export const usePlayerStore = defineStore('player', {
       player.setVolume(this.volume)
       player.setAudioContextEnabled(this.enableAudioContext)
 
-      setupMediaSessionHandlers({
-        play: () => this.togglePlay(),
-        pause: () => this.togglePlay(),
-        playNext: () => this.playNext(),
-        playPrev: () => this.playPrev(),
-        seek: (time: number) => this.seek(time),
-      })
+      this.setMediaSessionEnabled(this.enableMediaSession)
 
       player.on('play', () => {
         this.isPlaying = true
-        if ('mediaSession' in navigator)
+        if (this.enableMediaSession && 'mediaSession' in navigator)
           navigator.mediaSession.playbackState = 'playing'
       })
       player.on('pause', () => {
         this.isPlaying = false
-        if ('mediaSession' in navigator)
+        if (this.enableMediaSession && 'mediaSession' in navigator)
           navigator.mediaSession.playbackState = 'paused'
       })
       player.on('timeupdate', (time: number) => {
         this.currentTime = time
-        if ('mediaSession' in navigator && this.duration > 0) {
+        if (this.enableMediaSession && 'mediaSession' in navigator && this.duration > 0) {
           try {
             navigator.mediaSession.setPositionState({ duration: this.duration, playbackRate: 1, position: time })
           }
@@ -197,7 +192,8 @@ export const usePlayerStore = defineStore('player', {
       const player = getAudioPlayer()
       await player.loadSong(urls)
       await player.play()
-      updateMediaSession(song)
+      if (this.enableMediaSession)
+        updateMediaSession(song)
     },
 
     async togglePlay() {
@@ -444,6 +440,39 @@ export const usePlayerStore = defineStore('player', {
       this.mobileFullscreenLayout = layout
     },
 
+    setMediaSessionEnabled(enabled: boolean) {
+      this.enableMediaSession = enabled
+      if (!enabled) {
+        setupMediaSessionHandlers(null)
+        clearMediaSession()
+        return
+      }
+      setupMediaSessionHandlers({
+        play: () => {
+          if (!this.isPlaying)
+            this.togglePlay()
+        },
+        pause: () => {
+          if (this.isPlaying)
+            this.togglePlay()
+        },
+        playNext: () => this.playNext(),
+        playPrev: () => this.playPrev(),
+        seek: (time: number) => this.seek(time),
+      })
+      if (this.currentSong)
+        updateMediaSession(this.currentSong)
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = this.currentSong ? (this.isPlaying ? 'playing' : 'paused') : 'none'
+        if (Number.isFinite(this.duration) && this.duration > 0) {
+          try {
+            navigator.mediaSession.setPositionState({ duration: this.duration, playbackRate: 1, position: Math.max(0, Math.min(this.currentTime, this.duration)) })
+          }
+          catch {}
+        }
+      }
+    },
+
     setAudioContextEnabled(enabled: boolean) {
       this.enableAudioContext = enabled
       getAudioPlayer().setAudioContextEnabled(enabled)
@@ -502,6 +531,8 @@ export const usePlayerStore = defineStore('player', {
 
   persist: {
     afterHydrate: ({ store }) => {
+      if (typeof store.enableMediaSession !== 'boolean')
+        store.enableMediaSession = true
       store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
       if (store.mobileFullscreenLayout !== 'lyrics' && store.mobileFullscreenLayout !== 'cover')
         store.mobileFullscreenLayout = 'lyrics'
@@ -515,6 +546,7 @@ export const usePlayerStore = defineStore('player', {
       'showSpectrum',
       'spectrumSettings',
       'enableAudioContext',
+      'enableMediaSession',
       'showTranslation',
       'lyricsOffset',
       'lyricsFontSize',

@@ -15,7 +15,7 @@ const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
-const { quality, enableAudioContext, lyricsSource, mobileFullscreenLayout } = storeToRefs(player)
+const { quality, enableAudioContext, enableMediaSession, lyricsSource, mobileFullscreenLayout } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 usePageSeo({
@@ -299,6 +299,31 @@ onMounted(() => {
       <div class="text-sm text-gray-600 mt-2">
         iOS 设备后台播放需禁用该 API <br>
         禁用后频谱可视化等功能将不可用
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="font-bold text-lg mb-2">
+        Media Session API
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+          :class="enableMediaSession ? 'bg-blue-500' : 'bg-gray-300'"
+          role="switch"
+          aria-label="启用 Media Session API"
+          :aria-checked="enableMediaSession"
+          @click="player.setMediaSessionEnabled(!enableMediaSession)"
+        >
+          <span
+            class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+            :class="enableMediaSession ? 'translate-x-5' : 'translate-x-0'"
+          />
+        </button>
+        <span class="text-sm text-gray-600">{{ enableMediaSession ? '已启用' : '已禁用' }}</span>
+      </div>
+      <div class="text-sm text-gray-600 mt-2">
+        向系统媒体控件提供歌曲信息、播放进度和播放控制，支持情况取决于浏览器。
       </div>
     </div>
 
