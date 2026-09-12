@@ -26,6 +26,7 @@ export const usePlayerStore = defineStore('player', {
     lyricsFontSize: 16,
     lyricsSource: 'ncm' as LyricsSource,
     mobileFullscreenLayout: 'lyrics' as MobileFullscreenLayout,
+    immersiveModeEnabled: true,
 
     // 运行时状态
     isPlaying: false,
@@ -440,6 +441,12 @@ export const usePlayerStore = defineStore('player', {
       this.mobileFullscreenLayout = layout
     },
 
+    setImmersiveModeEnabled(enabled: boolean) {
+      this.immersiveModeEnabled = enabled
+      if (this.isFullscreen)
+        this.setImmersive(enabled)
+    },
+
     setMediaSessionEnabled(enabled: boolean) {
       this.enableMediaSession = enabled
       if (!enabled) {
@@ -483,9 +490,7 @@ export const usePlayerStore = defineStore('player', {
 
     setFullscreen(value: boolean) {
       this.isFullscreen = value
-      if (!value) {
-        this.isImmersive = false
-      }
+      this.setImmersive(value && this.immersiveModeEnabled)
     },
 
     setImmersive(value: boolean) {
@@ -536,6 +541,8 @@ export const usePlayerStore = defineStore('player', {
       store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
       if (store.mobileFullscreenLayout !== 'lyrics' && store.mobileFullscreenLayout !== 'cover')
         store.mobileFullscreenLayout = 'lyrics'
+      if (typeof store.immersiveModeEnabled !== 'boolean')
+        store.immersiveModeEnabled = true
     },
     pick: [
       'playlist',
@@ -552,6 +559,7 @@ export const usePlayerStore = defineStore('player', {
       'lyricsFontSize',
       'lyricsSource',
       'mobileFullscreenLayout',
+      'immersiveModeEnabled',
     ],
   },
 })

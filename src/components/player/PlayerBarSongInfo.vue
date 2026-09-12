@@ -40,7 +40,7 @@ function toAlbum() {
           <img
             :src="coverUrl"
             class="size-12 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity shadow shrink-0"
-            @click="isFullscreen = true"
+            @click="player.setFullscreen(true)"
           >
         </Tooltip>
       </div>

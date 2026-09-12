@@ -15,7 +15,7 @@ const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
-const { quality, enableAudioContext, enableMediaSession, lyricsSource, mobileFullscreenLayout } = storeToRefs(player)
+const { quality, enableAudioContext, enableMediaSession, lyricsSource, mobileFullscreenLayout, immersiveModeEnabled } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 usePageSeo({
@@ -248,6 +248,31 @@ onMounted(() => {
       </div>
       <div class="text-sm text-gray-600 mt-2">
         优先使用所选平台的歌词
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="font-bold text-lg mb-2">
+        沉浸模式
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+          :class="immersiveModeEnabled ? 'bg-blue-500' : 'bg-gray-300'"
+          role="switch"
+          aria-label="启用全屏播放器沉浸模式"
+          :aria-checked="immersiveModeEnabled"
+          @click="player.setImmersiveModeEnabled(!immersiveModeEnabled)"
+        >
+          <span
+            class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+            :class="immersiveModeEnabled ? 'translate-x-5' : 'translate-x-0'"
+          />
+        </button>
+        <span class="text-sm text-gray-600">{{ immersiveModeEnabled ? '已启用' : '已禁用' }}</span>
+      </div>
+      <div class="text-sm text-gray-600 mt-2">
+        在全屏播放器中自动隐藏界面控件，移动鼠标或触摸屏幕后暂时显示。
       </div>
     </div>
 

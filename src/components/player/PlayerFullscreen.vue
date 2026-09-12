@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMediaQuery, useWindowSize } from '@vueuse/core'
+import { useFullscreen, useMediaQuery, useWindowSize } from '@vueuse/core'
 import { usePlayerCoverColors } from '@/composables/usePlayerCoverColors'
 import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
 import { usePlayerStore } from '@/store/player'
@@ -38,6 +38,11 @@ const showBackground = ref(1)
 const transformPosition = ref('')
 const isMobileViewport = useMediaQuery('(max-width: 767px)')
 const { width: viewportWidth, height: viewportHeight } = useWindowSize()
+const {
+  isFullscreen: isPageFullscreen,
+  isSupported: isPageFullscreenSupported,
+  toggle: togglePageFullscreen,
+} = useFullscreen()
 
 const { parsedLyrics, hasTimestamp, currentLineIndex } = usePlayerLyrics({
   lyricData,
@@ -230,20 +235,23 @@ function onHeaderTouchEnd() {
             <Tooltip
               placement="bottom"
               align="center"
-              :content="isImmersive ? '退出沉浸模式' : '沉浸模式'"
+              :content="isPageFullscreenSupported ? (isPageFullscreen ? '退出页面全屏' : '进入页面全屏') : '当前浏览器不支持页面全屏'"
             >
               <button
                 class="size-10 shrink-0 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-                @click="player.setImmersive(!isImmersive)"
+                :class="{ 'opacity-40 cursor-not-allowed': !isPageFullscreenSupported }"
+                :disabled="!isPageFullscreenSupported"
+                :aria-label="isPageFullscreen ? '退出页面全屏' : '进入页面全屏'"
+                @click="togglePageFullscreen()"
               >
-                <LucideMaximize v-if="!isImmersive" class="size-5" />
+                <LucideMaximize v-if="!isPageFullscreen" class="size-5" />
                 <LucideMinimize v-else class="size-5" />
               </button>
             </Tooltip>
           </div>
 
           <div
-            v-show="!isImmersive"
+            v-show="!isImmersive || immersiveControlsVisible"
             class="text-white/60 text-sm text-nowrap truncate cursor-pointer"
             @click="toAlbum"
           >
@@ -299,7 +307,7 @@ function onHeaderTouchEnd() {
               <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
                 {{ currentSong.songName }}
               </div>
-              <div v-if="currentSong.songDescription && !isImmersive" class="text-white/50 text-sm mt-1">
+              <div v-if="currentSong.songDescription && (!isImmersive || immersiveControlsVisible)" class="text-white/50 text-sm mt-1">
                 {{ currentSong.songDescription }}
               </div>
             </div>
@@ -364,7 +372,7 @@ function onHeaderTouchEnd() {
           </div>
         </div>
 
-        <div v-if="!isImmersive" class="md:hidden shrink-0 flex justify-end px-6 py-4">
+        <div v-if="!isImmersive || immersiveControlsVisible" class="md:hidden shrink-0 flex justify-end px-6 py-4">
           <PlayerControlMobile />
         </div>
 
