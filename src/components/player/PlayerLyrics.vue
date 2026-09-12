@@ -1,18 +1,20 @@
 <script setup lang="ts">
+import type { Directive } from 'vue'
 import type { LyricLine } from '@/utils'
-import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
 import { usePlayerStore } from '@/store/player'
 
 const props = defineProps<{
-  lyricData: string
-  lyricTranslation: string
+  parsedLyrics: LyricLine[]
+  hasTimestamp: boolean
+  currentLineIndex: number
   showTranslation: boolean
-  currentTime: number
 }>()
 
 const emit = defineEmits<{
   seek: [time: number]
 }>()
+
+const { parsedLyrics, hasTimestamp, currentLineIndex } = toRefs(props)
 
 const player = usePlayerStore()
 const { lyricsOffset, lyricsFontSize } = storeToRefs(player)
@@ -21,10 +23,48 @@ const MIN_FONT_SIZE = 12
 const MAX_FONT_SIZE = 32
 const FONT_STEP = 4
 
-const lyricContainer = useTemplateRef<HTMLElement>('lyricContainer')
-const isHovering = ref(false)
+const sizeAnimations = new WeakMap<HTMLElement, Animation>()
 
-const isInit = ref(false)
+// 字号只更新一次以保留最终换行和行高，过渡交给 transform，避免逐帧重排。
+// 使用最终字号栅格化，动画结束后恢复原始文字尺寸，不长期保留缩放图层。
+const vLyricSize: Directive<HTMLElement, number> = {
+  beforeMount(el, { value }) {
+    el.style.fontSize = `${value}px`
+  },
+  beforeUpdate(el, { value, oldValue }) {
+    if (value === oldValue || oldValue == null)
+      return
+
+    const previousAnimation = sizeAnimations.get(el)
+    let previousSize = oldValue
+    if (previousAnimation && previousAnimation.playState !== 'finished') {
+      // 连续切换时从当前可见尺寸接续，避免回跳到上一次动画起点。
+      const transform = getComputedStyle(el).transform
+      if (transform !== 'none')
+        previousSize *= new DOMMatrixReadOnly(transform).a
+    }
+    previousAnimation?.cancel()
+    el.style.fontSize = `${value}px`
+
+    const animation = el.animate(
+      [{ transform: `scale(${previousSize / value})` }, { transform: 'scale(1)' }],
+      { duration: 300, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' },
+    )
+    sizeAnimations.set(el, animation)
+    animation.onfinish = () => {
+      if (sizeAnimations.get(el) === animation)
+        sizeAnimations.delete(el)
+    }
+  },
+  beforeUnmount(el) {
+    sizeAnimations.get(el)?.cancel()
+    sizeAnimations.delete(el)
+  },
+}
+
+const lyricContainer = useTemplateRef<HTMLElement>('lyricContainer')
+const lyricLines = useTemplateRef<HTMLElement>('lyricLines')
+const isHovering = ref(false)
 
 // 用户手动滚动检测
 const userScrolling = ref(false)
@@ -68,34 +108,20 @@ function onTouchEnd() {
     skipNextClick.value = true
 }
 
-const { parsedLyrics, hasTimestamp, currentLineIndex } = usePlayerLyrics({
-  lyricData: () => props.lyricData,
-  lyricTranslation: () => props.lyricTranslation,
-  currentTime: () => props.currentTime,
-  lyricsOffset,
-})
-
-watch(parsedLyrics, () => {
-  nextTick(() => {
-    scrollToCurrentLine(false)
-  })
-})
-
-// 自动滚动到当前行
-watch(currentLineIndex, () => {
-  if (!isInit.value) {
-    isInit.value = true
-    return
-  }
-  if (!userScrolling.value) {
-    scrollToCurrentLine()
-  }
-}, { immediate: true })
+// 合并同一轮更新的定位请求，在 DOM 更新后读取布局。
+watch(
+  [parsedLyrics, currentLineIndex, lyricsFontSize, () => props.showTranslation],
+  ([lines, , fontSize, translation], [previousLines, , previousFontSize, previousTranslation]) => {
+    const layoutChanged = lines !== previousLines || fontSize !== previousFontSize || translation !== previousTranslation
+    if (layoutChanged || !userScrolling.value)
+      scrollToCurrentLine(!layoutChanged)
+  },
+  { flush: 'post' },
+)
 
 function scrollToCurrentLine(smooth = true) {
   if (currentLineIndex.value >= 0 && lyricContainer.value) {
-    const lines = lyricContainer.value.querySelectorAll('[data-lyric-line]')
-    const currentEl = lines[currentLineIndex.value] as HTMLElement
+    const currentEl = lyricLines.value?.children[currentLineIndex.value] as HTMLElement | undefined
     if (currentEl) {
       const containerHeight = lyricContainer.value.clientHeight
       const targetTop = currentEl.offsetTop - containerHeight / 2 + currentEl.clientHeight / 2
@@ -111,9 +137,6 @@ function handleChangeFontSize(delta: number) {
   const newSize = lyricsFontSize.value + delta
   if (newSize >= MIN_FONT_SIZE && newSize <= MAX_FONT_SIZE) {
     lyricsFontSize.value = newSize
-    nextTick(() => {
-      scrollToCurrentLine(false)
-    })
   }
 }
 
@@ -157,40 +180,44 @@ onUnmounted(() => {
       :class="{
         'flex items-center justify-center': parsedLyrics.length === 0,
       }"
-      :options="{ scrollbars: undefined }"
-      @wheel="onWheel"
-      @touchstart="onTouchStart"
-      @touchmove="onTouchMove"
-      @touchend="onTouchEnd"
-      @touchcancel="onTouchEnd"
+      @wheel.passive="onWheel"
+      @touchstart.passive="onTouchStart"
+      @touchmove.passive="onTouchMove"
+      @touchend.passive="onTouchEnd"
+      @touchcancel.passive="onTouchEnd"
     >
       <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
         暂无歌词
       </div>
-      <div v-else :class="{ 'py-[50vh]': hasTimestamp, 'py-[20vh]': !hasTimestamp }">
+      <div v-else ref="lyricLines" :class="{ 'py-[50vh]': hasTimestamp, 'py-[20vh]': !hasTimestamp }">
         <div v-if="!hasTimestamp" class="text-white/80 px-4 py-2">
           当前歌词不支持滚动
         </div>
         <div
           v-for="(line, index) in parsedLyrics"
           :key="index"
+          v-memo="[line, index === currentLineIndex, lyricsFontSize, showTranslation]"
           data-lyric-line
-          class="px-4 py-2 transition-all duration-300 rounded-lg"
+          class="px-4 py-2 transition-colors duration-300 rounded-lg"
           :class="[
             index === currentLineIndex ? 'text-white font-bold' : 'text-white/40',
             line.time !== null ? 'cursor-pointer hover:bg-white/10' : 'cursor-default',
           ]"
-          :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize + FONT_STEP : lyricsFontSize}px` }"
           @click="onClickLine(line)"
         >
-          <div>{{ line.text }}</div>
+          <div
+            v-lyric-size="index === currentLineIndex ? lyricsFontSize + FONT_STEP : lyricsFontSize"
+            class="origin-top-left"
+          >
+            {{ line.text }}
+          </div>
           <div
             v-if="showTranslation && line.translation"
-            class="mt-0.5"
+            v-lyric-size="index === currentLineIndex ? lyricsFontSize : lyricsFontSize - FONT_STEP"
+            class="mt-0.5 origin-top-left"
             :class="index === currentLineIndex
               ? 'text-white/70 font-normal'
               : 'text-white/30'"
-            :style="{ fontSize: `${index === currentLineIndex ? lyricsFontSize : lyricsFontSize - FONT_STEP}px` }"
           >
             {{ line.translation }}
           </div>

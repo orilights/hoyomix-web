@@ -31,11 +31,20 @@ export function usePlayerLyrics(options: UsePlayerLyricsOptions) {
     if (parsedLyrics.value.length === 0 || !hasTimestamp.value)
       return -1
 
-    for (let i = parsedLyrics.value.length - 1; i >= 0; i--) {
-      if (currentTime + defaultOffset + lyricsOffset >= parsedLyrics.value[i].time!)
-        return i
+    // mergeLyrics 按时间升序排列，查找最后一个不晚于当前播放时间的行。
+    const time = currentTime + defaultOffset + lyricsOffset
+    if (Number.isNaN(time))
+      return -1
+    let left = 0
+    let right = parsedLyrics.value.length
+    while (left < right) {
+      const middle = Math.floor((left + right) / 2)
+      if (parsedLyrics.value[middle].time! <= time)
+        left = middle + 1
+      else
+        right = middle
     }
-    return -1
+    return left - 1
   })
 
   return {

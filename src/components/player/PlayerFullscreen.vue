@@ -35,7 +35,6 @@ const { gradient: coverGradient } = usePlayerCoverColors()
 const bg1 = ref(fallbackCoverColors.gradient)
 const bg2 = ref(fallbackCoverColors.gradient)
 const showBackground = ref(1)
-const lyricViewRef = useTemplateRef('lyricView')
 const transformPosition = ref('')
 const isMobileViewport = useMediaQuery('(max-width: 767px)')
 const { width: viewportWidth, height: viewportHeight } = useWindowSize()
@@ -117,12 +116,6 @@ watch(coverGradient, (gradient) => {
   }
 }, { immediate: true })
 
-watch(showTranslation, () => {
-  nextTick(() => {
-    lyricViewRef.value?.scrollToCurrentLine(false)
-  })
-})
-
 function close() {
   player.setFullscreen(false)
 }
@@ -147,9 +140,6 @@ function onSeek(time: number) {
 
 function showLyricsLayout() {
   player.setMobileFullscreenLayout('lyrics')
-  nextTick(() => {
-    lyricViewRef.value?.scrollToCurrentLine(false)
-  })
 }
 
 const touchStartY = ref(0)
@@ -364,11 +354,10 @@ function onHeaderTouchEnd() {
 
           <div v-else class="flex-1 h-full min-w-0">
             <PlayerLyrics
-              ref="lyricView"
-              :lyric-data="lyricData"
-              :lyric-translation="lyricTranslation"
+              :parsed-lyrics="parsedLyrics"
+              :has-timestamp="hasTimestamp"
+              :current-line-index="currentLineIndex"
               :show-translation="showTranslation"
-              :current-time="currentTime"
               class="h-full"
               @seek="onSeek"
             />
