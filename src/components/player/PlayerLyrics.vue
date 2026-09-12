@@ -8,12 +8,10 @@ const props = defineProps<{
   lyricTranslation: string
   showTranslation: boolean
   currentTime: number
-  toggleCurrentLine?: boolean
 }>()
 
 const emit = defineEmits<{
   seek: [time: number]
-  toggleLayout: []
 }>()
 
 const player = usePlayerStore()
@@ -130,10 +128,6 @@ function onClickLine(line: LyricLine) {
   userScrolling.value = false
   if (userScrollTimer)
     clearTimeout(userScrollTimer)
-  if (props.toggleCurrentLine && parsedLyrics.value[currentLineIndex.value] === line) {
-    emit('toggleLayout')
-    return
-  }
   emit('seek', line.time)
 }
 

@@ -152,11 +152,6 @@ function showLyricsLayout() {
   })
 }
 
-function onCurrentLyricToggle() {
-  if (isMobileViewport.value)
-    player.setMobileFullscreenLayout('cover')
-}
-
 const touchStartY = ref(0)
 const dragOffset = ref(0)
 const snapBack = ref(false)
@@ -326,7 +321,7 @@ function onHeaderTouchEnd() {
           >
             <button
               type="button"
-              class="max-w-full aspect-square rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
+              class="max-w-full aspect-square rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
               :style="{ width: `${compactCoverSize}px`, height: `${compactCoverSize}px` }"
               aria-label="切换到完整歌词布局"
               title="切换到完整歌词布局"
@@ -350,7 +345,7 @@ function onHeaderTouchEnd() {
                 <div
                   class="leading-tight"
                   :class="showTranslation && compactLyricLine.translation ? 'line-clamp-1' : 'line-clamp-2'"
-                  :style="{ fontSize: `${lyricsFontSize + 4}px` }"
+                  :style="{ fontSize: `${lyricsFontSize}px` }"
                   :title="compactLyricLine.text"
                 >
                   {{ compactLyricLine.text }}
@@ -374,10 +369,8 @@ function onHeaderTouchEnd() {
               :lyric-translation="lyricTranslation"
               :show-translation="showTranslation"
               :current-time="currentTime"
-              :toggle-current-line="isMobileViewport && mobileFullscreenLayout === 'lyrics'"
               class="h-full"
               @seek="onSeek"
-              @toggle-layout="onCurrentLyricToggle"
             />
           </div>
         </div>
