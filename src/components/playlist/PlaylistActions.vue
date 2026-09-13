@@ -31,23 +31,17 @@ const favoriteTooltip = computed(() =>
 
 <template>
   <Tooltip placement="top" theme="light" content="替换当前播放列表并播放">
-    <button
-      class="text-sm bg-blue-500/90 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-      @click="emit('playAll')"
-    >
+    <AppButton variant="primary" @click="emit('playAll')">
       <LucidePlay class="size-4" fill="currentColor" />
       播放全部
-    </button>
+    </AppButton>
   </Tooltip>
 
   <Tooltip placement="top" theme="light" content="将专辑内所有歌曲添加至播放列表">
-    <button
-      class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
-      @click="emit('addAll')"
-    >
+    <AppButton @click="emit('addAll')">
       <LucidePlus class="size-4" />
       加入播放列表
-    </button>
+    </AppButton>
   </Tooltip>
 
   <Tooltip v-if="showFavorite && playlistId" placement="top" theme="light" :content="favoriteTooltip">
@@ -59,35 +53,28 @@ const favoriteTooltip = computed(() =>
   </Tooltip>
 
   <Tooltip placement="top" theme="light" content="切换多选模式">
-    <button
-      class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+    <AppButton
       :class="multiSelectActive ? 'bg-blue-500/15 text-blue-600 hover:bg-blue-500/25' : 'bg-gray-500/10 hover:bg-gray-500/20'"
       @click="emit('toggleMultiSelect')"
     >
       <LucideListChecks class="size-4" />
       多选
-    </button>
+    </AppButton>
   </Tooltip>
 
   <template v-if="isOwner">
     <Tooltip placement="top" theme="light" content="编辑歌单信息">
-      <button
-        class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
-        @click="emit('edit')"
-      >
+      <AppButton @click="emit('edit')">
         <LucidePencil class="size-4" />
         编辑
-      </button>
+      </AppButton>
     </Tooltip>
 
     <Tooltip placement="top" theme="light" content="删除歌单">
-      <button
-        class="text-sm bg-red-50 text-red-500 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors cursor-pointer flex items-center gap-1"
-        @click="emit('delete')"
-      >
+      <AppButton variant="danger" @click="emit('delete')">
         <LucideTrash2 class="size-4" />
         删除
-      </button>
+      </AppButton>
     </Tooltip>
   </template>
 </template>

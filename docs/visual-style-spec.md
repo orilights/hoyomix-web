@@ -317,7 +317,17 @@
 
 ## 10. 控件与组件样式规范
 
-### 10.1 按钮（按钮不单独抽象组件，按内联规范统一）
+### 10.1 按钮（通过 `AppButton` 统一）
+
+常规圆角文字按钮和图标按钮统一使用 `components/common/AppButton.vue`。组件负责基础布局、尺寸、圆角、悬浮、键盘聚焦和禁用态；调用处仅保留布局、响应式和业务状态所需的类。
+
+公共参数：
+
+- `variant`: `primary`、`secondary`、`danger`、`outline`、`ghost`、`dark`
+- `size`: `xs`、`sm`、`md`、`lg`
+- `icon-only`: 图标按钮使用等距内边距
+- `shape`: `rounded`（默认）或 `pill`
+- `type`: 默认 `button`，表单提交必须显式传 `submit`
 
 **主按钮（primary）**
 ```
@@ -343,6 +353,8 @@ text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg hover:bg-red-100 ...
 ```
 
 **禁用态**：`disabled:opacity-50 cursor-not-allowed` + `opacity-50 cursor-not-allowed`（工具态）。
+
+筛选/分段切换、开关、列表整行选择、封面悬浮操作、播放器主播放键、全屏沉浸控制和歌词浮动控制等交互差异明显的控件保留专用实现，不强行套用 `AppButton`。
 
 ### 10.2 筛选/分段切换
 

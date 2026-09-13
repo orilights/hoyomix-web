@@ -53,12 +53,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                 {{ title }}
               </slot>
             </h2>
-            <button
-              class="p-1.5 rounded-full hover:bg-gray-100 transition-colors cursor-pointer text-gray-400 hover:text-gray-600"
+            <AppButton
+              icon-only
+              size="sm"
+              shape="pill"
+              variant="ghost"
+              class="text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              aria-label="关闭对话框"
               @click="close"
             >
               <LucideX class="size-4" />
-            </button>
+            </AppButton>
           </div>
           <slot />
           <div v-if="$slots.footer" class="border-t border-gray-100">

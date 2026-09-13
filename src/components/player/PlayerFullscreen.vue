@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useFullscreen, useMediaQuery, useWindowSize } from '@vueuse/core'
 import { usePlayerCoverColors } from '@/composables/usePlayerCoverColors'
+import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { fallbackCoverColors } from '@/utils/cover'
@@ -18,6 +20,9 @@ const {
   showTranslation,
   showSpectrum,
   enableAudioContext,
+  lyricsOffset,
+  lyricsFontSize,
+  mobileFullscreenLayout,
 } = storeToRefs(player)
 
 const coverUrl = computed(() => {
@@ -30,8 +35,45 @@ const { gradient: coverGradient } = usePlayerCoverColors()
 const bg1 = ref(fallbackCoverColors.gradient)
 const bg2 = ref(fallbackCoverColors.gradient)
 const showBackground = ref(1)
-const lyricViewRef = useTemplateRef('lyricView')
 const transformPosition = ref('')
+const isMobileViewport = useMediaQuery('(max-width: 767px)')
+const { width: viewportWidth, height: viewportHeight } = useWindowSize()
+const {
+  isFullscreen: isPageFullscreen,
+  isSupported: isPageFullscreenSupported,
+  toggle: togglePageFullscreen,
+} = useFullscreen()
+
+const { parsedLyrics, hasTimestamp, currentLineIndex } = usePlayerLyrics({
+  lyricData,
+  lyricTranslation,
+  currentTime,
+  lyricsOffset,
+})
+
+const compactLyricLine = computed(() => {
+  if (parsedLyrics.value.length === 0 || !hasTimestamp.value)
+    return null
+  const index = currentLineIndex.value >= 0 ? currentLineIndex.value : 0
+  return parsedLyrics.value[index] ?? null
+})
+
+const compactCoverSize = computed(() => {
+  const spectrumHeight = showSpectrum.value && enableAudioContext.value
+    ? Math.min(player.spectrumSettings.height, viewportHeight.value * 0.3)
+    : 0
+  const availableHeight = viewportHeight.value
+    - 72 // fixed player bar spacing
+    - 56 // header
+    - (isImmersive.value ? 0 : 80) // mobile controls
+    - spectrumHeight
+    - 96 // lyric text and gap
+  return Math.max(72, Math.min(
+    viewportWidth.value * 0.72,
+    viewportHeight.value * 0.42,
+    availableHeight,
+  ))
+})
 
 let immersiveTimer: ReturnType<typeof setTimeout> | null = null
 const IMMERSIVE_HIDE_DELAY = 3000
@@ -79,12 +121,6 @@ watch(coverGradient, (gradient) => {
   }
 }, { immediate: true })
 
-watch(showTranslation, () => {
-  nextTick(() => {
-    lyricViewRef.value?.scrollToCurrentLine(false)
-  })
-})
-
 function close() {
   player.setFullscreen(false)
 }
@@ -105,6 +141,10 @@ function toAlbum() {
 
 function onSeek(time: number) {
   player.seek(time)
+}
+
+function showLyricsLayout() {
+  player.setMobileFullscreenLayout('lyrics')
 }
 
 const touchStartY = ref(0)
@@ -185,7 +225,7 @@ function onHeaderTouchEnd() {
               content="退出全屏播放器"
             >
               <button
-                class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                class="size-10 shrink-0 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
                 @click="close"
               >
                 <LucideChevronDown class="size-6" />
@@ -195,20 +235,23 @@ function onHeaderTouchEnd() {
             <Tooltip
               placement="bottom"
               align="center"
-              :content="isImmersive ? '退出沉浸模式' : '沉浸模式'"
+              :content="isPageFullscreenSupported ? (isPageFullscreen ? '退出页面全屏' : '进入页面全屏') : '当前浏览器不支持页面全屏'"
             >
               <button
-                class="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-                @click="player.setImmersive(!isImmersive)"
+                class="size-10 shrink-0 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                :class="{ 'opacity-40 cursor-not-allowed': !isPageFullscreenSupported }"
+                :disabled="!isPageFullscreenSupported"
+                :aria-label="isPageFullscreen ? '退出页面全屏' : '进入页面全屏'"
+                @click="togglePageFullscreen()"
               >
-                <LucideMaximize v-if="!isImmersive" class="size-5" />
+                <LucideMaximize v-if="!isPageFullscreen" class="size-5" />
                 <LucideMinimize v-else class="size-5" />
               </button>
             </Tooltip>
           </div>
 
           <div
-            v-show="!isImmersive"
+            v-show="!isImmersive || immersiveControlsVisible"
             class="text-white/60 text-sm text-nowrap truncate cursor-pointer"
             @click="toAlbum"
           >
@@ -223,7 +266,7 @@ function onHeaderTouchEnd() {
                 :content="!lyricTranslation ? '当前歌曲无歌词翻译' : '歌词翻译'"
               >
                 <button
-                  class="p-2 rounded-full transition-colors"
+                  class="size-10 shrink-0 inline-flex items-center justify-center rounded-full transition-colors"
                   :class="!lyricTranslation
                     ? 'text-white/20'
                     : showTranslation ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
@@ -240,7 +283,7 @@ function onHeaderTouchEnd() {
                 :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
               >
                 <button
-                  class="p-2 rounded-full transition-colors"
+                  class="size-10 shrink-0 inline-flex items-center justify-center rounded-full transition-colors"
                   :class="!enableAudioContext
                     ? 'text-white/20'
                     : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
@@ -264,26 +307,72 @@ function onHeaderTouchEnd() {
               <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
                 {{ currentSong.songName }}
               </div>
-              <div v-if="currentSong.songDescription && !isImmersive" class="text-white/50 text-sm mt-1">
+              <div v-if="currentSong.songDescription && (!isImmersive || immersiveControlsVisible)" class="text-white/50 text-sm mt-1">
                 {{ currentSong.songDescription }}
               </div>
             </div>
           </div>
 
-          <div class="flex-1 h-full min-w-0">
+          <div
+            v-if="isMobileViewport && mobileFullscreenLayout === 'cover'"
+            class="md:hidden flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-2 overflow-hidden"
+          >
+            <button
+              type="button"
+              class="max-w-full aspect-square rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
+              :style="{ width: `${compactCoverSize}px`, height: `${compactCoverSize}px` }"
+              aria-label="切换到完整歌词布局"
+              title="切换到完整歌词布局"
+              @click="showLyricsLayout"
+            >
+              <LazyImg
+                class="size-full object-cover"
+                :src="coverUrl"
+                :alt="`${currentSong.songName} 封面`"
+              />
+            </button>
+
+            <div class="w-full max-w-[min(88vw,520px)] min-h-[3.5rem] text-center flex items-center justify-center px-2">
+              <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
+                暂无歌词
+              </div>
+              <div v-else-if="!hasTimestamp" class="text-white/70 text-center">
+                当前歌词不支持滚动
+              </div>
+              <div v-else-if="compactLyricLine" class="max-w-full text-white font-bold">
+                <div
+                  class="leading-tight"
+                  :class="showTranslation && compactLyricLine.translation ? 'line-clamp-1' : 'line-clamp-2'"
+                  :style="{ fontSize: `${lyricsFontSize}px` }"
+                  :title="compactLyricLine.text"
+                >
+                  {{ compactLyricLine.text }}
+                </div>
+                <div
+                  v-if="showTranslation && compactLyricLine.translation"
+                  class="leading-tight text-white/70 font-normal mt-1 line-clamp-1"
+                  :style="{ fontSize: `${lyricsFontSize}px` }"
+                  :title="compactLyricLine.translation"
+                >
+                  {{ compactLyricLine.translation }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="flex-1 h-full min-w-0">
             <PlayerLyrics
-              ref="lyricView"
-              :lyric-data="lyricData"
-              :lyric-translation="lyricTranslation"
+              :parsed-lyrics="parsedLyrics"
+              :has-timestamp="hasTimestamp"
+              :current-line-index="currentLineIndex"
               :show-translation="showTranslation"
-              :current-time="currentTime"
               class="h-full"
               @seek="onSeek"
             />
           </div>
         </div>
 
-        <div v-if="!isImmersive" class="md:hidden shrink-0 flex justify-end px-6 py-4">
+        <div v-if="!isImmersive || immersiveControlsVisible" class="md:hidden shrink-0 flex justify-end px-6 py-4">
           <PlayerControlMobile />
         </div>
 

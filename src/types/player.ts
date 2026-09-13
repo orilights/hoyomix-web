@@ -14,6 +14,7 @@ export interface PlaylistItem {
 export type PlayMode = 'sequential' | 'loop' | 'single' | 'shuffle'
 export type AudioQuality = 9 | 5 | 1
 export type LyricsSource = 'ncm' | 'qq'
+export type MobileFullscreenLayout = 'lyrics' | 'cover'
 
 export type MediaSourceSelection = 'auto' | string
 

@@ -154,13 +154,13 @@ onMounted(() => {
   <div ref="homeContainer">
     <PageHeader title="歌单" subtitle="发现和管理歌单">
       <template #extra>
-        <button
-          class="text-sm bg-blue-500/90 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+        <AppButton
+          variant="primary"
           @click="openCreate"
         >
           <LucidePlus class="size-4" />
           新建歌单
-        </button>
+        </AppButton>
       </template>
     </PageHeader>
 

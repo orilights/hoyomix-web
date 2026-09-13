@@ -243,17 +243,18 @@ function handleGitHub() {
           <p v-if="errorMsg" class="text-sm text-red-500">
             {{ errorMsg }}
           </p>
-          <button
+          <AppButton
             type="submit"
+            variant="primary"
+            class="w-full mt-2"
             :disabled="loading"
-            class="w-full mt-2 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-60 transition-colors cursor-pointer"
           >
             <span v-if="loading" class="flex items-center justify-center gap-2">
               <LucideLoader2 class="size-4 animate-spin" />
               登录中...
             </span>
             <span v-else>登录</span>
-          </button>
+          </AppButton>
         </form>
 
         <form v-else-if="tab === 'register'" class="space-y-3" @submit.prevent="handleRegister">
@@ -304,17 +305,18 @@ function handleGitHub() {
           <p v-if="errorMsg" class="text-sm text-red-500">
             {{ errorMsg }}
           </p>
-          <button
+          <AppButton
             type="submit"
+            variant="primary"
+            class="w-full mt-2"
             :disabled="loading"
-            class="w-full mt-2 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-60 transition-colors cursor-pointer"
           >
             <span v-if="loading" class="flex items-center justify-center gap-2">
               <LucideLoader2 class="size-4 animate-spin" />
               注册中...
             </span>
             <span v-else>注册账号</span>
-          </button>
+          </AppButton>
         </form>
 
         <form v-else class="space-y-3" @submit.prevent="handleForgot">
@@ -335,17 +337,18 @@ function handleGitHub() {
           <p v-if="errorMsg" class="text-sm text-red-500">
             {{ errorMsg }}
           </p>
-          <button
+          <AppButton
             type="submit"
+            variant="primary"
+            class="w-full mt-2"
             :disabled="loading"
-            class="w-full mt-2 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-60 transition-colors cursor-pointer"
           >
             <span v-if="loading" class="flex items-center justify-center gap-2">
               <LucideLoader2 class="size-4 animate-spin" />
               发送中...
             </span>
             <span v-else>发送重置邮件</span>
-          </button>
+          </AppButton>
           <button
             type="button"
             class="w-full text-sm text-blue-500 hover:text-blue-600 cursor-pointer transition-colors"
@@ -361,13 +364,14 @@ function handleGitHub() {
             <span class="text-xs text-gray-400 shrink-0">或</span>
             <div class="flex-1 border-t border-gray-200" />
           </div>
-          <button
-            class="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+          <AppButton
+            variant="outline"
+            class="mt-3 w-full"
             @click="handleGitHub"
           >
             <IconGitHub class="size-4" />
             使用 GitHub 登录
-          </button>
+          </AppButton>
         </div>
       </div>
     </template>

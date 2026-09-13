@@ -90,12 +90,12 @@ async function handleSubmit() {
         <p class="text-sm text-gray-500 text-center">
           重置链接无效或已过期，请重新获取密码重置邮件。
         </p>
-        <button
-          class="mt-2 px-8 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors cursor-pointer"
+        <AppButton
+          variant="primary" size="lg" class="mt-2"
           @click="auth.openAuthDialog()"
         >
           前往登录
-        </button>
+        </AppButton>
       </div>
 
       <div v-else-if="success" class="flex flex-col items-center gap-4">
@@ -108,12 +108,12 @@ async function handleSubmit() {
         <p class="text-sm text-gray-500 text-center">
           你的密码已更新，请使用新密码登录。
         </p>
-        <button
-          class="mt-2 px-8 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors cursor-pointer"
+        <AppButton
+          variant="primary" size="lg" class="mt-2"
           @click="auth.openAuthDialog()"
         >
           立即登录
-        </button>
+        </AppButton>
       </div>
 
       <form v-else class="space-y-3" @submit.prevent="handleSubmit">
@@ -150,17 +150,18 @@ async function handleSubmit() {
         <p v-if="errorMsg" class="text-sm text-red-500">
           {{ errorMsg }}
         </p>
-        <button
+        <AppButton
           type="submit"
+          variant="primary"
+          class="w-full mt-2"
           :disabled="loading"
-          class="w-full mt-2 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-60 transition-colors cursor-pointer"
         >
           <span v-if="loading" class="flex items-center justify-center gap-2">
             <LucideLoader2 class="size-4 animate-spin" />
             提交中...
           </span>
           <span v-else>确认重置</span>
-        </button>
+        </AppButton>
       </form>
     </div>
   </div>

@@ -104,22 +104,21 @@ onMounted(() => {
       </span>
       <div class="flex-1" />
       <div class="flex gap-2">
-        <button
-          class="text-sm bg-blue-500/90 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
+        <AppButton
+          variant="primary"
           :disabled="!songs.length"
           @click="playAll"
         >
           <LucidePlay class="size-4" fill="currentColor" />
           播放全部
-        </button>
-        <button
-          class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
+        </AppButton>
+        <AppButton
           :disabled="!songs.length"
           @click="addAllToPlaylist"
         >
           <LucideListMusic class="size-4" />
           添加全部
-        </button>
+        </AppButton>
       </div>
     </div>
 
@@ -209,20 +208,24 @@ onMounted(() => {
                     :song-id="song.songId"
                   />
                   <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                    <AppButton
+                      icon-only
+                      size="xs"
+                      variant="ghost"
                       title="播放"
                       @click="playSong(song)"
                     >
                       <LucidePlay class="size-4" />
-                    </button>
-                    <button
-                      class="p-1 rounded hover:bg-black/10 transition-colors cursor-pointer"
+                    </AppButton>
+                    <AppButton
+                      icon-only
+                      size="xs"
+                      variant="ghost"
                       title="加入播放列表"
                       @click="addSongToPlaylist(song)"
                     >
                       <LucidePlus class="size-4" />
-                    </button>
+                    </AppButton>
                   </div>
                 </div>
               </td>

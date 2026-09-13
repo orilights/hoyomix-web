@@ -51,3 +51,6 @@
 ## 代码风格要点
 - ESLint 用 `@antfu/eslint-config`;提交前跑 `pnpm lintf`
 - 类型导入用 `import type`
+
+## 特别注意
+- 后端存在 CORS 域名校验，开发环境需要以 localhost 域名启动，推荐直接使用 `pnpm dev` 命令

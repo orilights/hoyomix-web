@@ -30,11 +30,11 @@ onMounted(() => {
     <div class="text-sm text-gray-400 mb-8">
       你访问的页面或内容可能不存在
     </div>
-    <button
-      class="px-6 py-2.5 bg-black/10 hover:bg-black/20 rounded-lg transition-colors cursor-pointer text-sm"
+    <AppButton
+      variant="ghost" size="lg"
       @click="router.replace('/')"
     >
       返回首页
-    </button>
+    </AppButton>
   </div>
 </template>

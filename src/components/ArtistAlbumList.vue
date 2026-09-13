@@ -135,13 +135,17 @@ async function playSong(event: Event, songId: number, albumId: number) {
               </span>
             </div>
           </div>
-          <button
-            class="shrink-0 text-gray-400 hover:text-gray-500 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          <AppButton
+            icon-only
+            size="xs"
+            variant="ghost"
+            class="shrink-0 text-gray-400 hover:text-gray-500 transition-all hover:scale-105 active:scale-95"
+            aria-label="播放艺术家参与的歌曲"
             title="播放艺术家参与的歌曲"
             @click.prevent="playArtistSongsFromAlbum(album.id)"
           >
             <LucidePlay class="size-6" fill="currentColor" />
-          </button>
+          </AppButton>
         </div>
       </RouterLink>
       <div v-if="filteredSongsByAlbum.get(album.id)?.length" class="md:ml-22 mt-2">
@@ -156,13 +160,17 @@ async function playSong(event: Event, songId: number, albumId: number) {
             <span class="text-xs text-gray-400 shrink-0 ml-auto">{{ song.roles.join(' / ') }}</span>
           </div>
           <FavoriteButton type="song" :song-id="song.id" />
-          <button
-            class="hidden md:block shrink-0 text-gray-400 hover:text-gray-500 opacity-0 md:group-hover/song:opacity-100 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          <AppButton
+            icon-only
+            size="xs"
+            variant="ghost"
+            class="hidden md:inline-flex shrink-0 text-gray-400 hover:text-gray-500 opacity-0 md:group-hover/song:opacity-100 transition-all hover:scale-105 active:scale-95"
+            aria-label="播放歌曲"
             title="播放歌曲"
             @click="playSong($event, song.id, song.albumId)"
           >
             <LucidePlay class="size-4" fill="currentColor" />
-          </button>
+          </AppButton>
         </RouterLink>
       </div>
     </div>

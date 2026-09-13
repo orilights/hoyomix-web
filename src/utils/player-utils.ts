@@ -107,6 +107,11 @@ export function clearMediaSession() {
   if (!('mediaSession' in navigator))
     return
   navigator.mediaSession.metadata = null
+  navigator.mediaSession.playbackState = 'none'
+  try {
+    navigator.mediaSession.setPositionState()
+  }
+  catch {}
 }
 
 export function setupMediaSessionHandlers(callbacks: {
@@ -115,16 +120,26 @@ export function setupMediaSessionHandlers(callbacks: {
   playNext: () => void
   playPrev: () => void
   seek: (time: number) => void
-}) {
+} | null) {
   if (!('mediaSession' in navigator))
     return
 
-  navigator.mediaSession.setActionHandler('play', callbacks.play)
-  navigator.mediaSession.setActionHandler('pause', callbacks.pause)
-  navigator.mediaSession.setActionHandler('nexttrack', callbacks.playNext)
-  navigator.mediaSession.setActionHandler('previoustrack', callbacks.playPrev)
-  navigator.mediaSession.setActionHandler('seekto', (action) => {
-    if (action.seekTime != null)
-      callbacks.seek(action.seekTime)
-  })
+  const handlers: Partial<Record<MediaSessionAction, MediaSessionActionHandler | null>> = {
+    play: callbacks?.play ?? null,
+    pause: callbacks?.pause ?? null,
+    nexttrack: callbacks?.playNext ?? null,
+    previoustrack: callbacks?.playPrev ?? null,
+    seekto: callbacks
+      ? (action) => {
+          if (action.seekTime != null)
+            callbacks.seek(action.seekTime)
+        }
+      : null,
+  }
+  for (const [action, handler] of Object.entries(handlers)) {
+    try {
+      navigator.mediaSession.setActionHandler(action as MediaSessionAction, handler)
+    }
+    catch {} // 部分浏览器不支持所有操作。
+  }
 }

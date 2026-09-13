@@ -163,20 +163,23 @@ onMounted(() => fetchNotifications(true))
         {{ unreadCount > 0 ? `${unreadCount} 条未读` : '暂无未读通知' }}
       </span>
       <div class="flex gap-0.5">
-        <button
-          class="text-xs px-2 py-1 rounded transition-colors cursor-pointer"
+        <AppButton
+          variant="ghost"
+          size="xs"
           :class="unreadCount > 0 ? 'hover:bg-gray-100 text-gray-500' : 'opacity-40 cursor-not-allowed text-gray-400'"
           :disabled="unreadCount === 0"
           @click="markAllRead"
         >
           全部已读
-        </button>
-        <button
-          class="text-xs px-2 py-1 rounded hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
+        </AppButton>
+        <AppButton
+          variant="ghost"
+          size="xs"
+          class="text-red-500 hover:text-red-500 hover:bg-red-50"
           @click="deleteRead"
         >
           删除已读
-        </button>
+        </AppButton>
       </div>
     </div>
 
@@ -207,12 +210,16 @@ onMounted(() => fetchNotifications(true))
               {{ formatRelativeTime(n.createdAt) }}
             </p>
           </div>
-          <button
-            class="size-5 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-gray-200 transition-all shrink-0 mt-0.5 cursor-pointer"
+          <AppButton
+            icon-only
+            size="xs"
+            variant="ghost"
+            class="opacity-0 group-hover:opacity-100 transition-all shrink-0 mt-0.5"
+            aria-label="删除通知"
             @click.stop="removeNotification(n.id)"
           >
             <LucideX class="size-3 text-gray-400" />
-          </button>
+          </AppButton>
         </div>
         <button
           v-if="hasMore"

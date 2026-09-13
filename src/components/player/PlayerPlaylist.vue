@@ -82,25 +82,26 @@ function clearAll() {
                 { label: '覆盖已有歌单', onClick: overwriteExisting },
               ]"
             >
-              <button
-                class="text-white/60 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1"
-              >
+              <AppButton variant="dark" size="sm">
                 <LucideListPlus class="size-4" />
                 保存
-              </button>
+              </AppButton>
             </Dropdown>
-            <button
-              class="text-white/60 hover:text-white text-sm px-2 py-1 rounded hover:bg-white/10 transition-colors cursor-pointer"
+            <AppButton
+              variant="dark" size="sm"
               @click="clearAll"
             >
               清空
-            </button>
-            <button
-              class="text-white/60 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer"
+            </AppButton>
+            <AppButton
+              icon-only
+              size="sm"
+              variant="dark"
+              aria-label="关闭播放列表"
               @click="showPlaylist = false"
             >
               <LucideX class="size-5" />
-            </button>
+            </AppButton>
           </div>
         </div>
 
@@ -143,12 +144,16 @@ function clearAll() {
                   {{ formatDuration(element.duration) }}
                 </div>
 
-                <button
-                  class="text-white/30 hover:text-red-400 ml-2 p-1 rounded md:opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0"
+                <AppButton
+                  icon-only
+                  size="xs"
+                  variant="dark"
+                  class="text-white/30 hover:text-red-400 ml-2 md:opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                  aria-label="移除歌曲"
                   @click.stop="removeSong(index)"
                 >
                   <LucideX class="size-4" />
-                </button>
+                </AppButton>
               </div>
             </template>
           </draggable>

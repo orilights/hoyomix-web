@@ -90,69 +90,59 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
 
 <template>
   <Tooltip placement="top" theme="light" content="添加至播放列表并播放">
-    <button
-      class="text-sm bg-blue-500/90 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1"
-      @click="emit('play')"
-    >
+    <AppButton variant="primary" @click="emit('play')">
       <LucidePlay class="size-4" fill="currentColor" />
       播放
-    </button>
+    </AppButton>
   </Tooltip>
 
   <FavoriteButton type="song" :song-id="musicInfo.id" variant="action" />
 
-  <button
-    class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
-    @click="emit('addToPlaylist')"
-  >
+  <AppButton @click="emit('addToPlaylist')">
     <LucideListMusic class="size-4" />
     添加至歌单
-  </button>
+  </AppButton>
 
   <Dropdown :position="dropdownPosition" :options="infoEditOptions">
-    <button
-      class="text-sm bg-gray-500/10 px-3 py-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer flex items-center gap-1"
-    >
+    <AppButton>
       <LucidePencil class="size-4" />
       信息修改
-    </button>
+    </AppButton>
   </Dropdown>
 
   <Dropdown v-if="ncmOptions.length" :position="dropdownPosition" :options="ncmOptions">
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-    >
+    <AppButton icon-only aria-label="网易云音乐更多操作">
       <IconNcm class="size-5 text-[#fc3b5b]" />
-    </button>
+    </AppButton>
   </Dropdown>
 
   <Dropdown v-if="qqOptions.length" :position="dropdownPosition" :options="qqOptions">
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
-    >
+    <AppButton icon-only aria-label="QQ音乐更多操作">
       <IconQQ class="size-5" />
-    </button>
+    </AppButton>
   </Dropdown>
 
   <Tooltip placement="top" theme="light" :content="prevTooltip">
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+    <AppButton
+      icon-only
+      aria-label="上一首"
       :class="{ 'opacity-50 cursor-not-allowed hover:bg-gray-500/10': prevDisabled }"
       :disabled="prevDisabled"
       @click="emit('prev')"
     >
       <LucideChevronLeft class="size-5" />
-    </button>
+    </AppButton>
   </Tooltip>
 
   <Tooltip placement="top" theme="light" :content="nextTooltip">
-    <button
-      class="text-sm bg-gray-500/10 p-2 rounded-lg hover:bg-gray-500/20 transition-colors cursor-pointer"
+    <AppButton
+      icon-only
+      aria-label="下一首"
       :class="{ 'opacity-50 cursor-not-allowed hover:bg-gray-500/10': nextDisabled }"
       :disabled="nextDisabled"
       @click="emit('next')"
     >
       <LucideChevronRight class="size-5" />
-    </button>
+    </AppButton>
   </Tooltip>
 </template>

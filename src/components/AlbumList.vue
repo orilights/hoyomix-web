@@ -179,13 +179,17 @@ async function playAlbum(albumId: number) {
                 {{ album_info.publishDate }} · {{ album_info.songCount }}
               </div>
             </div>
-            <button
-              class="shrink-0 text-gray-400 hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-all hidden md:block hover:scale-105 active:scale-95 cursor-pointer"
+            <AppButton
+              icon-only
+              size="xs"
+              variant="ghost"
+              class="shrink-0 text-gray-400 hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-all hidden md:inline-flex hover:scale-105 active:scale-95"
+              aria-label="播放专辑"
               title="播放专辑"
               @click.prevent="playAlbum(album_info.id)"
             >
               <LucidePlay class="size-6" fill="currentColor" />
-            </button>
+            </AppButton>
           </div>
         </RouterLink>
       </div>
