@@ -3,3 +3,5 @@ Allow: /
 Disallow: /settings
 Disallow: /email-verified
 Disallow: /random
+
+Sitemap: https://music-api.amarea.cn/sitemap.xml
