@@ -101,11 +101,11 @@ export function useSearchQuery(
   })
 }
 
-export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>) {
+export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>, enabled?: Ref<boolean>) {
   return useQuery({
     queryKey: computed(() => ['tagAlbums', tagType, tagName.value]),
     queryFn: () => getAlbumsByTagApi(tagType, tagName.value!),
-    enabled: computed(() => !!tagType && !!tagName.value),
+    enabled: computed(() => !!tagType && !!tagName.value && (enabled?.value ?? true)),
   })
 }
 

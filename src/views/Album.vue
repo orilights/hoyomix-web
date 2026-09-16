@@ -249,7 +249,7 @@ onMounted(() => {
       <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
         <div class="w-full lg:w-[400px]">
           <div v-if="albumInfo.tags.length" v-show="activeTab === 'tags'" class="w-full lg:w-[400px] lg:!block h-fit lg:mb-4" :class="{ hidden: activeTab !== 'tags' }">
-            <TagList :tags="albumInfo.tags" />
+            <TagList :tags="albumInfo.tags" :album-id="albumInfo.id" />
           </div>
 
           <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">

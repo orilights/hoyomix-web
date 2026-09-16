@@ -6,6 +6,7 @@ import { formatDuration } from '@/utils'
 defineProps<{
   tags: TagInfo[]
   maps?: SongMapInfo[]
+  albumId?: number
 }>()
 
 const videoSourceMap: Record<string, string> = {
@@ -54,8 +55,14 @@ function goSourceLink(url: string) {
         发布版本：{{ tagInfo.tagName }}
       </div>
 
+      <AlbumSeriesHoverCard
+        v-if="tagInfo.tagType === 'series' && albumId"
+        :series-name="tagInfo.tagName"
+        :current-album-id="albumId"
+      />
+
       <RouterLink
-        v-if="tagInfo.tagType === 'series'"
+        v-else-if="tagInfo.tagType === 'series'"
         :to="{ name: 'AlbumSeries', params: { seriesName: tagInfo.tagName } }"
         class="px-2 py-0.5 bg-black/5 rounded-xl hover:bg-black/10 transition-colors"
       >

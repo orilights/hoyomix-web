@@ -14,6 +14,7 @@ declare module 'vue' {
     AlbumActions: typeof import('./components/AlbumActions.vue')['default']
     AlbumList: typeof import('./components/AlbumList.vue')['default']
     AlbumPickerDialog: typeof import('./components/AlbumPickerDialog.vue')['default']
+    AlbumSeriesHoverCard: typeof import('./components/AlbumSeriesHoverCard.vue')['default']
     AppButton: typeof import('./components/common/AppButton.vue')['default']
     AppDialog: typeof import('./components/common/AppDialog.vue')['default']
     ArtistAlbumList: typeof import('./components/ArtistAlbumList.vue')['default']
