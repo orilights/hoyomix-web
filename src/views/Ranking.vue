@@ -35,6 +35,7 @@ const selectedDate = computed<string>({
   get: () => typeof params.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : '',
   set: (val) => { params.date = val },
 })
+const rankingQueryDate = computed(() => tab.value === 'all' ? '' : selectedDate.value)
 const songs = ref<PlaylistSongItem[]>([])
 const rankingDate = ref<string | undefined>()
 const displayDate = computed({
@@ -44,7 +45,7 @@ const displayDate = computed({
 const isLoading = ref(false)
 let requestId = 0
 
-watch([tab, selectedDate], () => {
+watch([tab, rankingQueryDate], () => {
   fetchRanking()
 })
 
@@ -52,7 +53,7 @@ async function fetchRanking() {
   const currentRequest = ++requestId
   isLoading.value = true
   try {
-    const res = await getRankingApi(tab.value, selectedDate.value || undefined)
+    const res = await getRankingApi(tab.value, rankingQueryDate.value || undefined)
     if (currentRequest !== requestId)
       return
     songs.value = res.songs
@@ -114,7 +115,7 @@ onMounted(() => {
         v-model="tab"
         :options="periods"
       />
-      <label class="flex items-center gap-2 text-sm text-gray-500">
+      <label v-if="tab !== 'all'" class="flex items-center gap-2 text-sm text-gray-500">
         榜单日期
         <input
           v-model="displayDate"
@@ -123,7 +124,7 @@ onMounted(() => {
         >
       </label>
       <button
-        v-if="selectedDate"
+        v-if="tab !== 'all' && selectedDate"
         type="button"
         class="text-sm text-blue-500 hover:text-blue-600 cursor-pointer"
         @click="selectedDate = ''"
