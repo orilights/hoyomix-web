@@ -31,28 +31,43 @@ const tab = computed<RankingPeriod>({
   get: () => (params.tab as RankingPeriod) || '1d',
   set: (val) => { params.tab = val },
 })
+const selectedDate = computed<string>({
+  get: () => typeof params.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : '',
+  set: (val) => { params.date = val },
+})
 const songs = ref<PlaylistSongItem[]>([])
 const rankingDate = ref<string | undefined>()
+const displayDate = computed({
+  get: () => selectedDate.value || rankingDate.value?.slice(0, 10) || '',
+  set: (val: string) => { selectedDate.value = val },
+})
 const isLoading = ref(false)
+let requestId = 0
 
-watch(tab, () => {
+watch([tab, selectedDate], () => {
   fetchRanking()
 })
 
 async function fetchRanking() {
+  const currentRequest = ++requestId
   isLoading.value = true
   try {
-    const res = await getRankingApi(tab.value)
+    const res = await getRankingApi(tab.value, selectedDate.value || undefined)
+    if (currentRequest !== requestId)
+      return
     songs.value = res.songs
     rankingDate.value = res.date
   }
   catch (e: any) {
+    if (currentRequest !== requestId)
+      return
     toast.error(e.message ?? '加载失败')
     songs.value = []
     rankingDate.value = undefined
   }
   finally {
-    isLoading.value = false
+    if (currentRequest === requestId)
+      isLoading.value = false
   }
 }
 
@@ -99,9 +114,22 @@ onMounted(() => {
         v-model="tab"
         :options="periods"
       />
-      <span v-if="rankingDate" class="text-sm text-gray-500">
-        更新于 {{ rankingDate }}
-      </span>
+      <label class="flex items-center gap-2 text-sm text-gray-500">
+        榜单日期
+        <input
+          v-model="displayDate"
+          type="date"
+          class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+      </label>
+      <button
+        v-if="selectedDate"
+        type="button"
+        class="text-sm text-blue-500 hover:text-blue-600 cursor-pointer"
+        @click="selectedDate = ''"
+      >
+        返回最新
+      </button>
       <div class="flex-1" />
       <div class="flex gap-2">
         <AppButton

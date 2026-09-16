@@ -282,6 +282,9 @@ export interface RankingResponse {
   songs: PlaylistSongItem[]
 }
 
-export function getRankingApi(period: RankingPeriod) {
-  return fetchJson<RankingResponse>(`${apiBase}/ranking?period=${period}`)
+export function getRankingApi(period: RankingPeriod, date?: string) {
+  const params = new URLSearchParams({ period })
+  if (date)
+    params.set('date', date)
+  return fetchJson<RankingResponse>(`${apiBase}/ranking?${params}`)
 }
