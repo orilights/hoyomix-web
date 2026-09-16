@@ -27,7 +27,7 @@ const sortedAlbums = computed(() => [...(albums.value ?? [])].sort((a, b) => {
 
 const { floatingStyles } = useFloating(trigger, card, {
   placement: 'right-start',
-  middleware: [offset(6), flip(), shift({ padding: 8 })],
+  middleware: [offset(6), flip({ fallbackPlacements: ['left-start', 'bottom-start', 'top-start'], crossAxis: false }), shift({ padding: 8, crossAxis: true })],
   strategy: 'fixed',
   open: isOpen,
   whileElementsMounted: autoUpdate,
@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
         <div v-else ref="albumList">
           <OverlayScrollbarsComponent
             ref="scrollbar"
-            class="max-h-80"
+            class="max-h-[min(20rem,calc(100dvh-72px))]"
             :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
             @os-initialized="scrollToCurrentAlbum"
           >
