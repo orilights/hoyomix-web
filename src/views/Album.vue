@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
-import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
@@ -15,6 +14,7 @@ import {
   getProductIconUrl,
   goNeteaseClient,
 } from '@/utils'
+import { NotFoundError } from '@/utils/fetch'
 
 const route = useRoute()
 const router = useRouter()
@@ -344,6 +344,8 @@ onMounted(() => {
           </div>
         </div>
       </div>
+
+      <CommentSection :post-id="`hoyomix:album:${albumInfo.id}`" />
 
       <CreatePlaylistDialog
         v-if="albumInfo"

@@ -1,6 +1,6 @@
 import type { PlatformInfoMap } from '@/types/core'
 import type { NeteaseClientSchemeParams } from '@/types/netease'
-import { feedbackPageUrl, iOSUserAgentRegex, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
+import { iOSUserAgentRegex, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
 
 export function getCoverUrl(platforms: PlatformInfoMap, size: '96px' | '128px' | '256px' | '512px' | '800px') {
   if (platforms.ncm) {
@@ -26,10 +26,6 @@ export function getProductIconUrl(productName: string, size?: string) {
     return `/images/icon/${code}-${size}.png`
   }
   return `/images/icon/${code}.png`
-}
-
-export function goFeedbackPage() {
-  window.open(feedbackPageUrl, '_blank')
 }
 
 export function isMobile() {

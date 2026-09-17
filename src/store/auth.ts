@@ -10,6 +10,20 @@ export const useAuthStore = defineStore('auth', () => {
   const token = computed(() => session.value?.data?.session?.token ?? null)
   const isLoggedIn = computed(() => !!user.value)
   const isPending = computed(() => session.value?.isPending ?? true)
+  const canWriteComments = computed(() => {
+    const account = user.value
+    if (!account || ('state' in account && account.state !== 'normal'))
+      return false
+    if ('banned' in account && account.banned === true) {
+      const rawExpiry = 'banExpires' in account ? account.banExpires : null
+      if (!rawExpiry)
+        return false
+      const expiresAt = new Date(rawExpiry as string | number | Date).getTime()
+      if (!Number.isFinite(expiresAt) || expiresAt > Date.now())
+        return false
+    }
+    return true
+  })
 
   const showAuthDialog = ref(false)
 
@@ -33,5 +47,5 @@ export const useAuthStore = defineStore('auth', () => {
     await session.value?.refetch()
   }
 
-  return { user, token, isLoggedIn, isPending, showAuthDialog, openAuthDialog, requireLogin, logout, refreshSession }
+  return { user, token, isLoggedIn, isPending, canWriteComments, showAuthDialog, openAuthDialog, requireLogin, logout, refreshSession }
 })

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
-import { fetchJsonMutation } from '@/api/music'
 import { useChangelogQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { apiBase, appDescription, appTitle, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
@@ -9,7 +8,7 @@ import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
 import { usePlayerStore } from '@/store/player'
-import { goFeedbackPage } from '@/utils'
+import { fetchJsonMutation } from '@/utils/fetch'
 
 const store = useMainStore()
 const player = usePlayerStore()
@@ -431,7 +430,7 @@ onMounted(() => {
       <div class="mt-2">
         <AppButton
           class="my-2"
-          @click="goFeedbackPage"
+          @click="$router.push({ name: 'Feedback' })"
         >
           反馈问题
         </AppButton>

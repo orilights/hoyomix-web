@@ -3,13 +3,14 @@ import type { PlaylistSongItem } from '@/types/core'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
-import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, NotFoundError, updatePlaylistSongsApi } from '@/api/music'
+import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
 import { usePlaylistDetailQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl, getPublishDate } from '@/utils'
+import { NotFoundError } from '@/utils/fetch'
 
 const route = useRoute()
 const router = useRouter()
@@ -535,6 +536,8 @@ onMounted(() => {
           歌单暂无歌曲
         </div>
       </div>
+
+      <CommentSection v-if="playlist.isPublic" :post-id="`hoyomix:playlist:${playlist.id}`" />
 
       <Teleport to="body">
         <Transition name="action-bar">

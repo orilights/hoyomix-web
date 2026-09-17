@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useQueryClient } from '@tanstack/vue-query'
 import { useOverlayScrollbars } from 'overlayscrollbars-vue'
 import { toast, Toaster } from 'vue-sonner'
 import { useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
@@ -10,6 +11,7 @@ import { usePlayerStore } from '@/store/player'
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
+const queryClient = useQueryClient()
 const mediaSource = useMediaSourceStore()
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist, isLoading } = storeToRefs(player)
@@ -43,6 +45,12 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
   else {
     store.clearFavorites()
   }
+}, { immediate: true })
+
+// 评论列表包含当前用户的审核状态与投票，切换账号时不能复用旧身份缓存。
+watch(() => auth.user?.id ?? null, () => {
+  queryClient.removeQueries({ queryKey: ['commentThreads'] })
+  queryClient.removeQueries({ queryKey: ['commentReplies'] })
 }, { immediate: true })
 
 const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({

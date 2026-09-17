@@ -2,13 +2,13 @@
 import type { SongListItemInfo } from '@/types/core'
 import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
-import { NotFoundError } from '@/api/music'
 import { useAlbumInfoQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { buildPlaylistItem, formatDuration, getCoverUrl, getProductCode, getProductIconUrl, selectLyricProvider } from '@/utils'
+import { NotFoundError } from '@/utils/fetch'
 
 const route = useRoute()
 const router = useRouter()
@@ -385,6 +385,8 @@ onMounted(() => {
           />
         </div>
       </div>
+
+      <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
 
       <SelectPlaylistDialog
         v-model="showSelectPlaylistDialog"
