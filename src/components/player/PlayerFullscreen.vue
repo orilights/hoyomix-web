@@ -26,7 +26,109 @@ const {
   lyricsOffset,
   lyricsFontSize,
   mobileFullscreenLayout,
+  fullscreenCoverShape,
+  fullscreenCoverRotation,
+  fullscreenCoverBorder,
 } = storeToRefs(player)
+
+const isRoundCover = computed(() => fullscreenCoverShape.value === 'circle')
+const isMobileViewport = useMediaQuery('(max-width: 767px)')
+const coverMenu = ref<{ x: number, y: number } | null>(null)
+const coverMenuRef = ref<HTMLElement | null>(null)
+let coverPressTimer: ReturnType<typeof setTimeout> | null = null
+let coverPressStart: { x: number, y: number } | null = null
+let suppressCoverClick = false
+
+function closeCoverMenu() {
+  coverMenu.value = null
+}
+
+function openCoverMenu(x: number, y: number) {
+  const menuWidth = 216
+  const menuHeight = 214
+  const margin = 8
+  coverMenu.value = {
+    x: Math.max(margin, Math.min(x, window.innerWidth - menuWidth - margin)),
+    y: Math.max(margin, Math.min(y, window.innerHeight - menuHeight - margin)),
+  }
+  nextTick(() => coverMenuRef.value?.querySelector<HTMLButtonElement>('button')?.focus())
+}
+
+function cancelCoverPress() {
+  if (coverPressTimer)
+    clearTimeout(coverPressTimer)
+  coverPressTimer = null
+  coverPressStart = null
+}
+
+function onCoverTouchStart(event: TouchEvent) {
+  cancelCoverPress()
+  if (event.touches.length !== 1)
+    return
+  const { clientX, clientY } = event.touches[0]
+  coverPressStart = { x: clientX, y: clientY }
+  coverPressTimer = setTimeout(() => {
+    suppressCoverClick = true
+    openCoverMenu(clientX, clientY)
+    coverPressTimer = null
+  }, 550)
+}
+
+function onCoverTouchMove(event: TouchEvent) {
+  const touch = event.touches[0]
+  if (!touch || !coverPressStart || Math.hypot(touch.clientX - coverPressStart.x, touch.clientY - coverPressStart.y) > 10)
+    cancelCoverPress()
+}
+
+function onCoverTouchEnd(event: TouchEvent) {
+  cancelCoverPress()
+  if (suppressCoverClick) {
+    event.preventDefault()
+    setTimeout(() => {
+      suppressCoverClick = false
+    }, 0)
+  }
+}
+
+function onCoverContextMenu(event: MouseEvent) {
+  event.preventDefault()
+  const wasTouchPress = coverPressStart !== null
+  cancelCoverPress()
+  if (wasTouchPress)
+    suppressCoverClick = true
+  openCoverMenu(event.clientX, event.clientY)
+}
+
+function onMobileCoverClick(event: MouseEvent) {
+  if (suppressCoverClick) {
+    event.preventDefault()
+    suppressCoverClick = false
+    return
+  }
+  showLyricsLayout()
+}
+
+function onDocumentPointerDown(event: PointerEvent) {
+  if (coverMenu.value && !coverMenuRef.value?.contains(event.target as Node))
+    closeCoverMenu()
+}
+
+function onDocumentKeyDown(event: KeyboardEvent) {
+  if (coverMenu.value && event.key === 'Escape') {
+    event.stopPropagation()
+    closeCoverMenu()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('pointerdown', onDocumentPointerDown)
+  document.addEventListener('keydown', onDocumentKeyDown)
+})
+
+watch(isFullscreen, (value) => {
+  if (!value)
+    closeCoverMenu()
+})
 
 const coverUrl = computed(() => {
   if (!currentSong.value)
@@ -39,7 +141,6 @@ const bg1 = ref(fallbackCoverColors.gradient)
 const bg2 = ref(fallbackCoverColors.gradient)
 const showBackground = ref(1)
 const transformPosition = ref('')
-const isMobileViewport = useMediaQuery('(max-width: 767px)')
 const { width: viewportWidth, height: viewportHeight } = useWindowSize()
 const {
   isFullscreen: isPageFullscreen,
@@ -105,6 +206,9 @@ watch(isImmersive, (val) => {
 })
 
 onUnmounted(() => {
+  cancelCoverPress()
+  document.removeEventListener('pointerdown', onDocumentPointerDown)
+  document.removeEventListener('keydown', onDocumentKeyDown)
   if (immersiveTimer)
     clearTimeout(immersiveTimer)
 })
@@ -314,10 +418,18 @@ function onHeaderTouchEnd() {
 
         <div class="relative z-10 flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0" :class="{ 'justify-center': !isMobileViewport && !showFullscreenLyrics }">
           <div class="hidden md:block w-[40%] max-w-[40vh] shrink-0" :class="!isMobileViewport && !showFullscreenLyrics ? 'mx-auto' : 'mx-[5vw]'">
-            <LazyImg
-              class="w-full aspect-square rounded-2xl shadow-2xl"
-              :src="coverUrl"
-            />
+            <div
+              class="w-full aspect-square shadow-2xl"
+              :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
+              @contextmenu="onCoverContextMenu"
+            >
+              <LazyImg
+                class="size-full fullscreen-cover-image"
+                :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
+                :src="coverUrl"
+                :alt="`${currentSong.songName} 封面`"
+              />
+            </div>
             <div class="mt-4 text-center">
               <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
                 {{ currentSong.songName }}
@@ -334,14 +446,21 @@ function onHeaderTouchEnd() {
           >
             <button
               type="button"
-              class="max-w-full aspect-square rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
+              class="max-w-full aspect-square shadow-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
+              :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl ring-1 ring-white/10', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
               :style="{ width: `${compactCoverSize}px`, height: `${compactCoverSize}px` }"
               aria-label="切换到完整歌词布局"
               title="切换到完整歌词布局"
-              @click="showLyricsLayout"
+              @click="onMobileCoverClick"
+              @contextmenu="onCoverContextMenu"
+              @touchstart="onCoverTouchStart"
+              @touchmove="onCoverTouchMove"
+              @touchend="onCoverTouchEnd"
+              @touchcancel="cancelCoverPress"
             >
               <LazyImg
-                class="size-full object-cover"
+                class="size-full object-cover fullscreen-cover-image"
+                :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
                 :src="coverUrl"
                 :alt="`${currentSong.songName} 封面`"
               />
@@ -412,6 +531,63 @@ function onHeaderTouchEnd() {
           thin
         />
       </div>
+
+      <div
+        v-if="coverMenu"
+        ref="coverMenuRef"
+        role="menu"
+        aria-label="封面设置"
+        class="fixed z-30 w-[216px] rounded-xl border border-white/20 bg-gray-900/95 p-1.5 text-white shadow-xl backdrop-blur-md"
+        :style="{ left: `${coverMenu.x}px`, top: `${coverMenu.y}px` }"
+        @contextmenu.prevent
+      >
+        <div class="px-3 py-1.5 text-xs text-white/50">
+          封面形状
+        </div>
+        <button
+          type="button"
+          role="menuitemradio"
+          :aria-checked="fullscreenCoverShape === 'square'"
+          class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
+          @click="player.setFullscreenCoverShape('square'); closeCoverMenu()"
+        >
+          方形
+          <LucideCheck v-if="fullscreenCoverShape === 'square'" class="size-4" />
+        </button>
+        <button
+          type="button"
+          role="menuitemradio"
+          :aria-checked="isRoundCover"
+          class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
+          @click="player.setFullscreenCoverShape('circle'); closeCoverMenu()"
+        >
+          圆形
+          <LucideCheck v-if="isRoundCover" class="size-4" />
+        </button>
+        <div class="my-1 border-t border-white/15" />
+        <button
+          type="button"
+          role="menuitemcheckbox"
+          :aria-checked="fullscreenCoverRotation"
+          :disabled="!isRoundCover"
+          class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent"
+          @click="fullscreenCoverRotation = !fullscreenCoverRotation; closeCoverMenu()"
+        >
+          播放中封面旋转
+          <LucideCheck v-if="fullscreenCoverRotation" class="size-4" />
+        </button>
+        <button
+          type="button"
+          role="menuitemcheckbox"
+          :aria-checked="fullscreenCoverBorder"
+          :disabled="!isRoundCover"
+          class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent"
+          @click="fullscreenCoverBorder = !fullscreenCoverBorder; closeCoverMenu()"
+        >
+          封面边框
+          <LucideCheck v-if="fullscreenCoverBorder" class="size-4" />
+        </button>
+      </div>
     </div>
   </Transition>
 </template>
@@ -419,6 +595,43 @@ function onHeaderTouchEnd() {
 <style scoped>
 .background-mask {
   background: rgba(0, 0, 0, 0.25);
+}
+
+.fullscreen-cover-border {
+  position: relative;
+  padding: 24px;
+  box-shadow: none;
+}
+
+.fullscreen-cover-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.fullscreen-cover-image {
+  display: block;
+}
+
+.fullscreen-cover-art {
+  position: relative;
+  z-index: 1;
+}
+
+.fullscreen-cover-spin {
+  animation: fullscreen-cover-rotate 30s linear infinite;
+}
+
+.fullscreen-cover-spin-paused {
+  animation-play-state: paused;
+}
+
+@keyframes fullscreen-cover-rotate {
+  to { transform: rotate(360deg); }
 }
 
 .volume-slider {
