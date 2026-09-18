@@ -48,31 +48,36 @@ onUnmounted(() => {
 
 <template>
   <div class="relative">
-    <AppButton
-      v-if="!isLoggedIn && !isPending"
-      shape="pill"
-      @click="auth.openAuthDialog()"
-    >
-      <LucideUser class="size-4.5" />
-      <span class="hidden md:inline text-xs">登录</span>
-    </AppButton>
+    <Tooltip v-if="!isLoggedIn && !isPending" content="登录" placement="bottom" align="center">
+      <AppButton
+        shape="pill"
+        aria-label="登录"
+        @click="auth.openAuthDialog()"
+      >
+        <LucideUser class="size-4.5" />
+        <span class="hidden md:inline text-xs">登录</span>
+      </AppButton>
+    </Tooltip>
 
     <div v-else-if="isLoggedIn" class="relative">
-      <button
-        class="size-8 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-blue-400 transition-all cursor-pointer flex items-center justify-center"
-        @click="onAvatarClick"
-      >
-        <img
-          v-if="user?.image"
-          :src="user.image"
-          :alt="user.name"
-          loading="lazy"
-          class="size-full object-cover"
+      <Tooltip :content="user?.name ?? '账户'" placement="bottom" align="center">
+        <button
+          class="size-8 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-blue-400 transition-all cursor-pointer flex items-center justify-center"
+          aria-label="账户菜单"
+          @click="onAvatarClick"
         >
-        <div v-else class="size-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
-          {{ getInitial() }}
-        </div>
-      </button>
+          <img
+            v-if="user?.image"
+            :src="user.image"
+            :alt="user.name"
+            loading="lazy"
+            class="size-full object-cover"
+          >
+          <div v-else class="size-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+            {{ getInitial() }}
+          </div>
+        </button>
+      </Tooltip>
     </div>
 
     <Transition name="dropdown-fade">

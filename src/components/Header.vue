@@ -33,42 +33,48 @@ onUnmounted(() => {
     }"
   >
     <div class="flex items-center">
-      <AppButton
-        icon-only
-        shape="pill"
-        aria-label="返回上一页"
-        @click="$router.back()"
-      >
-        <LucideChevronLeft class="size-4.5" />
-      </AppButton>
-      <AppButton
-        icon-only
-        shape="pill"
-        aria-label="返回首页"
-        class="ml-2"
-        @click="$router.push({ name: 'Home' })"
-      >
-        <LucideLayoutGrid class="size-4.5" />
-      </AppButton>
-      <AppButton
-        icon-only
-        shape="pill"
-        aria-label="打开设置"
-        class="ml-2"
-        @click="$router.push({ name: 'Settings' })"
-      >
-        <LucideSlidersHorizontal class="size-4.5" />
-      </AppButton>
+      <Tooltip content="返回上一页" placement="bottom" align="center">
+        <AppButton
+          icon-only
+          shape="pill"
+          aria-label="返回上一页"
+          @click="$router.back()"
+        >
+          <LucideChevronLeft class="size-4.5" />
+        </AppButton>
+      </Tooltip>
+      <Tooltip class="ml-2" content="返回首页" placement="bottom" align="center">
+        <AppButton
+          icon-only
+          shape="pill"
+          aria-label="返回首页"
+          @click="$router.push({ name: 'Home' })"
+        >
+          <LucideLayoutGrid class="size-4.5" />
+        </AppButton>
+      </Tooltip>
+      <Tooltip class="ml-2" content="打开设置" placement="bottom" align="center">
+        <AppButton
+          icon-only
+          shape="pill"
+          aria-label="打开设置"
+          @click="$router.push({ name: 'Settings' })"
+        >
+          <LucideSlidersHorizontal class="size-4.5" />
+        </AppButton>
+      </Tooltip>
     </div>
     <div class="ml-auto flex items-center gap-2">
-      <AppButton
-        shape="pill"
-        aria-label="搜索"
-        @click="showSearch = true"
-      >
-        <LucideSearch class="size-4.5" />
-        <kbd class="hidden md:inline text-xs text-gray-400">Ctrl+K</kbd>
-      </AppButton>
+      <Tooltip content="搜索" placement="bottom" align="center">
+        <AppButton
+          shape="pill"
+          aria-label="搜索"
+          @click="showSearch = true"
+        >
+          <LucideSearch class="size-4.5" />
+          <kbd class="hidden md:inline text-xs text-gray-400">Ctrl+K</kbd>
+        </AppButton>
+      </Tooltip>
       <NotificationBell />
       <UserInfo />
     </div>

@@ -22,20 +22,20 @@ const hasUnread = computed(() => (unreadCountData.value?.count ?? 0) > 0)
 </script>
 
 <template>
-  <AppButton
-    v-if="isLoggedIn"
-    icon-only
-    shape="pill"
-    class="relative"
-    title="站内信"
-    aria-label="站内信"
-    @click="showNotificationDialog = true"
-  >
-    <LucideBell class="size-4.5" />
-    <span
-      v-if="hasUnread"
-      class="absolute -top-0.5 -right-0.5 size-2 bg-red-500 rounded-full ring-2 ring-white pointer-events-none"
-    />
-  </AppButton>
+  <Tooltip v-if="isLoggedIn" content="站内信" placement="bottom" align="center">
+    <AppButton
+      icon-only
+      shape="pill"
+      class="relative"
+      aria-label="站内信"
+      @click="showNotificationDialog = true"
+    >
+      <LucideBell class="size-4.5" />
+      <span
+        v-if="hasUnread"
+        class="absolute -top-0.5 -right-0.5 size-2 bg-red-500 rounded-full ring-2 ring-white pointer-events-none"
+      />
+    </AppButton>
+  </Tooltip>
   <NotificationDialog v-if="isLoggedIn" v-model="showNotificationDialog" />
 </template>
