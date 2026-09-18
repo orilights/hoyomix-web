@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Comment, VoteType } from '@/types/comment'
+import { useResizeObserver } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { CommentApiError, deleteCommentApi, updateCommentApi, voteCommentApi } from '@/api/comment'
 import { useAuthStore } from '@/store/auth'
@@ -7,12 +8,15 @@ import { useAuthStore } from '@/store/auth'
 const props = withDefaults(defineProps<{
   comment: Comment
   depth?: 0 | 1
+  replyNumber?: number
+  replyToNumber?: number
 }>(), {
   depth: 0,
 })
 
 const emit = defineEmits<{
   reply: [comment: Comment]
+  locateReply: [id: string]
   changed: []
 }>()
 
@@ -23,6 +27,23 @@ const editing = ref(false)
 const editContent = ref('')
 const saving = ref(false)
 const voting = ref(false)
+const contentElement = useTemplateRef<HTMLParagraphElement>('contentElement')
+const collapsed = ref(true)
+const hasMoreContent = ref(false)
+
+function measureContent() {
+  const element = contentElement.value
+  if (!element)
+    return
+  const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight)
+  hasMoreContent.value = element.scrollHeight > lineHeight * 10 + 1
+}
+
+useResizeObserver(contentElement, measureContent)
+watch([() => localComment.value.id, () => localComment.value.content], () => {
+  collapsed.value = true
+  nextTick(measureContent)
+})
 
 watch(() => props.comment, (comment) => {
   localComment.value = { ...comment }
@@ -127,21 +148,28 @@ async function voteComment(type: VoteType) {
 </script>
 
 <template>
-  <article :id="`comment-${localComment.id}`" class="py-4 border-b border-black/5 last:border-b-0">
-    <div class="flex items-start gap-3">
-      <div class="size-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-blue-500 text-white text-sm font-medium">
+  <article :id="`comment-${localComment.id}`" tabindex="-1" class="border-b border-black/5 last:border-b-0 focus:outline-none" :class="depth === 1 ? 'py-2' : 'py-4'">
+    <div class="flex items-start" :class="depth === 1 ? 'gap-2' : 'gap-3'">
+      <div class="rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-blue-500 text-white font-medium" :class="depth === 1 ? 'size-7 text-xs' : 'size-9 text-sm'">
         <img v-if="localComment.user.image" :src="localComment.user.image" :alt="localComment.user.name" class="size-full object-cover">
         <span v-else>{{ initial(localComment.user.name) }}</span>
       </div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 flex-wrap text-sm">
           <span class="font-medium text-gray-800">{{ localComment.user.name }}</span>
+          <span v-if="replyNumber" class="text-xs text-gray-400">#{{ replyNumber }}</span>
           <span v-if="localComment.state === 'pending'" class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700 text-xs">审核中</span>
           <span v-else-if="localComment.state === 'rejected'" class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-xs">未通过</span>
           <span class="text-xs text-gray-400">{{ new Date(localComment.createdAt).toLocaleString() }}</span>
-        </div>
-        <div v-if="localComment.replyToUser" class="mt-1 text-xs text-gray-400">
-          回复 <span class="text-blue-500">@{{ localComment.replyToUser.name }}</span>
+          <button
+            v-if="localComment.replyTo && localComment.replyToUser"
+            type="button"
+            class="cursor-pointer text-xs text-gray-400 hover:text-blue-600 focus-visible:outline-none focus-visible:underline"
+            title="查看被回复的评论"
+            @click="emit('locateReply', localComment.replyTo)"
+          >
+            回复 <span class="text-blue-500">@{{ localComment.replyToUser.name }}</span><span v-if="replyToNumber" class="ml-1 text-blue-500">#{{ replyToNumber }}</span>
+          </button>
         </div>
         <textarea
           v-if="editing"
@@ -150,22 +178,41 @@ async function voteComment(type: VoteType) {
           maxlength="2000"
           class="mt-2 w-full resize-y rounded-lg border border-blue-300 bg-white/70 p-2 text-sm leading-6 outline-none focus:ring-2 focus:ring-blue-400/30"
         />
-        <p v-else class="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-gray-700">
+        <p
+          v-else
+          :id="`comment-content-${localComment.id}`"
+          ref="contentElement"
+          class="whitespace-pre-wrap break-words text-sm leading-6 text-gray-700"
+          :class="[depth === 1 ? 'mt-1' : 'mt-2', collapsed ? 'max-h-60 overflow-hidden' : '']"
+        >
           {{ localComment.content }}
         </p>
-        <div class="mt-2 flex items-center gap-1">
-          <AppButton v-if="localComment.state === 'normal'" icon-only size="xs" variant="ghost" title="点赞" aria-label="点赞" :class="vote === 1 ? 'text-blue-500' : ''" :disabled="voting || (isLoggedIn && !canWrite)" @click="voteComment(1)">
-            <LucideThumbsUp class="size-4" />
+        <AppButton
+          v-if="!editing && hasMoreContent"
+          size="xs"
+          variant="ghost"
+          class="mt-1"
+          :aria-controls="`comment-content-${localComment.id}`"
+          :aria-expanded="!collapsed"
+          @click="collapsed = !collapsed"
+        >
+          {{ collapsed ? '展开全文' : '收起' }}
+          <LucideChevronDown v-if="collapsed" class="size-3.5" />
+          <LucideChevronUp v-else class="size-3.5" />
+        </AppButton>
+        <div class="flex items-center gap-1" :class="depth === 1 ? 'mt-1' : 'mt-2'">
+          <AppButton v-if="localComment.state === 'normal'" icon-only size="xs" variant="ghost" title="点赞" aria-label="点赞" :aria-pressed="vote === 1" :class="vote === 1 ? 'text-blue-500' : ''" :disabled="voting || (isLoggedIn && !canWrite)" @click="voteComment(1)">
+            <LucideThumbsUp class="size-4" :fill="vote === 1 ? 'currentColor' : 'none'" />
             <span class="ml-1 text-xs">{{ localComment.upvoteCount }}</span>
           </AppButton>
-          <AppButton v-if="localComment.state === 'normal'" icon-only size="xs" variant="ghost" title="点踩" aria-label="点踩" :class="vote === -1 ? 'text-blue-500' : ''" :disabled="voting || (isLoggedIn && !canWrite)" @click="voteComment(-1)">
-            <LucideThumbsDown class="size-4" />
+          <AppButton v-if="localComment.state === 'normal'" icon-only size="xs" variant="ghost" title="点踩" aria-label="点踩" :aria-pressed="vote === -1" :class="vote === -1 ? 'text-blue-500' : ''" :disabled="voting || (isLoggedIn && !canWrite)" @click="voteComment(-1)">
+            <LucideThumbsDown class="size-4" :fill="vote === -1 ? 'currentColor' : 'none'" />
           </AppButton>
           <AppButton v-if="localComment.state === 'normal'" icon-only size="xs" variant="ghost" title="回复" aria-label="回复" :disabled="voting" @click="emit('reply', localComment)">
-            <LucideMessageCircle class="size-4" />
+            <LucideReply class="size-4" />
           </AppButton>
           <template v-if="isOwner && localComment.state !== 'deleted'">
-            <AppButton v-if="!editing" icon-only size="xs" variant="ghost" title="编辑" aria-label="编辑" :disabled="!canWrite || voting" @click="startEdit">
+            <AppButton v-if="!editing && localComment.state === 'rejected'" icon-only size="xs" variant="ghost" title="编辑" aria-label="编辑" :disabled="!canWrite || voting" @click="startEdit">
               <LucidePencil class="size-4" />
             </AppButton>
             <AppButton v-if="!editing" icon-only size="xs" variant="ghost" title="删除" aria-label="删除" :disabled="saving || !canWrite || voting" @click="remove">
@@ -181,6 +228,7 @@ async function voteComment(type: VoteType) {
             </template>
           </template>
         </div>
+        <slot name="reply-composer" />
       </div>
     </div>
   </article>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
-import { getNotificationUnreadCountApi } from '@/api/music'
+import { getNotificationUnreadCountApi } from '@/api/notification'
 import { useAuthStore } from '@/store/auth'
 
 const auth = useAuthStore()

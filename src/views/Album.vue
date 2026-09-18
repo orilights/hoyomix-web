@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
-import { useAlbumInfoQuery } from '@/composables/queries'
+import { useAlbumInfoQuery, useCommentThreadsQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -25,6 +25,16 @@ const auth = useAuthStore()
 const albumId = computed(() => Number(route.params.id as string) || null)
 
 const { data: albumInfo, isLoading, isError, error } = useAlbumInfoQuery(albumId)
+const commentPostId = computed(() => albumInfo.value ? `hoyomix:album:${albumInfo.value.id}` : null)
+const commentUserId = computed(() => auth.user?.id ?? null)
+const commentPage = ref(1)
+const { data: commentThreads } = useCommentThreadsQuery(commentPostId, commentUserId, commentPage)
+const commentCount = computed(() => commentThreads.value?.commentCount ?? commentThreads.value?.pagination.total ?? 0)
+const commentSection = ref<HTMLElement | null>(null)
+
+function scrollToComments() {
+  commentSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 watch(isError, (val) => {
   if (!val)
@@ -125,7 +135,11 @@ function addToPlaylist(song: SongListItemInfo) {
   toast.success(isNew ? '已添加至播放列表' : '歌曲已在播放列表中')
 }
 
-const activeTab = ref<'songs' | 'artists' | 'tags'>('songs')
+const activeTab = ref<'songs' | 'artists' | 'tags' | 'comments'>('songs')
+
+watch(albumId, () => {
+  activeTab.value = 'songs'
+})
 
 const showCreatePlaylistDialog = ref(false)
 const showSelectPlaylistDialog = ref(false)
@@ -207,6 +221,12 @@ onMounted(() => {
               @save-as-playlist="saveAsPlaylist"
               @add-to-playlist="addAlbumToPlaylist"
             />
+            <div class="hidden lg:block">
+              <AppButton @click="scrollToComments">
+                <LucideMessageCircle class="size-4" />
+                评论 {{ commentCount }}
+              </AppButton>
+            </div>
           </div>
         </div>
       </div>
@@ -221,7 +241,7 @@ onMounted(() => {
         />
       </div>
 
-      <div class="flex gap-2 mt-4 lg:hidden">
+      <div class="flex flex-wrap gap-2 mt-4 lg:hidden">
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
@@ -244,9 +264,16 @@ onMounted(() => {
         >
           其他信息
         </button>
+        <button
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
+          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          @click="activeTab = 'comments'"
+        >
+          评论 {{ commentCount }}
+        </button>
       </div>
 
-      <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
+      <div v-show="activeTab !== 'comments'" class="flex flex-col lg:!flex lg:flex-row lg:gap-4 mt-4">
         <div class="w-full lg:w-[400px]">
           <div v-if="albumInfo.tags.length" v-show="activeTab === 'tags'" class="w-full lg:w-[400px] lg:!block h-fit lg:mb-4" :class="{ hidden: activeTab !== 'tags' }">
             <TagList :tags="albumInfo.tags" :album-id="albumInfo.id" />
@@ -345,7 +372,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <CommentSection :post-id="`hoyomix:album:${albumInfo.id}`" />
+      <div v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
+        <CommentSection :post-id="`hoyomix:album:${albumInfo.id}`" />
+      </div>
 
       <CreatePlaylistDialog
         v-if="albumInfo"

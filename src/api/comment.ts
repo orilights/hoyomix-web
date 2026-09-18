@@ -12,10 +12,14 @@ export class CommentApiError extends Error {
 }
 
 async function commentRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const headers = new Headers(init.headers)
+  if (init.body != null && !headers.has('Content-Type'))
+    headers.set('Content-Type', 'application/json')
+
   const res = await fetch(`${userApiBase}${path}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...init.headers },
     ...init,
+    headers,
   })
   const body = await res.json() as CommentApiResponse<T>
   if (body.error || body.data === null)

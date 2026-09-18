@@ -8,7 +8,7 @@ import {
   getNotificationsApi,
   markAllNotificationsReadApi,
   markNotificationReadApi,
-} from '@/api/music'
+} from '@/api/notification'
 import { formatRelativeTime } from '@/utils'
 
 const emit = defineEmits<{

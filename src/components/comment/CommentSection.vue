@@ -16,11 +16,11 @@ const postId = toRef(props, 'postId')
 const userId = computed(() => user.value?.id ?? null)
 const page = ref(1)
 const threads = ref<CommentThread[]>([])
+const commentCount = ref(0)
 const pagination = ref({ page: 1, pageSize: 20, total: 0, totalPages: 0 })
 const replyTarget = ref<Comment | null>(null)
 const forceExpanded = ref(new Set<string>())
 const replyJump = ref(new Map<string, string>())
-const composer = ref<HTMLElement | null>(null)
 const content = ref('')
 
 const threadsQuery = useCommentThreadsQuery(postId, userId, page)
@@ -28,6 +28,7 @@ const threadsQuery = useCommentThreadsQuery(postId, userId, page)
 function resetList() {
   page.value = 1
   threads.value = []
+  commentCount.value = 0
   pagination.value = { page: 1, pageSize: 20, total: 0, totalPages: 0 }
   replyTarget.value = null
   forceExpanded.value = new Set()
@@ -46,6 +47,7 @@ watch(threadsQuery.data, (data) => {
   threads.value = page.value === 1
     ? [...data.data]
     : [...threads.value, ...data.data.filter(thread => !threads.value.some(existing => existing.threadId === thread.threadId))]
+  commentCount.value = data.commentCount ?? data.pagination.total
   pagination.value = data.pagination
 }, { immediate: true })
 
@@ -56,7 +58,11 @@ function loadMoreThreads() {
 
 function replyTo(comment: Comment) {
   replyTarget.value = comment
-  nextTick(() => composer.value?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+  nextTick(() => {
+    const input = document.getElementById(`comment-${comment.id}`)?.querySelector('textarea')
+    input?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    input?.focus({ preventScroll: true })
+  })
 }
 
 function invalidateComments(targetPostId = props.postId) {
@@ -90,20 +96,19 @@ function onChanged() {
 </script>
 
 <template>
-  <section ref="composer" class="mt-6 bg-white/45 rounded-2xl p-4 md:p-6">
+  <section class="mt-6 bg-black/5 rounded-xl p-4 md:p-6">
     <div class="flex items-center justify-between gap-3 mb-4">
       <h2 class="text-lg font-semibold text-gray-900">
         {{ title ?? '评论' }}
       </h2>
-      <span v-if="pagination.total" class="text-sm text-gray-400">{{ pagination.total }} 条</span>
+      <span v-if="commentCount" class="text-sm text-gray-400">{{ commentCount }} 条</span>
     </div>
 
     <CommentInput
+      v-if="!replyTarget"
       v-model="content"
       :post-id="postId"
-      :reply-to="replyTarget"
       @created="onCreated"
-      @cancel-reply="replyTarget = null"
     />
 
     <div v-if="threadsQuery.isError.value" class="py-10 text-center text-sm text-red-400">
@@ -123,11 +128,15 @@ function onChanged() {
       <CommentThread
         v-for="thread in threads"
         :key="thread.threadId"
+        v-model:reply-content="content"
         :thread="thread"
         :post-id="postId"
+        :reply-target="replyTarget"
         :force-expanded="forceExpanded.has(thread.threadId)"
         :new-reply-id="replyJump.get(thread.threadId) ?? null"
         @reply="replyTo"
+        @cancel-reply="replyTarget = null"
+        @created="onCreated"
         @changed="onChanged"
         @located="onLocated"
       />

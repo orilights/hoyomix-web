@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
 import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
-import { usePlaylistDetailQuery } from '@/composables/queries'
+import { useCommentThreadsQuery, usePlaylistDetailQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -23,6 +23,21 @@ const queryClient = useQueryClient()
 
 const playlistId = computed(() => route.params.id as string)
 const { data: playlist, isLoading, isError, error, refetch } = usePlaylistDetailQuery(playlistId)
+const commentPostId = computed(() => playlist.value?.isPublic ? `hoyomix:playlist:${playlist.value.id}` : null)
+const commentUserId = computed(() => user.value?.id ?? null)
+const commentPage = ref(1)
+const { data: commentThreads } = useCommentThreadsQuery(commentPostId, commentUserId, commentPage)
+const commentCount = computed(() => commentThreads.value?.commentCount ?? commentThreads.value?.pagination.total ?? 0)
+const commentSection = ref<HTMLElement | null>(null)
+
+function scrollToComments() {
+  commentSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+const activeTab = ref<'songs' | 'comments'>('songs')
+
+watch(playlistId, () => {
+  activeTab.value = 'songs'
+})
 
 const dragging = ref(false)
 
@@ -396,6 +411,12 @@ onMounted(() => {
               @edit="openEdit"
               @delete="deletePlaylist"
             />
+            <div v-if="playlist.isPublic" class="hidden lg:block">
+              <AppButton @click="scrollToComments">
+                <LucideMessageCircle class="size-4" />
+                评论 {{ commentCount }}
+              </AppButton>
+            </div>
           </div>
         </div>
       </div>
@@ -414,7 +435,24 @@ onMounted(() => {
         />
       </div>
 
-      <div class="mt-4 bg-black/5 rounded-xl pt-2 pb-4">
+      <div v-if="playlist.isPublic" class="flex gap-2 mt-4 lg:hidden">
+        <button
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
+          :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          @click="activeTab = 'songs'"
+        >
+          歌曲列表
+        </button>
+        <button
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
+          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          @click="activeTab = 'comments'"
+        >
+          评论 {{ commentCount }}
+        </button>
+      </div>
+
+      <div v-show="activeTab === 'songs' || !playlist.isPublic" class="mt-4 bg-black/5 rounded-xl pt-2 pb-4 lg:!block">
         <table class="w-full table-fixed overflow-hidden">
           <thead>
             <tr class="text-left">
@@ -537,7 +575,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <CommentSection v-if="playlist.isPublic" :post-id="`hoyomix:playlist:${playlist.id}`" />
+      <div v-if="playlist.isPublic" v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
+        <CommentSection :post-id="`hoyomix:playlist:${playlist.id}`" />
+      </div>
 
       <Teleport to="body">
         <Transition name="action-bar">

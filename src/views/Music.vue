@@ -2,7 +2,7 @@
 import type { SongListItemInfo } from '@/types/core'
 import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
-import { useAlbumInfoQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
+import { useAlbumInfoQuery, useCommentThreadsQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -195,7 +195,22 @@ watch([musicInfo, albumInfo], ([song, album]) => {
   }
 }, { immediate: true })
 
-const activeTab = ref<'lyrics' | 'artists'>('lyrics')
+const activeTab = ref<'lyrics' | 'artists' | 'comments'>('lyrics')
+
+watch(musicId, () => {
+  activeTab.value = 'lyrics'
+})
+
+const commentPostId = computed(() => musicInfo.value ? `hoyomix:song:${musicInfo.value.id}` : null)
+const commentUserId = computed(() => auth.user?.id ?? null)
+const commentPage = ref(1)
+const { data: commentThreads } = useCommentThreadsQuery(commentPostId, commentUserId, commentPage)
+const commentCount = computed(() => commentThreads.value?.commentCount ?? commentThreads.value?.pagination.total ?? 0)
+const commentSection = ref<HTMLElement | null>(null)
+
+function scrollToComments() {
+  commentSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 const showSelectPlaylistDialog = ref(false)
 const currentSongId = computed(() => musicInfo.value ? [musicInfo.value.id] : [])
@@ -305,6 +320,12 @@ onMounted(() => {
               @edit-region="openEditRegion"
               @edit-video="openEditVideo"
             />
+            <div class="hidden lg:block">
+              <AppButton @click="scrollToComments">
+                <LucideMessageCircle class="size-4" />
+                评论 {{ commentCount }}
+              </AppButton>
+            </div>
           </div>
         </div>
       </div>
@@ -339,7 +360,7 @@ onMounted(() => {
         </AsyncFade>
       </div>
 
-      <div class="flex gap-2 mt-4 lg:hidden">
+      <div class="flex flex-wrap gap-2 mt-4 lg:hidden">
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
           :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
@@ -354,9 +375,16 @@ onMounted(() => {
         >
           制作人员
         </button>
+        <button
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
+          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          @click="activeTab = 'comments'"
+        >
+          评论 {{ commentCount }}
+        </button>
       </div>
 
-      <div class="flex flex-col lg:flex-row lg:gap-4 mt-4">
+      <div v-show="activeTab !== 'comments'" class="flex flex-col lg:!flex lg:flex-row lg:gap-4 mt-4">
         <div class="w-full lg:w-[400px]">
           <div v-if="isSongLoading || isSongError || songInfo?.tags.length || songInfo?.maps?.length" class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
             <AsyncFade>
@@ -386,7 +414,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
+      <div v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
+        <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
+      </div>
 
       <SelectPlaylistDialog
         v-model="showSelectPlaylistDialog"

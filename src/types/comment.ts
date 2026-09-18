@@ -32,6 +32,7 @@ export interface Pagination {
 
 export interface CommentThreadsData {
   data: CommentThread[]
+  commentCount: number
   pagination: Pagination
 }
 
