@@ -18,6 +18,7 @@ const {
   lyricData,
   lyricTranslation,
   showTranslation,
+  showFullscreenLyrics,
   showSpectrum,
   enableAudioContext,
   lyricsOffset,
@@ -259,6 +260,22 @@ function onHeaderTouchEnd() {
               <Tooltip
                 placement="bottom"
                 align="center"
+                :content="showFullscreenLyrics ? '隐藏歌词' : '显示歌词'"
+              >
+                <button
+                  class="size-10 shrink-0 hidden md:inline-flex items-center justify-center rounded-full transition-colors cursor-pointer hover:bg-white/10"
+                  :class="showFullscreenLyrics ? 'text-blue-400' : 'text-white/60 hover:text-white'"
+                  :aria-label="showFullscreenLyrics ? '隐藏歌词' : '显示歌词'"
+                  :aria-pressed="showFullscreenLyrics"
+                  @click="player.toggleFullscreenLyrics()"
+                >
+                  <LucideScrollText class="size-5" />
+                </button>
+              </Tooltip>
+
+              <Tooltip
+                placement="bottom"
+                align="center"
                 :content="!lyricTranslation ? '当前歌曲无歌词翻译' : '歌词翻译'"
               >
                 <button
@@ -293,8 +310,8 @@ function onHeaderTouchEnd() {
           </div>
         </div>
 
-        <div class="relative z-10 flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0">
-          <div class="hidden md:block w-[40%] max-w-[40vh] shrink-0 mx-[5vw]">
+        <div class="relative z-10 flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0" :class="{ 'justify-center': !isMobileViewport && !showFullscreenLyrics }">
+          <div class="hidden md:block w-[40%] max-w-[40vh] shrink-0" :class="!isMobileViewport && !showFullscreenLyrics ? 'mx-auto' : 'mx-[5vw]'">
             <LazyImg
               class="w-full aspect-square rounded-2xl shadow-2xl"
               :src="coverUrl"
@@ -356,7 +373,7 @@ function onHeaderTouchEnd() {
             </div>
           </div>
 
-          <div v-else class="flex-1 h-full min-w-0">
+          <div v-else-if="isMobileViewport || showFullscreenLyrics" class="flex-1 h-full min-w-0">
             <PlayerLyrics
               :parsed-lyrics="parsedLyrics"
               :has-timestamp="hasTimestamp"

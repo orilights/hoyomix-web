@@ -22,6 +22,7 @@ export const usePlayerStore = defineStore('player', {
     enableAudioContext: true,
     enableMediaSession: true,
     showTranslation: true,
+    showFullscreenLyrics: true,
     lyricsOffset: 0,
     lyricsFontSize: 16,
     lyricsSource: 'ncm' as LyricsSource,
@@ -432,6 +433,10 @@ export const usePlayerStore = defineStore('player', {
       this.showTranslation = !this.showTranslation
     },
 
+    toggleFullscreenLyrics() {
+      this.showFullscreenLyrics = !this.showFullscreenLyrics
+    },
+
     setLyricsSource(source: LyricsSource) {
       this.lyricsSource = source
       this.fetchLyric()
@@ -543,6 +548,8 @@ export const usePlayerStore = defineStore('player', {
         store.mobileFullscreenLayout = 'lyrics'
       if (typeof store.immersiveModeEnabled !== 'boolean')
         store.immersiveModeEnabled = true
+      if (typeof store.showFullscreenLyrics !== 'boolean')
+        store.showFullscreenLyrics = true
     },
     pick: [
       'playlist',
@@ -555,6 +562,7 @@ export const usePlayerStore = defineStore('player', {
       'enableAudioContext',
       'enableMediaSession',
       'showTranslation',
+      'showFullscreenLyrics',
       'lyricsOffset',
       'lyricsFontSize',
       'lyricsSource',

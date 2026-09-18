@@ -88,6 +88,7 @@ declare module 'vue' {
     LucideReply: typeof import('@lucide/vue')['Reply']
     LucideRotateCcw: typeof import('@lucide/vue')['RotateCcw']
     LucideRotateCw: typeof import('@lucide/vue')['RotateCw']
+    LucideScrollText: typeof import('@lucide/vue')['ScrollText']
     LucideSearch: typeof import('@lucide/vue')['Search']
     LucideSend: typeof import('@lucide/vue')['Send']
     LucideShuffle: typeof import('@lucide/vue')['Shuffle']
