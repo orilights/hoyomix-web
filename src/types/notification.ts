@@ -6,6 +6,7 @@ export interface Notification {
   readAt: string | null
   metadata: Record<string, unknown>
   createdAt: string
+  platforms: (1 | 2)[]
 }
 
 export interface NotificationListResponse {
