@@ -59,14 +59,10 @@ const compactLyricLine = computed(() => {
 })
 
 const compactCoverSize = computed(() => {
-  const spectrumHeight = showSpectrum.value && enableAudioContext.value
-    ? Math.min(player.spectrumSettings.height, viewportHeight.value * 0.3)
-    : 0
   const availableHeight = viewportHeight.value
     - 72 // fixed player bar spacing
     - 56 // header
     - (isImmersive.value ? 0 : 80) // mobile controls
-    - spectrumHeight
     - 96 // lyric text and gap
   return Math.max(72, Math.min(
     viewportWidth.value * 0.72,
@@ -212,7 +208,7 @@ function onHeaderTouchEnd() {
 
       <div class="relative flex-1 flex flex-col z-10 min-h-0">
         <div
-          class="flex items-center justify-between px-6 py-4 shrink-0 transition-opacity duration-300"
+          class="relative z-10 flex items-center justify-between px-6 py-4 shrink-0 transition-opacity duration-300"
           :class="{ 'opacity-0': isImmersive && !immersiveControlsVisible }"
           @touchstart="onHeaderTouchStart"
           @touchmove.prevent="onHeaderTouchMove"
@@ -297,7 +293,7 @@ function onHeaderTouchEnd() {
           </div>
         </div>
 
-        <div class="flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0">
+        <div class="relative z-10 flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0">
           <div class="hidden md:block w-[40%] max-w-[40vh] shrink-0 mx-[5vw]">
             <LazyImg
               class="w-full aspect-square rounded-2xl shadow-2xl"
@@ -372,12 +368,12 @@ function onHeaderTouchEnd() {
           </div>
         </div>
 
-        <div v-if="!isImmersive || immersiveControlsVisible" class="md:hidden shrink-0 flex justify-end px-6 py-4">
+        <div v-if="!isImmersive || immersiveControlsVisible" class="relative z-10 md:hidden shrink-0 flex justify-end px-6 py-4">
           <PlayerControlMobile />
         </div>
 
         <div
-          v-if="showSpectrum && enableAudioContext" class="shrink-0 duration-300 ease"
+          v-if="showSpectrum && enableAudioContext" class="absolute inset-x-0 bottom-0 z-0 pointer-events-none duration-300 ease"
           :style="{ height: `${player.spectrumSettings.height}px`, maxHeight: '30vh' }"
           :class="{ 'translate-y-[72px]': isImmersive && !immersiveControlsVisible }"
         >
