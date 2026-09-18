@@ -5,6 +5,7 @@ import { useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { getRankingApi } from '@/api/music'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { registerSongList } from '@/composables/useSongLocator'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
@@ -37,6 +38,9 @@ const selectedDate = computed<string>({
 })
 const rankingQueryDate = computed(() => tab.value === 'all' ? '' : selectedDate.value)
 const songs = ref<PlaylistSongItem[]>([])
+
+registerSongList({ songIds: () => songs.value.map(s => s.songId) })
+
 const rankingDate = ref<string | undefined>()
 const displayDate = computed({
   get: () => selectedDate.value || rankingDate.value?.slice(0, 10) || '',
@@ -185,6 +189,7 @@ onMounted(() => {
             <tr
               v-for="(song, index) in songs"
               :key="song.songId"
+              :data-song-id="song.songId"
               class="transition-colors hover:bg-black/8 group"
             >
               <td class="pl-4 text-gray-500 text-sm">

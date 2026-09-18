@@ -3,6 +3,7 @@ import type { PlaylistItem } from '@/types/player'
 import { toast } from 'vue-sonner'
 import { getRandomPlaylistApi } from '@/api/music'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { registerSongList } from '@/composables/useSongLocator'
 import { productMap } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -43,6 +44,8 @@ const productList = computed(() =>
 
 const songIds = computed(() => randomPlaylist.value.map(s => s.songId))
 const playlistItems = computed<PlaylistItem[]>(() => randomPlaylist.value as unknown as PlaylistItem[])
+
+registerSongList({ songIds })
 
 function toggleProduct(key: string) {
   const idx = randomPlaylistProducts.value.indexOf(key)
@@ -310,6 +313,7 @@ onMounted(() => {
               <div
                 v-for="(song, index) in randomPlaylist"
                 :key="song.songId"
+                :data-song-id="song.songId"
                 class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors group"
               >
                 <div class="w-6 text-center text-sm text-gray-400 shrink-0 tabular-nums">

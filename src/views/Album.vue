@@ -3,6 +3,7 @@ import type { SongListItemInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useCommentThreadsQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { registerSongList } from '@/composables/useSongLocator'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -145,6 +146,14 @@ const showCreatePlaylistDialog = ref(false)
 const showSelectPlaylistDialog = ref(false)
 
 const allSongIds = computed(() => albumInfo.value?.songs.map(s => s.id) ?? [])
+
+registerSongList({
+  songIds: allSongIds,
+  // 定位前确保歌曲 Tab 可见
+  onBeforeLocate: () => {
+    activeTab.value = 'songs'
+  },
+})
 
 function saveAsPlaylist() {
   if (!auth.requireLogin())
@@ -312,6 +321,7 @@ onMounted(() => {
                   </tr>
                   <tr
                     v-for="songInfo, songIndex in discInfo.songs" :key="songInfo.id"
+                    :data-song-id="songInfo.id"
                     class="hover:bg-black/8 cursor-pointer transition-colors group"
                     @click="$router.push({ name: 'MusicInfo', params: { albumId: albumInfo.id, musicId: songInfo.id } })"
                   >

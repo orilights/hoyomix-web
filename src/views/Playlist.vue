@@ -6,6 +6,7 @@ import draggable from 'vuedraggable'
 import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
 import { useCommentThreadsQuery, usePlaylistDetailQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { registerSongList } from '@/composables/useSongLocator'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -108,6 +109,14 @@ watch(playlist, (val) => {
   if (val)
     localSongs.value = [...val.songs]
 }, { immediate: true })
+
+registerSongList({
+  songIds: () => localSongs.value.map(s => s.songId),
+  // 定位前确保歌曲 Tab 可见
+  onBeforeLocate: () => {
+    activeTab.value = 'songs'
+  },
+})
 
 function playAll() {
   if (!localSongs.value.length)
@@ -487,6 +496,7 @@ onMounted(() => {
           >
             <template #item="{ element: song, index }">
               <tr
+                :data-song-id="song.songId"
                 class="transition-colors group"
                 :class="{
                   'bg-blue-50/60': selectedIds.has(song.songId),

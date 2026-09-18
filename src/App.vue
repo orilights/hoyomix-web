@@ -127,6 +127,7 @@ onUnmounted(() => {
   <PlayerPlaylist />
   <PlayerBar />
   <PlayerFullscreen />
+  <FloatingActions />
 </template>
 
 <style scoped>
