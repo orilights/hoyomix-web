@@ -12,6 +12,8 @@ const {
   currentSong,
   isPlaying,
   currentTime,
+  duration,
+  bufferedEnd,
   isFullscreen,
   isImmersive,
   immersiveControlsVisible,
@@ -396,6 +398,19 @@ function onHeaderTouchEnd() {
         >
           <PlayerSpectrum :active="showSpectrum && isPlaying" />
         </div>
+      </div>
+
+      <div
+        v-if="isImmersive && !immersiveControlsVisible"
+        class="absolute inset-x-0 bottom-0 z-20 pointer-events-none"
+        aria-hidden="true"
+      >
+        <PlayerProgress
+          :current-time="currentTime"
+          :duration="duration"
+          :buffered-end="bufferedEnd"
+          thin
+        />
       </div>
     </div>
   </Transition>
