@@ -36,6 +36,11 @@ function scrollToComments() {
 }
 const activeTab = ref<'songs' | 'comments'>('songs')
 
+watch([commentPostId, () => route.query.commentPostId], ([postId, targetPostId]) => {
+  if (postId && targetPostId === postId)
+    activeTab.value = 'comments'
+}, { immediate: true })
+
 watch(playlistId, () => {
   activeTab.value = 'songs'
 })

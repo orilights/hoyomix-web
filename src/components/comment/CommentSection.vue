@@ -3,6 +3,7 @@ import type { Comment, CommentThread } from '@/types/comment'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useCommentThreadsQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
+import { rememberCommentRoute } from '@/utils/comment-route'
 
 const props = defineProps<{
   postId: string
@@ -10,6 +11,8 @@ const props = defineProps<{
 }>()
 
 const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 const { user } = storeToRefs(auth)
 const queryClient = useQueryClient()
 const postId = toRef(props, 'postId')
@@ -22,6 +25,7 @@ const replyTarget = ref<Comment | null>(null)
 const forceExpanded = ref(new Set<string>())
 const replyJump = ref(new Map<string, string>())
 const content = ref('')
+const notificationTarget = ref<{ commentId: string, threadId: string, replyPage: number | null } | null>(null)
 
 const threadsQuery = useCommentThreadsQuery(postId, userId, page)
 
@@ -40,6 +44,35 @@ watch(postId, () => {
   content.value = ''
 })
 watch(userId, resetList)
+watch([postId, () => route.path], ([currentPostId, path]) => {
+  if (currentPostId)
+    rememberCommentRoute(currentPostId, path)
+}, { immediate: true })
+
+function positiveInteger(value: unknown) {
+  if (typeof value !== 'string')
+    return null
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+}
+
+watch([postId, userId, () => route.query], ([currentPostId, , query]) => {
+  if (query.commentPostId !== currentPostId || typeof query.commentId !== 'string' || typeof query.commentThreadId !== 'string')
+    return
+  const threadPage = positiveInteger(query.commentThreadPage)
+  if (!threadPage)
+    return
+  if (page.value !== threadPage) {
+    page.value = threadPage
+    threads.value = []
+  }
+  notificationTarget.value = {
+    commentId: query.commentId,
+    threadId: query.commentThreadId,
+    replyPage: positiveInteger(query.commentReplyPage),
+  }
+  forceExpanded.value = new Set(forceExpanded.value).add(query.commentThreadId)
+}, { immediate: true, deep: true })
 
 watch(threadsQuery.data, (data) => {
   if (!data)
@@ -88,6 +121,16 @@ function onLocated(threadId: string) {
   const next = new Map(replyJump.value)
   next.delete(threadId)
   replyJump.value = next
+  if (notificationTarget.value?.threadId !== threadId)
+    return
+  notificationTarget.value = null
+  const query = { ...route.query }
+  delete query.commentPostId
+  delete query.commentId
+  delete query.commentThreadId
+  delete query.commentThreadPage
+  delete query.commentReplyPage
+  router.replace({ query })
 }
 
 function onChanged() {
@@ -134,6 +177,8 @@ function onChanged() {
         :reply-target="replyTarget"
         :force-expanded="forceExpanded.has(thread.threadId)"
         :new-reply-id="replyJump.get(thread.threadId) ?? null"
+        :target-comment-id="notificationTarget?.threadId === thread.threadId ? notificationTarget.commentId : null"
+        :target-reply-page="notificationTarget?.threadId === thread.threadId ? notificationTarget.replyPage : null"
         @reply="replyTo"
         @cancel-reply="replyTarget = null"
         @created="onCreated"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Comment, CommentThread as CommentThreadData } from '@/types/comment'
 import { toast } from 'vue-sonner'
-import { CommentApiError, getCommentApi, getCommentRepliesApi } from '@/api/comment'
+import { COMMENT_REPLY_PAGE_SIZE, CommentApiError, getCommentLocationApi } from '@/api/comment'
 import { useCommentRepliesQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 
@@ -12,9 +12,13 @@ const props = withDefaults(defineProps<{
   replyContent: string
   forceExpanded?: boolean
   newReplyId?: string | null
+  targetCommentId?: string | null
+  targetReplyPage?: number | null
 }>(), {
   forceExpanded: false,
   newReplyId: null,
+  targetCommentId: null,
+  targetReplyPage: null,
 })
 
 const emit = defineEmits<{
@@ -30,19 +34,28 @@ const auth = useAuthStore()
 const { user } = storeToRefs(auth)
 const expanded = ref(false)
 const page = ref(1)
-const jumpedToNewReply = ref(false)
+const locatingNewReply = ref(false)
 const locatingReply = ref<string | null>(null)
+const pendingLocatedId = ref<string | null>(null)
 let locateRequest = 0
 const replies = ref<Comment[]>([...props.thread.replies])
-const replyPagination = ref({ page: 1, pageSize: 20, total: props.thread.replyCount, totalPages: Math.ceil(props.thread.replyCount / 20) })
+const replyPagination = ref({ page: 1, pageSize: COMMENT_REPLY_PAGE_SIZE, total: props.thread.replyCount, totalPages: Math.ceil(props.thread.replyCount / COMMENT_REPLY_PAGE_SIZE) })
 const threadId = computed(() => props.thread.threadId)
 const postId = toRef(props, 'postId')
 const userId = computed(() => user.value?.id ?? null)
 
 const repliesQuery = useCommentRepliesQuery(threadId, postId, page, userId, expanded)
-const firstReplyNumber = computed(() => expanded.value && jumpedToNewReply.value
+const firstReplyNumber = computed(() => expanded.value
   ? (replyPagination.value.page - 1) * replyPagination.value.pageSize + 1
   : 1)
+const paginationPages = computed(() => {
+  const total = replyPagination.value.totalPages
+  if (total <= 7)
+    return Array.from({ length: total }, (_, index) => index + 1)
+  return [...new Set([1, page.value - 1, page.value, page.value + 1, total])]
+    .filter(value => value >= 1 && value <= total)
+    .sort((a, b) => a - b)
+})
 const visibleReplyNumbers = computed(() => new Map(
   (expanded.value ? replies.value : props.thread.replies)
     .map((comment, index) => [comment.id, firstReplyNumber.value + index] as const),
@@ -55,30 +68,30 @@ function replyNumberOf(id: string | null) {
 watch(() => props.thread, (thread) => {
   if (page.value === 1)
     replies.value = [...thread.replies]
-  replyPagination.value = { ...replyPagination.value, total: thread.replyCount, totalPages: Math.ceil(thread.replyCount / 20) }
+  replyPagination.value = { ...replyPagination.value, total: thread.replyCount, totalPages: Math.ceil(thread.replyCount / COMMENT_REPLY_PAGE_SIZE) }
 }, { deep: true })
 
 watch(repliesQuery.data, (data) => {
   if (!data || data.pagination.page !== page.value)
     return
-  const targetPage = props.newReplyId ? Math.max(1, Math.ceil(data.pagination.total / 20)) : 1
-  if (targetPage > page.value) {
-    jumpedToNewReply.value = true
+  const targetPage = props.newReplyId && locatingNewReply.value
+    ? Math.max(1, Math.ceil(data.pagination.total / COMMENT_REPLY_PAGE_SIZE))
+    : page.value
+  if (targetPage !== page.value) {
     page.value = targetPage
     return
   }
-  replies.value = jumpedToNewReply.value || page.value === 1 ? [...data.data] : [...replies.value, ...data.data]
+  replies.value = [...data.data]
   replyPagination.value = data.pagination
-  if (props.newReplyId && data.data.some(comment => comment.id === props.newReplyId)) {
-    const newReplyId = props.newReplyId
+  const targetId = props.targetCommentId ?? pendingLocatedId.value ?? props.newReplyId
+  if (targetId && data.data.some(comment => comment.id === targetId)) {
     nextTick(() => {
-      if (props.newReplyId !== newReplyId)
-        return
-      const element = document.getElementById(`comment-${newReplyId}`)
-      if (!element)
-        return
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      emit('located', props.thread.threadId)
+      if (focusComment(targetId)) {
+        locatingNewReply.value = false
+        pendingLocatedId.value = null
+        locatingReply.value = null
+        emit('located', props.thread.threadId)
+      }
     })
   }
 }, { immediate: true })
@@ -93,34 +106,39 @@ watch(() => props.newReplyId, (id) => {
     return
   expanded.value = true
   page.value = 1
-  jumpedToNewReply.value = false
+  locatingNewReply.value = true
   nextTick(() => repliesQuery.refetch())
 }, { immediate: true })
 
-watch(() => props.thread.replyCount, (count) => {
-  if (!props.newReplyId)
+watch([() => props.targetCommentId, () => props.targetReplyPage], ([id, replyPage]) => {
+  if (!id)
     return
-  const targetPage = Math.max(1, Math.ceil(count / 20))
-  if (targetPage > page.value) {
-    jumpedToNewReply.value = true
-    page.value = targetPage
+  if (replyPage == null) {
+    nextTick(() => {
+      if (focusComment(id))
+        emit('located', props.thread.threadId)
+    })
+    return
   }
-})
+  expanded.value = true
+  page.value = replyPage
+  nextTick(() => {
+    if (focusComment(id)) {
+      emit('located', props.thread.threadId)
+      return
+    }
+    repliesQuery.refetch()
+  })
+}, { immediate: true })
 
 function expand() {
   expanded.value = true
 }
 
-function loadMore() {
-  expand()
-  if (!repliesQuery.isFetching.value && page.value < replyPagination.value.totalPages)
-    page.value++
-}
-
-function showEarlierReplies() {
-  jumpedToNewReply.value = false
-  replies.value = []
-  page.value = 1
+function goToReplyPage(targetPage: number) {
+  if (targetPage < 1 || targetPage > replyPagination.value.totalPages || targetPage === page.value)
+    return
+  page.value = targetPage
 }
 
 function onReply(comment: Comment) {
@@ -151,46 +169,33 @@ async function locateReply(id: string) {
   const currentThreadId = props.thread.threadId
   locatingReply.value = id
   try {
-    const target = await getCommentApi(id)
+    const location = await getCommentLocationApi(id, currentPostId)
     if (request !== locateRequest || props.postId !== currentPostId || props.thread.threadId !== currentThreadId)
       return
-    if (target.postId !== currentPostId || (target.id !== currentThreadId && target.parent !== currentThreadId)) {
+    if (location.threadId !== currentThreadId) {
       toast.error('被回复的评论不存在或不可见')
       return
     }
     if (focusComment(id))
       return
-
-    if (target.id !== currentThreadId) {
-      const totalPages = Math.ceil(props.thread.replyCount / 20)
-      for (let targetPage = 1; targetPage <= totalPages; targetPage++) {
-        const result = await getCommentRepliesApi(currentThreadId, currentPostId, targetPage)
-        if (request !== locateRequest || props.postId !== currentPostId || props.thread.threadId !== currentThreadId)
-          return
-        if (!result.data.some(comment => comment.id === id))
-          continue
-        jumpedToNewReply.value = targetPage > 1
-        replies.value = [...result.data]
-        replyPagination.value = result.pagination
-        page.value = targetPage
-        expanded.value = true
-        await nextTick()
-        if (focusComment(id))
-          return
-        break
-      }
-    }
-    toast.error('被回复的评论不存在或不可见')
+    if (location.replyPage == null)
+      throw new CommentApiError(404, 'Comment not found')
+    pendingLocatedId.value = id
+    expanded.value = true
+    page.value = location.replyPage
+    await nextTick()
+    await repliesQuery.refetch()
   }
   catch (error) {
     if (request !== locateRequest)
       return
+    pendingLocatedId.value = null
     toast.error(error instanceof CommentApiError && error.code === 404
       ? '被回复的评论不存在或不可见'
       : '定位评论失败，请稍后重试')
   }
   finally {
-    if (request === locateRequest)
+    if (request === locateRequest && !pendingLocatedId.value)
       locatingReply.value = null
   }
 }
@@ -198,6 +203,7 @@ async function locateReply(id: string) {
 watch([postId, threadId], () => {
   locateRequest++
   locatingReply.value = null
+  pendingLocatedId.value = null
 })
 
 onBeforeUnmount(() => {
@@ -247,12 +253,27 @@ onBeforeUnmount(() => {
           <LucideLoader2 class="size-4 animate-spin" />
           加载回复中
         </div>
-        <AppButton v-if="!repliesQuery.isError.value && page < replyPagination.totalPages" size="sm" variant="ghost" :disabled="repliesQuery.isFetching.value" @click="loadMore">
-          加载更多回复
-        </AppButton>
-        <AppButton v-if="jumpedToNewReply && page > 1" size="sm" variant="ghost" @click="showEarlierReplies">
-          查看较早回复
-        </AppButton>
+        <nav v-if="!repliesQuery.isError.value && replyPagination.totalPages > 1" class="flex items-center gap-1 py-3" aria-label="回复分页">
+          <AppButton icon-only size="xs" variant="ghost" aria-label="上一页回复" :disabled="page <= 1 || repliesQuery.isFetching.value" @click="goToReplyPage(page - 1)">
+            <LucideChevronLeft class="size-4" />
+          </AppButton>
+          <template v-for="(pageNumber, index) in paginationPages" :key="pageNumber">
+            <span v-if="index > 0 && pageNumber - paginationPages[index - 1]! > 1" class="px-1 text-xs text-gray-400">…</span>
+            <AppButton
+              size="xs"
+              :variant="pageNumber === page ? 'primary' : 'ghost'"
+              :aria-label="`第 ${pageNumber} 页回复`"
+              :aria-current="pageNumber === page ? 'page' : undefined"
+              :disabled="repliesQuery.isFetching.value"
+              @click="goToReplyPage(pageNumber)"
+            >
+              {{ pageNumber }}
+            </AppButton>
+          </template>
+          <AppButton icon-only size="xs" variant="ghost" aria-label="下一页回复" :disabled="page >= replyPagination.totalPages || repliesQuery.isFetching.value" @click="goToReplyPage(page + 1)">
+            <LucideChevronRight class="size-4" />
+          </AppButton>
+        </nav>
       </div>
       <div v-else>
         <CommentItem v-for="(comment, index) in thread.replies" :key="comment.id" :comment="comment" :depth="1" :reply-number="index + 1" :reply-to-number="replyNumberOf(comment.replyTo)" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">

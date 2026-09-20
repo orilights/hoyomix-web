@@ -48,6 +48,13 @@ export interface CommentListData {
   pagination: Pagination
 }
 
+export interface CommentLocation {
+  commentId: string
+  threadId: string
+  threadPage: number
+  replyPage: number | null
+}
+
 export interface CommentApiResponse<T> {
   code: number
   error: boolean

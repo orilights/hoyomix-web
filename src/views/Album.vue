@@ -138,6 +138,11 @@ function addToPlaylist(song: SongListItemInfo) {
 
 const activeTab = ref<'songs' | 'artists' | 'tags' | 'comments'>('songs')
 
+watch([commentPostId, () => route.query.commentPostId], ([postId, targetPostId]) => {
+  if (postId && targetPostId === postId)
+    activeTab.value = 'comments'
+}, { immediate: true })
+
 watch(albumId, () => {
   activeTab.value = 'songs'
 })

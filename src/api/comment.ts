@@ -1,5 +1,8 @@
-import type { Comment, CommentApiResponse, CommentListData, CommentThreadsData, VoteType } from '@/types/comment'
+import type { Comment, CommentApiResponse, CommentListData, CommentLocation, CommentThreadsData, VoteType } from '@/types/comment'
 import { userApiBase } from '@/constants'
+
+export const COMMENT_THREAD_PAGE_SIZE = 20
+export const COMMENT_REPLY_PAGE_SIZE = 10
 
 export class CommentApiError extends Error {
   public readonly code: number
@@ -27,14 +30,23 @@ async function commentRequest<T>(path: string, init: RequestInit = {}): Promise<
   return body.data
 }
 
-export function getCommentThreadsApi(postId: string, page = 1, pageSize = 20) {
+export function getCommentThreadsApi(postId: string, page = 1, pageSize = COMMENT_THREAD_PAGE_SIZE) {
   const query = new URLSearchParams({ postId, page: String(page), pageSize: String(pageSize) })
   return commentRequest<CommentThreadsData>(`/api/comments/threads?${query}`)
 }
 
-export function getCommentRepliesApi(threadId: string, postId: string, page = 1, pageSize = 20) {
+export function getCommentRepliesApi(threadId: string, postId: string, page = 1, pageSize = COMMENT_REPLY_PAGE_SIZE) {
   const query = new URLSearchParams({ postId, page: String(page), pageSize: String(pageSize) })
   return commentRequest<CommentListData>(`/api/comments/${encodeURIComponent(threadId)}/replies?${query}`)
+}
+
+export function getCommentLocationApi(commentId: string, postId: string) {
+  const query = new URLSearchParams({
+    postId,
+    threadPageSize: String(COMMENT_THREAD_PAGE_SIZE),
+    replyPageSize: String(COMMENT_REPLY_PAGE_SIZE),
+  })
+  return commentRequest<CommentLocation>(`/api/comments/${encodeURIComponent(commentId)}/location?${query}`)
 }
 
 export function getCommentApi(id: string) {

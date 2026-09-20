@@ -1,5 +1,6 @@
 export interface Notification {
   id: number
+  type: string
   title: string
   content: string
   isRead: boolean
@@ -7,6 +8,13 @@ export interface Notification {
   metadata: Record<string, unknown>
   createdAt: string
   platforms: (1 | 2)[]
+}
+
+export interface CommentNotificationMetadata {
+  postId: string
+  commentId: string
+  threadId: string
+  replyTo: string | null
 }
 
 export interface NotificationListResponse {

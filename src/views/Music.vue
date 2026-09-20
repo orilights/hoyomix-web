@@ -202,6 +202,11 @@ watch(musicId, () => {
 })
 
 const commentPostId = computed(() => musicInfo.value ? `hoyomix:song:${musicInfo.value.id}` : null)
+
+watch([commentPostId, () => route.query.commentPostId], ([postId, targetPostId]) => {
+  if (postId && targetPostId === postId)
+    activeTab.value = 'comments'
+}, { immediate: true })
 const commentUserId = computed(() => auth.user?.id ?? null)
 const commentPage = ref(1)
 const { data: commentThreads } = useCommentThreadsQuery(commentPostId, commentUserId, commentPage)
