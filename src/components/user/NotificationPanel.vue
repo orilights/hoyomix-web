@@ -1,27 +1,36 @@
 <script setup lang="ts">
-import type { Notification } from '@/types/notification'
+import type { AlbumInfo } from '@/types/core'
+import type { CommentNotificationMetadata, Notification } from '@/types/notification'
 import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
+import { CommentApiError, getCommentLocationApi } from '@/api/comment'
 import {
   deleteNotificationApi,
   deleteReadNotificationsApi,
   getNotificationsApi,
   markAllNotificationsReadApi,
   markNotificationReadApi,
-} from '@/api/music'
+} from '@/api/notification'
+import { usePlayerStore } from '@/store/player'
 import { formatRelativeTime } from '@/utils'
+import { getRememberedCommentRoute } from '@/utils/comment-route'
 
 const emit = defineEmits<{
   unreadCountChange: [count: number]
+  navigate: []
 }>()
 
 const queryClient = useQueryClient()
+const route = useRoute()
+const router = useRouter()
+const player = usePlayerStore()
 
 const loading = ref(false)
 const notifications = ref<Notification[]>([])
 const total = ref(0)
 const unreadCount = ref(0)
 const page = ref(1)
+const navigatingId = ref<number | null>(null)
 
 const hasMore = computed(() => notifications.value.length < total.value)
 
@@ -153,6 +162,105 @@ async function loadMore() {
   await fetchNotifications()
 }
 
+function isCommentNotification(notification: Notification) {
+  return notification.type === 'comment-approval' || notification.type === 'comment-reply'
+}
+
+function getCommentMetadata(notification: Notification): CommentNotificationMetadata | null {
+  if (!isCommentNotification(notification))
+    return null
+  const { metadata } = notification
+  if (
+    typeof metadata.postId !== 'string'
+    || typeof metadata.commentId !== 'string'
+    || typeof metadata.threadId !== 'string'
+    || !(metadata.replyTo === null || typeof metadata.replyTo === 'string')
+  ) {
+    return null
+  }
+  return metadata as unknown as CommentNotificationMetadata
+}
+
+function resolveCommentPath(postId: string) {
+  const rememberedPath = getRememberedCommentRoute(postId)
+  if (rememberedPath)
+    return rememberedPath
+  if (postId === 'hoyomix:feedback')
+    return '/feedback'
+  const match = /^hoyomix:(album|playlist|song):(.+)$/.exec(postId)
+  if (!match)
+    return null
+  const [, type, id] = match
+  if (type === 'album')
+    return `/album/${encodeURIComponent(id!)}`
+  if (type === 'playlist')
+    return `/playlist/${encodeURIComponent(id!)}`
+
+  const songId = Number(id)
+  if (!Number.isInteger(songId) || songId <= 0)
+    return null
+  if ((route.name === 'MusicInfo' || route.name === 'PlaylistMusicInfo') && Number(route.params.musicId) === songId)
+    return route.path
+  const playlistSong = player.playlist.find(song => song.songId === songId)
+  if (playlistSong)
+    return `/album/${playlistSong.albumId}/music/${songId}`
+  const cachedAlbum = queryClient.getQueriesData<AlbumInfo>({ queryKey: ['albumInfo'] })
+    .map(([, album]) => album)
+    .find(album => album?.songs.some(song => song.id === songId))
+  return cachedAlbum ? `/album/${cachedAlbum.id}/music/${songId}` : null
+}
+
+async function openNotification(notification: Notification) {
+  const metadata = getCommentMetadata(notification)
+  if (!metadata) {
+    if (isCommentNotification(notification))
+      toast.error('通知缺少评论定位信息')
+    await markRead(notification.id)
+    return
+  }
+  if (navigatingId.value !== null)
+    return
+  navigatingId.value = notification.id
+  try {
+    const [location, path] = await Promise.all([
+      getCommentLocationApi(metadata.commentId, metadata.postId),
+      Promise.resolve(resolveCommentPath(metadata.postId)),
+    ])
+    if (!path) {
+      toast.error('暂时无法定位该评论所属页面')
+      return
+    }
+    await markRead(notification.id)
+    emit('navigate')
+    await router.push({
+      path,
+      query: {
+        commentPostId: metadata.postId,
+        commentId: location.commentId,
+        commentThreadId: location.threadId,
+        commentThreadPage: String(location.threadPage),
+        ...(location.replyPage == null ? {} : { commentReplyPage: String(location.replyPage) }),
+      },
+    })
+  }
+  catch (error) {
+    toast.error(error instanceof CommentApiError && error.code === 404
+      ? '评论不存在或不可见'
+      : error instanceof Error ? error.message : '定位评论失败，请稍后重试')
+  }
+  finally {
+    navigatingId.value = null
+  }
+}
+
+function notificationTypeLabel(notification: Notification) {
+  if (notification.type === 'comment-reply')
+    return '评论回复'
+  if (notification.type === 'comment-approval')
+    return '评论审核'
+  return null
+}
+
 onMounted(() => fetchNotifications(true))
 </script>
 
@@ -195,8 +303,11 @@ onMounted(() => fetchNotifications(true))
           v-for="n in notifications"
           :key="n.id"
           class="group flex items-start gap-2.5 px-3 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
-          :class="{ 'cursor-pointer': !n.isRead }"
-          @click="markRead(n.id)"
+          :class="{ 'cursor-pointer': !n.isRead || isCommentNotification(n), 'opacity-60': navigatingId === n.id }"
+          :role="isCommentNotification(n) ? 'button' : undefined"
+          :tabindex="isCommentNotification(n) ? 0 : undefined"
+          @click="openNotification(n)"
+          @keydown.enter.self="openNotification(n)"
         >
           <div class="mt-1.5 size-1.5 rounded-full shrink-0 transition-colors" :class="n.isRead ? 'bg-gray-200' : 'bg-blue-500'" />
           <div class="flex-1 min-w-0">
@@ -206,8 +317,9 @@ onMounted(() => fetchNotifications(true))
             <p class="text-xs text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
               {{ n.content }}
             </p>
-            <p class="text-[11px] text-gray-300 mt-1">
-              {{ formatRelativeTime(n.createdAt) }}
+            <p class="text-[11px] text-gray-300 mt-1 flex items-center gap-1.5">
+              <span v-if="notificationTypeLabel(n)" class="rounded bg-blue-50 px-1.5 py-0.5 text-blue-500">{{ notificationTypeLabel(n) }}</span>
+              <span>{{ formatRelativeTime(n.createdAt) }}</span>
             </p>
           </div>
           <AppButton

@@ -2,6 +2,7 @@
 import type { AlbumListItemInfo, ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { getAlbumInfoApi } from '@/api/music'
+import { registerSongList } from '@/composables/useSongLocator'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { buildPlaylistItem } from '@/utils/player-utils'
@@ -56,6 +57,13 @@ const filteredAlbumsList = computed(() => {
     return sortedAlbumsList.value
   return sortedAlbumsList.value.filter(album => filteredSongsByAlbum.value.has(album.id))
 })
+
+// 当前筛选条件下实际渲染的歌曲 id
+const visibleSongIds = computed(() =>
+  filteredAlbumsList.value.flatMap(album => filteredSongsByAlbum.value.get(album.id)?.map(s => s.id) ?? []),
+)
+
+registerSongList({ songIds: visibleSongIds })
 
 function getAlbumRoles(albumId: number): string[] {
   const songs = songsByAlbum.value.get(albumId)
@@ -151,6 +159,7 @@ async function playSong(event: Event, songId: number, albumId: number) {
       <div v-if="filteredSongsByAlbum.get(album.id)?.length" class="md:ml-22 mt-2">
         <RouterLink
           v-for="song in filteredSongsByAlbum.get(album.id)" :key="song.id"
+          :data-song-id="song.id"
           :to="{ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.id } }"
           class="group/song flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-gray-500/10 transition-colors"
         >

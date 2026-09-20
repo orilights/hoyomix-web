@@ -22,6 +22,23 @@ const albumsFiltered = computed(() => {
   return albumList.value.filter(i => i.productName === product.value)
 })
 
+const albumSeries = computed(() => {
+  const counts = new Map<string, number>()
+  for (const album of albumsFiltered.value) {
+    const names = new Set(album.tags.filter(tag => tag.tagType === 'series' && tag.tagName.trim()).map(tag => tag.tagName))
+    for (const name of names)
+      counts.set(name, (counts.get(name) ?? 0) + 1)
+  }
+  const prefix = `${getProductName(product.value)}-`
+  return Array.from(counts, ([name, count]) => ({
+    name,
+    displayName: name.startsWith(prefix) ? name.slice(prefix.length) || name : name,
+    count,
+  }))
+})
+
+const selectedSeries = ref<string | null>(null)
+
 function sumBy(arr: any[], getValue: (x: any) => any) {
   return arr.reduce((acc, cur) => acc + getValue(cur), 0)
 }
@@ -81,15 +98,21 @@ const availableYears = computed(() => {
   return [...set].sort((a, b) => b - a)
 })
 
+const albumsFilteredBySeries = computed(() => {
+  if (selectedSeries.value === null)
+    return albumsFiltered.value
+  return albumsFiltered.value.filter(album => album.tags.some(tag => tag.tagType === 'series' && tag.tagName === selectedSeries.value))
+})
+
 const albumsFilteredByVersion = computed(() => {
   if (selectedVersion.value === null)
-    return albumsFiltered.value
+    return albumsFilteredBySeries.value
   const range = versionRanges.value.find(r => r.major === selectedVersion.value)
   if (!range)
-    return albumsFiltered.value
+    return albumsFilteredBySeries.value
   // 最小主版本号——该版本之前发布的专辑归属于它
   const minMajor = Math.min(...versionRanges.value.map(r => r.major))
-  return albumsFiltered.value.filter((a) => {
+  return albumsFilteredBySeries.value.filter((a) => {
     if (range.major === minMajor && a.publishDate < range.startDate)
       return true
     return a.publishDate >= range.startDate && (range.endDate === null || a.publishDate <= range.endDate)
@@ -105,6 +128,7 @@ const albumsFilteredByYear = computed(() => {
 })
 
 watch(product, () => {
+  selectedSeries.value = null
   selectedYear.value = null
   selectedVersion.value = null
 })
@@ -183,6 +207,34 @@ watch(product, (val) => {
       </div>
 
       <div v-show="activeTab === 'albums'" class="flex-1 lg:!block overflow-hidden" :class="{ hidden: activeTab !== 'albums' }">
+        <section v-if="albumSeries.length" class="mb-4">
+          <h2 class="text-sm font-medium text-gray-500 mb-2">
+            专辑系列
+          </h2>
+          <div class="flex flex-wrap gap-2">
+            <button
+              class="text-sm px-3 py-1.5 rounded-md transition-colors cursor-pointer"
+              :class="selectedSeries === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+              :aria-pressed="selectedSeries === null"
+              @click="selectedSeries = null"
+            >
+              全部
+            </button>
+            <button
+              v-for="series in albumSeries"
+              :key="series.name"
+              :title="series.displayName"
+              class="inline-flex items-center gap-2 max-w-full min-w-0 px-3 py-1.5 rounded-md transition-colors cursor-pointer text-sm"
+              :class="selectedSeries === series.name ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+              :aria-pressed="selectedSeries === series.name"
+              @click="selectedSeries = series.name"
+            >
+              <span class="truncate">{{ series.displayName }}</span>
+              <span class="shrink-0 text-xs" :class="selectedSeries === series.name ? 'text-white/75' : 'text-gray-500'">{{ series.count }}</span>
+            </button>
+          </div>
+        </section>
+
         <div v-if="versionRanges.length > 0" class="flex flex-wrap items-center gap-2 mb-2">
           <button
             class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
@@ -228,6 +280,9 @@ watch(product, (val) => {
             </span>
           </template>
         </AlbumList>
+        <div v-if="albumsFiltered.length && !albumsFilteredByYear.length" role="status" class="py-12 text-center text-sm text-gray-500">
+          暂无符合条件的专辑
+        </div>
       </div>
     </div>
   </div>

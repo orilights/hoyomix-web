@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
-import { fetchJsonMutation } from '@/api/music'
 import { useChangelogQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { apiBase, appDescription, appTitle, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
@@ -9,13 +8,13 @@ import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
 import { usePlayerStore } from '@/store/player'
-import { goFeedbackPage } from '@/utils'
+import { fetchJsonMutation } from '@/utils/fetch'
 
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
-const { quality, enableAudioContext, enableMediaSession, lyricsSource, mobileFullscreenLayout, immersiveModeEnabled } = storeToRefs(player)
+const { quality, enableAudioContext, enableMediaSession, lyricsSource, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 usePageSeo({
@@ -302,6 +301,80 @@ onMounted(() => {
       </div>
     </div>
 
+    <section class="mt-4" aria-labelledby="fullscreen-cover-heading">
+      <h2 id="fullscreen-cover-heading" class="font-bold text-lg mb-2">
+        全屏播放器封面
+      </h2>
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          :class="fullscreenCoverShape === 'square'
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          :aria-pressed="fullscreenCoverShape === 'square'"
+          @click="player.setFullscreenCoverShape('square')"
+        >
+          方形
+        </button>
+        <button
+          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          :class="fullscreenCoverShape === 'circle'
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          :aria-pressed="fullscreenCoverShape === 'circle'"
+          @click="player.setFullscreenCoverShape('circle')"
+        >
+          圆形
+        </button>
+      </div>
+
+      <div v-if="fullscreenCoverShape === 'circle'" class="mt-4 space-y-4">
+        <div>
+          <div class="font-medium text-sm mb-2">
+            播放中封面旋转
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+              :class="fullscreenCoverRotation ? 'bg-blue-500' : 'bg-gray-300'"
+              role="switch"
+              aria-label="播放中封面旋转"
+              :aria-checked="fullscreenCoverRotation"
+              @click="fullscreenCoverRotation = !fullscreenCoverRotation"
+            >
+              <span
+                class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+                :class="fullscreenCoverRotation ? 'translate-x-5' : 'translate-x-0'"
+              />
+            </button>
+            <span class="text-sm text-gray-600">{{ fullscreenCoverRotation ? '已启用' : '已禁用' }}</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="font-medium text-sm mb-2">
+            封面边框
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+              :class="fullscreenCoverBorder ? 'bg-blue-500' : 'bg-gray-300'"
+              role="switch"
+              aria-label="封面边框"
+              :aria-checked="fullscreenCoverBorder"
+              @click="fullscreenCoverBorder = !fullscreenCoverBorder"
+            >
+              <span
+                class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+                :class="fullscreenCoverBorder ? 'translate-x-5' : 'translate-x-0'"
+              />
+            </button>
+            <span class="text-sm text-gray-600">{{ fullscreenCoverBorder ? '已启用' : '已禁用' }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div class="mt-4">
       <div class="font-bold text-lg mb-2">
         AudioContext API
@@ -431,7 +504,7 @@ onMounted(() => {
       <div class="mt-2">
         <AppButton
           class="my-2"
-          @click="goFeedbackPage"
+          @click="$router.push({ name: 'Feedback' })"
         >
           反馈问题
         </AppButton>

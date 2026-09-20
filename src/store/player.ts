@@ -1,4 +1,4 @@
-import type { AudioQuality, LyricsSource, MobileFullscreenLayout, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
+import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api/music'
@@ -22,10 +22,14 @@ export const usePlayerStore = defineStore('player', {
     enableAudioContext: true,
     enableMediaSession: true,
     showTranslation: true,
+    showFullscreenLyrics: true,
     lyricsOffset: 0,
     lyricsFontSize: 16,
     lyricsSource: 'ncm' as LyricsSource,
     mobileFullscreenLayout: 'lyrics' as MobileFullscreenLayout,
+    fullscreenCoverShape: 'square' as FullscreenCoverShape,
+    fullscreenCoverRotation: true,
+    fullscreenCoverBorder: true,
     immersiveModeEnabled: true,
 
     // 运行时状态
@@ -432,6 +436,10 @@ export const usePlayerStore = defineStore('player', {
       this.showTranslation = !this.showTranslation
     },
 
+    toggleFullscreenLyrics() {
+      this.showFullscreenLyrics = !this.showFullscreenLyrics
+    },
+
     setLyricsSource(source: LyricsSource) {
       this.lyricsSource = source
       this.fetchLyric()
@@ -439,6 +447,10 @@ export const usePlayerStore = defineStore('player', {
 
     setMobileFullscreenLayout(layout: MobileFullscreenLayout) {
       this.mobileFullscreenLayout = layout
+    },
+
+    setFullscreenCoverShape(shape: FullscreenCoverShape) {
+      this.fullscreenCoverShape = shape
     },
 
     setImmersiveModeEnabled(enabled: boolean) {
@@ -541,8 +553,16 @@ export const usePlayerStore = defineStore('player', {
       store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
       if (store.mobileFullscreenLayout !== 'lyrics' && store.mobileFullscreenLayout !== 'cover')
         store.mobileFullscreenLayout = 'lyrics'
+      if (store.fullscreenCoverShape !== 'square' && store.fullscreenCoverShape !== 'circle')
+        store.fullscreenCoverShape = 'square'
+      if (typeof store.fullscreenCoverRotation !== 'boolean')
+        store.fullscreenCoverRotation = false
+      if (typeof store.fullscreenCoverBorder !== 'boolean')
+        store.fullscreenCoverBorder = false
       if (typeof store.immersiveModeEnabled !== 'boolean')
         store.immersiveModeEnabled = true
+      if (typeof store.showFullscreenLyrics !== 'boolean')
+        store.showFullscreenLyrics = true
     },
     pick: [
       'playlist',
@@ -555,10 +575,14 @@ export const usePlayerStore = defineStore('player', {
       'enableAudioContext',
       'enableMediaSession',
       'showTranslation',
+      'showFullscreenLyrics',
       'lyricsOffset',
       'lyricsFontSize',
       'lyricsSource',
       'mobileFullscreenLayout',
+      'fullscreenCoverShape',
+      'fullscreenCoverRotation',
+      'fullscreenCoverBorder',
       'immersiveModeEnabled',
     ],
   },

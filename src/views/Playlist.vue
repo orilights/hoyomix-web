@@ -3,13 +3,15 @@ import type { PlaylistSongItem } from '@/types/core'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
-import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, NotFoundError, updatePlaylistSongsApi } from '@/api/music'
-import { usePlaylistDetailQuery } from '@/composables/queries'
+import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
+import { useCommentThreadsQuery, usePlaylistDetailQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { registerSongList } from '@/composables/useSongLocator'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl, getPublishDate } from '@/utils'
+import { NotFoundError } from '@/utils/fetch'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +24,26 @@ const queryClient = useQueryClient()
 
 const playlistId = computed(() => route.params.id as string)
 const { data: playlist, isLoading, isError, error, refetch } = usePlaylistDetailQuery(playlistId)
+const commentPostId = computed(() => playlist.value?.isPublic ? `hoyomix:playlist:${playlist.value.id}` : null)
+const commentUserId = computed(() => user.value?.id ?? null)
+const commentPage = ref(1)
+const { data: commentThreads } = useCommentThreadsQuery(commentPostId, commentUserId, commentPage)
+const commentCount = computed(() => commentThreads.value?.commentCount ?? commentThreads.value?.pagination.total ?? 0)
+const commentSection = ref<HTMLElement | null>(null)
+
+function scrollToComments() {
+  commentSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+const activeTab = ref<'songs' | 'comments'>('songs')
+
+watch([commentPostId, () => route.query.commentPostId], ([postId, targetPostId]) => {
+  if (postId && targetPostId === postId)
+    activeTab.value = 'comments'
+}, { immediate: true })
+
+watch(playlistId, () => {
+  activeTab.value = 'songs'
+})
 
 const dragging = ref(false)
 
@@ -92,6 +114,14 @@ watch(playlist, (val) => {
   if (val)
     localSongs.value = [...val.songs]
 }, { immediate: true })
+
+registerSongList({
+  songIds: () => localSongs.value.map(s => s.songId),
+  // 定位前确保歌曲 Tab 可见
+  onBeforeLocate: () => {
+    activeTab.value = 'songs'
+  },
+})
 
 function playAll() {
   if (!localSongs.value.length)
@@ -395,6 +425,12 @@ onMounted(() => {
               @edit="openEdit"
               @delete="deletePlaylist"
             />
+            <div v-if="playlist.isPublic" class="hidden lg:block">
+              <AppButton @click="scrollToComments">
+                <LucideMessageCircle class="size-4" />
+                评论 {{ commentCount }}
+              </AppButton>
+            </div>
           </div>
         </div>
       </div>
@@ -413,7 +449,24 @@ onMounted(() => {
         />
       </div>
 
-      <div class="mt-4 bg-black/5 rounded-xl pt-2 pb-4">
+      <div v-if="playlist.isPublic" class="flex gap-2 mt-4 lg:hidden">
+        <button
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
+          :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          @click="activeTab = 'songs'"
+        >
+          歌曲列表
+        </button>
+        <button
+          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
+          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          @click="activeTab = 'comments'"
+        >
+          评论 {{ commentCount }}
+        </button>
+      </div>
+
+      <div v-show="activeTab === 'songs' || !playlist.isPublic" class="mt-4 bg-black/5 rounded-xl pt-2 pb-4 lg:!block">
         <table class="w-full table-fixed overflow-hidden">
           <thead>
             <tr class="text-left">
@@ -448,6 +501,7 @@ onMounted(() => {
           >
             <template #item="{ element: song, index }">
               <tr
+                :data-song-id="song.songId"
                 class="transition-colors group"
                 :class="{
                   'bg-blue-50/60': selectedIds.has(song.songId),
@@ -534,6 +588,10 @@ onMounted(() => {
         <div v-if="localSongs.length === 0" class="text-center py-10 text-sm text-gray-400">
           歌单暂无歌曲
         </div>
+      </div>
+
+      <div v-if="playlist.isPublic" v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
+        <CommentSection :post-id="`hoyomix:playlist:${playlist.id}`" />
       </div>
 
       <Teleport to="body">

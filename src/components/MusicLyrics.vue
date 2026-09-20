@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
-import { NotFoundError } from '@/api/music'
 import { useLyricsQuery } from '@/composables/queries'
 import { usePlayerStore } from '@/store/player'
 import { mergeLyrics } from '@/utils'
+import { NotFoundError } from '@/utils/fetch'
 
 const props = defineProps<{
   lyricProvider: 'ncm' | 'qq' | null

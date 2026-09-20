@@ -1,53 +1,7 @@
 import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
-import type { NotificationListResponse } from '@/types/notification'
 import type { SearchResponse } from '@/types/search'
-import { apiBase, userApiBase } from '@/constants'
-
-export class NotFoundError extends Error {
-  constructor(message = '资源不存在') {
-    super(message)
-    this.name = 'NotFoundError'
-  }
-}
-
-type ResponseFormat = 'raw' | 'user-service'
-
-async function parseUserServiceResponse<T>(res: Response): Promise<T> {
-  const body = await res.json() as { code: number, error: boolean, message: string, data: T | null }
-  if (res.status === 404 || body.code === 404)
-    throw new NotFoundError(body.message)
-  if (!res.ok || body.error !== false || body.code !== 200 || body.data == null)
-    throw new Error(body.message || '用户服务请求失败')
-  return body.data
-}
-
-async function fetchJson<T>(url: string, credentials = true, format: ResponseFormat = 'raw'): Promise<T> {
-  const res = await fetch(url, { credentials: credentials ? 'include' : undefined })
-  if (format === 'user-service')
-    return parseUserServiceResponse<T>(res)
-  if (!res.ok) {
-    if (res.status === 404)
-      throw new NotFoundError()
-    throw new Error((await res.json()).error || '未知错误')
-  }
-  return res.json() as Promise<T>
-}
-
-export async function fetchJsonMutation<T>(url: string, method: string, body?: unknown, format: ResponseFormat = 'raw'): Promise<T> {
-  const res = await fetch(url, {
-    method,
-    credentials: 'include',
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  })
-  if (format === 'user-service')
-    return parseUserServiceResponse<T>(res)
-  if (!res.ok)
-    throw new Error((await res.json()).error || '未知错误')
-  if (res.status === 204 || res.headers.get('content-length') === '0')
-    return undefined as T
-  return res.json() as Promise<T>
-}
+import { apiBase } from '@/constants'
+import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
 
 export function getChangelog() {
   return fetchJson<Record<string, string>>('https://api.amarea.cn/config/hoyomix.changelog', false)
@@ -238,30 +192,6 @@ export function getRandomPlaylistApi(params?: RandomPlaylistParams) {
   return fetchJson<PlaylistSongItem[]>(`${apiBase}/random-playlist${qs ? `?${qs}` : ''}`)
 }
 
-export function getNotificationUnreadCountApi() {
-  return fetchJson<{ count: number }>(`${userApiBase}/api/notifications/unread-count?platform=2`, true, 'user-service')
-}
-
-export function getNotificationsApi(page = 1, limit = 20) {
-  return fetchJson<NotificationListResponse>(`${userApiBase}/api/notifications?platform=2&page=${page}&limit=${limit}`, true, 'user-service')
-}
-
-export function markAllNotificationsReadApi() {
-  return fetchJsonMutation<{ updated: number }>(`${userApiBase}/api/notifications/read-all?platform=2`, 'PUT', undefined, 'user-service')
-}
-
-export function markNotificationReadApi(id: number) {
-  return fetchJsonMutation<{ ok: boolean }>(`${userApiBase}/api/notifications/${id}/read?platform=2`, 'PUT', undefined, 'user-service')
-}
-
-export function deleteNotificationApi(id: number) {
-  return fetchJsonMutation<{ ok: boolean }>(`${userApiBase}/api/notifications/${id}?platform=2`, 'DELETE', undefined, 'user-service')
-}
-
-export function deleteReadNotificationsApi() {
-  return fetchJsonMutation<{ deleted: number }>(`${userApiBase}/api/notifications/read?platform=2`, 'DELETE', undefined, 'user-service')
-}
-
 export function getAllFavoritesApi() {
   return fetchJson<{ songIds: number[] }>(`${apiBase}/favorites`)
 }
@@ -297,6 +227,9 @@ export interface RankingResponse {
   songs: PlaylistSongItem[]
 }
 
-export function getRankingApi(period: RankingPeriod) {
-  return fetchJson<RankingResponse>(`${apiBase}/ranking?period=${period}`)
+export function getRankingApi(period: RankingPeriod, date?: string) {
+  const params = new URLSearchParams({ period })
+  if (date)
+    params.set('date', date)
+  return fetchJson<RankingResponse>(`${apiBase}/ranking?${params}`)
 }

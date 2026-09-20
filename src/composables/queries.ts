@@ -1,6 +1,7 @@
 import type { PlaylistsQueryParams } from '@/api/music'
 import type { SearchType } from '@/types/search'
 import { useQuery } from '@tanstack/vue-query'
+import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
 import {
   fetchAppConfig,
   getAlbumInfoApi,
@@ -101,11 +102,11 @@ export function useSearchQuery(
   })
 }
 
-export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>) {
+export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>, enabled?: Ref<boolean>) {
   return useQuery({
     queryKey: computed(() => ['tagAlbums', tagType, tagName.value]),
     queryFn: () => getAlbumsByTagApi(tagType, tagName.value!),
-    enabled: computed(() => !!tagType && !!tagName.value),
+    enabled: computed(() => !!tagType && !!tagName.value && (enabled?.value ?? true)),
   })
 }
 
@@ -139,5 +140,33 @@ export function usePlaylistDetailQuery(id: Ref<string | null>) {
     queryFn: () => getPlaylistDetailApi(id.value!),
     enabled: computed(() => !!id.value),
     refetchOnMount: 'always',
+  })
+}
+
+export function useCommentThreadsQuery(
+  postId: Ref<string | null>,
+  userId: Ref<string | null>,
+  page: Ref<number>,
+) {
+  return useQuery({
+    queryKey: computed(() => ['commentThreads', postId.value, page.value, userId.value]),
+    queryFn: () => getCommentThreadsApi(postId.value!, page.value),
+    enabled: computed(() => !!postId.value),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useCommentRepliesQuery(
+  threadId: Ref<string | null>,
+  postId: Ref<string | null>,
+  page: Ref<number>,
+  userId: Ref<string | null>,
+  enabled?: Ref<boolean>,
+) {
+  return useQuery({
+    queryKey: computed(() => ['commentReplies', postId.value, threadId.value, page.value, userId.value]),
+    queryFn: () => getCommentRepliesApi(threadId.value!, postId.value!, page.value),
+    enabled: computed(() => !!threadId.value && !!postId.value && (enabled?.value ?? true)),
+    staleTime: 1000 * 30,
   })
 }

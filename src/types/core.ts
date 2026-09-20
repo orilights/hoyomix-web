@@ -85,7 +85,7 @@ export interface ProductListItemInfo {
   tags: TagInfo[]
 }
 
-export type AlbumListItemInfo = Omit<AlbumInfo, 'songs' | 'tags'> & {
+export type AlbumListItemInfo = Omit<AlbumInfo, 'songs'> & {
   songCount: number
 }
 

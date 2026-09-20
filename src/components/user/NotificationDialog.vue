@@ -13,6 +13,6 @@ function onUnreadCountChange(count: number) {
 
 <template>
   <AppDialog v-model="visible" title="站内信" size="md">
-    <NotificationPanel @unread-count-change="onUnreadCountChange" />
+    <NotificationPanel @unread-count-change="onUnreadCountChange" @navigate="visible = false" />
   </AppDialog>
 </template>

@@ -41,9 +41,9 @@ onMounted(() => {
       加载失败，请刷新重试
     </div>
 
-    <div v-else class="flex flex-col md:flex-row gap-4 mt-4">
-      <div class="w-full md:w-[400px] h-fit p-4 bg-black/5 rounded-xl shrink-0">
-        <div class="font-bold text-2xl pb-4">
+    <div v-else class="flex flex-col lg:flex-row gap-4 mt-4">
+      <div class="w-full lg:w-[400px] h-fit p-4 bg-black/5 rounded-xl shrink-0">
+        <div class="font-bold text-2xl pb-4 break-words">
           {{ seriesName }}
           <div class="font-normal text-base text-gray-500">
             系列专辑
@@ -62,7 +62,7 @@ onMounted(() => {
         </RouterLink>
       </div>
 
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <AlbumList :albums-list="albums ?? []" persist-key="albums-series" default-layout="list" />
       </div>
     </div>
