@@ -28,7 +28,8 @@ const editContent = ref('')
 const saving = ref(false)
 const voting = ref(false)
 const contentElement = useTemplateRef<HTMLParagraphElement>('contentElement')
-const collapsed = ref(true)
+const commentCollapsed = ref(props.comment.collapse === 5)
+const contentCollapsed = ref(true)
 const hasMoreContent = ref(false)
 
 function measureContent() {
@@ -41,12 +42,14 @@ function measureContent() {
 
 useResizeObserver(contentElement, measureContent)
 watch([() => localComment.value.id, () => localComment.value.content], () => {
-  collapsed.value = true
+  contentCollapsed.value = true
   nextTick(measureContent)
 })
 
-watch(() => props.comment, (comment) => {
+watch(() => props.comment, (comment, previousComment) => {
   localComment.value = { ...comment }
+  if (comment.id !== previousComment?.id || comment.collapse !== previousComment?.collapse)
+    commentCollapsed.value = comment.collapse === 5
 }, { deep: true })
 
 const isOwner = computed(() => isLoggedIn.value && user.value?.id === localComment.value.userId)
@@ -55,6 +58,10 @@ const vote = computed(() => localComment.value.userVote ?? null)
 
 function initial(name: string) {
   return name.trim().charAt(0).toUpperCase() || '?'
+}
+
+function revealComment() {
+  commentCollapsed.value = false
 }
 
 function startEdit() {
@@ -148,8 +155,22 @@ async function voteComment(type: VoteType) {
 </script>
 
 <template>
-  <article :id="`comment-${localComment.id}`" tabindex="-1" class="border-b border-black/5 last:border-b-0 focus:outline-none" :class="depth === 1 ? 'py-2' : 'py-4'">
-    <div class="flex items-start" :class="depth === 1 ? 'gap-2' : 'gap-3'">
+  <article :id="`comment-${localComment.id}`" tabindex="-1" class="border-b border-black/5 last:border-b-0 focus:outline-none" :class="depth === 1 ? 'py-2' : 'py-4'" @focus="revealComment">
+    <div v-if="commentCollapsed" class="flex min-h-8 flex-wrap items-center gap-2 text-sm text-gray-400">
+      <LucideEyeOff class="size-4 shrink-0" aria-hidden="true" />
+      <span>该评论已被折叠</span>
+      <AppButton
+        size="xs"
+        variant="ghost"
+        :aria-controls="`comment-details-${localComment.id}`"
+        :aria-expanded="false"
+        @click="revealComment"
+      >
+        展开评论
+        <LucideChevronDown class="size-3.5" />
+      </AppButton>
+    </div>
+    <div v-else :id="`comment-details-${localComment.id}`" class="flex items-start" :class="depth === 1 ? 'gap-2' : 'gap-3'">
       <div class="rounded-full overflow-hidden shrink-0 flex items-center justify-center bg-blue-500 text-white font-medium" :class="depth === 1 ? 'size-7 text-xs' : 'size-9 text-sm'">
         <img v-if="localComment.user.image" :src="localComment.user.image" :alt="localComment.user.name" class="size-full object-cover">
         <span v-else>{{ initial(localComment.user.name) }}</span>
@@ -183,7 +204,7 @@ async function voteComment(type: VoteType) {
           :id="`comment-content-${localComment.id}`"
           ref="contentElement"
           class="whitespace-pre-wrap break-words text-sm leading-6 text-gray-700"
-          :class="[depth === 1 ? 'mt-1' : 'mt-2', collapsed ? 'max-h-60 overflow-hidden' : '']"
+          :class="[depth === 1 ? 'mt-1' : 'mt-2', contentCollapsed ? 'max-h-60 overflow-hidden' : '']"
         >
           {{ localComment.content }}
         </p>
@@ -193,11 +214,11 @@ async function voteComment(type: VoteType) {
           variant="ghost"
           class="mt-1"
           :aria-controls="`comment-content-${localComment.id}`"
-          :aria-expanded="!collapsed"
-          @click="collapsed = !collapsed"
+          :aria-expanded="!contentCollapsed"
+          @click="contentCollapsed = !contentCollapsed"
         >
-          {{ collapsed ? '展开全文' : '收起' }}
-          <LucideChevronDown v-if="collapsed" class="size-3.5" />
+          {{ contentCollapsed ? '展开全文' : '收起' }}
+          <LucideChevronDown v-if="contentCollapsed" class="size-3.5" />
           <LucideChevronUp v-else class="size-3.5" />
         </AppButton>
         <div class="flex items-center gap-1" :class="depth === 1 ? 'mt-1' : 'mt-2'">

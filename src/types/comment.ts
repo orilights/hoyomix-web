@@ -15,6 +15,7 @@ export interface Comment {
   parent: string | null
   replyTo: string | null
   upvoteCount: number
+  collapse: 0 | 5
   userId: string
   createdAt: string
   updatedAt: string
