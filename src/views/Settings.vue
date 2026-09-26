@@ -145,7 +145,7 @@ onMounted(() => {
     <div class="mt-6 border-b border-gray-200">
       <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-audio-heading">
         <h2 id="settings-audio-heading" class="font-bold text-xl">
-          音频
+          媒体源
         </h2>
         <div class="min-w-0 space-y-6">
           <div>
