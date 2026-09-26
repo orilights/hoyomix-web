@@ -4,7 +4,7 @@ import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
-import { apiBase, appDescription, appTitle, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { apiBase, appDescription, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
@@ -142,415 +142,442 @@ onMounted(() => {
   <div>
     <PageHeader title="设置" subtitle="一些也许有用的设置" />
 
-    <div>
-      <div class="font-bold text-lg mb-2 flex items-center gap-2">
-        音频源
-        <AppButton
-          variant="outline"
-          size="xs"
-          :disabled="mediaSource.isTestingLatency"
-          @click="mediaSource.testLatency()"
-        >
-          <LucideRefreshCw v-if="!mediaSource.isTestingLatency" class="size-3.5" />
-          <LucideLoader2 v-else class="size-3.5 animate-spin" />
-          重新测试延迟
-        </AppButton>
-      </div>
-      <div v-if="mediaSource.isLoaded" class="flex flex-wrap gap-2">
-        <button
-          class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
-          :class="mediaSource.selectedSource === 'auto'
-            ? 'bg-white text-gray-700 border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          @click="mediaSource.selectSource('auto')"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <span class="font-bold">自动选择</span>
-          </div>
-          <div class="text-sm mt-1 text-gray-500">
-            <template v-if="mediaSource.isTestingLatency">
-              <LucideLoader2 class="size-4 inline animate-spin mr-1" />
-              延迟检测中…
-            </template>
-            <template v-else-if="mediaSource.autoPreferredNode">
-              {{ mediaSource.autoPreferredNode }}（{{ formatLatency(mediaSource.latencyResults[mediaSource.autoPreferredNode]) }}）
-            </template>
-            <template v-else>
-              暂无可用节点
-            </template>
-          </div>
-        </button>
-
-        <button
-          v-for="source in mediaSource.sources"
-          :key="source.name"
-          class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
-          :class="mediaSource.selectedSource === source.name
-            ? 'bg-white text-gray-700 border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          @click="mediaSource.selectSource(source.name)"
-        >
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="font-bold truncate">{{ source.name }}</span>
-              <span
-                class="text-xs px-1.5 py-0.5 rounded shrink-0"
-                :class="regionBadgeClass(source.region)"
+    <div class="mt-6 border-b border-gray-200">
+      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-audio-heading">
+        <h2 id="settings-audio-heading" class="font-bold text-xl">
+          音频
+        </h2>
+        <div class="min-w-0 space-y-6">
+          <div>
+            <div class="font-bold text-lg mb-2 flex items-center gap-2">
+              音频源
+              <AppButton
+                variant="outline"
+                size="xs"
+                :disabled="mediaSource.isTestingLatency"
+                @click="mediaSource.testLatency()"
               >
-                {{ regionLabel(source.region) }}
-              </span>
+                <LucideRefreshCw v-if="!mediaSource.isTestingLatency" class="size-3.5" />
+                <LucideLoader2 v-else class="size-3.5 animate-spin" />
+                重新测试延迟
+              </AppButton>
             </div>
-            <span class="text-sm shrink-0">
-              {{ formatLatency(mediaSource.latencyResults[source.name]) }}
-            </span>
+            <div v-if="mediaSource.isLoaded" class="flex flex-wrap gap-2">
+              <button
+                class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
+                :class="mediaSource.selectedSource === 'auto'
+                  ? 'bg-white text-gray-700 border-blue-500'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+                @click="mediaSource.selectSource('auto')"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-bold">自动选择</span>
+                </div>
+                <div class="text-sm mt-1 text-gray-500">
+                  <template v-if="mediaSource.isTestingLatency">
+                    <LucideLoader2 class="size-4 inline animate-spin mr-1" />
+                    延迟检测中…
+                  </template>
+                  <template v-else-if="mediaSource.autoPreferredNode">
+                    {{ mediaSource.autoPreferredNode }}（{{ formatLatency(mediaSource.latencyResults[mediaSource.autoPreferredNode]) }}）
+                  </template>
+                  <template v-else>
+                    暂无可用节点
+                  </template>
+                </div>
+              </button>
+
+              <button
+                v-for="source in mediaSource.sources"
+                :key="source.name"
+                class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
+                :class="mediaSource.selectedSource === source.name
+                  ? 'bg-white text-gray-700 border-blue-500'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+                @click="mediaSource.selectSource(source.name)"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="font-bold truncate">{{ source.name }}</span>
+                    <span
+                      class="text-xs px-1.5 py-0.5 rounded shrink-0"
+                      :class="regionBadgeClass(source.region)"
+                    >
+                      {{ regionLabel(source.region) }}
+                    </span>
+                  </div>
+                  <span class="text-sm shrink-0">
+                    {{ formatLatency(mediaSource.latencyResults[source.name]) }}
+                  </span>
+                </div>
+                <div class="text-xs text-gray-500 mt-1.5">
+                  支持音质：{{ qualityText(source.supportedQualities) }}
+                </div>
+              </button>
+            </div>
+            <div v-else class="flex items-center py-4 text-gray-400">
+              <LucideLoader2 class="size-5 animate-spin mr-2" />
+              正在加载音频源配置…
+            </div>
+            <div class="text-sm text-gray-600 mt-2">
+              自动模式将根据延迟选择音频源，也可手动指定优先使用的音频源
+            </div>
           </div>
-          <div class="text-xs text-gray-500 mt-1.5">
-            支持音质：{{ qualityText(source.supportedQualities) }}
-          </div>
-        </button>
-      </div>
-      <div v-else class="flex items-center py-4 text-gray-400">
-        <LucideLoader2 class="size-5 animate-spin mr-2" />
-        正在加载音频源配置…
-      </div>
-      <div class="text-sm text-gray-600 mt-2">
-        自动模式将根据延迟选择音频源，也可手动指定优先使用的音频源
-      </div>
-    </div>
 
-    <div class="mt-4">
-      <div class="font-bold text-lg mb-2">
-        音频质量
-      </div>
-      <RadioGroup
-        aria-label="音频质量"
-        :options="availableQualityOptions"
-        :model-value="quality"
-        @update:model-value="player.switchQuality($event as AudioQuality)"
-      />
-      <div v-if="availableQualityOptions.length === 0" class="text-sm text-gray-500 mt-2">
-        暂无可用音质选项
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <div class="font-bold text-lg mb-2">
-        歌词源
-      </div>
-      <RadioGroup
-        aria-label="歌词源"
-        :options="lyricsSourceOptions"
-        :model-value="lyricsSource"
-        @update:model-value="player.setLyricsSource($event as LyricsSource)"
-      />
-      <div class="text-sm text-gray-600 mt-2">
-        优先使用所选平台的歌词
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <div class="font-bold text-lg mb-2">
-        歌曲默认播放方式
-      </div>
-      <RadioGroup
-        aria-label="歌曲默认播放方式"
-        :options="songListPlayOptions"
-        :model-value="songListPlayBehavior"
-        @update:model-value="player.setSongListPlayBehavior($event as SongListPlayBehavior)"
-      />
-    </div>
-
-    <div class="mt-4">
-      <div class="font-bold text-lg mb-2">
-        沉浸模式
-      </div>
-      <div class="flex items-center gap-3">
-        <button
-          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-          :class="immersiveModeEnabled ? 'bg-blue-500' : 'bg-gray-300'"
-          role="switch"
-          aria-label="启用全屏播放器沉浸模式"
-          :aria-checked="immersiveModeEnabled"
-          @click="player.setImmersiveModeEnabled(!immersiveModeEnabled)"
-        >
-          <span
-            class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
-            :class="immersiveModeEnabled ? 'translate-x-5' : 'translate-x-0'"
-          />
-        </button>
-        <span class="text-sm text-gray-600">{{ immersiveModeEnabled ? '已启用' : '已禁用' }}</span>
-      </div>
-      <div class="text-sm text-gray-600 mt-2">
-        在全屏播放器中自动隐藏界面控件，移动鼠标或触摸屏幕后暂时显示。
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <div class="font-bold text-lg mb-2">
-        播放器布局（移动端）
-      </div>
-      <RadioGroup
-        aria-label="播放器布局（移动端）"
-        :options="mobileLayoutOptions"
-        :model-value="mobileFullscreenLayout"
-        @update:model-value="player.setMobileFullscreenLayout($event as MobileFullscreenLayout)"
-      />
-    </div>
-
-    <section class="mt-4" aria-labelledby="fullscreen-cover-heading">
-      <h2 id="fullscreen-cover-heading" class="font-bold text-lg mb-2">
-        全屏播放器封面
-      </h2>
-      <RadioGroup
-        aria-labelledby="fullscreen-cover-heading"
-        :options="coverShapeOptions"
-        :model-value="fullscreenCoverShape"
-        @update:model-value="player.setFullscreenCoverShape($event as FullscreenCoverShape)"
-      />
-
-      <div v-if="fullscreenCoverShape === 'circle'" class="mt-4 space-y-4">
-        <div>
-          <div class="font-medium text-sm mb-2">
-            播放中封面旋转
-          </div>
-          <div class="flex items-center gap-3">
-            <button
-              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-              :class="fullscreenCoverRotation ? 'bg-blue-500' : 'bg-gray-300'"
-              role="switch"
-              aria-label="播放中封面旋转"
-              :aria-checked="fullscreenCoverRotation"
-              @click="fullscreenCoverRotation = !fullscreenCoverRotation"
-            >
-              <span
-                class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
-                :class="fullscreenCoverRotation ? 'translate-x-5' : 'translate-x-0'"
-              />
-            </button>
-            <span class="text-sm text-gray-600">{{ fullscreenCoverRotation ? '已启用' : '已禁用' }}</span>
-          </div>
-        </div>
-
-        <div>
-          <div class="font-medium text-sm mb-2">
-            封面边框
-          </div>
-          <div class="flex items-center gap-3">
-            <button
-              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-              :class="fullscreenCoverBorder ? 'bg-blue-500' : 'bg-gray-300'"
-              role="switch"
-              aria-label="封面边框"
-              :aria-checked="fullscreenCoverBorder"
-              @click="fullscreenCoverBorder = !fullscreenCoverBorder"
-            >
-              <span
-                class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
-                :class="fullscreenCoverBorder ? 'translate-x-5' : 'translate-x-0'"
-              />
-            </button>
-            <span class="text-sm text-gray-600">{{ fullscreenCoverBorder ? '已启用' : '已禁用' }}</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="mt-4">
-      <div class="font-bold text-lg mb-2">
-        AudioContext API
-      </div>
-      <div class="flex items-center gap-3">
-        <button
-          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-          :class="enableAudioContext ? 'bg-blue-500' : 'bg-gray-300'"
-          role="switch"
-          :aria-checked="enableAudioContext"
-          @click="player.setAudioContextEnabled(!enableAudioContext)"
-        >
-          <span
-            class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
-            :class="enableAudioContext ? 'translate-x-5' : 'translate-x-0'"
-          />
-        </button>
-        <span class="text-sm text-gray-600">{{ enableAudioContext ? '已启用' : '已禁用' }}</span>
-      </div>
-      <div class="text-sm text-gray-600 mt-2">
-        iOS 设备后台播放需禁用该 API <br>
-        禁用后频谱可视化等功能将不可用
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <div class="font-bold text-lg mb-2">
-        Media Session API
-      </div>
-      <div class="flex items-center gap-3">
-        <button
-          class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-          :class="enableMediaSession ? 'bg-blue-500' : 'bg-gray-300'"
-          role="switch"
-          aria-label="启用 Media Session API"
-          :aria-checked="enableMediaSession"
-          @click="player.setMediaSessionEnabled(!enableMediaSession)"
-        >
-          <span
-            class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
-            :class="enableMediaSession ? 'translate-x-5' : 'translate-x-0'"
-          />
-        </button>
-        <span class="text-sm text-gray-600">{{ enableMediaSession ? '已启用' : '已禁用' }}</span>
-      </div>
-      <div class="text-sm text-gray-600 mt-2">
-        向系统媒体控件提供歌曲信息、播放进度和播放控制，支持情况取决于浏览器。
-      </div>
-    </div>
-
-    <PlayerSpectrumSettings />
-
-    <div class="font-bold text-2xl mt-4">
-      账号
-    </div>
-    <div class="mt-2">
-      <div v-if="isLoggedIn" class="bg-white/60 rounded-xl border border-gray-200 p-4">
-        <div class="flex items-center gap-4">
-          <div class="size-14 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
-            <LazyImg
-              v-if="user?.image"
-              class="size-full rounded-full"
-              :src="user.image"
-              :alt="user.name"
+          <div>
+            <div class="font-bold text-lg mb-2">
+              音频质量
+            </div>
+            <RadioGroup
+              aria-label="音频质量"
+              :options="availableQualityOptions"
+              :model-value="quality"
+              @update:model-value="player.switchQuality($event as AudioQuality)"
             />
-            <div v-else class="size-full bg-blue-500 flex items-center justify-center text-white text-xl font-medium">
-              {{ getInitial() }}
+            <div v-if="availableQualityOptions.length === 0" class="text-sm text-gray-500 mt-2">
+              暂无可用音质选项
             </div>
           </div>
-          <div class="min-w-0 flex-1">
-            <p class="font-medium truncate">
-              {{ user?.name }}
-            </p>
-            <p class="text-sm text-gray-500 truncate mt-0.5">
-              {{ user?.email }}
-            </p>
+
+          <div>
+            <div class="font-bold text-lg mb-2">
+              歌词源
+            </div>
+            <RadioGroup
+              aria-label="歌词源"
+              :options="lyricsSourceOptions"
+              :model-value="lyricsSource"
+              @update:model-value="player.setLyricsSource($event as LyricsSource)"
+            />
+            <div class="text-sm text-gray-600 mt-2">
+              优先使用所选平台的歌词
+            </div>
           </div>
         </div>
-        <div class="flex gap-2 mt-4">
-          <AppButton
-            @click="showChangeName = true"
-          >
-            修改用户名
-          </AppButton>
-          <AppButton
-            @click="showChangePassword = true"
-          >
-            修改密码
-          </AppButton>
-          <AppButton
-            variant="danger"
-            @click="logout"
-          >
-            退出登录
-          </AppButton>
+      </section>
+
+      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-player-heading">
+        <h2 id="settings-player-heading" class="font-bold text-xl">
+          播放器
+        </h2>
+        <div class="min-w-0 space-y-6">
+          <div>
+            <div class="font-bold text-lg mb-2">
+              歌曲默认播放方式
+            </div>
+            <RadioGroup
+              aria-label="歌曲默认播放方式"
+              :options="songListPlayOptions"
+              :model-value="songListPlayBehavior"
+              @update:model-value="player.setSongListPlayBehavior($event as SongListPlayBehavior)"
+            />
+          </div>
+
+          <div>
+            <div class="font-bold text-lg mb-2">
+              沉浸模式
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+                :class="immersiveModeEnabled ? 'bg-blue-500' : 'bg-gray-300'"
+                role="switch"
+                aria-label="启用全屏播放器沉浸模式"
+                :aria-checked="immersiveModeEnabled"
+                @click="player.setImmersiveModeEnabled(!immersiveModeEnabled)"
+              >
+                <span
+                  class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+                  :class="immersiveModeEnabled ? 'translate-x-5' : 'translate-x-0'"
+                />
+              </button>
+              <span class="text-sm text-gray-600">{{ immersiveModeEnabled ? '已启用' : '已禁用' }}</span>
+            </div>
+            <div class="text-sm text-gray-600 mt-2">
+              在全屏播放器中自动隐藏界面控件，移动鼠标或触摸屏幕后暂时显示。
+            </div>
+          </div>
+
+          <div>
+            <div class="font-bold text-lg mb-2">
+              播放器布局（移动端）
+            </div>
+            <RadioGroup
+              aria-label="播放器布局（移动端）"
+              :options="mobileLayoutOptions"
+              :model-value="mobileFullscreenLayout"
+              @update:model-value="player.setMobileFullscreenLayout($event as MobileFullscreenLayout)"
+            />
+          </div>
+
+          <section aria-labelledby="fullscreen-cover-heading">
+            <h2 id="fullscreen-cover-heading" class="font-bold text-lg mb-2">
+              全屏播放器封面
+            </h2>
+            <RadioGroup
+              aria-labelledby="fullscreen-cover-heading"
+              :options="coverShapeOptions"
+              :model-value="fullscreenCoverShape"
+              @update:model-value="player.setFullscreenCoverShape($event as FullscreenCoverShape)"
+            />
+
+            <div v-if="fullscreenCoverShape === 'circle'" class="mt-4 space-y-4">
+              <div>
+                <div class="font-medium text-sm mb-2">
+                  播放中封面旋转
+                </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+                    :class="fullscreenCoverRotation ? 'bg-blue-500' : 'bg-gray-300'"
+                    role="switch"
+                    aria-label="播放中封面旋转"
+                    :aria-checked="fullscreenCoverRotation"
+                    @click="fullscreenCoverRotation = !fullscreenCoverRotation"
+                  >
+                    <span
+                      class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+                      :class="fullscreenCoverRotation ? 'translate-x-5' : 'translate-x-0'"
+                    />
+                  </button>
+                  <span class="text-sm text-gray-600">{{ fullscreenCoverRotation ? '已启用' : '已禁用' }}</span>
+                </div>
+              </div>
+
+              <div>
+                <div class="font-medium text-sm mb-2">
+                  封面边框
+                </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+                    :class="fullscreenCoverBorder ? 'bg-blue-500' : 'bg-gray-300'"
+                    role="switch"
+                    aria-label="封面边框"
+                    :aria-checked="fullscreenCoverBorder"
+                    @click="fullscreenCoverBorder = !fullscreenCoverBorder"
+                  >
+                    <span
+                      class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+                      :class="fullscreenCoverBorder ? 'translate-x-5' : 'translate-x-0'"
+                    />
+                  </button>
+                  <span class="text-sm text-gray-600">{{ fullscreenCoverBorder ? '已启用' : '已禁用' }}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div>
+            <div class="font-bold text-lg mb-2">
+              AudioContext API
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+                :class="enableAudioContext ? 'bg-blue-500' : 'bg-gray-300'"
+                role="switch"
+                :aria-checked="enableAudioContext"
+                @click="player.setAudioContextEnabled(!enableAudioContext)"
+              >
+                <span
+                  class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+                  :class="enableAudioContext ? 'translate-x-5' : 'translate-x-0'"
+                />
+              </button>
+              <span class="text-sm text-gray-600">{{ enableAudioContext ? '已启用' : '已禁用' }}</span>
+            </div>
+            <div class="text-sm text-gray-600 mt-2">
+              iOS 设备后台播放需禁用该 API <br>
+              禁用后频谱可视化等功能将不可用
+            </div>
+          </div>
+
+          <div>
+            <div class="font-bold text-lg mb-2">
+              Media Session API
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+                :class="enableMediaSession ? 'bg-blue-500' : 'bg-gray-300'"
+                role="switch"
+                aria-label="启用 Media Session API"
+                :aria-checked="enableMediaSession"
+                @click="player.setMediaSessionEnabled(!enableMediaSession)"
+              >
+                <span
+                  class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+                  :class="enableMediaSession ? 'translate-x-5' : 'translate-x-0'"
+                />
+              </button>
+              <span class="text-sm text-gray-600">{{ enableMediaSession ? '已启用' : '已禁用' }}</span>
+            </div>
+            <div class="text-sm text-gray-600 mt-2">
+              向系统媒体控件提供歌曲信息、播放进度和播放控制，支持情况取决于浏览器。
+            </div>
+          </div>
+
+          <PlayerSpectrumSettings />
         </div>
-      </div>
-      <div v-else>
-        <AppButton
-          @click="auth.openAuthDialog()"
-        >
-          登录
-        </AppButton>
-      </div>
-    </div>
+      </section>
 
-    <div class="font-bold text-2xl mt-4">
-      关于 {{ appTitle }}
-    </div>
-
-    <div class="mt-2 flex gap-4">
-      <img
-        src="/favicon.png"
-        alt="应用图标"
-        class="size-16 shrink-0"
-      >
-      <div>
-        {{ appDescription }}
-      </div>
-    </div>
-    <div class="mt-2">
-      <div>
-        当前版本：<span class="cursor-default select-none" @click="onVersionClick">v{{ appVersion }}</span>
-        <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">测试版</span>
-        <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
-      </div>
-      <div class="mt-2">
-        <AppButton
-          class="my-2"
-          @click="$router.push({ name: 'Feedback' })"
-        >
-          反馈问题
-        </AppButton>
-        <br>
-      </div>
-
-      <div class="mt-2 px-4 py-2 bg-red-50 rounded-lg border border-red-500">
-        <div class="font-bold text-red-500">
-          须知
+      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-account-heading">
+        <h2 id="settings-account-heading" class="font-bold text-xl">
+          账号
+        </h2>
+        <div class="min-w-0">
+          <div v-if="isLoggedIn" class="bg-white/60 rounded-xl border border-gray-200 p-4">
+            <div class="flex items-center gap-4">
+              <div class="size-14 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+                <LazyImg
+                  v-if="user?.image"
+                  class="size-full rounded-full"
+                  :src="user.image"
+                  :alt="user.name"
+                />
+                <div v-else class="size-full bg-blue-500 flex items-center justify-center text-white text-xl font-medium">
+                  {{ getInitial() }}
+                </div>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="font-medium truncate">
+                  {{ user?.name }}
+                </p>
+                <p class="text-sm text-gray-500 truncate mt-0.5">
+                  {{ user?.email }}
+                </p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <AppButton
+                @click="showChangeName = true"
+              >
+                修改用户名
+              </AppButton>
+              <AppButton
+                @click="showChangePassword = true"
+              >
+                修改密码
+              </AppButton>
+              <AppButton
+                variant="danger"
+                @click="logout"
+              >
+                退出登录
+              </AppButton>
+            </div>
+          </div>
+          <div v-else>
+            <AppButton
+              @click="auth.openAuthDialog()"
+            >
+              登录
+            </AppButton>
+          </div>
         </div>
-        本网站由爱好者制作，并非 HOYO-MiX 官方网站。 网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司
-      </div>
-    </div>
+      </section>
 
-    <div v-if="showDebugTool" class="mt-4">
-      <div class="font-bold text-lg mb-2">
-        请求测试
-      </div>
-      <div class="bg-white/60 rounded-xl border border-gray-200 p-4 space-y-3">
-        <RadioGroup
-          aria-label="请求方法"
-          :options="debugMethods.map(method => ({ value: method, label: method }))"
-          :model-value="debugMethod"
-          @update:model-value="debugMethod = String($event)"
-        />
-        <input
-          v-model="debugUrl"
-          class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          placeholder="请求地址"
-        >
-        <textarea
-          v-model="debugBody"
-          rows="4"
-          class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
-          placeholder="Body"
-        />
-        <AppButton
-          variant="primary"
-          :disabled="debugLoading || !debugUrl.trim()"
-          @click="sendDebugRequest"
-        >
-          <LucideLoader2 v-if="debugLoading" class="size-4 animate-spin" />
-          发送
-        </AppButton>
-        <pre
-          v-if="debugResult !== null"
-          class="bg-gray-100 rounded-lg p-3 text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto max-h-96"
-        >{{ debugResult }}</pre>
-      </div>
-    </div>
+      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-about-heading">
+        <h2 id="settings-about-heading" class="font-bold text-xl">
+          关于
+        </h2>
+        <div class="min-w-0 space-y-4">
+          <div class="flex gap-4">
+            <img
+              src="/favicon.png"
+              alt="应用图标"
+              class="size-16 shrink-0"
+            >
+            <div>
+              {{ appDescription }}
+            </div>
+          </div>
+          <div>
+            <div>
+              当前版本：<span class="cursor-default select-none" @click="onVersionClick">v{{ appVersion }}</span>
+              <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">测试版</span>
+              <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
+            </div>
+            <div class="mt-2">
+              <AppButton
+                class="my-2"
+                @click="$router.push({ name: 'Feedback' })"
+              >
+                反馈问题
+              </AppButton>
+              <br>
+            </div>
 
-    <div class="font-bold text-2xl mt-4">
-      更新日志
+            <div class="mt-2 px-4 py-2 bg-red-50 rounded-lg border border-red-500">
+              <div class="font-bold text-red-500">
+                须知
+              </div>
+              本网站由爱好者制作，并非 HOYO-MiX 官方网站。 网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="showDebugTool" class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-debug-heading">
+        <h2 id="settings-debug-heading" class="font-bold text-xl">
+          请求测试
+        </h2>
+        <div class="min-w-0">
+          <div class="bg-white/60 rounded-xl border border-gray-200 p-4 space-y-3">
+            <RadioGroup
+              aria-label="请求方法"
+              :options="debugMethods.map(method => ({ value: method, label: method }))"
+              :model-value="debugMethod"
+              @update:model-value="debugMethod = String($event)"
+            />
+            <input
+              v-model="debugUrl"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="请求地址"
+            >
+            <textarea
+              v-model="debugBody"
+              rows="4"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
+              placeholder="Body"
+            />
+            <AppButton
+              variant="primary"
+              :disabled="debugLoading || !debugUrl.trim()"
+              @click="sendDebugRequest"
+            >
+              <LucideLoader2 v-if="debugLoading" class="size-4 animate-spin" />
+              发送
+            </AppButton>
+            <pre
+              v-if="debugResult !== null"
+              class="bg-gray-100 rounded-lg p-3 text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto max-h-96"
+            >{{ debugResult }}</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-changelog-heading">
+        <h2 id="settings-changelog-heading" class="font-bold text-xl">
+          更新日志
+        </h2>
+        <div class="min-w-0">
+          <AsyncFade>
+            <div v-if="isChangelogLoading" class="flex items-center py-4 text-gray-400">
+              <LucideLoader2 class="size-5 animate-spin mr-2" />
+              加载中...
+            </div>
+            <div v-else-if="isChangelogError" class="flex items-center justify-center py-4 text-red-400">
+              加载失败，请刷新重试
+            </div>
+            <div v-else class="font-mono whitespace-pre-wrap bg-gray-100 rounded-lg p-4">
+              {{ changelog }}
+            </div>
+          </AsyncFade>
+        </div>
+      </section>
     </div>
-    <AsyncFade>
-      <div v-if="isChangelogLoading" class="flex items-center mt-4 py-4 text-gray-400">
-        <LucideLoader2 class="size-5 animate-spin mr-2" />
-        加载中...
-      </div>
-      <div v-else-if="isChangelogError" class="flex items-center justify-center mt-4 py-4 text-red-400">
-        加载失败，请刷新重试
-      </div>
-      <div v-else class="font-mono whitespace-pre-wrap bg-gray-100 rounded-lg p-4 mt-4">
-        {{ changelog }}
-      </div>
-    </AsyncFade>
 
     <ChangePasswordDialog v-model="showChangePassword" />
     <ChangeUsernameDialog v-model="showChangeName" />

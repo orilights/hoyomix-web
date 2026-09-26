@@ -11,7 +11,7 @@ const colorModeOptions = [
 </script>
 
 <template>
-  <section class="mt-6" aria-labelledby="spectrum-heading">
+  <section aria-labelledby="spectrum-heading">
     <div class="flex items-center justify-between gap-3 mb-2">
       <h2 id="spectrum-heading" class="font-bold text-lg">
         频谱可视化
