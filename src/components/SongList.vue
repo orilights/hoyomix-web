@@ -165,7 +165,7 @@ function handleDragEnd() {
               @change="toggleSelectAll"
             >
           </th>
-          <th class="pl-4 p-2" :class="ranked ? 'w-[50px]' : 'w-[40px]'">
+          <th class="p-2 text-center" :class="ranked ? 'w-[56px]' : 'w-[48px]'">
             #
           </th>
           <th v-if="showCover" class="hidden sm:table-cell p-2 w-[56px]" />
@@ -221,9 +221,17 @@ function handleDragEnd() {
                 @change="toggleSelect(row.song.songId)"
               >
             </td>
-            <td class="pl-4 p-2 text-gray-500 text-sm">
+            <td class="p-2 text-center text-gray-500 text-sm">
               <span
-                v-if="ranked"
+                v-if="player.isPlaying && player.currentSong?.songId === row.song.songId"
+                class="song-list-playing inline-flex h-6 w-6 items-center justify-center gap-[2px] align-middle text-blue-500"
+                role="img"
+                :aria-label="`正在播放：${row.song.songName}`"
+              >
+                <span v-for="bar in 3" :key="bar" class="song-list-playing-bar" aria-hidden="true" />
+              </span>
+              <span
+                v-else-if="ranked"
                 class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
                 :class="row.absoluteIndex < 3
                   ? ['text-white', row.absoluteIndex === 0 ? 'bg-amber-400' : row.absoluteIndex === 1 ? 'bg-gray-400' : 'bg-orange-400']
@@ -318,3 +326,36 @@ function handleDragEnd() {
 
   <SongListPlaybackDialog ref="playbackDialog" />
 </template>
+
+<style scoped>
+.song-list-playing-bar {
+  width: 2px;
+  height: 14px;
+  border-radius: 1px;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: song-list-wave 0.8s ease-in-out infinite alternate;
+}
+
+.song-list-playing-bar:nth-child(2) {
+  animation-delay: -0.35s;
+}
+
+.song-list-playing-bar:nth-child(3) {
+  animation-delay: -0.6s;
+}
+
+@keyframes song-list-wave {
+  from { transform: scaleY(0.3); }
+  to { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .song-list-playing-bar {
+    animation: none;
+  }
+
+  .song-list-playing-bar:nth-child(2) { transform: scaleY(0.6); }
+  .song-list-playing-bar:nth-child(3) { transform: scaleY(0.8); }
+}
+</style>
