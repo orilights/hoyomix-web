@@ -16,6 +16,7 @@ interface Props {
   prevDisabled?: boolean
   nextDisabled?: boolean
   canEditRegion?: boolean
+  commentCount: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -34,6 +35,7 @@ const emit = defineEmits<{
   editInfo: []
   editRegion: []
   editVideo: []
+  showComments: []
 }>()
 
 const ncmOptions = computed<DropdownOption[]>(() => {
@@ -89,7 +91,7 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
 </script>
 
 <template>
-  <Tooltip placement="top" theme="light" content="添加至播放列表并播放">
+  <Tooltip placement="top" theme="light" content="插入到下一首并播放">
     <AppButton variant="primary" @click="emit('play')">
       <LucidePlay class="size-4" fill="currentColor" />
       播放
@@ -102,6 +104,13 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
     <LucideListMusic class="size-4" />
     添加至歌单
   </AppButton>
+
+  <div class="hidden lg:block">
+    <AppButton @click="emit('showComments')">
+      <LucideMessageCircle class="size-4" />
+      评论 {{ commentCount }}
+    </AppButton>
+  </div>
 
   <Dropdown :position="dropdownPosition" :options="infoEditOptions">
     <AppButton>

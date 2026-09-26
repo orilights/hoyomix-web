@@ -100,11 +100,10 @@ watch(isSongError, (val) => {
 
 function handlePlay() {
   if (musicInfo.value) {
-    const { index, isNew } = player.addToPlaylist(buildPlaylistItem(musicInfo.value, albumInfo.value!))
-    player.playSong(index)
-    if (isNew) {
-      toast.success('已添加至播放列表并播放')
-    }
+    const song = buildPlaylistItem(musicInfo.value, albumInfo.value!)
+    const wasCurrent = player.currentSong?.songId === song.songId
+    player.insertNextAndPlay(song)
+    toast.success(wasCurrent ? '已重新播放当前歌曲' : '已插入下一首并播放')
   }
 }
 
@@ -317,6 +316,7 @@ onMounted(() => {
               :prev-disabled="!hasPrev"
               :next-disabled="!hasNext"
               :can-edit-region="productCode === 'genshin'"
+              :comment-count="commentCount"
               @play="handlePlay"
               @prev="goPrevMusic"
               @next="goNextMusic"
@@ -324,13 +324,8 @@ onMounted(() => {
               @edit-info="openEditInfo"
               @edit-region="openEditRegion"
               @edit-video="openEditVideo"
+              @show-comments="scrollToComments"
             />
-            <div class="hidden lg:block">
-              <AppButton @click="scrollToComments">
-                <LucideMessageCircle class="size-4" />
-                评论 {{ commentCount }}
-              </AppButton>
-            </div>
           </div>
         </div>
       </div>
@@ -342,6 +337,7 @@ onMounted(() => {
           :prev-disabled="!hasPrev"
           :next-disabled="!hasNext"
           :can-edit-region="productCode === 'genshin'"
+          :comment-count="commentCount"
           @play="handlePlay"
           @prev="goPrevMusic"
           @next="goNextMusic"
@@ -349,6 +345,7 @@ onMounted(() => {
           @edit-info="openEditInfo"
           @edit-region="openEditRegion"
           @edit-video="openEditVideo"
+          @show-comments="scrollToComments"
         />
       </div>
 

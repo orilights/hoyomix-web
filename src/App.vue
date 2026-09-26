@@ -131,11 +131,13 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.page-fade-enter-active {
-  transition: opacity 0.3s ease;
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.15s ease;
 }
 
-.page-fade-enter-from {
+.page-fade-enter-from,
+.page-fade-leave-to {
   opacity: 0;
 }
 </style>

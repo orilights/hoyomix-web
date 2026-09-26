@@ -4,10 +4,14 @@ import { createSpectrumSettings, spectrumControls } from '@/utils/spectrum'
 
 const player = usePlayerStore()
 const { spectrumSettings: settings, showSpectrum, enableAudioContext, isPlaying } = storeToRefs(player)
+const colorModeOptions = [
+  { value: 'custom', label: '自定义颜色' },
+  { value: 'cover', label: '跟随封面颜色' },
+]
 </script>
 
 <template>
-  <section class="mt-6" aria-labelledby="spectrum-heading">
+  <section aria-labelledby="spectrum-heading">
     <div class="flex items-center justify-between gap-3 mb-2">
       <h2 id="spectrum-heading" class="font-bold text-lg">
         频谱可视化
@@ -38,15 +42,13 @@ const { spectrumSettings: settings, showSpectrum, enableAudioContext, isPlaying 
         </summary>
         <div class="space-y-4">
           <div class="flex items-center gap-3 flex-wrap">
-            <label for="spectrum-color-mode" class="text-sm">主题色</label>
-            <select id="spectrum-color-mode" v-model="settings.colorMode" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              <option value="custom">
-                自定义颜色
-              </option>
-              <option value="cover">
-                跟随封面颜色
-              </option>
-            </select>
+            <span id="spectrum-color-mode-label" class="text-sm">主题色</span>
+            <RadioGroup
+              aria-labelledby="spectrum-color-mode-label"
+              :options="colorModeOptions"
+              :model-value="settings.colorMode"
+              @update:model-value="settings.colorMode = $event as 'custom' | 'cover'"
+            />
             <template v-if="settings.colorMode === 'custom'">
               <input v-model="settings.color" type="color" aria-label="自定义频谱颜色" class="w-10 h-9 cursor-pointer rounded border border-gray-300">
               <span class="text-xs text-gray-500 font-mono">{{ settings.color }}</span>

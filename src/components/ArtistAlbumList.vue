@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type { AlbumListItemInfo, ArtistInfo } from '@/types/core'
+import type { AlbumListItemInfo, ArtistInfo, PlaylistSongItem } from '@/types/core'
+import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { getAlbumInfoApi } from '@/api/music'
+import SongListPlaybackDialog from '@/components/SongListPlaybackDialog.vue'
 import { registerSongList } from '@/composables/useSongLocator'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
@@ -15,6 +17,15 @@ const props = defineProps<{
 }>()
 
 const player = usePlayerStore()
+const queryClient = useQueryClient()
+const playbackDialog = useTemplateRef<InstanceType<typeof SongListPlaybackDialog>>('playbackDialog')
+
+function loadAlbum(albumId: number) {
+  return queryClient.fetchQuery({
+    queryKey: ['albumInfo', albumId],
+    queryFn: () => getAlbumInfoApi(albumId),
+  })
+}
 
 const sortedAlbumsList = computed(() => {
   return [...props.albumsList].sort((a, b) => {
@@ -98,24 +109,42 @@ async function playArtistSongsFromAlbum(albumId: number) {
   }
 }
 
-async function playSong(event: Event, songId: number, albumId: number) {
+function playSong(event: Event, songId: number, albumId: number) {
   event.preventDefault()
   event.stopPropagation()
-  try {
-    const album = await getAlbumInfoApi(albumId)
-    const song = album.songs.find(s => s.id === songId)
-    if (!song) {
-      toast.error('歌曲信息未找到')
-      return
-    }
-    const { index, isNew } = player.addToPlaylist(buildPlaylistItem(song, album))
-    player.playSong(index)
-    if (isNew)
-      toast.success('已添加至播放列表并播放')
-  }
-  catch (error) {
-    toast.error(`获取歌曲信息失败：${error instanceof Error ? error.message : '未知错误'}`)
-  }
+  const visibleAlbums = filteredAlbumsList.value.map(album => ({
+    albumId: album.id,
+    songIds: filteredSongsByAlbum.value.get(album.id)?.map(song => song.id) ?? [],
+  }))
+
+  playbackDialog.value?.play({
+    songId,
+    loadingMessage: '正在准备歌曲列表...',
+    loadSong: async () => {
+      const album = await loadAlbum(albumId)
+      const song = album.songs.find(item => item.id === songId)
+      if (!song)
+        throw new Error('歌曲信息未找到')
+      return buildPlaylistItem(song, album)
+    },
+    loadSongs: async () => {
+      const playlist: PlaylistSongItem[] = []
+      for (let start = 0; start < visibleAlbums.length; start += 4) {
+        const batch = visibleAlbums.slice(start, start + 4)
+        const albums = await Promise.all(batch.map(item => loadAlbum(item.albumId)))
+        for (const [index, album] of albums.entries()) {
+          const songsById = new Map(album.songs.map(song => [song.id, song]))
+          for (const id of batch[index].songIds) {
+            const song = songsById.get(id)
+            if (!song)
+              throw new Error('歌曲信息未找到')
+            playlist.push(buildPlaylistItem(song, album))
+          }
+        }
+      }
+      return playlist
+    },
+  })
 }
 </script>
 
@@ -183,5 +212,6 @@ async function playSong(event: Event, songId: number, albumId: number) {
         </RouterLink>
       </div>
     </div>
+    <SongListPlaybackDialog ref="playbackDialog" />
   </div>
 </template>

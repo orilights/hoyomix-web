@@ -178,7 +178,7 @@ onBeforeUnmount(() => {
         @focusout="scheduleClose"
       >
         <div class="flex items-center gap-2 px-2 py-1.5">
-          <span class="font-medium flex-1 min-w-0 truncate">{{ seriesName }} 系列</span>
+          <span class="font-medium flex-1 min-w-0 truncate">{{ seriesName }} 系列专辑</span>
           <RouterLink
             :to="{ name: 'AlbumSeries', params: { seriesName } }"
             class="shrink-0 text-blue-600 hover:text-blue-700"

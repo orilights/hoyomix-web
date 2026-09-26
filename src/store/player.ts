@@ -1,4 +1,4 @@
-import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, PlaylistItem, PlayMode, SongMediaItem } from '@/types/player'
+import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, PlaylistItem, PlayMode, SongListPlayBehavior, SongMediaItem } from '@/types/player'
 import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api/music'
@@ -15,6 +15,7 @@ export const usePlayerStore = defineStore('player', {
     playlist: [] as PlaylistItem[],
     currentIndex: -1,
     playMode: 'sequential' as PlayMode,
+    songListPlayBehavior: 'ask' as SongListPlayBehavior,
     volume: 0.8,
     quality: 5 as AudioQuality,
     showSpectrum: false,
@@ -315,6 +316,29 @@ export const usePlayerStore = defineStore('player', {
       return { index: existingIndex, isNew: false }
     },
 
+    async insertNextAndPlay(item: PlaylistItem) {
+      const existingIndex = this.playlist.findIndex(song => song.songId === item.songId)
+      if (existingIndex === this.currentIndex && existingIndex !== -1) {
+        await this.playSong(existingIndex)
+        return
+      }
+
+      if (existingIndex !== -1) {
+        this.playlist.splice(existingIndex, 1)
+        if (existingIndex < this.currentIndex)
+          this.currentIndex--
+      }
+
+      const nextIndex = this.currentIndex >= 0 ? this.currentIndex + 1 : 0
+      this.playlist.splice(nextIndex, 0, item)
+      this.consecutiveErrorCount = 0
+      await this.playSong(nextIndex)
+    },
+
+    setSongListPlayBehavior(behavior: SongListPlayBehavior) {
+      this.songListPlayBehavior = behavior
+    },
+
     removeFromPlaylist(index: number) {
       if (index < 0 || index >= this.playlist.length)
         return
@@ -550,6 +574,8 @@ export const usePlayerStore = defineStore('player', {
     afterHydrate: ({ store }) => {
       if (typeof store.enableMediaSession !== 'boolean')
         store.enableMediaSession = true
+      if (!['ask', 'replace', 'insert-next'].includes(store.songListPlayBehavior))
+        store.songListPlayBehavior = 'ask'
       store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
       if (store.mobileFullscreenLayout !== 'lyrics' && store.mobileFullscreenLayout !== 'cover')
         store.mobileFullscreenLayout = 'lyrics'
@@ -568,6 +594,7 @@ export const usePlayerStore = defineStore('player', {
       'playlist',
       'currentIndex',
       'playMode',
+      'songListPlayBehavior',
       'volume',
       'quality',
       'showSpectrum',

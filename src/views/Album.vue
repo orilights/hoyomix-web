@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SongListItemInfo } from '@/types/core'
+import type { SongListGroup } from '@/types/song-list'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useCommentThreadsQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
@@ -69,6 +69,19 @@ const showDiscName = computed(() => {
   return discList.value.length > 1
 })
 
+const songListItems = computed(() => albumInfo.value ? buildPlaylistFromAlbum(albumInfo.value) : [])
+
+const songGroups = computed<SongListGroup[]>(() => {
+  if (!albumInfo.value || !showDiscName.value)
+    return []
+
+  return discList.value.map((disc, index) => ({
+    key: `${index}-${disc.name}`,
+    label: disc.name,
+    songs: disc.songs.map(song => buildPlaylistItem(song, albumInfo.value!)),
+  }))
+})
+
 const albumCoverUrl = computed(() =>
   albumInfo.value ? getCoverUrl(albumInfo.value.platforms, '512px') : '',
 )
@@ -119,21 +132,6 @@ function playAll() {
     return
   player.replacePlaylist(buildPlaylistFromAlbum(albumInfo.value), 0)
   toast.success('已替换播放列表')
-}
-
-function playSong(song: SongListItemInfo) {
-  if (!albumInfo.value)
-    return
-  const { index } = player.addToPlaylist(buildPlaylistItem(song, albumInfo.value!))
-  player.playSong(index)
-  toast.success('已添加至播放列表并播放')
-}
-
-function addToPlaylist(song: SongListItemInfo) {
-  if (!albumInfo.value)
-    return
-  const { isNew } = player.addToPlaylist(buildPlaylistItem(song, albumInfo.value))
-  toast.success(isNew ? '已添加至播放列表' : '歌曲已在播放列表中')
 }
 
 const activeTab = ref<'songs' | 'artists' | 'tags' | 'comments'>('songs')
@@ -231,16 +229,12 @@ onMounted(() => {
             <AlbumActions
               :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
               :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
+              :comment-count="commentCount"
               @play-all="playAll"
               @save-as-playlist="saveAsPlaylist"
               @add-to-playlist="addAlbumToPlaylist"
+              @show-comments="scrollToComments"
             />
-            <div class="hidden lg:block">
-              <AppButton @click="scrollToComments">
-                <LucideMessageCircle class="size-4" />
-                评论 {{ commentCount }}
-              </AppButton>
-            </div>
           </div>
         </div>
       </div>
@@ -249,9 +243,11 @@ onMounted(() => {
         <AlbumActions
           :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
           :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
+          :comment-count="commentCount"
           @play-all="playAll"
           @save-as-playlist="saveAsPlaylist"
           @add-to-playlist="addAlbumToPlaylist"
+          @show-comments="scrollToComments"
         />
       </div>
 
@@ -299,91 +295,7 @@ onMounted(() => {
         </div>
 
         <div v-show="activeTab === 'songs'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'songs' }">
-          <div class="bg-black/5 rounded-xl pt-2 pb-4">
-            <table class="w-full table-fixed overflow-hidden">
-              <thead>
-                <tr class="text-left">
-                  <th class="pl-4 p-2 w-[40px]">
-                    #
-                  </th>
-                  <th class="p-2">
-                    歌曲
-                  </th>
-                  <th class="p-2 w-[100px]">
-                    时长
-                  </th>
-                  <th class="hidden md:table-cell p-2 w-[120px]" />
-                </tr>
-              </thead>
-              <tbody v-if="albumInfo">
-                <template v-for="discInfo, index in discList" :key="index">
-                  <tr v-if="showDiscName">
-                    <td colspan="3">
-                      <div class="text-gray-600 py-2 px-3 text-sm">
-                        {{ discInfo.name }}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr
-                    v-for="songInfo, songIndex in discInfo.songs" :key="songInfo.id"
-                    :data-song-id="songInfo.id"
-                    class="hover:bg-black/8 cursor-pointer transition-colors group"
-                    @click="$router.push({ name: 'MusicInfo', params: { albumId: albumInfo.id, musicId: songInfo.id } })"
-                  >
-                    <td class="pl-4 p-2 text-gray-500 text-sm sm:text-base">
-                      {{ songIndex + 1 }}
-                    </td>
-                    <td class="p-2">
-                      <p class="truncate text-sm sm:text-base" :title="songInfo.name">
-                        {{ songInfo.name }}
-                      </p>
-                      <p v-if="songInfo.description" class="truncate text-xs text-gray-500">
-                        {{ songInfo.description }}
-                      </p>
-                    </td>
-                    <td class="p-2 text-sm sm:text-base">
-                      {{ formatDuration(songInfo.duration) }}
-                    </td>
-                    <td class="hidden md:table-cell p-2">
-                      <div class="flex gap-1">
-                        <div
-                          v-if="!store.favoriteSongIds.includes(songInfo.id)"
-                          class="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <FavoriteButton type="song" :song-id="songInfo.id" />
-                        </div>
-                        <FavoriteButton
-                          v-else
-                          type="song"
-                          :song-id="songInfo.id"
-                        />
-                        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <AppButton
-                            icon-only
-                            size="xs"
-                            variant="ghost"
-                            title="播放"
-                            @click.stop="playSong(songInfo)"
-                          >
-                            <LucidePlay class="size-4" />
-                          </AppButton>
-                          <AppButton
-                            icon-only
-                            size="xs"
-                            variant="ghost"
-                            title="添加到播放列表"
-                            @click.stop="addToPlaylist(songInfo)"
-                          >
-                            <LucidePlus class="size-4" />
-                          </AppButton>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
+          <SongList :songs="songListItems" :groups="songGroups" />
         </div>
       </div>
 

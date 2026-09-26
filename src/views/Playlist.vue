@@ -2,7 +2,6 @@
 import type { PlaylistSongItem } from '@/types/core'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
-import draggable from 'vuedraggable'
 import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
 import { useCommentThreadsQuery, usePlaylistDetailQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
@@ -10,7 +9,7 @@ import { registerSongList } from '@/composables/useSongLocator'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
-import { formatDuration, getCoverUrl, getPublishDate } from '@/utils'
+import { getCoverUrl, getPublishDate } from '@/utils'
 import { NotFoundError } from '@/utils/fetch'
 
 const route = useRoute()
@@ -44,8 +43,6 @@ watch([commentPostId, () => route.query.commentPostId], ([postId, targetPostId])
 watch(playlistId, () => {
   activeTab.value = 'songs'
 })
-
-const dragging = ref(false)
 
 watch(isError, (v) => {
   if (!v)
@@ -140,17 +137,6 @@ function addAllToPlaylist() {
   toast.success(addCount > 0 ? `已添加 ${addCount} 首至播放列表` : '所有歌曲已在播放列表中')
 }
 
-function playSong(song: PlaylistSongItem) {
-  const { index } = player.addToPlaylist(song)
-  player.playSong(index)
-  toast.success('已添加至播放列表并播放')
-}
-
-function addSongToPlaylist(song: PlaylistSongItem) {
-  const { isNew } = player.addToPlaylist(song)
-  toast.success(isNew ? '已添加至播放列表' : '歌曲已在播放列表中')
-}
-
 const showMultiSelect = ref(false)
 const selectedIds = ref<Set<number>>(new Set())
 
@@ -158,24 +144,6 @@ function toggleMultiSelect() {
   showMultiSelect.value = !showMultiSelect.value
   if (!showMultiSelect.value)
     selectedIds.value = new Set()
-}
-
-const allSelected = computed(() =>
-  localSongs.value.length > 0 && localSongs.value.every(s => selectedIds.value.has(s.songId)),
-)
-
-function toggleSelect(songId: number) {
-  if (selectedIds.value.has(songId))
-    selectedIds.value.delete(songId)
-  else
-    selectedIds.value.add(songId)
-}
-
-function toggleSelectAll() {
-  if (allSelected.value)
-    selectedIds.value = new Set()
-  else
-    selectedIds.value = new Set(localSongs.value.map(s => s.songId))
 }
 
 const selectedSongs = computed(() =>
@@ -244,12 +212,7 @@ async function removeSelected() {
 
 const showEditDialog = ref(false)
 
-function onDragStart() {
-  dragging.value = true
-}
-
 async function onDragEnd() {
-  dragging.value = false
   if (!playlist.value)
     return
   savingOrder.value = true
@@ -419,18 +382,15 @@ onMounted(() => {
               :multi-select-active="showMultiSelect"
               :playlist-id="playlist.id"
               :show-favorite="!isFavoritesPlaylist"
+              :show-comments="playlist.isPublic"
+              :comment-count="commentCount"
               @play-all="playAll"
               @add-all="addAllToPlaylist"
               @toggle-multi-select="toggleMultiSelect"
               @edit="openEdit"
               @delete="deletePlaylist"
+              @show-comments="scrollToComments"
             />
-            <div v-if="playlist.isPublic" class="hidden lg:block">
-              <AppButton @click="scrollToComments">
-                <LucideMessageCircle class="size-4" />
-                评论 {{ commentCount }}
-              </AppButton>
-            </div>
           </div>
         </div>
       </div>
@@ -441,11 +401,14 @@ onMounted(() => {
           :multi-select-active="showMultiSelect"
           :playlist-id="playlist.id"
           :show-favorite="!isFavoritesPlaylist"
+          :show-comments="playlist.isPublic"
+          :comment-count="commentCount"
           @play-all="playAll"
           @add-all="addAllToPlaylist"
           @toggle-multi-select="toggleMultiSelect"
           @edit="openEdit"
           @delete="deletePlaylist"
+          @show-comments="scrollToComments"
         />
       </div>
 
@@ -466,128 +429,30 @@ onMounted(() => {
         </button>
       </div>
 
-      <div v-show="activeTab === 'songs' || !playlist.isPublic" class="mt-4 bg-black/5 rounded-xl pt-2 pb-4 lg:!block">
-        <table class="w-full table-fixed overflow-hidden">
-          <thead>
-            <tr class="text-left">
-              <th v-if="showMultiSelect" class="pl-3 p-2 w-[40px]">
-                <input
-                  type="checkbox"
-                  class="cursor-pointer"
-                  :checked="allSelected"
-                  @change="toggleSelectAll"
-                >
-              </th>
-              <th class="pl-4 p-2 w-[40px]">
-                #
-              </th>
-              <th class="p-2">
-                歌曲
-              </th>
-              <th class="p-2 w-[100px]">
-                时长
-              </th>
-              <th class="p-2 w-[160px] hidden md:table-cell" />
-            </tr>
-          </thead>
-          <draggable
-            v-model="localSongs"
-            tag="tbody"
-            item-key="songId"
-            handle=".drag-handle"
-            :animation="200"
-            @start="onDragStart"
-            @end="onDragEnd"
-          >
-            <template #item="{ element: song, index }">
-              <tr
-                :data-song-id="song.songId"
-                class="transition-colors group"
-                :class="{
-                  'bg-blue-50/60': selectedIds.has(song.songId),
-                  'hover:bg-black/8': !dragging,
-                }"
-              >
-                <td v-if="showMultiSelect" class="pl-3 p-2">
-                  <input
-                    type="checkbox"
-                    class="cursor-pointer"
-                    :checked="selectedIds.has(song.songId)"
-                    @change="toggleSelect(song.songId)"
-                  >
-                </td>
-                <td class="pl-4 text-gray-500 text-sm">
-                  {{ index + 1 }}
-                </td>
-                <td class="p-2 cursor-pointer" @click="$router.push({ name: 'PlaylistMusicInfo', params: { playlistId, musicId: song.songId } })">
-                  <p class="truncate text-sm font-medium" :title="song.songName">
-                    {{ song.songName }}
-                  </p>
-                  <p class="truncate text-xs text-gray-500">
-                    {{ song.songDescription }}
-                  </p>
-                </td>
-                <td class="p-2 text-sm text-gray-500">
-                  {{ formatDuration(song.duration) }}
-                </td>
-                <td class="hidden md:table-cell p-2">
-                  <div class="flex gap-1">
-                    <div
-                      v-if="!store.favoriteSongIds.includes(song.songId)"
-                      class="opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <FavoriteButton type="song" :song-id="song.songId" />
-                    </div>
-                    <FavoriteButton
-                      v-else
-                      type="song"
-                      :song-id="song.songId"
-                    />
-                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <AppButton
-                        icon-only
-                        size="xs"
-                        variant="ghost"
-                        title="播放"
-                        @click="playSong(song)"
-                      >
-                        <LucidePlay class="size-4" />
-                      </AppButton>
-                      <AppButton
-                        icon-only
-                        size="xs"
-                        variant="ghost"
-                        title="加入播放列表"
-                        @click="addSongToPlaylist(song)"
-                      >
-                        <LucidePlus class="size-4" />
-                      </AppButton>
-                      <template v-if="canEdit">
-                        <AppButton
-                          icon-only
-                          size="xs"
-                          variant="ghost"
-                          title="从歌单移除"
-                          :disabled="savingOrder"
-                          @click="removeSong(song)"
-                        >
-                          <LucideTrash2 class="size-4" />
-                        </AppButton>
-                        <div class="drag-handle p-1 rounded cursor-grab active:cursor-grabbing">
-                          <LucideGripVertical class="size-4" />
-                        </div>
-                      </template>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </draggable>
-        </table>
-
-        <div v-if="localSongs.length === 0" class="text-center py-10 text-sm text-gray-400">
-          歌单暂无歌曲
-        </div>
+      <div v-show="activeTab === 'songs' || !playlist.isPublic" class="mt-4 lg:!block">
+        <SongList
+          v-model:songs="localSongs"
+          v-model:selected-ids="selectedIds"
+          :playlist-id="playlistId"
+          :selectable="showMultiSelect"
+          :reorderable="canEdit"
+          :busy="savingOrder"
+          empty-text="歌单暂无歌曲"
+          @reorder-end="onDragEnd"
+        >
+          <template v-if="canEdit" #row-actions="{ song }">
+            <AppButton
+              icon-only
+              size="xs"
+              variant="ghost"
+              title="从歌单移除"
+              :disabled="savingOrder"
+              @click="removeSong(song)"
+            >
+              <LucideTrash2 class="size-4" />
+            </AppButton>
+          </template>
+        </SongList>
       </div>
 
       <div v-if="playlist.isPublic" v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
