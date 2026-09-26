@@ -135,6 +135,7 @@ declare module 'vue' {
     SegmentSwitch: typeof import('./components/common/SegmentSwitch.vue')['default']
     SelectPlaylistDialog: typeof import('./components/playlist/SelectPlaylistDialog.vue')['default']
     SongInfoEditDialog: typeof import('./components/SongInfoEditDialog.vue')['default']
+    SongList: typeof import('./components/SongList.vue')['default']
     SongRegionEditDialog: typeof import('./components/SongRegionEditDialog.vue')['default']
     SongVideoEditDialog: typeof import('./components/SongVideoEditDialog.vue')['default']
     TagList: typeof import('./components/TagList.vue')['default']

@@ -8,7 +8,6 @@ import { productMap } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
-import { formatDuration, getCoverUrl } from '@/utils'
 
 const store = useMainStore()
 const player = usePlayerStore()
@@ -264,20 +263,10 @@ onMounted(() => {
         </AppButton>
       </div>
 
-      <div class="bg-white/80 rounded-2xl overflow-hidden mt-4 xl:mt-0">
+      <div class="mt-4 xl:mt-0">
         <AsyncFade>
-          <div
-            v-if="!randomPlaylist.length"
-            class="flex flex-col items-center justify-center h-64 text-gray-400 gap-3"
-          >
-            <LucideShuffle class="size-10 opacity-30" />
-            <div class="text-sm">
-              点击生成按钮获取随机播放列表
-            </div>
-          </div>
-
-          <div v-else>
-            <div class="px-4 pt-4 pb-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+          <div>
+            <div v-if="randomPlaylist.length" class="mb-3 flex items-center gap-2 flex-wrap">
               <span class="text-sm text-gray-500 mr-1">共 {{ randomPlaylist.length }} 首</span>
               <AppButton
                 variant="primary"
@@ -308,34 +297,19 @@ onMounted(() => {
                 添加到歌单
               </AppButton>
             </div>
-
-            <div class="divide-y divide-gray-50">
-              <div
-                v-for="(song, index) in randomPlaylist"
-                :key="song.songId"
-                :data-song-id="song.songId"
-                class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors group"
-              >
-                <div class="w-6 text-center text-sm text-gray-400 shrink-0 tabular-nums">
-                  {{ index + 1 }}
+            <SongList
+              :songs="randomPlaylist"
+              show-cover
+              show-album
+              empty-text="点击生成按钮获取随机播放列表"
+            >
+              <template #empty>
+                <div class="flex flex-col items-center justify-center h-44 gap-3">
+                  <LucideShuffle class="size-10 opacity-30" />
+                  <div>点击生成按钮获取随机播放列表</div>
                 </div>
-                <div class="size-10 rounded-lg overflow-hidden shrink-0">
-                  <CoverImage :src="getCoverUrl(song.albumPlatforms, '96px')" />
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium truncate">
-                    {{ song.songName }}
-                  </div>
-                  <div class="text-xs text-gray-400 truncate mt-0.5">
-                    {{ song.albumName }}
-                  </div>
-                </div>
-                <div class="text-xs text-gray-400 shrink-0 tabular-nums">
-                  {{ formatDuration(song.duration) }}
-                </div>
-                <FavoriteButton type="song" :song-id="song.songId" />
-              </div>
-            </div>
+              </template>
+            </SongList>
           </div>
         </AsyncFade>
       </div>
