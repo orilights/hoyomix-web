@@ -229,16 +229,12 @@ onMounted(() => {
             <AlbumActions
               :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
               :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
+              :comment-count="commentCount"
               @play-all="playAll"
               @save-as-playlist="saveAsPlaylist"
               @add-to-playlist="addAlbumToPlaylist"
+              @show-comments="scrollToComments"
             />
-            <div class="hidden lg:block">
-              <AppButton @click="scrollToComments">
-                <LucideMessageCircle class="size-4" />
-                评论 {{ commentCount }}
-              </AppButton>
-            </div>
           </div>
         </div>
       </div>
@@ -247,9 +243,11 @@ onMounted(() => {
         <AlbumActions
           :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
           :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
+          :comment-count="commentCount"
           @play-all="playAll"
           @save-as-playlist="saveAsPlaylist"
           @add-to-playlist="addAlbumToPlaylist"
+          @show-comments="scrollToComments"
         />
       </div>
 

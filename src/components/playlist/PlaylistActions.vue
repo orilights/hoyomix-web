@@ -6,12 +6,15 @@ interface Props {
   multiSelectActive?: boolean
   playlistId?: string
   showFavorite?: boolean
+  showComments?: boolean
+  commentCount: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isOwner: false,
   multiSelectActive: false,
   showFavorite: true,
+  showComments: false,
 })
 
 const emit = defineEmits<{
@@ -20,6 +23,7 @@ const emit = defineEmits<{
   toggleMultiSelect: []
   edit: []
   delete: []
+  showComments: []
 }>()
 
 const store = useMainStore()
@@ -51,6 +55,13 @@ const favoriteTooltip = computed(() =>
       variant="action"
     />
   </Tooltip>
+
+  <div v-if="showComments" class="hidden lg:block">
+    <AppButton @click="emit('showComments')">
+      <LucideMessageCircle class="size-4" />
+      评论 {{ commentCount }}
+    </AppButton>
+  </div>
 
   <Tooltip placement="top" theme="light" content="切换多选模式">
     <AppButton

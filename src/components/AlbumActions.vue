@@ -10,6 +10,7 @@ interface Props {
   ncmOptions?: DropdownOption[]
   qqOptions?: DropdownOption[]
   dropdownPosition?: 'down' | 'up' | 'auto'
+  commentCount: number
 }
 
 withDefaults(defineProps<Props>(), {
@@ -20,6 +21,7 @@ const emit = defineEmits<{
   playAll: []
   saveAsPlaylist: []
   addToPlaylist: []
+  showComments: []
 }>()
 </script>
 
@@ -40,6 +42,13 @@ const emit = defineEmits<{
     <LucideListMusic class="size-4" />
     添加至歌单
   </AppButton>
+
+  <div class="hidden lg:block">
+    <AppButton @click="emit('showComments')">
+      <LucideMessageCircle class="size-4" />
+      评论 {{ commentCount }}
+    </AppButton>
+  </div>
 
   <Dropdown v-if="ncmOptions" :position="dropdownPosition" :options="ncmOptions">
     <AppButton icon-only aria-label="网易云音乐更多操作">

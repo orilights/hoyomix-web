@@ -16,6 +16,7 @@ interface Props {
   prevDisabled?: boolean
   nextDisabled?: boolean
   canEditRegion?: boolean
+  commentCount: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -34,6 +35,7 @@ const emit = defineEmits<{
   editInfo: []
   editRegion: []
   editVideo: []
+  showComments: []
 }>()
 
 const ncmOptions = computed<DropdownOption[]>(() => {
@@ -102,6 +104,13 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
     <LucideListMusic class="size-4" />
     添加至歌单
   </AppButton>
+
+  <div class="hidden lg:block">
+    <AppButton @click="emit('showComments')">
+      <LucideMessageCircle class="size-4" />
+      评论 {{ commentCount }}
+    </AppButton>
+  </div>
 
   <Dropdown :position="dropdownPosition" :options="infoEditOptions">
     <AppButton>

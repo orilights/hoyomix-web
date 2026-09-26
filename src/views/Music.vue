@@ -316,6 +316,7 @@ onMounted(() => {
               :prev-disabled="!hasPrev"
               :next-disabled="!hasNext"
               :can-edit-region="productCode === 'genshin'"
+              :comment-count="commentCount"
               @play="handlePlay"
               @prev="goPrevMusic"
               @next="goNextMusic"
@@ -323,13 +324,8 @@ onMounted(() => {
               @edit-info="openEditInfo"
               @edit-region="openEditRegion"
               @edit-video="openEditVideo"
+              @show-comments="scrollToComments"
             />
-            <div class="hidden lg:block">
-              <AppButton @click="scrollToComments">
-                <LucideMessageCircle class="size-4" />
-                评论 {{ commentCount }}
-              </AppButton>
-            </div>
           </div>
         </div>
       </div>
@@ -341,6 +337,7 @@ onMounted(() => {
           :prev-disabled="!hasPrev"
           :next-disabled="!hasNext"
           :can-edit-region="productCode === 'genshin'"
+          :comment-count="commentCount"
           @play="handlePlay"
           @prev="goPrevMusic"
           @next="goNextMusic"
@@ -348,6 +345,7 @@ onMounted(() => {
           @edit-info="openEditInfo"
           @edit-region="openEditRegion"
           @edit-video="openEditVideo"
+          @show-comments="scrollToComments"
         />
       </div>
 

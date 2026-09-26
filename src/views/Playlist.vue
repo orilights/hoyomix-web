@@ -382,18 +382,15 @@ onMounted(() => {
               :multi-select-active="showMultiSelect"
               :playlist-id="playlist.id"
               :show-favorite="!isFavoritesPlaylist"
+              :show-comments="playlist.isPublic"
+              :comment-count="commentCount"
               @play-all="playAll"
               @add-all="addAllToPlaylist"
               @toggle-multi-select="toggleMultiSelect"
               @edit="openEdit"
               @delete="deletePlaylist"
+              @show-comments="scrollToComments"
             />
-            <div v-if="playlist.isPublic" class="hidden lg:block">
-              <AppButton @click="scrollToComments">
-                <LucideMessageCircle class="size-4" />
-                评论 {{ commentCount }}
-              </AppButton>
-            </div>
           </div>
         </div>
       </div>
@@ -404,11 +401,14 @@ onMounted(() => {
           :multi-select-active="showMultiSelect"
           :playlist-id="playlist.id"
           :show-favorite="!isFavoritesPlaylist"
+          :show-comments="playlist.isPublic"
+          :comment-count="commentCount"
           @play-all="playAll"
           @add-all="addAllToPlaylist"
           @toggle-multi-select="toggleMultiSelect"
           @edit="openEdit"
           @delete="deletePlaylist"
+          @show-comments="scrollToComments"
         />
       </div>
 
