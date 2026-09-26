@@ -55,6 +55,15 @@ watch([tab, () => auth.isPending], ([val, pending]) => {
 })
 
 const showCreateDialog = ref(false)
+const deletePlaylistId = ref<string | null>(null)
+const deletingPlaylist = ref(false)
+const showDeleteDialog = computed({
+  get: () => deletePlaylistId.value !== null,
+  set: (visible: boolean) => {
+    if (!visible && !deletingPlaylist.value)
+      deletePlaylistId.value = null
+  },
+})
 
 function openCreate() {
   if (!auth.requireLogin())
@@ -104,6 +113,7 @@ watch(tab, (val) => {
 }, { immediate: true })
 
 const { data: myPlaylists, isLoading: isMyLoading, isError: isMyError, error: myError } = useMyPlaylistsQuery()
+const deleteTargetPlaylist = computed(() => myPlaylists.value?.find(pl => pl.id === deletePlaylistId.value))
 
 const {
   data: favoritePlaylists,
@@ -122,9 +132,18 @@ watch(isFavError, (v) => {
     toast.error(`收藏歌单加载失败：${favError.value?.message ?? '未知错误'}`)
 })
 
-async function deletePlaylist(id: string) {
+function requestDeletePlaylist(id: string) {
+  deletePlaylistId.value = id
+}
+
+async function confirmDeletePlaylist() {
+  const id = deletePlaylistId.value
+  if (!id || deletingPlaylist.value)
+    return
+  deletingPlaylist.value = true
   try {
     await deletePlaylistApi(id)
+    deletePlaylistId.value = null
     void queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
     void queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
     void queryClient.invalidateQueries({ queryKey: ['playlists'] })
@@ -132,6 +151,9 @@ async function deletePlaylist(id: string) {
   }
   catch (error) {
     toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
+  }
+  finally {
+    deletingPlaylist.value = false
   }
 }
 
@@ -246,12 +268,31 @@ onMounted(() => {
             :key="pl.id"
             :playlist="pl"
             :show-delete="pl.type !== 'favorites'"
-            @delete="deletePlaylist"
+            @delete="requestDeletePlaylist"
           />
         </div>
       </AsyncFade>
     </div>
 
+    <AppDialog v-model="showDeleteDialog" title="删除歌单">
+      <div class="px-6 py-5 text-sm text-gray-600">
+        <p>确定要删除歌单「{{ deleteTargetPlaylist?.name ?? '这个歌单' }}」吗？</p>
+        <p class="mt-2 text-red-500">
+          删除后无法恢复
+        </p>
+      </div>
+      <template #footer>
+        <div class="px-6 py-3 flex justify-end gap-2">
+          <AppButton variant="outline" :disabled="deletingPlaylist" @click="showDeleteDialog = false">
+            取消
+          </AppButton>
+          <AppButton variant="danger" :disabled="deletingPlaylist" @click="confirmDeletePlaylist">
+            <LucideLoader2 v-if="deletingPlaylist" class="size-4 animate-spin" />
+            {{ deletingPlaylist ? '删除中...' : '确认删除' }}
+          </AppButton>
+        </div>
+      </template>
+    </AppDialog>
     <CreatePlaylistDialog v-model="showCreateDialog" @success="onCreateSuccess" />
   </div>
 </template>

@@ -244,6 +244,8 @@ function onEditSuccess() {
 }
 
 const cancellingReview = ref(false)
+const showDeleteConfirm = ref(false)
+const deletingPlaylist = ref(false)
 
 async function cancelReview() {
   if (!playlist.value)
@@ -263,19 +265,30 @@ async function cancelReview() {
   }
 }
 
-async function deletePlaylist() {
+function requestDeletePlaylist() {
   if (!playlist.value || isFavoritesPlaylist.value)
     return
+  showDeleteConfirm.value = true
+}
+
+async function deletePlaylist() {
+  if (!playlist.value || isFavoritesPlaylist.value || deletingPlaylist.value)
+    return
+  deletingPlaylist.value = true
   try {
     await deletePlaylistApi(playlist.value.id)
     queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
     queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
     queryClient.invalidateQueries({ queryKey: ['playlists'] })
+    showDeleteConfirm.value = false
     toast.success('歌单已删除')
     router.push({ name: 'Playlists' })
   }
   catch (error) {
     toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
+  }
+  finally {
+    deletingPlaylist.value = false
   }
 }
 
@@ -387,7 +400,7 @@ onMounted(() => {
               @add-all="addAllToPlaylist"
               @toggle-multi-select="toggleMultiSelect"
               @edit="openEdit"
-              @delete="deletePlaylist"
+              @delete="requestDeletePlaylist"
               @show-comments="scrollToComments"
             />
           </div>
@@ -406,7 +419,7 @@ onMounted(() => {
           @add-all="addAllToPlaylist"
           @toggle-multi-select="toggleMultiSelect"
           @edit="openEdit"
-          @delete="deletePlaylist"
+          @delete="requestDeletePlaylist"
           @show-comments="scrollToComments"
         />
       </div>
@@ -508,6 +521,25 @@ onMounted(() => {
         :existing-playlist="playlist"
         @success="onEditSuccess"
       />
+      <AppDialog v-model="showDeleteConfirm" title="删除歌单">
+        <div class="px-6 py-5 text-sm text-gray-600">
+          <p>确定要删除歌单「{{ playlist?.name }}」吗？</p>
+          <p class="mt-2 text-red-500">
+            删除后无法恢复
+          </p>
+        </div>
+        <template #footer>
+          <div class="px-6 py-3 flex justify-end gap-2">
+            <AppButton variant="outline" :disabled="deletingPlaylist" @click="showDeleteConfirm = false">
+              取消
+            </AppButton>
+            <AppButton variant="danger" :disabled="deletingPlaylist" @click="deletePlaylist">
+              <LucideLoader2 v-if="deletingPlaylist" class="size-4 animate-spin" />
+              {{ deletingPlaylist ? '删除中...' : '确认删除' }}
+            </AppButton>
+          </div>
+        </template>
+      </AppDialog>
     </div>
   </AsyncFade>
 </template>
