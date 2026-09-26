@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SongListPlayBehavior } from '@/types/player'
+import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
 import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
@@ -22,6 +22,18 @@ const songListPlayOptions: { value: SongListPlayBehavior, label: string }[] = [
   { value: 'ask', label: '询问我' },
   { value: 'replace', label: '替换播放列表并播放' },
   { value: 'insert-next', label: '插入到下一首并播放' },
+]
+const lyricsSourceOptions = [
+  { value: 'ncm', label: '网易云音乐' },
+  { value: 'qq', label: 'QQ 音乐' },
+]
+const mobileLayoutOptions = [
+  { value: 'lyrics', label: '全屏歌词' },
+  { value: 'cover', label: '封面与歌词' },
+]
+const coverShapeOptions = [
+  { value: 'square', label: '方形' },
+  { value: 'circle', label: '圆形' },
 ]
 
 usePageSeo({
@@ -210,19 +222,12 @@ onMounted(() => {
       <div class="font-bold text-lg mb-2">
         音频质量
       </div>
-      <div class="flex gap-2">
-        <button
-          v-for="opt in availableQualityOptions"
-          :key="opt.value"
-          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
-          :class="quality === opt.value
-            ? 'bg-blue-500 text-white border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          @click="player.switchQuality(opt.value)"
-        >
-          {{ opt.label }}
-        </button>
-      </div>
+      <RadioGroup
+        aria-label="音频质量"
+        :options="availableQualityOptions"
+        :model-value="quality"
+        @update:model-value="player.switchQuality($event as AudioQuality)"
+      />
       <div v-if="availableQualityOptions.length === 0" class="text-sm text-gray-500 mt-2">
         暂无可用音质选项
       </div>
@@ -232,26 +237,12 @@ onMounted(() => {
       <div class="font-bold text-lg mb-2">
         歌词源
       </div>
-      <div class="flex gap-2">
-        <button
-          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
-          :class="lyricsSource === 'ncm'
-            ? 'bg-blue-500 text-white border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          @click="player.setLyricsSource('ncm')"
-        >
-          网易云音乐
-        </button>
-        <button
-          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
-          :class="lyricsSource === 'qq'
-            ? 'bg-blue-500 text-white border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          @click="player.setLyricsSource('qq')"
-        >
-          QQ 音乐
-        </button>
-      </div>
+      <RadioGroup
+        aria-label="歌词源"
+        :options="lyricsSourceOptions"
+        :model-value="lyricsSource"
+        @update:model-value="player.setLyricsSource($event as LyricsSource)"
+      />
       <div class="text-sm text-gray-600 mt-2">
         优先使用所选平台的歌词
       </div>
@@ -261,20 +252,12 @@ onMounted(() => {
       <div class="font-bold text-lg mb-2">
         歌曲默认播放方式
       </div>
-      <div class="flex flex-wrap gap-2">
-        <button
-          v-for="option in songListPlayOptions"
-          :key="option.value"
-          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
-          :class="songListPlayBehavior === option.value
-            ? 'bg-blue-500 text-white border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          :aria-pressed="songListPlayBehavior === option.value"
-          @click="player.setSongListPlayBehavior(option.value)"
-        >
-          {{ option.label }}
-        </button>
-      </div>
+      <RadioGroup
+        aria-label="歌曲默认播放方式"
+        :options="songListPlayOptions"
+        :model-value="songListPlayBehavior"
+        @update:model-value="player.setSongListPlayBehavior($event as SongListPlayBehavior)"
+      />
     </div>
 
     <div class="mt-4">
@@ -306,54 +289,24 @@ onMounted(() => {
       <div class="font-bold text-lg mb-2">
         播放器布局（移动端）
       </div>
-      <div class="flex flex-wrap gap-2">
-        <button
-          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
-          :class="mobileFullscreenLayout === 'lyrics'
-            ? 'bg-blue-500 text-white border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          @click="player.setMobileFullscreenLayout('lyrics')"
-        >
-          全屏歌词
-        </button>
-        <button
-          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
-          :class="mobileFullscreenLayout === 'cover'
-            ? 'bg-blue-500 text-white border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          @click="player.setMobileFullscreenLayout('cover')"
-        >
-          封面与歌词
-        </button>
-      </div>
+      <RadioGroup
+        aria-label="播放器布局（移动端）"
+        :options="mobileLayoutOptions"
+        :model-value="mobileFullscreenLayout"
+        @update:model-value="player.setMobileFullscreenLayout($event as MobileFullscreenLayout)"
+      />
     </div>
 
     <section class="mt-4" aria-labelledby="fullscreen-cover-heading">
       <h2 id="fullscreen-cover-heading" class="font-bold text-lg mb-2">
         全屏播放器封面
       </h2>
-      <div class="flex flex-wrap gap-2">
-        <button
-          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
-          :class="fullscreenCoverShape === 'square'
-            ? 'bg-blue-500 text-white border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          :aria-pressed="fullscreenCoverShape === 'square'"
-          @click="player.setFullscreenCoverShape('square')"
-        >
-          方形
-        </button>
-        <button
-          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
-          :class="fullscreenCoverShape === 'circle'
-            ? 'bg-blue-500 text-white border-blue-500'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-          :aria-pressed="fullscreenCoverShape === 'circle'"
-          @click="player.setFullscreenCoverShape('circle')"
-        >
-          圆形
-        </button>
-      </div>
+      <RadioGroup
+        aria-labelledby="fullscreen-cover-heading"
+        :options="coverShapeOptions"
+        :model-value="fullscreenCoverShape"
+        @update:model-value="player.setFullscreenCoverShape($event as FullscreenCoverShape)"
+      />
 
       <div v-if="fullscreenCoverShape === 'circle'" class="mt-4 space-y-4">
         <div>
@@ -551,19 +504,12 @@ onMounted(() => {
         请求测试
       </div>
       <div class="bg-white/60 rounded-xl border border-gray-200 p-4 space-y-3">
-        <div class="flex gap-2 flex-wrap">
-          <button
-            v-for="method in debugMethods"
-            :key="method"
-            class="px-3 py-1 rounded-md border text-sm font-medium transition-colors cursor-pointer"
-            :class="debugMethod === method
-              ? 'bg-blue-500 text-white border-blue-500'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-            @click="debugMethod = method"
-          >
-            {{ method }}
-          </button>
-        </div>
+        <RadioGroup
+          aria-label="请求方法"
+          :options="debugMethods.map(method => ({ value: method, label: method }))"
+          :model-value="debugMethod"
+          @update:model-value="debugMethod = String($event)"
+        />
         <input
           v-model="debugUrl"
           class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
