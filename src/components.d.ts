@@ -19,6 +19,7 @@ declare module 'vue' {
     AppDialog: typeof import('./components/common/AppDialog.vue')['default']
     ArtistAlbumList: typeof import('./components/ArtistAlbumList.vue')['default']
     ArtistListByType: typeof import('./components/ArtistListByType.vue')['default']
+    ArtistSongsHoverCard: typeof import('./components/ArtistSongsHoverCard.vue')['default']
     AsyncFade: typeof import('./components/common/AsyncFade.vue')['default']
     AuthDialog: typeof import('./components/user/AuthDialog.vue')['default']
     BackgroundLayer: typeof import('./components/BackgroundLayer.vue')['default']

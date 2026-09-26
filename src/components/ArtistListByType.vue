@@ -59,22 +59,18 @@ const sortedEntries = computed(() => {
             v-for="artist in artists" :key="artist.name"
             class="text-sm rounded-md border-gray-400"
           >
-            <Tooltip>
-              <RouterLink :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
-                {{ artist.name }}
-                <span class="text-xs text-gray-600">{{ artist.songCount }}&nbsp;</span>
-              </RouterLink>
-              <template v-if="artist.songs?.length" #tooltip>
-                <div class="p-2 max-w-[300px] bg-white w-fit text-xs rounded-lg shadow">
-                  <div v-for="song, index in artist.songs" :key="index" class="overflow-hidden overflow-ellipsis whitespace-nowrap">
-                    {{ song.name }}
-                  </div>
-                  <div v-if="artist.songCount > artist.songs.length" class="text-gray-500">
-                    和其他 {{ artist.songCount - artist.songs.length }} 首音乐
-                  </div>
-                </div>
-              </template>
-            </Tooltip>
+            <ArtistSongsHoverCard
+              v-if="type !== 'song' && artist.songs?.length"
+              :artist-name="artist.name"
+              :role="typeName"
+              :context-id="props.id"
+              :context-type="type"
+              :song-count="artist.songCount"
+            />
+            <RouterLink v-else :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
+              {{ artist.name }}
+              <span v-if="artist.songCount != null" class="text-xs text-gray-600">{{ artist.songCount }}&nbsp;</span>
+            </RouterLink>
           </div>
         </div>
       </div>
