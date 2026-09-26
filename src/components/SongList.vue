@@ -322,9 +322,8 @@ function handleDragEnd() {
         {{ emptyText }}
       </slot>
     </div>
+    <SongListPlaybackDialog ref="playbackDialog" />
   </div>
-
-  <SongListPlaybackDialog ref="playbackDialog" />
 </template>
 
 <style scoped>
