@@ -3,6 +3,7 @@ import type { PlaylistSongItem } from '@/types/core'
 import type { SongListGroup } from '@/types/song-list'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
+import SongListPlaybackDialog from '@/components/SongListPlaybackDialog.vue'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
@@ -45,6 +46,7 @@ const router = useRouter()
 const store = useMainStore()
 const player = usePlayerStore()
 const isDragging = ref(false)
+const playbackDialog = useTemplateRef<InstanceType<typeof SongListPlaybackDialog>>('playbackDialog')
 
 const displayRows = computed<DisplayRow[]>({
   get: () => {
@@ -125,9 +127,12 @@ function openSong(song: PlaylistSongItem) {
 }
 
 function playSong(song: PlaylistSongItem) {
-  const { index } = player.addToPlaylist(song)
-  player.playSong(index)
-  toast.success('已添加至播放列表并播放')
+  const songs = displayRows.value.flatMap(row => row.type === 'song' ? [row.song] : [])
+  playbackDialog.value?.play({
+    songId: song.songId,
+    loadSong: async () => song,
+    loadSongs: async () => songs,
+  })
 }
 
 function addSongToPlaylist(song: PlaylistSongItem) {
@@ -310,4 +315,6 @@ function handleDragEnd() {
       </slot>
     </div>
   </div>
+
+  <SongListPlaybackDialog ref="playbackDialog" />
 </template>

@@ -89,7 +89,7 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
 </script>
 
 <template>
-  <Tooltip placement="top" theme="light" content="添加至播放列表并播放">
+  <Tooltip placement="top" theme="light" content="插入到下一首并播放">
     <AppButton variant="primary" @click="emit('play')">
       <LucidePlay class="size-4" fill="currentColor" />
       播放

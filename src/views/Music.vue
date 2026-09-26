@@ -100,11 +100,10 @@ watch(isSongError, (val) => {
 
 function handlePlay() {
   if (musicInfo.value) {
-    const { index, isNew } = player.addToPlaylist(buildPlaylistItem(musicInfo.value, albumInfo.value!))
-    player.playSong(index)
-    if (isNew) {
-      toast.success('已添加至播放列表并播放')
-    }
+    const song = buildPlaylistItem(musicInfo.value, albumInfo.value!)
+    const wasCurrent = player.currentSong?.songId === song.songId
+    player.insertNextAndPlay(song)
+    toast.success(wasCurrent ? '已重新播放当前歌曲' : '已插入下一首并播放')
   }
 }
 

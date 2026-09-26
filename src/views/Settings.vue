@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SongListPlayBehavior } from '@/types/player'
 import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
@@ -14,8 +15,14 @@ const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
-const { quality, enableAudioContext, enableMediaSession, lyricsSource, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
+const { quality, enableAudioContext, enableMediaSession, lyricsSource, songListPlayBehavior, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
+
+const songListPlayOptions: { value: SongListPlayBehavior, label: string }[] = [
+  { value: 'ask', label: '询问我' },
+  { value: 'replace', label: '替换播放列表并播放' },
+  { value: 'insert-next', label: '插入到下一首并播放' },
+]
 
 usePageSeo({
   title: '设置',
@@ -247,6 +254,26 @@ onMounted(() => {
       </div>
       <div class="text-sm text-gray-600 mt-2">
         优先使用所选平台的歌词
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="font-bold text-lg mb-2">
+        歌曲默认播放方式
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button
+          v-for="option in songListPlayOptions"
+          :key="option.value"
+          class="px-3 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer"
+          :class="songListPlayBehavior === option.value
+            ? 'bg-blue-500 text-white border-blue-500'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+          :aria-pressed="songListPlayBehavior === option.value"
+          @click="player.setSongListPlayBehavior(option.value)"
+        >
+          {{ option.label }}
+        </button>
       </div>
     </div>
 
