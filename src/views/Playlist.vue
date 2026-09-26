@@ -241,8 +241,6 @@ function openEdit() {
 
 function onEditSuccess() {
   refetch()
-  queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
-  queryClient.invalidateQueries({ queryKey: ['playlists'] })
 }
 
 const cancellingReview = ref(false)
@@ -270,6 +268,7 @@ async function deletePlaylist() {
     return
   try {
     await deletePlaylistApi(playlist.value.id)
+    queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
     queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
     queryClient.invalidateQueries({ queryKey: ['playlists'] })
     toast.success('歌单已删除')

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
-import { useElementSize, useIntersectionObserver, useUrlSearchParams } from '@vueuse/core'
+import { useElementSize, useIntersectionObserver } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { deletePlaylistApi, getPublicPlaylistsApi } from '@/api/music'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
+import { queryClient } from '@/utils/query-client'
 
 const store = useMainStore()
 const auth = useAuthStore()
@@ -18,10 +19,11 @@ usePageSeo({
   path: '/playlists',
 })
 
-const params = useUrlSearchParams('history', { removeFalsyValues: true })
+const route = useRoute()
+const router = useRouter()
 const tab = computed<string>({
-  get: () => (params.tab as string) || 'public',
-  set: (val) => { params.tab = val },
+  get: () => route.query.tab === 'mine' || route.query.tab === 'favorites' ? route.query.tab : 'public',
+  set: (val) => { void router.replace({ query: { ...route.query, tab: val === 'public' ? undefined : val } }) },
 })
 
 const homeContainer = useTemplateRef<HTMLElement>('homeContainer')
@@ -45,8 +47,8 @@ watch(isLoggedIn, (v) => {
     tab.value = 'public'
 })
 
-watch(tab, (val) => {
-  if ((val === 'mine' || val === 'favorites') && !isLoggedIn.value) {
+watch([tab, () => auth.isPending], ([val, pending]) => {
+  if (!pending && (val === 'mine' || val === 'favorites') && !isLoggedIn.value) {
     auth.requireLogin()
     tab.value = 'public'
   }
@@ -101,14 +103,13 @@ watch(tab, (val) => {
     loadPublic()
 }, { immediate: true })
 
-const { data: myPlaylists, isLoading: isMyLoading, isError: isMyError, error: myError, refetch: refetchMine } = useMyPlaylistsQuery()
+const { data: myPlaylists, isLoading: isMyLoading, isError: isMyError, error: myError } = useMyPlaylistsQuery()
 
 const {
   data: favoritePlaylists,
   isLoading: isFavLoading,
   isError: isFavError,
   error: favError,
-  refetch: refetchFavorites,
 } = useFavoritePlaylistsQuery()
 
 watch(isMyError, (v) => {
@@ -121,16 +122,13 @@ watch(isFavError, (v) => {
     toast.error(`收藏歌单加载失败：${favError.value?.message ?? '未知错误'}`)
 })
 
-watch(() => store.favoritePlaylistIds, () => {
-  if (isLoggedIn.value)
-    refetchFavorites()
-}, { deep: false })
-
 async function deletePlaylist(id: string) {
   try {
     await deletePlaylistApi(id)
+    void queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
+    void queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
+    void queryClient.invalidateQueries({ queryKey: ['playlists'] })
     toast.success('删除成功')
-    refetchMine()
   }
   catch (error) {
     toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
@@ -138,14 +136,13 @@ async function deletePlaylist(id: string) {
 }
 
 function onCreateSuccess() {
-  refetchMine()
   if (isLoggedIn.value)
     tab.value = 'mine'
 }
 
 onMounted(() => {
   store.setBackground()
-  if (!isLoggedIn.value)
+  if (!auth.isPending && !isLoggedIn.value)
     tab.value = 'public'
 })
 </script>

@@ -1,6 +1,7 @@
 import type { AlbumListItemInfo, AppConfigResponse, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
 import { defineStore } from 'pinia'
 import { addFavoriteApi, addPlaylistFavoriteApi, getAllFavoritesApi, getFavoritePlaylistsApi, removeFavoriteApi, removePlaylistFavoriteApi } from '@/api/music'
+import { queryClient } from '@/utils/query-client'
 
 export const useMainStore = defineStore('main', {
   state: () => ({
@@ -52,6 +53,7 @@ export const useMainStore = defineStore('main', {
       this.favoriteSongIds.push(songId)
       try {
         await addFavoriteApi(songId)
+        void queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
       }
       catch {
         this.favoriteSongIds = this.favoriteSongIds.filter(id => id !== songId)
@@ -64,6 +66,7 @@ export const useMainStore = defineStore('main', {
       this.favoriteSongIds = this.favoriteSongIds.filter(id => id !== songId)
       try {
         await removeFavoriteApi(songId)
+        void queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
       }
       catch {
         this.favoriteSongIds.push(songId)
@@ -85,6 +88,7 @@ export const useMainStore = defineStore('main', {
       this.favoritePlaylistIds.push(id)
       try {
         await addPlaylistFavoriteApi(id)
+        void queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
       }
       catch {
         this.favoritePlaylistIds = this.favoritePlaylistIds.filter(pid => pid !== id)
@@ -97,6 +101,7 @@ export const useMainStore = defineStore('main', {
       this.favoritePlaylistIds = this.favoritePlaylistIds.filter(pid => pid !== id)
       try {
         await removePlaylistFavoriteApi(id)
+        void queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
       }
       catch {
         this.favoritePlaylistIds.push(id)

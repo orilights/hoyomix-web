@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useQueryClient } from '@tanstack/vue-query'
+import { useMediaQuery } from '@vueuse/core'
 import { useOverlayScrollbars } from 'overlayscrollbars-vue'
 import { toast, Toaster } from 'vue-sonner'
 import { useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
@@ -13,6 +14,7 @@ const player = usePlayerStore()
 const auth = useAuthStore()
 const queryClient = useQueryClient()
 const mediaSource = useMediaSourceStore()
+const isDesktop = useMediaQuery('(min-width: 1280px)')
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist, isLoading } = storeToRefs(player)
 
@@ -113,9 +115,10 @@ onUnmounted(() => {
   <Toaster position="top-center" rich-colors />
   <BackgroundLayer />
   <Header />
+  <DesktopSidebar v-if="isDesktop" />
 
-  <div class="min-h-screen backdrop-blur-2xl bg-white/80">
-    <div class="px-4 md:px-16 xl:px-32 pt-[80px] pb-[100px]">
+  <div class="min-h-screen backdrop-blur-2xl bg-white/80 xl:ml-[240px]">
+    <div class="px-4 md:px-16 xl:px-8 pt-[80px] pb-[100px]">
       <router-view v-slot="{ Component }">
         <Transition name="page-fade" mode="out-in" appear>
           <component :is="Component" :key="$route.path" />
