@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
-import { formatDate } from '@vueuse/core'
+import { formatDate, useEventListener } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
@@ -83,6 +83,25 @@ const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:
 
 const versionClickCount = ref(0)
 const showDebugTool = ref(false)
+const activeSection = ref('settings-audio')
+const settingsSections = computed(() => [
+  { id: 'settings-audio', label: '媒体源' },
+  { id: 'settings-player', label: '播放器' },
+  { id: 'settings-account', label: '账号' },
+  { id: 'settings-about', label: '关于' },
+  ...(showDebugTool.value ? [{ id: 'settings-debug', label: '请求测试' }] : []),
+  { id: 'settings-changelog', label: '更新日志' },
+])
+
+function updateActiveSection() {
+  const visible = settingsSections.value.filter(({ id }) => {
+    const section = document.getElementById(id)
+    return section && section.getBoundingClientRect().top <= 144
+  })
+  activeSection.value = visible.at(-1)?.id ?? settingsSections.value[0].id
+}
+
+useEventListener(window, 'scroll', updateActiveSection, { passive: true })
 
 const debugMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 const debugMethod = ref('GET')
@@ -135,6 +154,7 @@ watch(isChangelogError, (val) => {
 
 onMounted(() => {
   store.setBackground()
+  updateActiveSection()
 })
 </script>
 
@@ -142,8 +162,24 @@ onMounted(() => {
   <div>
     <PageHeader title="设置" subtitle="一些也许有用的设置" />
 
-    <div class="mt-6 border-b border-gray-200">
-      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-audio-heading">
+    <nav aria-label="设置分类" class="sticky top-12.5 z-[9] bg-white">
+      <div class="flex gap-1 overflow-x-auto py-2">
+        <RouterLink
+          v-for="section in settingsSections"
+          :key="section.id"
+          :to="{ hash: `#${section.id}` }"
+          class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-500"
+          :class="activeSection === section.id ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'"
+          :aria-current="activeSection === section.id ? 'location' : undefined"
+          @click="activeSection = section.id"
+        >
+          {{ section.label }}
+        </RouterLink>
+      </div>
+    </nav>
+
+    <div class="mt-6">
+      <section id="settings-audio" class="scroll-mt-32 grid gap-4 py-6 border-t border-gray-200 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-audio-heading">
         <h2 id="settings-audio-heading" class="font-bold text-xl">
           媒体源
         </h2>
@@ -256,7 +292,7 @@ onMounted(() => {
         </div>
       </section>
 
-      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-player-heading">
+      <section id="settings-player" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-player-heading">
         <h2 id="settings-player-heading" class="font-bold text-xl">
           播放器
         </h2>
@@ -422,7 +458,7 @@ onMounted(() => {
         </div>
       </section>
 
-      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-account-heading">
+      <section id="settings-account" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-account-heading">
         <h2 id="settings-account-heading" class="font-bold text-xl">
           账号
         </h2>
@@ -478,7 +514,7 @@ onMounted(() => {
         </div>
       </section>
 
-      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-about-heading">
+      <section id="settings-about" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-about-heading">
         <h2 id="settings-about-heading" class="font-bold text-xl">
           关于
         </h2>
@@ -519,7 +555,7 @@ onMounted(() => {
         </div>
       </section>
 
-      <section v-if="showDebugTool" class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-debug-heading">
+      <section v-if="showDebugTool" id="settings-debug" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-debug-heading">
         <h2 id="settings-debug-heading" class="font-bold text-xl">
           请求测试
         </h2>
@@ -558,7 +594,7 @@ onMounted(() => {
         </div>
       </section>
 
-      <section class="grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-changelog-heading">
+      <section id="settings-changelog" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-changelog-heading">
         <h2 id="settings-changelog-heading" class="font-bold text-xl">
           更新日志
         </h2>

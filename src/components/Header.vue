@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { useWindowScroll } from '@vueuse/core'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 
-const { y: scrollY } = useWindowScroll()
 const store = useMainStore()
 const player = usePlayerStore()
 const { isFullscreen } = storeToRefs(player)
@@ -27,8 +25,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="fixed left-0 xl:left-[240px] right-0 top-0 z-10 px-4 md:px-16 xl:px-8 py-2 backdrop-blur-md transition-all duration-500 flex items-center" :class="{
-      'bg-slate-50/60': scrollY > 0,
+    class="fixed left-0 xl:left-[240px] right-0 top-0 z-10 px-4 md:px-16 xl:px-8 py-2 flex items-center bg-white" :class="{
       '-translate-y-full opacity-0 pointer-events-none': isFullscreen,
     }"
   >

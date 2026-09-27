@@ -4,7 +4,7 @@ import routes from './routes'
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(_to, _from, savedPosition) {
+  scrollBehavior(to, _from, savedPosition) {
     if (savedPosition) {
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -12,9 +12,10 @@ const router = createRouter({
         }, 100)
       })
     }
-    else {
-      return { top: 0 }
-    }
+    if (to.hash)
+      return { el: to.hash, top: 128 }
+
+    return { top: 0 }
   },
 })
 
