@@ -291,10 +291,6 @@ async function deletePlaylist() {
     deletingPlaylist.value = false
   }
 }
-
-onMounted(() => {
-  document.documentElement.scrollTo(0, 0)
-})
 </script>
 
 <template>

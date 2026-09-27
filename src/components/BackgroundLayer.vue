@@ -48,18 +48,19 @@ watch(backgroundUrl, (newVal) => {
 <template>
   <div
     ref="background1"
-    class="page-background w-screen h-screen fixed pointer-events-none transition-opacity duration-500 blur-md" :class="{
+    class="page-background w-screen h-screen fixed pointer-events-none transition-opacity duration-500 blur-2xl" :class="{
       'opacity-0': showBackground !== 1,
       'opacity-100': showBackground === 1,
     }"
   />
   <div
     ref="background2"
-    class="page-background w-screen h-screen fixed pointer-events-none transition-opacity duration-500 blur-md" :class="{
+    class="page-background w-screen h-screen fixed pointer-events-none transition-opacity duration-500 blur-2xl" :class="{
       'opacity-0': showBackground !== 2,
       'opacity-100': showBackground === 2,
     }"
   />
+  <div class="fixed inset-0 pointer-events-none bg-white/85" />
 </template>
 
 <style scoped>

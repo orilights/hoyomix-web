@@ -25,7 +25,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="fixed left-0 xl:left-[240px] right-0 top-0 z-10 px-4 md:px-16 xl:px-8 py-2 flex items-center bg-white" :class="{
+    class="fixed left-0 xl:left-[240px] right-0 top-0 z-10 px-4 md:px-16 xl:px-8 py-2 transition-all duration-500 flex items-center" :class="{
       '-translate-y-full opacity-0 pointer-events-none': isFullscreen,
     }"
   >

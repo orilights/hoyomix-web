@@ -79,7 +79,7 @@ watch(() => auth.user?.id, () => {
     :inert="player.isFullscreen"
     :aria-hidden="player.isFullscreen || undefined"
     aria-label="桌面导航"
-    class="fixed left-0 top-0 bottom-[72px] z-10 w-[240px] flex flex-col bg-slate-50/80 backdrop-blur-2xl border-r border-gray-200/60"
+    class="fixed left-0 top-0 bottom-[72px] z-10 w-[240px] flex flex-col bg-slate-400/10 border-r border-gray-200/60"
   >
     <RouterLink to="/" class="sidebar-brand flex items-center gap-3 shrink-0 px-6 h-[72px] text-gray-900 font-bold tracking-wide">
       <span class="flex items-center justify-center size-9 rounded-xl bg-blue-500/10 text-blue-500">

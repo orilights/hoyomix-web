@@ -169,10 +169,6 @@ function addAlbumToPlaylist() {
     return
   showSelectPlaylistDialog.value = true
 }
-
-onMounted(() => {
-  document.documentElement.scrollTo(0, 0)
-})
 </script>
 
 <template>

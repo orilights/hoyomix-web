@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PlaylistSongItem } from '@/types/core'
 import type { SongListGroup } from '@/types/song-list'
+import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
 import SongListPlaybackDialog from '@/components/SongListPlaybackDialog.vue'
@@ -46,6 +47,8 @@ const router = useRouter()
 const store = useMainStore()
 const player = usePlayerStore()
 const isDragging = ref(false)
+const showSmColumns = useMediaQuery('(min-width: 640px)')
+const showMdColumns = useMediaQuery('(min-width: 768px)')
 const playbackDialog = useTemplateRef<InstanceType<typeof SongListPlaybackDialog>>('playbackDialog')
 
 const displayRows = computed<DisplayRow[]>({
@@ -86,7 +89,10 @@ const allSelected = computed(() =>
 )
 
 const columnCount = computed(() =>
-  4 + Number(props.selectable) + Number(props.showCover) + Number(props.showAlbum),
+  3 + Number(props.selectable)
+  + Number(props.showCover && showSmColumns.value)
+  + Number(props.showAlbum && showMdColumns.value)
+  + Number(showMdColumns.value),
 )
 
 const hasExtraActions = computed(() => props.reorderable || Boolean(slots['row-actions']))
