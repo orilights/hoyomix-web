@@ -132,7 +132,7 @@ History 模式，全部 `() => import(...)` 懒加载；`scrollBehavior` 返回�
 ```
 BackgroundLayer（固定模糊背景，双图层 500ms 交叉淡入）
 Header（固定顶栏，滚动加 bg-slate-50/60；全屏播放时隐藏）
-DesktopSidebar（≥1280px 挂载，固定宽 240px，独立滚动；全屏播放时隐藏）
+DesktopSidebar（≥1280px 挂载，固定宽 240px，独立滚动；全屏播放时由播放器覆盖并禁用交互，动画期间保留底层画面）
 └─ 主内容区（min-h-screen backdrop-blur-2xl bg-white/80；px-4→md:px-16→xl:px-8；桌面左侧让位 240px；pt-[80px] pb-[100px]）
    └─ <router-view> + Transition「page-fade」(0.3s out-in)
 PlayerPlaylist / PlayerBar / PlayerFullscreen（全局常驻，不随路由销毁）
@@ -141,7 +141,7 @@ Toaster（全局提示）
 
 - 背景 `backgroundUrl` 由各页面 `onMounted` 经 `store.setBackground(...)` 设置（如专辑封面 128px）。
 - Header 左侧返回/主页/设置，右侧搜索（`Ctrl/Cmd+K`）、通知、用户信息。
-- 桌面 Header 随内容右移，隐藏主页和设置按钮；侧栏提供发现、游戏、我的音乐、创建和收藏歌单，底部固定设置与反馈。底部播放器维持全宽，侧栏下缘避让其 72px 高度；首页内容不变。
+- 桌面 Header 随内容右移，隐藏主页和设置按钮；侧栏提供发现、我的音乐、创建和收藏歌单，底部固定设置与反馈。游戏分类继续由首页提供。底部播放器维持全宽，侧栏下缘避让其 72px 高度；首页内容不变。
 - 个人歌单查询以用户 ID 区分缓存，仅登录后启用；歌单创建、编辑、删除和收藏成功后使对应查询失效。侧栏复用现有查询及新建弹窗；歌单页标签通过 Vue Router query 同步，以支持侧栏跳转与前进后退。
 
 ---

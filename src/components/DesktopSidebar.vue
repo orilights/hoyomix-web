@@ -2,11 +2,11 @@
 import type { PlaylistListItem } from '@/types/core'
 import { ChartNoAxesCombined, Disc3, House, ListMusic, Shuffle, TrendingUp } from '@lucide/vue'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
-import { productMap } from '@/constants'
+import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
-import { getCoverUrl, getProductIconUrl } from '@/utils'
+import { getCoverUrl } from '@/utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -76,15 +76,16 @@ watch(() => auth.user?.id, () => {
 
 <template>
   <aside
-    v-show="!player.isFullscreen"
+    :inert="player.isFullscreen"
+    :aria-hidden="player.isFullscreen || undefined"
     aria-label="桌面导航"
     class="fixed left-0 top-0 bottom-[72px] z-10 w-[240px] flex flex-col bg-slate-50/80 backdrop-blur-2xl border-r border-gray-200/60"
   >
     <RouterLink to="/" class="sidebar-brand flex items-center gap-3 shrink-0 px-6 h-[72px] text-gray-900 font-bold tracking-wide">
       <span class="flex items-center justify-center size-9 rounded-xl bg-blue-500/10 text-blue-500">
-        <LucideAudioLines class="size-5" />
+        <img src="/favicon.png" alt="" class="size-8 object-contain">
       </span>
-      HOYO-MiX
+      {{ appTitle }}
     </RouterLink>
 
     <OverlayScrollbarsComponent
@@ -106,22 +107,6 @@ watch(() => auth.user?.id, () => {
           >
             <component :is="item.icon" class="size-4.5 shrink-0" />
             <span>{{ item.label }}</span>
-          </RouterLink>
-        </nav>
-
-        <nav aria-label="游戏">
-          <div class="sidebar-heading">
-            游戏
-          </div>
-          <RouterLink
-            v-for="(name, code) in productMap" :key="code"
-            :to="{ name: 'ProductInfo', params: { name } }"
-            class="sidebar-link"
-            :class="{ 'is-active': route.name === 'ProductInfo' && route.params.name === name }"
-            :aria-current="route.name === 'ProductInfo' && route.params.name === name ? 'page' : undefined"
-          >
-            <img :src="getProductIconUrl(name)" alt="" class="size-6 rounded-lg shrink-0">
-            <span class="truncate">{{ name }}</span>
           </RouterLink>
         </nav>
 
