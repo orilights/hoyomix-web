@@ -24,6 +24,14 @@ export const useMainStore = defineStore('main', {
     favoriteSongIds: [] as number[],
     favoritePlaylistIds: [] as string[],
   }),
+  getters: {
+    // 产品 alias（如 genshin）→ 产品名称（如 原神）
+    productNameMap: state =>
+      Object.fromEntries(state.productList.map(p => [p.alias, p.name] as const)),
+    // 产品名称（如 原神）→ 产品 alias（如 genshin）
+    productAliasMap: state =>
+      Object.fromEntries(state.productList.map(p => [p.name, p.alias] as const)),
+  },
   actions: {
     setBackground(url = '') {
       this.backgroundUrl = url

@@ -38,16 +38,6 @@ export const mediaSourceRegionOptions: MediaSourceRegionOption[] = [
   { value: 'global', label: '全球', badgeClass: 'bg-blue-100 text-blue-700' },
 ]
 
-export const productMap: { [key: string]: string }
-  = {
-    genshin: '原神',
-    starrail: '崩坏：星穹铁道',
-    zzz: '绝区零',
-    honkai3: '崩坏3',
-    honkai2: '崩坏学园2',
-    wd: '未定事件簿',
-  }
-
 export const artistTypeSort = [
   '作曲',
   '编曲',

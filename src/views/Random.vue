@@ -4,10 +4,10 @@ import { toast } from 'vue-sonner'
 import { getRandomPlaylistApi } from '@/api/music'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
-import { productMap } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
+import { getProductName } from '@/utils'
 
 const store = useMainStore()
 const player = usePlayerStore()
@@ -37,8 +37,10 @@ const showAlbumsDialog = ref(false)
 const showCreatePlaylistDialog = ref(false)
 const showSelectPlaylistDialog = ref(false)
 
+const { productList: appProductList } = storeToRefs(store)
+
 const productList = computed(() =>
-  Object.entries(productMap).map(([key, name]) => ({ key, name })),
+  appProductList.value.map(p => ({ key: p.alias, name: p.name })),
 )
 
 const songIds = computed(() => randomPlaylist.value.map(s => s.songId))
@@ -73,7 +75,7 @@ async function generate() {
     else {
       randomPlaylist.value = await getRandomPlaylistApi({
         limit,
-        products: randomPlaylistProducts.value.length ? randomPlaylistProducts.value.map(k => productMap[k]) : undefined,
+        products: randomPlaylistProducts.value.length ? randomPlaylistProducts.value.map(k => getProductName(k)) : undefined,
         dateFrom: randomPlaylistDateFrom.value || undefined,
         dateTo: randomPlaylistDateTo.value || undefined,
         excludeAlbums: randomPlaylistExcludeAlbums.value.length ? randomPlaylistExcludeAlbums.value : undefined,

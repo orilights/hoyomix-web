@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { usePageSeo } from '@/composables/usePageSeo'
-import { appDescription, productMap } from '@/constants'
+import { appDescription } from '@/constants'
 import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl } from '@/utils'
 
 const store = useMainStore()
-const { albumList } = storeToRefs(store)
+const { albumList, productList } = storeToRefs(store)
 
 usePageSeo({
   title: '首页',
@@ -46,12 +46,13 @@ const products = computed(() => {
       countMap.set(a.productName, { albumCount: 1, songCount: a.songCount })
     }
   }
-  return Object.values(productMap)
-    .map(productName => ({
-      productName,
-      name: productName,
-      songCount: countMap.get(productName),
+  return productList.value
+    .map(product => ({
+      productName: product.name,
+      name: product.name,
+      songCount: countMap.get(product.name),
     }))
+    .sort((a, b) => (b.songCount?.songCount ?? 0) - (a.songCount?.songCount ?? 0))
 })
 
 const totalProducts = computed(() => products.value.length)

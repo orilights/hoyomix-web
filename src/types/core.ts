@@ -82,6 +82,7 @@ export interface TagInfo {
 export interface ProductListItemInfo {
   productId: number
   name: string
+  alias: string
   tags: TagInfo[]
 }
 
