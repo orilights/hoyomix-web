@@ -95,7 +95,7 @@ function onPageScrollDestroyed() {
   setPageScrollElement(null)
 }
 
-watch(() => route.fullPath, async () => {
+watch(() => route.path, async () => {
   await nextTick()
   scrollPageToTop()
 })

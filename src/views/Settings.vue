@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
-import { formatDate, useEventListener } from '@vueuse/core'
+import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
+import { usePageScroll } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { apiBase, appDescription, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { useAuthStore } from '@/store/auth'
@@ -84,6 +85,7 @@ const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:
 const versionClickCount = ref(0)
 const showDebugTool = ref(false)
 const activeSection = ref('settings-audio')
+const { scrollY } = usePageScroll()
 const settingsSections = computed(() => [
   { id: 'settings-audio', label: '媒体源' },
   { id: 'settings-player', label: '播放器' },
@@ -101,7 +103,7 @@ function updateActiveSection() {
   activeSection.value = visible.at(-1)?.id ?? settingsSections.value[0].id
 }
 
-useEventListener(window, 'scroll', updateActiveSection, { passive: true })
+watch(scrollY, updateActiveSection, { flush: 'post' })
 
 const debugMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 const debugMethod = ref('GET')
@@ -162,8 +164,8 @@ onMounted(() => {
   <div>
     <PageHeader title="设置" subtitle="一些也许有用的设置" />
 
-    <nav aria-label="设置分类" class="sticky top-12.5 z-[9] bg-white">
-      <div class="flex gap-1 overflow-x-auto py-2">
+    <nav aria-label="设置分类" class="sticky top-4 z-[9] w-max max-w-full rounded-2xl border border-white/70 bg-white/70 p-1.5 backdrop-blur-xl">
+      <div class="flex gap-1 overflow-x-auto">
         <RouterLink
           v-for="section in settingsSections"
           :key="section.id"
