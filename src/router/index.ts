@@ -1,10 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { scrollPageToElement, scrollPageToTop } from '@/composables/usePageScroll'
 import routes from './routes'
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(_to, _from, savedPosition) {
+  scrollBehavior(to, from, savedPosition) {
+    if (to.hash) {
+      const target = document.getElementById(to.hash.slice(1))
+      if (target && scrollPageToElement(target, 72))
+        return false
+      return { el: to.hash, top: 128 }
+    }
+
+    if (from.hash && to.path === from.path) {
+      scrollPageToTop()
+      return false
+    }
+
     if (savedPosition) {
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -12,9 +25,8 @@ const router = createRouter({
         }, 100)
       })
     }
-    else {
-      return { top: 0 }
-    }
+
+    return { top: 0 }
   },
 })
 

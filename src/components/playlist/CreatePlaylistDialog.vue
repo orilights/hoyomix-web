@@ -4,6 +4,7 @@ import { toast } from 'vue-sonner'
 import { createPlaylistApi, updatePlaylistApi, updatePlaylistSongsApi } from '@/api/music'
 import { useMainStore } from '@/store/main'
 import { getCoverUrl } from '@/utils'
+import { queryClient } from '@/utils/query-client'
 
 const props = defineProps<{
   initialSongIds?: number[]
@@ -151,6 +152,9 @@ async function submit() {
       toast.info('修改已提交审核，通过后将正式生效')
     else
       toast.success(isEdit.value ? '歌单已更新' : '歌单已创建')
+    void queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
+    void queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
+    void queryClient.invalidateQueries({ queryKey: ['playlists'] })
     visible.value = false
     emit('success', playlistId)
   }

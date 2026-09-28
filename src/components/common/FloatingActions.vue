@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useWindowScroll } from '@vueuse/core'
+import { usePageScroll } from '@/composables/usePageScroll'
 import { useSongLocator } from '@/composables/useSongLocator'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -8,7 +8,7 @@ const route = useRoute()
 const store = useMainStore()
 const player = usePlayerStore()
 
-const { y: scrollY } = useWindowScroll()
+const { scrollY, scrollPageToTop } = usePageScroll()
 const { showSearch } = storeToRefs(store)
 const { isFullscreen, showPlaylist } = storeToRefs(player)
 const { isCurrentSongInList, locateCurrentSong } = useSongLocator()
@@ -24,7 +24,7 @@ const showBackToTop = computed(() =>
 const showLocate = computed(() => !overlayVisible.value && isCurrentSongInList.value)
 
 function backToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  scrollPageToTop('smooth')
 }
 
 const buttonClass = 'size-11 rounded-full inline-flex items-center justify-center cursor-pointer bg-white/70 backdrop-blur-xl border border-white/70 shadow-lg text-gray-600 hover:text-gray-900 hover:bg-white/90 transition-colors focus-visible:ring-2 focus-visible:ring-blue-400/60'

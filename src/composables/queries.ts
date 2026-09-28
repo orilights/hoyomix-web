@@ -18,6 +18,7 @@ import {
   getSearchApi,
   getSongInfoApi,
 } from '@/api/music'
+import { useAuthStore } from '@/store/auth'
 
 export function useAppConfigQuery() {
   return useQuery({
@@ -119,17 +120,21 @@ export function usePublicPlaylistsQuery(params: Ref<PlaylistsQueryParams>) {
 }
 
 export function useMyPlaylistsQuery() {
+  const auth = useAuthStore()
   return useQuery({
-    queryKey: ['myPlaylists'],
+    queryKey: computed(() => ['myPlaylists', auth.user?.id ?? null]),
     queryFn: () => getMyPlaylistsApi(),
+    enabled: computed(() => auth.isLoggedIn),
     staleTime: 0,
   })
 }
 
 export function useFavoritePlaylistsQuery() {
+  const auth = useAuthStore()
   return useQuery({
-    queryKey: ['favoritePlaylists'],
+    queryKey: computed(() => ['favoritePlaylists', auth.user?.id ?? null]),
     queryFn: () => getFavoritePlaylistsApi().then(res => res.items),
+    enabled: computed(() => auth.isLoggedIn),
     staleTime: 0,
   })
 }

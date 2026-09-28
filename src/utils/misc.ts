@@ -1,6 +1,7 @@
 import type { PlatformInfoMap } from '@/types/core'
 import type { NeteaseClientSchemeParams } from '@/types/netease'
-import { iOSUserAgentRegex, mobileUserAgentRegex, productMap, resourceBase } from '@/constants'
+import { iOSUserAgentRegex, mobileUserAgentRegex, resourceBase } from '@/constants'
+import { useMainStore } from '@/store/main'
 
 export function getCoverUrl(platforms: PlatformInfoMap, size: '96px' | '128px' | '256px' | '512px' | '800px') {
   if (platforms.ncm) {
@@ -13,11 +14,11 @@ export function getCoverUrl(platforms: PlatformInfoMap, size: '96px' | '128px' |
 }
 
 export function getProductName(product: string = '') {
-  return productMap[product] || product
+  return useMainStore().productNameMap[product] || product
 }
 
 export function getProductCode(productName: string): string {
-  return Object.entries(productMap).find(([, name]) => name === productName)?.[0] ?? ''
+  return useMainStore().productAliasMap[productName] ?? ''
 }
 
 export function getProductIconUrl(productName: string, size?: string) {

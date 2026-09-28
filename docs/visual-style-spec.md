@@ -10,7 +10,7 @@
 
 本项目采用**「浅色玻璃拟态 + 主题化背景」**的视觉体系：
 
-1. **玻璃拟态（Glassmorphism）为主**：页面主内容使用半透明白底（`bg-white/80`）+ 大面积 `backdrop-blur`，让背后的动态专辑背景透过模糊呈现，形成柔和层次。
+1. **玻璃拟态（Glassmorphism）为主**：固定背景图片经 `blur-md` 柔化后，由全屏白色半透明层（`bg-white/80`）统一提亮；卡片、侧栏和弹层保留各自的玻璃质感。
 2. **中性灰阶为骨架，蓝色为唯一强调色**：文字/边框/卡片以灰色阶（slate/gray）为主，强调、选中、主操作统一使用蓝色系，避免多色争抢。
 3. **背景即主题**：每页通过专辑封面设置背景，使整站色彩随浏览内容动态变化；播放器区域（深色）与内容区（浅色）形成明暗对比。
 4. **圆润、轻盈、克制**：大面积圆角（`rounded-xl/2xl`）、低饱和半透明悬浮态、短而不炫的过渡动画。
@@ -142,9 +142,9 @@
 
 ### 4.1 页面级布局
 
-- **主内容容器**：外层 `min-h-screen backdrop-blur-2xl bg-white/80`；内层 `px-4 md:px-16 xl:px-32 pt-[80px] pb-[100px]`。
-  - 顶边距 80px 为固定 Header 让位；底边距 100px 为固定播放条（72px）让位。
-- **响应式水平留白**：`4 → 16 → 32`（对应移动 → 平板 → 桌面）。
+- **主内容容器**：固定在顶栏（56px）与播放条（72px）之间，桌面左侧让位 240px；自身透明，路由页面仅在容器的 OverlayScrollbars 中滚动。内层使用 `px-4 md:px-16 xl:px-8 pt-6 pb-7`。
+- **响应式水平留白**：`4 → 16 → 8`（对应移动 → 平板 → 桌面）；≥1280px 时侧栏占左侧 240px，顶栏与主内容对齐。
+- **桌面侧栏**：始终展开，`bg-slate-50/80 backdrop-blur-2xl`，右侧浅色边框；顶部品牌、底部设置与反馈固定，中部独立滚动。导航行最小高 40px、圆角 10px，选中态蓝字浅蓝底；歌单封面 32px，名称单行省略。全屏播放时保留渲染，由更高层级的播放器自然覆盖，并通过 `inert` 禁用交互；展开和收起动画期间不提前隐藏底层画面。
 
 ### 4.2 间距刻度
 
@@ -171,7 +171,7 @@
 | --- | --- | --- |
 | `md` | 768px | 分栏（2→3/4 列）、显示桌面控制/文案、去圆弧 |
 | `lg` | 1024px | 专辑页两栏（侧栏→`lg:w-[400px]` + 内容自适应） |
-| `xl` | 1280px | 更宽页面留白 |
+| `xl` | 1280px | 显示固定侧栏，内容水平留白 32px |
 
 > 移动端常用 `lg:hidden` 显示移动端 tab 栏，`hidden md:flex` 显示桌面操作。
 
@@ -214,7 +214,7 @@
 
 | 值 | 元素 |
 | --- | --- |
-| `z-10` | 顶栏 Header、全屏内容层 |
+| `z-10` | 顶栏 Header、桌面侧栏、全屏内容层 |
 | `z-50` | 全屏播放器、用户下拉 |
 | `z-60` | 播放条（固定底部） |
 | `z-100` | Tooltip |
@@ -265,8 +265,8 @@
 
 | 层 | 写法 | 说明 |
 | --- | --- | --- |
-| 页面总背景 | `backdrop-blur-2xl bg-white/80` | 让背景透过主内容 |
-| 顶栏 | `backdrop-blur-md` | 滚动时加 `bg-slate-50/60` |
+| 页面总背景 | 背景图 `blur-md` + 全屏 `bg-white/80` | 白色叠层统一覆盖背景图 |
+| 顶栏与主内容 | 透明 | 直接显示统一背景 |
 | 播放条/弹层 | `backdrop-blur-xl` | 深色玻璃 |
 | 背景图自身 | `blur-md` | 柔和化动态背景 |
 | 模态遮罩 | `backdrop-blur-sm` | 搜索/弹窗遮罩 |
@@ -274,6 +274,7 @@
 ### 8.2 背景图层体系（`BackgroundLayer`）
 
 - 全站一个固定背景层，`background-size: cover` + `blur-md`，`pointer-events-none`。
+- 背景图片之上固定一层 `bg-white/80`；顶栏和主内容容器不再单独设置背景色或背景模糊。
 - **双图层交叉淡入（crossfade）**：`background1`/`background2` 交替承载新旧背景，先 `preloadImage` 完成后才切换 `opacity`（500ms），杜绝切图闪烁。
 - 背景由各页面在 `onMounted` 设置 `store.setBackground(url)`；无内容页（首页/设置/404）调用 `setBackground()` 清空。
 - 专辑/产品页背景 = 封面 128px（`getCoverUrl(platforms,'128px')`）。
@@ -402,7 +403,7 @@ textarea 加 resize-y；调试 Body 用 font-mono
 
 ## 11. 滚动条规范（OverlayScrollbars）
 
-`main.ts` 注册 `ClickScrollPlugin`，body 使用自定义主题。
+`main.ts` 注册 `ClickScrollPlugin`，主内容区使用 `os-theme-custom`，弹层打开时锁定主内容区滚动。
 
 | 主题 | 手柄色 | 适用 |
 | --- | --- | --- |
@@ -468,10 +469,10 @@ textarea 加 resize-y；调试 Body 用 font-mono
 | 主强调色 | `blue-500`（`/90` 填充、`/10` 高亮） |
 | 浅色面 | `bg-black/5` → hover `bg-black/10` |
 | 深色面 | `bg-gray-900/95` + `backdrop-blur-xl` |
-| 玻璃 | `bg-white/80 backdrop-blur-2xl`、`bg-slate-50/60 backdrop-blur-md`（Header） |
+| 玻璃 | 全屏背景叠层 `bg-white/80`；侧栏和弹层使用各自的半透明背景与模糊 |
 | 卡片圆角 | `rounded-xl` / `rounded-2xl` |
 | 胶囊 | `rounded-full` |
-| 页面留白 | `px-4 → md:px-16 → xl:px-32`、`pt-[80px] pb-[100px]` |
+| 页面留白 | `px-4 → md:px-16 → xl:px-8`、`pt-6 pb-7` |
 | 卡片标题高 | `h-[42px]` + `line-clamp-2` |
 | 过渡默认 | `0.3s ease`（状态切换 0.15–0.2s） |
 | 背景切换 | 500ms crossfade |

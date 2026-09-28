@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
-import { useElementSize, useIntersectionObserver, useUrlSearchParams } from '@vueuse/core'
+import { useElementSize, useIntersectionObserver } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { deletePlaylistApi, getPublicPlaylistsApi } from '@/api/music'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
+import { queryClient } from '@/utils/query-client'
 
 const store = useMainStore()
 const auth = useAuthStore()
@@ -18,10 +19,11 @@ usePageSeo({
   path: '/playlists',
 })
 
-const params = useUrlSearchParams('history', { removeFalsyValues: true })
+const route = useRoute()
+const router = useRouter()
 const tab = computed<string>({
-  get: () => (params.tab as string) || 'public',
-  set: (val) => { params.tab = val },
+  get: () => route.query.tab === 'mine' || route.query.tab === 'favorites' ? route.query.tab : 'public',
+  set: (val) => { void router.replace({ query: { ...route.query, tab: val === 'public' ? undefined : val } }) },
 })
 
 const homeContainer = useTemplateRef<HTMLElement>('homeContainer')
@@ -45,14 +47,23 @@ watch(isLoggedIn, (v) => {
     tab.value = 'public'
 })
 
-watch(tab, (val) => {
-  if ((val === 'mine' || val === 'favorites') && !isLoggedIn.value) {
+watch([tab, () => auth.isPending], ([val, pending]) => {
+  if (!pending && (val === 'mine' || val === 'favorites') && !isLoggedIn.value) {
     auth.requireLogin()
     tab.value = 'public'
   }
 })
 
 const showCreateDialog = ref(false)
+const deletePlaylistId = ref<string | null>(null)
+const deletingPlaylist = ref(false)
+const showDeleteDialog = computed({
+  get: () => deletePlaylistId.value !== null,
+  set: (visible: boolean) => {
+    if (!visible && !deletingPlaylist.value)
+      deletePlaylistId.value = null
+  },
+})
 
 function openCreate() {
   if (!auth.requireLogin())
@@ -101,14 +112,14 @@ watch(tab, (val) => {
     loadPublic()
 }, { immediate: true })
 
-const { data: myPlaylists, isLoading: isMyLoading, isError: isMyError, error: myError, refetch: refetchMine } = useMyPlaylistsQuery()
+const { data: myPlaylists, isLoading: isMyLoading, isError: isMyError, error: myError } = useMyPlaylistsQuery()
+const deleteTargetPlaylist = computed(() => myPlaylists.value?.find(pl => pl.id === deletePlaylistId.value))
 
 const {
   data: favoritePlaylists,
   isLoading: isFavLoading,
   isError: isFavError,
   error: favError,
-  refetch: refetchFavorites,
 } = useFavoritePlaylistsQuery()
 
 watch(isMyError, (v) => {
@@ -121,31 +132,39 @@ watch(isFavError, (v) => {
     toast.error(`收藏歌单加载失败：${favError.value?.message ?? '未知错误'}`)
 })
 
-watch(() => store.favoritePlaylistIds, () => {
-  if (isLoggedIn.value)
-    refetchFavorites()
-}, { deep: false })
+function requestDeletePlaylist(id: string) {
+  deletePlaylistId.value = id
+}
 
-async function deletePlaylist(id: string) {
+async function confirmDeletePlaylist() {
+  const id = deletePlaylistId.value
+  if (!id || deletingPlaylist.value)
+    return
+  deletingPlaylist.value = true
   try {
     await deletePlaylistApi(id)
+    deletePlaylistId.value = null
+    void queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
+    void queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
+    void queryClient.invalidateQueries({ queryKey: ['playlists'] })
     toast.success('删除成功')
-    refetchMine()
   }
   catch (error) {
     toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
+  finally {
+    deletingPlaylist.value = false
+  }
 }
 
 function onCreateSuccess() {
-  refetchMine()
   if (isLoggedIn.value)
     tab.value = 'mine'
 }
 
 onMounted(() => {
   store.setBackground()
-  if (!isLoggedIn.value)
+  if (!auth.isPending && !isLoggedIn.value)
     tab.value = 'public'
 })
 </script>
@@ -249,12 +268,31 @@ onMounted(() => {
             :key="pl.id"
             :playlist="pl"
             :show-delete="pl.type !== 'favorites'"
-            @delete="deletePlaylist"
+            @delete="requestDeletePlaylist"
           />
         </div>
       </AsyncFade>
     </div>
 
+    <AppDialog v-model="showDeleteDialog" title="删除歌单">
+      <div class="px-6 py-5 text-sm text-gray-600">
+        <p>确定要删除歌单「{{ deleteTargetPlaylist?.name ?? '这个歌单' }}」吗？</p>
+        <p class="mt-2 text-red-500">
+          删除后无法恢复
+        </p>
+      </div>
+      <template #footer>
+        <div class="px-6 py-3 flex justify-end gap-2">
+          <AppButton variant="outline" :disabled="deletingPlaylist" @click="showDeleteDialog = false">
+            取消
+          </AppButton>
+          <AppButton variant="danger" :disabled="deletingPlaylist" @click="confirmDeletePlaylist">
+            <LucideLoader2 v-if="deletingPlaylist" class="size-4 animate-spin" />
+            {{ deletingPlaylist ? '删除中...' : '确认删除' }}
+          </AppButton>
+        </div>
+      </template>
+    </AppDialog>
     <CreatePlaylistDialog v-model="showCreateDialog" @success="onCreateSuccess" />
   </div>
 </template>

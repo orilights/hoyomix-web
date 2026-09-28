@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { OverlayScrollbars, PartialOptions } from 'overlayscrollbars'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useOverlayScrollbars } from 'overlayscrollbars-vue'
+import { useMediaQuery } from '@vueuse/core'
 import { toast, Toaster } from 'vue-sonner'
 import { useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
+import { scrollPageToTop, setPageScrollElement, updatePageScroll } from '@/composables/usePageScroll'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
@@ -13,6 +15,8 @@ const player = usePlayerStore()
 const auth = useAuthStore()
 const queryClient = useQueryClient()
 const mediaSource = useMediaSourceStore()
+const isDesktop = useMediaQuery('(min-width: 1280px)')
+const route = useRoute()
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist, isLoading } = storeToRefs(player)
 
@@ -53,17 +57,6 @@ watch(() => auth.user?.id ?? null, () => {
   queryClient.removeQueries({ queryKey: ['commentReplies'] })
 }, { immediate: true })
 
-const [initBodyScrollbars, useOsInstance] = useOverlayScrollbars({
-  defer: true,
-  options: {
-    scrollbars: {
-      theme: 'os-theme-custom',
-      autoHide: 'leave',
-      clickScroll: true,
-    },
-  },
-})
-
 function onKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement
   // 输入框/文本域/可编辑元素内不触发
@@ -84,14 +77,28 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-watch(() => isFullscreen.value || showPlaylist.value || showSearch.value, (val) => {
-  const osInstance = useOsInstance()
-  osInstance?.options({
-    overflow: {
-      y: val ? 'hidden' : 'scroll',
-    },
-  })
-}, { immediate: true })
+const pageScrollLocked = computed(() => isFullscreen.value || showPlaylist.value || showSearch.value)
+const pageScrollOptions = computed<PartialOptions>(() => ({
+  overflow: { x: 'hidden', y: pageScrollLocked.value ? 'hidden' : 'scroll' },
+  scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true },
+}))
+
+function onPageScrollInitialized(instance: OverlayScrollbars) {
+  setPageScrollElement(instance.elements().viewport)
+}
+
+function onPageScroll(_instance: OverlayScrollbars, event: Event) {
+  updatePageScroll(event)
+}
+
+function onPageScrollDestroyed() {
+  setPageScrollElement(null)
+}
+
+watch(() => route.path, async () => {
+  await nextTick()
+  scrollPageToTop()
+})
 
 watch(() => mediaSource.selectedSource, () => {
   if (!isLoading.value)
@@ -99,7 +106,6 @@ watch(() => mediaSource.selectedSource, () => {
 })
 
 onMounted(() => {
-  initBodyScrollbars({ target: document.body })
   player.initPlayer()
   window.addEventListener('keydown', onKeydown)
 })
@@ -113,16 +119,25 @@ onUnmounted(() => {
   <Toaster position="top-center" rich-colors />
   <BackgroundLayer />
   <Header />
+  <DesktopSidebar v-if="isDesktop" />
 
-  <div class="min-h-screen backdrop-blur-2xl bg-white/80">
-    <div class="px-4 md:px-16 xl:px-32 pt-[80px] pb-[100px]">
+  <OverlayScrollbarsComponent
+    id="page-scroll"
+    element="main"
+    class="page-scroll fixed top-[56px] bottom-[72px] left-0 right-0 xl:left-[240px]"
+    :options="pageScrollOptions"
+    @os-initialized="onPageScrollInitialized"
+    @os-scroll="onPageScroll"
+    @os-destroyed="onPageScrollDestroyed"
+  >
+    <div class="px-4 md:px-16 xl:px-8 pt-6 pb-7">
       <router-view v-slot="{ Component }">
         <Transition name="page-fade" mode="out-in" appear>
           <component :is="Component" :key="$route.path" />
         </Transition>
       </router-view>
     </div>
-  </div>
+  </OverlayScrollbarsComponent>
 
   <PlayerPlaylist />
   <PlayerBar />
@@ -131,6 +146,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.page-scroll :deep([data-overlayscrollbars-viewport]) {
+  overscroll-behavior: contain;
+}
+
 .page-fade-enter-active,
 .page-fade-leave-active {
   transition: opacity 0.15s ease;

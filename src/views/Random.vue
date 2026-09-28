@@ -4,17 +4,17 @@ import { toast } from 'vue-sonner'
 import { getRandomPlaylistApi } from '@/api/music'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
-import { productMap } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
+import { getProductName } from '@/utils'
 
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 
 usePageSeo({
-  title: '随机播放列表',
+  title: '随机播放',
   description: '随机生成播放列表',
   path: '/random',
 })
@@ -37,8 +37,10 @@ const showAlbumsDialog = ref(false)
 const showCreatePlaylistDialog = ref(false)
 const showSelectPlaylistDialog = ref(false)
 
+const { productList: appProductList } = storeToRefs(store)
+
 const productList = computed(() =>
-  Object.entries(productMap).map(([key, name]) => ({ key, name })),
+  appProductList.value.map(p => ({ key: p.alias, name: p.name })),
 )
 
 const songIds = computed(() => randomPlaylist.value.map(s => s.songId))
@@ -73,7 +75,7 @@ async function generate() {
     else {
       randomPlaylist.value = await getRandomPlaylistApi({
         limit,
-        products: randomPlaylistProducts.value.length ? randomPlaylistProducts.value.map(k => productMap[k]) : undefined,
+        products: randomPlaylistProducts.value.length ? randomPlaylistProducts.value.map(k => getProductName(k)) : undefined,
         dateFrom: randomPlaylistDateFrom.value || undefined,
         dateTo: randomPlaylistDateTo.value || undefined,
         excludeAlbums: randomPlaylistExcludeAlbums.value.length ? randomPlaylistExcludeAlbums.value : undefined,
@@ -123,7 +125,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <PageHeader title="随机播放列表" subtitle="随机生成播放列表" />
+    <PageHeader title="随机播放" subtitle="随机生成播放列表" />
 
     <div class="xl:grid xl:grid-cols-[320px_1fr] gap-6">
       <div class="bg-white/80 rounded-2xl p-4 space-y-4">

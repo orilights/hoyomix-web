@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { useWindowScroll } from '@vueuse/core'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 
-const { y: scrollY } = useWindowScroll()
 const store = useMainStore()
 const player = usePlayerStore()
 const { isFullscreen } = storeToRefs(player)
@@ -27,8 +25,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="fixed left-0 right-0 top-0 z-10 px-4 md:px-16 xl:px-32 py-2 backdrop-blur-md transition-all duration-500 flex items-center" :class="{
-      'bg-slate-50/60': scrollY > 0,
+    class="fixed left-0 xl:left-[240px] right-0 top-0 z-10 px-4 md:px-16 xl:px-8 py-2 transition-all duration-500 flex items-center" :class="{
       '-translate-y-full opacity-0 pointer-events-none': isFullscreen,
     }"
   >
@@ -43,7 +40,7 @@ onUnmounted(() => {
           <LucideChevronLeft class="size-4.5" />
         </AppButton>
       </Tooltip>
-      <Tooltip class="ml-2" content="返回首页" placement="bottom" align="center">
+      <Tooltip class="ml-2 xl:hidden" content="返回首页" placement="bottom" align="center">
         <AppButton
           icon-only
           shape="pill"
@@ -53,19 +50,7 @@ onUnmounted(() => {
           <LucideLayoutGrid class="size-4.5" />
         </AppButton>
       </Tooltip>
-      <Tooltip class="ml-2" content="打开设置" placement="bottom" align="center">
-        <AppButton
-          icon-only
-          shape="pill"
-          aria-label="打开设置"
-          @click="$router.push({ name: 'Settings' })"
-        >
-          <LucideSlidersHorizontal class="size-4.5" />
-        </AppButton>
-      </Tooltip>
-    </div>
-    <div class="ml-auto flex items-center gap-2">
-      <Tooltip content="搜索" placement="bottom" align="center">
+      <Tooltip class="ml-2" content="搜索" placement="bottom" align="center">
         <AppButton
           shape="pill"
           aria-label="搜索"
@@ -73,6 +58,18 @@ onUnmounted(() => {
         >
           <LucideSearch class="size-4.5" />
           <kbd class="hidden md:inline text-xs text-gray-400">Ctrl+K</kbd>
+        </AppButton>
+      </Tooltip>
+    </div>
+    <div class="ml-auto flex items-center gap-2">
+      <Tooltip class="xl:hidden" content="打开设置" placement="bottom" align="center">
+        <AppButton
+          icon-only
+          shape="pill"
+          aria-label="打开设置"
+          @click="$router.push({ name: 'Settings' })"
+        >
+          <LucideSlidersHorizontal class="size-4.5" />
         </AppButton>
       </Tooltip>
       <NotificationBell />

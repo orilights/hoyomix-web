@@ -31,6 +31,7 @@ declare module 'vue' {
     CommentThread: typeof import('./components/comment/CommentThread.vue')['default']
     CoverImage: typeof import('./components/CoverImage.vue')['default']
     CreatePlaylistDialog: typeof import('./components/playlist/CreatePlaylistDialog.vue')['default']
+    DesktopSidebar: typeof import('./components/DesktopSidebar.vue')['default']
     Dropdown: typeof import('./components/common/Dropdown.vue')['default']
     FavoriteButton: typeof import('./components/common/FavoriteButton.vue')['default']
     FloatingActions: typeof import('./components/common/FloatingActions.vue')['default']

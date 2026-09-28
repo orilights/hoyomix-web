@@ -42,7 +42,7 @@
 
 ## 环境变量
 - `src/constants/index.ts` 从 `import.meta.env.VITE_*` 读取(apiBase、resourceBase、userApiBase、feedbackUrl)
-- 产品映射 `productMap`、音质 `audioQualityOptions`、排序 `artistTypeSort` 等常量也在此
+- 音质 `audioQualityOptions`、排序 `artistTypeSort` 等常量也在此；游戏/产品列表（productId/name/alias）来自 `/app-config` 的 `products`，存于 main store 的 `productList`，映射查询用 `productNameMap` / `productAliasMap` getters
 
 ## 路由
 - `src/router/routes.ts` 集中定义,页面用 `() => import('@/views/...')` 懒加载

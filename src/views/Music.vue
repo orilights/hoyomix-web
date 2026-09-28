@@ -252,10 +252,6 @@ function openEditVideo() {
 function refreshSongInfo() {
   queryClient.invalidateQueries({ queryKey: ['songInfo', musicId.value] })
 }
-
-onMounted(() => {
-  document.documentElement.scrollTo(0, 0)
-})
 </script>
 
 <template>
