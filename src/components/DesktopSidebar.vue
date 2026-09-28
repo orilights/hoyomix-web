@@ -21,7 +21,7 @@ const navigation = [
   { name: 'Home', label: '首页', icon: House },
   { name: 'Albums', label: '全部专辑', icon: Disc3 },
   { name: 'Playlists', label: '歌单广场', icon: ListMusic },
-  { name: 'Random', label: '随机播放列表', icon: Shuffle },
+  { name: 'Random', label: '随机播放', icon: Shuffle },
   { name: 'Ranking', label: '热榜', icon: TrendingUp },
   { name: 'Statistics', label: '统计', icon: ChartNoAxesCombined },
 ]

@@ -14,7 +14,7 @@ const player = usePlayerStore()
 const auth = useAuthStore()
 
 usePageSeo({
-  title: '随机播放列表',
+  title: '随机播放',
   description: '随机生成播放列表',
   path: '/random',
 })
@@ -125,7 +125,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <PageHeader title="随机播放列表" subtitle="随机生成播放列表" />
+    <PageHeader title="随机播放" subtitle="随机生成播放列表" />
 
     <div class="xl:grid xl:grid-cols-[320px_1fr] gap-6">
       <div class="bg-white/80 rounded-2xl p-4 space-y-4">

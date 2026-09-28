@@ -120,7 +120,7 @@ onMounted(() => {
       </OverlayScrollbarsComponent>
     </div>
 
-    <div class="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+    <div class="mt-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
       <RouterLink
         :to="{ name: 'Playlists' }"
         class="flex items-center gap-2 md:gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
@@ -147,7 +147,7 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900">
-            随机播放列表
+            随机播放
           </div>
           <div class="text-sm text-gray-500 mt-0.5">
             随机生成播放列表
@@ -197,7 +197,7 @@ onMounted(() => {
           收录游戏
         </h2>
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-3">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3">
         <RouterLink
           v-for="product in products"
           :key="product.productName"
@@ -231,7 +231,7 @@ onMounted(() => {
         </RouterLink>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mt-2">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3 mt-2">
         <div class="bg-black/5 rounded-xl p-4">
           <div class="text-sm text-gray-500">
             专辑总数
