@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
-import { ChartNoAxesCombined, Disc3, House, ListMusic, Shuffle, TrendingUp } from '@lucide/vue'
+import { Disc3, House, ListMusic, Shuffle, TrendingUp } from '@lucide/vue'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
@@ -23,7 +23,6 @@ const navigation = [
   { name: 'Playlists', label: '歌单广场', icon: ListMusic },
   { name: 'Random', label: '随机播放', icon: Shuffle },
   { name: 'Ranking', label: '热榜', icon: TrendingUp },
-  { name: 'Statistics', label: '统计', icon: ChartNoAxesCombined },
 ]
 
 const likedSongs = computed(() => mine.data.value?.find(item => item.type === 'favorites'))
@@ -112,7 +111,7 @@ watch(() => auth.user?.id, () => {
 
         <div v-if="!auth.isLoggedIn" class="px-3 py-3 rounded-xl bg-black/5">
           <p class="text-xs text-gray-500 mb-3">
-            登录后查看喜欢的音乐和歌单
+            登录后查看收藏的音乐和歌单
           </p>
           <AppButton size="sm" class="w-full" @click="auth.openAuthDialog()">
             登录
