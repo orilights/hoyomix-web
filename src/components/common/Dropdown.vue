@@ -54,28 +54,34 @@ const { floatingStyles } = useFloating(container, menu, {
 function toggleDropdown() {
   isOpen.value = !isOpen.value
   if (isOpen.value) {
-    document.addEventListener('click', closeDropdown)
+    document.addEventListener('click', handleOutsideClick, true)
   }
   else {
-    document.removeEventListener('click', closeDropdown)
+    document.removeEventListener('click', handleOutsideClick, true)
   }
+}
+
+function handleOutsideClick(event: MouseEvent) {
+  const path = event.composedPath()
+  if ((container.value && path.includes(container.value)) || (menu.value && path.includes(menu.value)))
+    return
+  closeDropdown()
 }
 
 function closeDropdown() {
   isOpen.value = false
-  document.removeEventListener('click', closeDropdown)
+  document.removeEventListener('click', handleOutsideClick, true)
 }
 
 function selectOption(option: DropdownOption) {
   if (option.disabled)
     return
   option.onClick()
-  isOpen.value = false
-  document.removeEventListener('click', closeDropdown)
+  closeDropdown()
 }
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', closeDropdown)
+  document.removeEventListener('click', handleOutsideClick, true)
 })
 </script>
 
