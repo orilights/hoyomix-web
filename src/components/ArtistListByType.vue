@@ -69,7 +69,7 @@ const sortedEntries = computed(() => {
             />
             <RouterLink v-else :to="{ name: 'ArtistInfo', params: { name: artist.name } }">
               {{ artist.name }}
-              <span v-if="artist.songCount != null" class="text-xs text-gray-600">{{ artist.songCount }}&nbsp;</span>
+              <span v-if="artist.songCount != null" class="text-xs text-gray-600 dark:text-gray-400">{{ artist.songCount }}&nbsp;</span>
             </RouterLink>
           </div>
         </div>

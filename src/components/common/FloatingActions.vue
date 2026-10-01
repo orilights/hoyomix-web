@@ -27,7 +27,7 @@ function backToTop() {
   scrollPageToTop('smooth')
 }
 
-const buttonClass = 'size-11 rounded-full inline-flex items-center justify-center cursor-pointer bg-white/70 backdrop-blur-xl border border-white/70 shadow-lg text-gray-600 hover:text-gray-900 hover:bg-white/90 transition-colors focus-visible:ring-2 focus-visible:ring-blue-400/60'
+const buttonClass = 'size-11 rounded-full inline-flex items-center justify-center cursor-pointer bg-white/70 dark:bg-[var(--theme-surface)]/70 backdrop-blur-xl border border-white/70 dark:border-gray-700/70 shadow-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 hover:dark:text-gray-100 hover:bg-white/90 hover:dark:bg-[var(--theme-surface)]/90 transition-colors focus-visible:ring-2 focus-visible:ring-blue-400/60'
 </script>
 
 <template>

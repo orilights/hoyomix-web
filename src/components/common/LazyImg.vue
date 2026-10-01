@@ -11,7 +11,7 @@ const imgAttrs = computed(() => {
 </script>
 
 <template>
-  <span class="inline-block bg-gray-200 overflow-hidden shrink-0 leading-none" :class="wrapperClass">
+  <span class="inline-block bg-gray-200 dark:bg-gray-700 overflow-hidden shrink-0 leading-none" :class="wrapperClass">
     <img
       v-bind="imgAttrs"
       loading="lazy"

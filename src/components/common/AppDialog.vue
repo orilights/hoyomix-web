@@ -44,11 +44,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         @click="onOverlayClick"
       >
         <div
-          class="w-full bg-white rounded-2xl shadow-2xl overflow-hidden"
+          class="w-full bg-white dark:bg-[var(--theme-surface)] rounded-2xl shadow-2xl overflow-hidden"
           :class="size === 'md' ? 'max-w-md' : 'max-w-sm'"
         >
-          <div class="flex items-center justify-between px-6 py-4" :class="[hideHeaderBorder ? '' : 'border-b border-gray-100']">
-            <h2 class="text-lg font-semibold text-gray-900">
+          <div class="flex items-center justify-between px-6 py-4" :class="[hideHeaderBorder ? '' : 'border-b border-gray-100 dark:border-gray-700']">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
               <slot name="title">
                 {{ title }}
               </slot>
@@ -58,7 +58,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
               size="sm"
               shape="pill"
               variant="ghost"
-              class="text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              class="text-gray-400 hover:text-gray-600 hover:dark:text-gray-400 hover:bg-gray-100 hover:dark:bg-gray-800"
               aria-label="关闭对话框"
               @click="close"
             >
@@ -66,7 +66,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             </AppButton>
           </div>
           <slot />
-          <div v-if="$slots.footer" class="border-t border-gray-100">
+          <div v-if="$slots.footer" class="border-t border-gray-100 dark:border-gray-700">
             <slot name="footer" />
           </div>
         </div>

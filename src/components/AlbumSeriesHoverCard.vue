@@ -147,7 +147,7 @@ onBeforeUnmount(() => {
         :aria-controls="cardId"
         :aria-expanded="isOpen"
         aria-haspopup="dialog"
-        class="px-2 py-0.5 bg-black/5 rounded-xl hover:bg-black/10 transition-colors"
+        class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl hover:bg-black/10 hover:dark:bg-white/10 transition-colors"
         @pointerdown="onTriggerPointerDown"
         @pointerenter="($event.pointerType !== 'touch') && openCard()"
         @pointerleave="($event.pointerType !== 'touch') && scheduleClose()"
@@ -170,7 +170,7 @@ onBeforeUnmount(() => {
         tabindex="-1"
         role="dialog"
         :aria-label="`${seriesName} 系列专辑`"
-        class="z-1000 w-80 max-w-[calc(100vw-16px)] overflow-hidden rounded-xl bg-white/95 backdrop-blur-xl border border-white/70 shadow-xl p-2 text-sm outline-none"
+        class="z-1000 w-80 max-w-[calc(100vw-16px)] overflow-hidden rounded-xl bg-white/95 dark:bg-[var(--theme-surface)]/95 backdrop-blur-xl border border-white/70 dark:border-gray-700/70 shadow-xl p-2 text-sm outline-none"
         :style="floatingStyles"
         @pointerenter="cancelClose"
         @pointerleave="scheduleClose"
@@ -181,23 +181,23 @@ onBeforeUnmount(() => {
           <span class="font-medium flex-1 min-w-0 truncate">{{ seriesName }} 系列专辑</span>
           <RouterLink
             :to="{ name: 'AlbumSeries', params: { seriesName } }"
-            class="shrink-0 text-blue-600 hover:text-blue-700"
+            class="shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:dark:text-blue-400"
             @click="closeCard"
           >
             查看全部
           </RouterLink>
         </div>
 
-        <div v-if="isLoading" class="px-2 py-5 text-center text-gray-500">
+        <div v-if="isLoading" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
           加载中...
         </div>
-        <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500">
+        <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
           加载失败
-          <button class="ml-1 text-blue-600 cursor-pointer" @click="refetch()">
+          <button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
             重试
           </button>
         </div>
-        <div v-else-if="!sortedAlbums.length" class="px-2 py-5 text-center text-gray-500">
+        <div v-else-if="!sortedAlbums.length" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
           暂无系列专辑
         </div>
         <div v-else ref="albumList">
@@ -211,7 +211,7 @@ onBeforeUnmount(() => {
               <div
                 v-if="album.id === currentAlbumId"
                 data-current-album
-                class="flex items-center gap-2 rounded-lg p-2 bg-black/5"
+                class="flex items-center gap-2 rounded-lg p-2 bg-black/5 dark:bg-white/5"
                 aria-current="page"
               >
                 <div class="size-10 shrink-0 rounded-md overflow-hidden">
@@ -221,16 +221,16 @@ onBeforeUnmount(() => {
                   <div class="truncate font-medium">
                     {{ album.name }}
                   </div>
-                  <div class="text-xs text-gray-500">
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
                     {{ album.publishDate }}
                   </div>
                 </div>
-                <span class="text-xs text-gray-500 shrink-0">当前</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">当前</span>
               </div>
               <RouterLink
                 v-else
                 :to="{ name: 'AlbumInfo', params: { id: album.id } }"
-                class="flex items-center gap-2 rounded-lg p-2 hover:bg-black/5 transition-colors"
+                class="flex items-center gap-2 rounded-lg p-2 hover:bg-black/5 hover:dark:bg-white/5 transition-colors"
                 @click="closeCard"
               >
                 <div class="size-10 shrink-0 rounded-md overflow-hidden">
@@ -240,7 +240,7 @@ onBeforeUnmount(() => {
                   <div class="truncate font-medium">
                     {{ album.name }}
                   </div>
-                  <div class="text-xs text-gray-500">
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
                     {{ album.publishDate }}
                   </div>
                 </div>

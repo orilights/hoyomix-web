@@ -34,7 +34,7 @@ watch(isLyricsError, (val) => {
 </script>
 
 <template>
-  <div class="bg-black/5 rounded-xl overflow-hidden p-4">
+  <div class="bg-black/5 dark:bg-white/5 rounded-xl overflow-hidden p-4">
     <div class="mb-2">
       <div class="flex items-center gap-0.5">
         <button
@@ -71,7 +71,7 @@ watch(isLyricsError, (val) => {
         </div>
         <div v-for="line, index in lyricList" v-else :key="index" class="my-1">
           <span>{{ line.text }}</span>
-          <span v-if="line.translation" class="text-gray-500 ml-2">/ {{ line.translation }}</span>
+          <span v-if="line.translation" class="text-gray-500 dark:text-gray-400 ml-2">/ {{ line.translation }}</span>
         </div>
       </div>
     </AsyncFade>

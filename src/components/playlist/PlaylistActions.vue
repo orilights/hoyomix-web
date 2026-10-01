@@ -65,7 +65,7 @@ const favoriteTooltip = computed(() =>
 
   <Tooltip placement="top" theme="light" content="切换多选模式">
     <AppButton
-      :class="multiSelectActive ? 'bg-blue-500/15 text-blue-600 hover:bg-blue-500/25' : 'bg-gray-500/10 hover:bg-gray-500/20'"
+      :class="multiSelectActive ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25' : 'bg-gray-500/10 hover:bg-gray-500/20'"
       @click="emit('toggleMultiSelect')"
     >
       <LucideListChecks class="size-4" />

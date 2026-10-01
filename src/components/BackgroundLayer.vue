@@ -60,7 +60,7 @@ watch(backgroundUrl, (newVal) => {
       'opacity-100': showBackground === 2,
     }"
   />
-  <div class="fixed inset-0 pointer-events-none bg-white/85" />
+  <div class="fixed inset-0 pointer-events-none bg-white/85 dark:bg-[var(--theme-overlay)]/85" />
 </template>
 
 <style scoped>

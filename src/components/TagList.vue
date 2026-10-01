@@ -41,17 +41,17 @@ function goSourceLink(url: string) {
     <div
       v-for="(map, mi) in maps"
       :key="`map-${mi}`"
-      class="px-2 py-0.5 bg-black/5 rounded-xl flex flex-wrap items-center gap-1 text-sm"
+      class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl flex flex-wrap items-center gap-1 text-sm"
     >
       <template v-for="(segment, si) in map.path" :key="si">
         <LucideChevronRight v-if="si > 0" class="h-3 w-3 text-gray-400" />
         <span>{{ segment }}</span>
       </template>
-      <span v-if="map.note" class="text-gray-500">（{{ map.note }}）</span>
+      <span v-if="map.note" class="text-gray-500 dark:text-gray-400">（{{ map.note }}）</span>
     </div>
 
     <template v-for="(tagInfo, index) in tags" :key="index">
-      <div v-if="tagInfo.tagType === 'version'" class="px-2 py-0.5 bg-black/5 rounded-xl">
+      <div v-if="tagInfo.tagType === 'version'" class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl">
         发布版本：{{ tagInfo.tagName }}
       </div>
 
@@ -64,7 +64,7 @@ function goSourceLink(url: string) {
       <RouterLink
         v-else-if="tagInfo.tagType === 'series'"
         :to="{ name: 'AlbumSeries', params: { seriesName: tagInfo.tagName } }"
-        class="px-2 py-0.5 bg-black/5 rounded-xl hover:bg-black/10 transition-colors"
+        class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl hover:bg-black/10 hover:dark:bg-white/10 transition-colors"
       >
         {{ tagInfo.tagName }} 系列专辑
       </RouterLink>

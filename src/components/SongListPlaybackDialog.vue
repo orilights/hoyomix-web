@@ -81,18 +81,18 @@ defineExpose({ play })
   <AppDialog v-model="visible" title="选择播放方式" size="md">
     <div class="p-5 space-y-3">
       <button
-        class="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+        class="w-full text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:dark:bg-blue-500/15 transition-colors cursor-pointer"
         @click="choose('replace')"
       >
         <span class="block font-medium">替换播放列表并播放</span>
       </button>
       <button
-        class="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+        class="w-full text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:dark:bg-blue-500/15 transition-colors cursor-pointer"
         @click="choose('insert-next')"
       >
         <span class="block font-medium">插入到下一首并播放</span>
       </button>
-      <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+      <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
         <input v-model="rememberChoice" type="checkbox" class="accent-blue-500">
         记住选择，下次不再询问
       </label>

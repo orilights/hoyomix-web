@@ -79,7 +79,7 @@ onMounted(() => {
         </h2>
         <RouterLink
           :to="{ name: 'Albums' }"
-          class="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600 transition-colors"
+          class="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 transition-colors"
         >
           查看全部
           <LucideChevronRight class="size-4" />
@@ -92,7 +92,7 @@ onMounted(() => {
         class="mt-2 w-full"
         :options="{
           overflow: { x: 'scroll', y: 'hidden' },
-          scrollbars: { autoHide: 'move', autoHideDelay: 300 },
+          scrollbars: { theme: 'os-theme-custom', autoHide: 'move', autoHideDelay: 300 },
         }"
         @wheel.stop.prevent="handleWheel"
       >
@@ -112,7 +112,7 @@ onMounted(() => {
                 {{ album.name }}
               </div>
               <div>
-                <span class="text-xs text-gray-500">{{ album.publishDate }}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ album.publishDate }}</span>
               </div>
             </div>
           </RouterLink>
@@ -123,16 +123,16 @@ onMounted(() => {
     <div class="mt-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
       <RouterLink
         :to="{ name: 'Playlists' }"
-        class="flex items-center gap-2 md:gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
       >
         <div class="px-2 md:px-3">
-          <LucideListMusic class="size-5 md:size-6 text-gray-900" />
+          <LucideListMusic class="size-5 md:size-6 text-gray-900 dark:text-gray-100" />
         </div>
         <div class="flex-1 min-w-0">
-          <div class="font-semibold text-gray-900">
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
             歌单
           </div>
-          <div class="text-sm text-gray-500 mt-0.5">
+          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             发现和管理歌单
           </div>
         </div>
@@ -140,16 +140,16 @@ onMounted(() => {
       </RouterLink>
       <RouterLink
         :to="{ name: 'Random' }"
-        class="flex items-center gap-2 md:gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
       >
         <div class="px-2 md:px-3">
-          <LucideShuffle class="size-5 md:size-6 text-gray-900" />
+          <LucideShuffle class="size-5 md:size-6 text-gray-900 dark:text-gray-100" />
         </div>
         <div class="flex-1 min-w-0">
-          <div class="font-semibold text-gray-900">
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
             随机播放
           </div>
-          <div class="text-sm text-gray-500 mt-0.5">
+          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             随机生成播放列表
           </div>
         </div>
@@ -157,16 +157,16 @@ onMounted(() => {
       </RouterLink>
       <RouterLink
         :to="{ name: 'Ranking' }"
-        class="flex items-center gap-2 md:gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
       >
         <div class="px-2 md:px-3">
-          <LucideTrendingUp class="size-5 md:size-6 text-gray-900" />
+          <LucideTrendingUp class="size-5 md:size-6 text-gray-900 dark:text-gray-100" />
         </div>
         <div class="flex-1 min-w-0">
-          <div class="font-semibold text-gray-900">
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
             热榜
           </div>
-          <div class="text-sm text-gray-500 mt-0.5">
+          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             看看大家都在听什么
           </div>
         </div>
@@ -174,16 +174,16 @@ onMounted(() => {
       </RouterLink>
       <RouterLink
         :to="{ name: 'Feedback' }"
-        class="flex items-center gap-2 md:gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
       >
         <div class="px-2 md:px-3">
-          <LucideMessageSquare class="size-5 md:size-6 text-gray-900" />
+          <LucideMessageSquare class="size-5 md:size-6 text-gray-900 dark:text-gray-100" />
         </div>
         <div class="flex-1 min-w-0">
-          <div class="font-semibold text-gray-900">
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
             反馈
           </div>
-          <div class="text-sm text-gray-500 mt-0.5">
+          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             问题与建议
           </div>
         </div>
@@ -202,14 +202,14 @@ onMounted(() => {
           v-for="product in products"
           :key="product.productName"
           :to="{ name: 'ProductInfo', params: { name: product.productName } }"
-          class="flex items-center gap-3 bg-black/5 hover:bg-black/10 transition-colors rounded-xl p-3"
+          class="flex items-center gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
         >
           <LazyImg class="size-12 rounded-full shadow" :src="getProductIconUrl(product.productName)" />
           <div class="min-w-0">
             <div class="font-medium truncate">
               {{ product.name }}
             </div>
-            <div class="text-xs text-gray-500 mt-0.5">
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               专辑 {{ product.songCount?.albumCount }} · 歌曲 {{ product.songCount?.songCount }}
             </div>
           </div>
@@ -224,7 +224,7 @@ onMounted(() => {
         </h2>
         <RouterLink
           :to="{ name: 'Statistics' }"
-          class="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600 transition-colors"
+          class="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 transition-colors"
         >
           查看统计
           <LucideChevronRight class="size-4" />
@@ -232,32 +232,32 @@ onMounted(() => {
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3 mt-2">
-        <div class="bg-black/5 rounded-xl p-4">
-          <div class="text-sm text-gray-500">
+        <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
             专辑总数
           </div>
           <div class="text-2xl md:text-3xl font-bold mt-1">
             {{ totalAlbums }}
           </div>
         </div>
-        <div class="bg-black/5 rounded-xl p-4">
-          <div class="text-sm text-gray-500">
+        <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
             歌曲总数
           </div>
           <div class="text-2xl md:text-3xl font-bold mt-1">
             {{ totalSongs }}
           </div>
         </div>
-        <div class="bg-black/5 rounded-xl p-4">
-          <div class="text-sm text-gray-500">
+        <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
             歌曲总时长
           </div>
           <div class="text-2xl md:text-3xl font-bold mt-1">
             {{ formatDuration(totalDuration) }}
           </div>
         </div>
-        <div class="bg-black/5 rounded-xl p-4">
-          <div class="text-sm text-gray-500">
+        <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
             覆盖游戏
           </div>
           <div class="text-2xl md:text-3xl font-bold mt-1">

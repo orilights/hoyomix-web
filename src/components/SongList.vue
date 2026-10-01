@@ -158,7 +158,7 @@ function handleDragEnd() {
 </script>
 
 <template>
-  <div class="bg-black/5 rounded-xl pt-2 pb-4 overflow-hidden">
+  <div class="bg-black/5 dark:bg-white/5 rounded-xl pt-2 pb-4 overflow-hidden">
     <table v-if="songCount" class="w-full table-fixed">
       <thead>
         <tr class="text-left">
@@ -203,7 +203,7 @@ function handleDragEnd() {
         <template #item="{ element: row }">
           <tr v-if="row.type === 'group'">
             <td :colspan="columnCount">
-              <div class="text-gray-600 py-2 px-3 text-sm">
+              <div class="text-gray-600 dark:text-gray-400 py-2 px-3 text-sm">
                 {{ row.label }}
               </div>
             </td>
@@ -213,8 +213,8 @@ function handleDragEnd() {
             :data-song-id="row.song.songId"
             class="cursor-pointer transition-colors group"
             :class="{
-              'bg-blue-50/60': selectedIds.has(row.song.songId),
-              'hover:bg-black/8': !isDragging,
+              'bg-blue-50/60 dark:bg-blue-500/15': selectedIds.has(row.song.songId),
+              'hover:bg-black/8 hover:dark:bg-white/8': !isDragging,
             }"
             @click="openSong(row.song)"
           >
@@ -227,7 +227,7 @@ function handleDragEnd() {
                 @change="toggleSelect(row.song.songId)"
               >
             </td>
-            <td class="p-2 text-center text-gray-500 text-sm">
+            <td class="p-2 text-center text-gray-500 dark:text-gray-400 text-sm">
               <span
                 v-if="player.isPlaying && player.currentSong?.songId === row.song.songId"
                 class="song-list-playing inline-flex h-6 w-6 items-center justify-center gap-[2px] align-middle text-blue-500"
@@ -258,11 +258,11 @@ function handleDragEnd() {
               <p class="truncate text-sm font-medium" :title="row.song.songName">
                 {{ row.song.songName }}
               </p>
-              <p v-if="row.song.songDescription" class="truncate text-xs text-gray-500">
+              <p v-if="row.song.songDescription" class="truncate text-xs text-gray-500 dark:text-gray-400">
                 {{ row.song.songDescription }}
               </p>
             </td>
-            <td v-if="showAlbum" class="hidden md:table-cell p-2 text-sm text-gray-500 truncate" :title="row.song.albumName">
+            <td v-if="showAlbum" class="hidden md:table-cell p-2 text-sm text-gray-500 dark:text-gray-400 truncate" :title="row.song.albumName">
               <RouterLink
                 :to="{ name: 'AlbumInfo', params: { id: row.song.albumId } }"
                 class="hover:text-blue-500 transition-colors"
@@ -271,7 +271,7 @@ function handleDragEnd() {
                 {{ row.song.albumName }}
               </RouterLink>
             </td>
-            <td class="p-2 text-sm text-gray-500">
+            <td class="p-2 text-sm text-gray-500 dark:text-gray-400">
               {{ formatDuration(row.song.duration) }}
             </td>
             <td class="hidden md:table-cell p-2" @click.stop>

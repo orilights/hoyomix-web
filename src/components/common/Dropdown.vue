@@ -54,28 +54,34 @@ const { floatingStyles } = useFloating(container, menu, {
 function toggleDropdown() {
   isOpen.value = !isOpen.value
   if (isOpen.value) {
-    document.addEventListener('click', closeDropdown)
+    document.addEventListener('click', handleOutsideClick, true)
   }
   else {
-    document.removeEventListener('click', closeDropdown)
+    document.removeEventListener('click', handleOutsideClick, true)
   }
+}
+
+function handleOutsideClick(event: MouseEvent) {
+  const path = event.composedPath()
+  if ((container.value && path.includes(container.value)) || (menu.value && path.includes(menu.value)))
+    return
+  closeDropdown()
 }
 
 function closeDropdown() {
   isOpen.value = false
-  document.removeEventListener('click', closeDropdown)
+  document.removeEventListener('click', handleOutsideClick, true)
 }
 
 function selectOption(option: DropdownOption) {
   if (option.disabled)
     return
   option.onClick()
-  isOpen.value = false
-  document.removeEventListener('click', closeDropdown)
+  closeDropdown()
 }
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', closeDropdown)
+  document.removeEventListener('click', handleOutsideClick, true)
 })
 </script>
 
@@ -92,7 +98,7 @@ onBeforeUnmount(() => {
         v-if="isOpen"
         ref="menu"
         class="dropdown-menu rounded-lg w-fit text-sm shadow overflow-hidden z-999"
-        :class="dark ? 'bg-gray-800 text-white' : 'bg-white'"
+        :class="dark ? 'bg-gray-800 text-white' : 'bg-white dark:bg-[var(--theme-surface)] dark:text-gray-100'"
         :style="floatingStyles"
         @click.stop
       >
@@ -106,7 +112,7 @@ onBeforeUnmount(() => {
           @click="selectOption(option)"
         >
           {{ option.label }}
-          <span v-if="option.desc" class="text-xs text-gray-500">{{ option.desc }}</span>
+          <span v-if="option.desc" class="text-xs text-gray-500 dark:text-gray-400">{{ option.desc }}</span>
         </div>
       </div>
     </Transition>

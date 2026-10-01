@@ -8,6 +8,21 @@
     <meta name="keywords" content="HOYO-MiX Online,HOYO-MiX,米哈游,HoYoverse,原神,崩坏星穹铁道,崩坏3,绝区零,未定事件簿,原声带,OST,游戏音乐">
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#f5f7fa" />
+    <script>
+      (() => {
+        let mode = 'system'
+        try {
+          const saved = JSON.parse(localStorage.getItem('theme') || 'null')
+          if (['system', 'light', 'dark'].includes(saved?.mode))
+            mode = saved.mode
+        }
+        catch {}
+        const dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.toggle('dark', dark)
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#111827' : '#f5f7fa')
+      })()
+    </script>
 
     <meta property="og:site_name" content="HOYO-MiX Online" />
     <meta property="og:type" content="website" />

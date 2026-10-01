@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="border-b border-black/5 last:border-b-0">
+  <section class="border-b border-black/5 dark:border-white/5 last:border-b-0">
     <CommentItem :comment="thread.root" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">
       <template v-if="replyTarget?.id === thread.root.id" #reply-composer>
         <CommentInput

@@ -310,7 +310,7 @@ async function deletePlaylist() {
           <div v-if="coverUrl" class="size-full">
             <CoverImage :src="coverUrl" />
           </div>
-          <div v-else class="size-full bg-gray-200 flex items-center justify-center">
+          <div v-else class="size-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
             <LucideMusic class="size-12 text-blue-400" />
           </div>
         </div>
@@ -321,15 +321,15 @@ async function deletePlaylist() {
           </div>
 
           <div class="mt-1 md:mt-2 flex items-center gap-x-2 flex-wrap text-sm md:text-base">
-            <span class="text-gray-500 hidden md:inline">创建人</span>
+            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">创建人</span>
             <span class="w-[200px] truncate" :title="playlist.userId">
               {{ playlist.userId }}
             </span>
-            <span class="text-gray-500 hidden md:inline">创建于</span>
+            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">创建于</span>
             <span>
               {{ getPublishDate(playlist.createdAt) }}
             </span>
-            <span class="text-gray-500 hidden md:inline">歌曲数量</span>
+            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">歌曲数量</span>
             <span>
               {{ playlist.songCount }}
             </span>
@@ -341,28 +341,28 @@ async function deletePlaylist() {
           >
             <span
               v-if="reviewStatus === 'pending'"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400"
             >
               <LucideClock class="size-3" />
               审核中
             </span>
             <span
               v-else-if="reviewStatus === 'rejected'"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400"
             >
               <LucideCircleX class="size-3" />
               审核已驳回
             </span>
             <span
               v-else-if="reviewStatus === 'approved'"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400"
             >
               <LucideCircleCheck class="size-3" />
               审核已通过
             </span>
             <span
               v-if="reviewStatus === 'rejected' && reviewDetail?.reason"
-              class="text-xs text-gray-500"
+              class="text-xs text-gray-500 dark:text-gray-400"
             >
               原因：{{ reviewDetail.reason }}
             </span>
@@ -423,14 +423,14 @@ async function deletePlaylist() {
       <div v-if="playlist.isPublic" class="flex gap-2 mt-4 lg:hidden">
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'songs'"
         >
           歌曲列表
         </button>
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'comments'"
         >
           评论 {{ commentCount }}
@@ -474,7 +474,7 @@ async function deletePlaylist() {
             class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3 text-nowrap"
           >
             <span class="text-sm text-white/70">已选 {{ selectedIds.size }} 首</span>
-            <div class="w-px h-4 bg-white/20" />
+            <div class="w-px h-4 bg-white/20 dark:bg-[var(--theme-surface)]/20" />
             <button
               class="flex items-center gap-1.5 text-sm hover:text-blue-400 transition-colors cursor-pointer"
               @click="playSelected"
@@ -490,7 +490,7 @@ async function deletePlaylist() {
               加入播放列表
             </button>
             <template v-if="canEdit">
-              <div class="w-px h-4 bg-white/20" />
+              <div class="w-px h-4 bg-white/20 dark:bg-[var(--theme-surface)]/20" />
               <button
                 class="flex items-center gap-1.5 text-sm hover:text-red-400 transition-colors cursor-pointer"
                 :disabled="savingOrder"
@@ -518,7 +518,7 @@ async function deletePlaylist() {
         @success="onEditSuccess"
       />
       <AppDialog v-model="showDeleteConfirm" title="删除歌单">
-        <div class="px-6 py-5 text-sm text-gray-600">
+        <div class="px-6 py-5 text-sm text-gray-600 dark:text-gray-400">
           <p>确定要删除歌单「{{ playlist?.name }}」吗？</p>
           <p class="mt-2 text-red-500">
             删除后无法恢复

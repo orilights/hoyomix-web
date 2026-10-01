@@ -175,34 +175,34 @@ async function submit() {
 
     <div class="p-6 space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">歌单名称 <span class="text-red-500">*</span></label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">歌单名称 <span class="text-red-500">*</span></label>
         <input
           v-model="name"
           type="text"
           placeholder="输入歌单名称"
           maxlength="30"
-          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:dark:bg-gray-800 disabled:cursor-not-allowed"
           :disabled="isFavoritesPlaylist"
         >
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">描述（可选）</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述（可选）</label>
         <textarea
           v-model="description"
           placeholder="输入歌单描述"
           maxlength="500"
           rows="2"
-          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+          class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:bg-gray-100 disabled:dark:bg-gray-800 disabled:cursor-not-allowed"
           :disabled="isFavoritesPlaylist"
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">封面专辑（可选）</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">封面专辑（可选）</label>
         <div class="flex items-center gap-2">
           <LazyImg v-if="coverPreviewUrl" class="size-10 rounded-lg" :src="coverPreviewUrl" />
-          <div v-else class="size-10 rounded-lg bg-gray-100 shrink-0 flex items-center justify-center">
+          <div v-else class="size-10 rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 flex items-center justify-center">
             <LucideImage class="size-5 text-gray-300" />
           </div>
           <div class="relative flex-1">
@@ -210,19 +210,19 @@ async function submit() {
               v-model="albumSearchText"
               type="text"
               placeholder="搜索专辑..."
-              class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               @input="onAlbumInput"
               @focus="showAlbumDropdown = true"
               @blur="hideAlbumDropdown"
             >
             <div
               v-if="showAlbumDropdown && filteredAlbums.length"
-              class="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto"
+              class="absolute top-full mt-1 left-0 right-0 bg-white dark:bg-[var(--theme-surface)] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto"
             >
               <button
                 v-for="album in filteredAlbums"
                 :key="album.id"
-                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer"
+                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer"
                 @mousedown.prevent="selectAlbum(album)"
               >
                 {{ album.name }}
@@ -240,12 +240,12 @@ async function submit() {
       </div>
 
       <div class="flex items-center gap-3">
-        <label class="text-sm font-medium text-gray-700">公开歌单</label>
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">公开歌单</label>
         <Tooltip :content="hasPendingReview ? '已有待审核记录，请等待审核完成' : (isFavoritesPlaylist ? '收藏歌单不支持修改公开状态' : '')" placement="top">
           <button
             class="relative w-10 h-5.5 rounded-full transition-colors"
             :class="[
-              isPublic ? 'bg-blue-500' : 'bg-gray-200',
+              isPublic ? 'bg-blue-500' : 'bg-gray-200 dark:bg-gray-700',
               (hasPendingReview || isFavoritesPlaylist) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
             ]"
             :disabled="hasPendingReview || isFavoritesPlaylist"
@@ -262,7 +262,7 @@ async function submit() {
 
       <div
         v-if="isFavoritesPlaylist"
-        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-yellow-50 text-yellow-700 text-sm"
+        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-yellow-50 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 text-sm"
       >
         <LucideInfo class="size-4 mt-0.5 shrink-0" />
         <span>收藏歌单不支持修改名称、描述与公开状态，仅可修改封面。</span>
@@ -270,7 +270,7 @@ async function submit() {
 
       <div
         v-if="willTriggerMakePublicReview"
-        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 text-blue-700 text-sm"
+        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 text-sm"
       >
         <LucideInfo class="size-4 mt-0.5 shrink-0" />
         <span>申请公开后需经过审核，审核期间歌单仍为私密状态，审核通过后将自动公开。</span>
@@ -278,7 +278,7 @@ async function submit() {
 
       <div
         v-else-if="willTriggerUpdateInfoReview"
-        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 text-blue-700 text-sm"
+        class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 text-sm"
       >
         <LucideInfo class="size-4 mt-0.5 shrink-0" />
         <span>修改公开歌单的名称或描述需经过审核，审核通过后才会正式生效，审核期间显示原内容。</span>

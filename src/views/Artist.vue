@@ -116,10 +116,10 @@ onMounted(() => {
     </div>
 
     <div v-else class="flex flex-col lg:flex-row gap-4 mt-4">
-      <div class="w-full lg:w-[400px] shrink-0 h-fit p-4 bg-black/5 rounded-xl">
+      <div class="w-full lg:w-[400px] shrink-0 h-fit p-4 bg-black/5 dark:bg-white/5 rounded-xl">
         <div class="font-bold text-2xl pb-4">
           {{ artistName }}
-          <div v-if="artistInfo?.isHoyomix" class="font-normal text-base text-gray-500">
+          <div v-if="artistInfo?.isHoyomix" class="font-normal text-base text-gray-500 dark:text-gray-400">
             HOYO-MiX 成员
           </div>
         </div>
@@ -130,7 +130,7 @@ onMounted(() => {
           <button
             v-for="product in artistInfo.products" :key="product"
             class="flex items-center px-2 py-1.5 rounded-lg transition-colors cursor-pointer text-left"
-            :class="selectedProduct === product ? 'bg-black/10 font-medium' : 'hover:bg-gray-500/15'"
+            :class="selectedProduct === product ? 'bg-black/10 dark:bg-white/10 font-medium' : 'hover:bg-gray-500/15'"
             @click="selectedProduct = selectedProduct === product ? null : product; selectedRole = null"
           >
             <LazyImg
@@ -151,7 +151,7 @@ onMounted(() => {
             <button
               v-for="item in allRoles" :key="item.role"
               class="flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors cursor-pointer text-left"
-              :class="selectedRole === item.role ? 'bg-black/10 font-medium' : 'hover:bg-gray-500/15'"
+              :class="selectedRole === item.role ? 'bg-black/10 dark:bg-white/10 font-medium' : 'hover:bg-gray-500/15'"
               @click="selectedRole = selectedRole === item.role ? null : item.role"
             >
               <span class="text-sm truncate mr-2">{{ item.role }}</span>
@@ -165,7 +165,7 @@ onMounted(() => {
         <div v-if="availableYears.length > 1" class="flex flex-wrap items-center gap-2 mb-2">
           <button
             class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
             @click="selectedYear = null"
           >
             全部
@@ -174,7 +174,7 @@ onMounted(() => {
             v-for="year in availableYears"
             :key="year"
             class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
             @click="selectedYear = year"
           >
             {{ year }}

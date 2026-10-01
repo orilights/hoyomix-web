@@ -150,7 +150,7 @@ function playSong(event: Event, songId: number, albumId: number) {
 
 <template>
   <div class="flex flex-col">
-    <div v-for="album in filteredAlbumsList" :key="album.id" class="mb-4 bg-black/5 rounded-xl p-4">
+    <div v-for="album in filteredAlbumsList" :key="album.id" class="mb-4 bg-black/5 dark:bg-white/5 rounded-xl p-4">
       <RouterLink :to="{ name: 'AlbumInfo', params: { id: album.id } }" :title="album.name">
         <div class="group flex items-center gap-2 md:gap-3 rounded-xl">
           <div class="shrink-0 size-14 md:size-20 rounded-lg overflow-hidden">
@@ -160,13 +160,13 @@ function playSong(event: Event, songId: number, albumId: number) {
             <div class="text-sm md:text-base font-medium truncate">
               {{ album.name }}
             </div>
-            <div class="text-xs text-gray-500 truncate mt-1">
+            <div class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
               {{ album.publishDate }} · {{ filteredSongsByAlbum.get(album.id)?.length }} / {{ album.songCount }}
             </div>
             <div v-if="getAlbumRoles(album.id).length" class="flex flex-wrap gap-1 mt-1">
               <span
                 v-for="role in getAlbumRoles(album.id)" :key="role"
-                class="text-xs bg-black/8 text-gray-600 px-1.5 py-0.5 rounded"
+                class="text-xs bg-black/8 dark:bg-white/8 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded"
               >
                 {{ role }}
               </span>
@@ -176,7 +176,7 @@ function playSong(event: Event, songId: number, albumId: number) {
             icon-only
             size="xs"
             variant="ghost"
-            class="shrink-0 text-gray-400 hover:text-gray-500 transition-all hover:scale-105 active:scale-95"
+            class="shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 transition-all hover:scale-105 active:scale-95"
             aria-label="播放艺术家参与的歌曲"
             title="播放艺术家参与的歌曲"
             @click.prevent="playArtistSongsFromAlbum(album.id)"
@@ -202,7 +202,7 @@ function playSong(event: Event, songId: number, albumId: number) {
             icon-only
             size="xs"
             variant="ghost"
-            class="hidden md:inline-flex shrink-0 text-gray-400 hover:text-gray-500 opacity-0 md:group-hover/song:opacity-100 transition-all hover:scale-105 active:scale-95"
+            class="hidden md:inline-flex shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 opacity-0 md:group-hover/song:opacity-100 transition-all hover:scale-105 active:scale-95"
             aria-label="播放歌曲"
             title="播放歌曲"
             @click="playSong($event, song.id, song.albumId)"

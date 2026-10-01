@@ -83,10 +83,10 @@ onUnmounted(() => {
     <Transition name="dropdown-fade">
       <div
         v-if="showDropdown"
-        class="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+        class="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[var(--theme-surface)] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50"
         @click.stop
       >
-        <div class="px-4 pt-4 pb-3 flex items-center gap-3 border-b border-gray-100">
+        <div class="px-4 pt-4 pb-3 flex items-center gap-3 border-b border-gray-100 dark:border-gray-700">
           <div class="size-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
             <img
               v-if="user?.image"
@@ -103,7 +103,7 @@ onUnmounted(() => {
             <p class="text-sm font-medium truncate">
               {{ user?.name }}
             </p>
-            <p class="text-xs text-gray-500 truncate mt-0.5">
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
               {{ user?.email }}
             </p>
           </div>

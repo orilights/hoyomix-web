@@ -155,7 +155,7 @@ async function voteComment(type: VoteType) {
 </script>
 
 <template>
-  <article :id="`comment-${localComment.id}`" tabindex="-1" class="border-b border-black/5 last:border-b-0 focus:outline-none" :class="depth === 1 ? 'py-2' : 'py-4'" @focus="revealComment">
+  <article :id="`comment-${localComment.id}`" tabindex="-1" class="border-b border-black/5 dark:border-white/5 last:border-b-0 focus:outline-none" :class="depth === 1 ? 'py-2' : 'py-4'" @focus="revealComment">
     <div v-if="commentCollapsed" class="flex min-h-8 flex-wrap items-center gap-2 text-sm text-gray-400">
       <LucideEyeOff class="size-4 shrink-0" aria-hidden="true" />
       <span>该评论已被折叠</span>
@@ -177,15 +177,15 @@ async function voteComment(type: VoteType) {
       </div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 flex-wrap text-sm">
-          <span class="font-medium text-gray-800">{{ localComment.user.name }}</span>
+          <span class="font-medium text-gray-800 dark:text-gray-200">{{ localComment.user.name }}</span>
           <span v-if="replyNumber" class="text-xs text-gray-400">#{{ replyNumber }}</span>
-          <span v-if="localComment.state === 'pending'" class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700 text-xs">审核中</span>
-          <span v-else-if="localComment.state === 'rejected'" class="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-xs">未通过</span>
+          <span v-if="localComment.state === 'pending'" class="px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 text-xs">审核中</span>
+          <span v-else-if="localComment.state === 'rejected'" class="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400 text-xs">未通过</span>
           <span class="text-xs text-gray-400">{{ new Date(localComment.createdAt).toLocaleString() }}</span>
           <button
             v-if="localComment.replyTo && localComment.replyToUser"
             type="button"
-            class="cursor-pointer text-xs text-gray-400 hover:text-blue-600 focus-visible:outline-none focus-visible:underline"
+            class="cursor-pointer text-xs text-gray-400 hover:text-blue-600 hover:dark:text-blue-400 focus-visible:outline-none focus-visible:underline"
             title="查看被回复的评论"
             @click="emit('locateReply', localComment.replyTo)"
           >
@@ -197,13 +197,13 @@ async function voteComment(type: VoteType) {
           v-model="editContent"
           rows="3"
           maxlength="2000"
-          class="mt-2 w-full resize-y rounded-lg border border-blue-300 bg-white/70 p-2 text-sm leading-6 outline-none focus:ring-2 focus:ring-blue-400/30"
+          class="mt-2 w-full resize-y rounded-lg border border-blue-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 p-2 text-sm leading-6 outline-none focus:ring-2 focus:ring-blue-400/30"
         />
         <p
           v-else
           :id="`comment-content-${localComment.id}`"
           ref="contentElement"
-          class="whitespace-pre-wrap break-words text-sm leading-6 text-gray-700"
+          class="whitespace-pre-wrap break-words text-sm leading-6 text-gray-700 dark:text-gray-300"
           :class="[depth === 1 ? 'mt-1' : 'mt-2', contentCollapsed ? 'max-h-60 overflow-hidden' : '']"
         >
           {{ localComment.content }}

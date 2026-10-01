@@ -62,6 +62,7 @@ onUnmounted(() => {
       </Tooltip>
     </div>
     <div class="ml-auto flex items-center gap-2">
+      <ThemeSwitcher compact />
       <Tooltip class="xl:hidden" content="打开设置" placement="bottom" align="center">
         <AppButton
           icon-only

@@ -211,8 +211,8 @@ onUnmounted(() => {
         @mousedown="onOverlayMousedown"
         @click="onOverlayClick"
       >
-        <div class="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden">
-          <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
+        <div class="w-full max-w-2xl bg-white dark:bg-[var(--theme-surface)] rounded-xl shadow-2xl overflow-hidden">
+          <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <LucideSearch class="size-5 text-gray-400 shrink-0" />
             <input
               ref="inputRef"
@@ -221,15 +221,15 @@ onUnmounted(() => {
               placeholder="搜索歌曲、专辑、游戏、艺术家..."
               class="flex-1 text-base outline-none bg-transparent placeholder-gray-400"
             >
-            <kbd class="hidden md:inline-flex items-center text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">ESC</kbd>
+            <kbd class="hidden md:inline-flex items-center text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">ESC</kbd>
           </div>
 
-          <div class="flex gap-1.5 px-4 py-2 border-b border-gray-200 overflow-x-auto">
+          <div class="flex gap-1.5 px-4 py-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
             <button
               v-for="opt in typeOptions"
               :key="opt.label"
               class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
-              :class="searchType === opt.value ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+              :class="searchType === opt.value ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
               @click="searchType = opt.value"
             >
               {{ opt.label }}
@@ -257,7 +257,7 @@ onUnmounted(() => {
                     :key="`${item.type}-${item.id}`"
                     :ref="(el) => setItemRef(el as HTMLElement, index)"
                     class="w-full flex items-start gap-3 px-4 py-3 transition-colors cursor-pointer text-left"
-                    :class="activeIndex === index ? 'bg-blue-500/10' : 'hover:bg-black/5'"
+                    :class="activeIndex === index ? 'bg-blue-500/10' : 'hover:bg-black/5 hover:dark:bg-white/5'"
                     @click="toResult(item)"
                     @mouseenter="activeIndex = index"
                   >
@@ -268,14 +268,14 @@ onUnmounted(() => {
                         :class="item.type === 'product' ? 'rounded-full' : 'rounded-lg'"
                         :src="getItemImageUrl(item)"
                       />
-                      <div v-else class="size-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                      <div v-else class="size-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                         <LucideUser v-if="item.type === 'artist'" class="size-5 text-gray-400" />
                         <LucideDisc v-if="item.type === 'series'" class="size-5 text-gray-400" />
                       </div>
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2">
-                        <span class="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
+                        <span class="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded shrink-0">
                           {{ getTypeLabel(item.type) }}
                         </span>
                         <span
@@ -283,7 +283,7 @@ onUnmounted(() => {
                           v-html="getHighlight(item, 'name') || item.name"
                         />
                       </div>
-                      <div v-if="getSubtitle(item)" class="text-sm text-gray-500 truncate mt-0.5">
+                      <div v-if="getSubtitle(item)" class="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
                         {{ getSubtitle(item) }}
                       </div>
                       <div

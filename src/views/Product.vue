@@ -162,19 +162,19 @@ watch(product, (val) => {
           {{ getProductName(product) }}
         </div>
         <div class="mt-2 md:mt-6">
-          <span class="text-gray-500">
+          <span class="text-gray-500 dark:text-gray-400">
             专辑
           </span>
           <span>
             {{ albumsFiltered.length }}
           </span>
-          <span class="ml-4 text-gray-500">
+          <span class="ml-4 text-gray-500 dark:text-gray-400">
             音乐
           </span>
           <span>
             {{ sumBy(albumsFiltered, (i) => i.songCount) }}
           </span>
-          <span class="ml-4 text-gray-500">
+          <span class="ml-4 text-gray-500 dark:text-gray-400">
             时长
           </span>
           <span>
@@ -187,14 +187,14 @@ watch(product, (val) => {
     <div class="flex gap-2 mt-4 lg:hidden h-fit">
       <button
         class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-        :class="activeTab === 'albums' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+        :class="activeTab === 'albums' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
         @click="activeTab = 'albums'"
       >
         专辑列表
       </button>
       <button
         class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-        :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+        :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
         @click="activeTab = 'artists'"
       >
         制作人员
@@ -202,19 +202,19 @@ watch(product, (val) => {
     </div>
 
     <div class="flex flex-col lg:flex-row gap-4 mt-4">
-      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] shrink-0 p-4 bg-black/5 rounded-xl lg:!block" :class="{ hidden: activeTab !== 'artists' }">
+      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] shrink-0 p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="product" type="product" />
       </div>
 
       <div v-show="activeTab === 'albums'" class="flex-1 lg:!block overflow-hidden" :class="{ hidden: activeTab !== 'albums' }">
         <section v-if="albumSeries.length" class="mb-4">
-          <h2 class="text-sm font-medium text-gray-500 mb-2">
+          <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
             专辑系列
           </h2>
           <div class="flex flex-wrap gap-2">
             <button
               class="text-sm px-3 py-1.5 rounded-md transition-colors cursor-pointer"
-              :class="selectedSeries === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+              :class="selectedSeries === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
               :aria-pressed="selectedSeries === null"
               @click="selectedSeries = null"
             >
@@ -225,12 +225,12 @@ watch(product, (val) => {
               :key="series.name"
               :title="series.displayName"
               class="inline-flex items-center gap-2 max-w-full min-w-0 px-3 py-1.5 rounded-md transition-colors cursor-pointer text-sm"
-              :class="selectedSeries === series.name ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+              :class="selectedSeries === series.name ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
               :aria-pressed="selectedSeries === series.name"
               @click="selectedSeries = series.name"
             >
               <span class="truncate">{{ series.displayName }}</span>
-              <span class="shrink-0 text-xs" :class="selectedSeries === series.name ? 'text-white/75' : 'text-gray-500'">{{ series.count }}</span>
+              <span class="shrink-0 text-xs" :class="selectedSeries === series.name ? 'text-white/75' : 'text-gray-500 dark:text-gray-400'">{{ series.count }}</span>
             </button>
           </div>
         </section>
@@ -238,7 +238,7 @@ watch(product, (val) => {
         <div v-if="versionRanges.length > 0" class="flex flex-wrap items-center gap-2 mb-2">
           <button
             class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedVersion === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            :class="selectedVersion === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
             @click="selectedVersion = null"
           >
             全部
@@ -247,7 +247,7 @@ watch(product, (val) => {
             v-for="range in versionRanges"
             :key="range.major"
             class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedVersion === range.major ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            :class="selectedVersion === range.major ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
             @click="selectedVersion = range.major"
           >
             {{ getVersionLabel(range.major) }}
@@ -257,7 +257,7 @@ watch(product, (val) => {
         <div class="flex flex-wrap items-center gap-2 mb-2">
           <button
             class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
             @click="selectedYear = null"
           >
             全部
@@ -266,7 +266,7 @@ watch(product, (val) => {
             v-for="year in availableYears"
             :key="year"
             class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 hover:bg-black/10'"
+            :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
             @click="selectedYear = year"
           >
             {{ year }}
@@ -280,7 +280,7 @@ watch(product, (val) => {
             </span>
           </template>
         </AlbumList>
-        <div v-if="albumsFiltered.length && !albumsFilteredByYear.length" role="status" class="py-12 text-center text-sm text-gray-500">
+        <div v-if="albumsFiltered.length && !albumsFilteredByYear.length" role="status" class="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
           暂无符合条件的专辑
         </div>
       </div>

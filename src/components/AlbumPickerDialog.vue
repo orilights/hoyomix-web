@@ -53,13 +53,13 @@ function confirm() {
         v-model="searchQuery"
         type="text"
         placeholder="搜索专辑名称或日期..."
-        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
       >
     </div>
     <div class="px-6 pb-2 flex items-center justify-between text-sm">
-      <span class="text-gray-500">已选 {{ localSelected.length }} 张</span>
+      <span class="text-gray-500 dark:text-gray-400">已选 {{ localSelected.length }} 张</span>
       <button
-        class="text-blue-500 hover:text-blue-600 cursor-pointer"
+        class="text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer"
         @click="localSelected = []"
       >
         清空
@@ -69,12 +69,12 @@ function confirm() {
       <button
         v-for="album in filteredAlbums"
         :key="album.id"
-        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-left"
+        class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer text-left"
         @click="toggle(album.id)"
       >
         <div
           class="size-4 shrink-0 rounded border-2 flex items-center justify-center transition-colors"
-          :class="localSelected.includes(album.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-300'"
+          :class="localSelected.includes(album.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-300 dark:border-gray-700'"
         >
           <LucideCheck v-if="localSelected.includes(album.id)" class="size-3 text-white" />
         </div>

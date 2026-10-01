@@ -2,6 +2,7 @@
 import type { EChartsOption } from 'echarts'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
+import { useThemeStore } from '@/store/theme'
 import { formatDuration } from '@/utils'
 
 const VChart = defineAsyncComponent(() =>
@@ -9,6 +10,15 @@ const VChart = defineAsyncComponent(() =>
 )
 
 const store = useMainStore()
+const theme = useThemeStore()
+const chartColors = computed(() => theme.isDark
+  ? { text: '#9ca3af', line: '#4b5563', grid: '#374151', surface: '#1f2937', foreground: '#f3f4f6' }
+  : { text: '#9ca3af', line: '#e5e7eb', grid: '#f3f4f6', surface: '#ffffff', foreground: '#111827' })
+const chartTooltip = computed(() => ({
+  backgroundColor: chartColors.value.surface,
+  borderColor: chartColors.value.line,
+  textStyle: { color: chartColors.value.foreground },
+}))
 const { albumList } = storeToRefs(store)
 
 usePageSeo({
@@ -68,6 +78,7 @@ const years = computed(() => yearStats.value.map(s => String(s.year)))
 
 const albumCountChartOption = computed<EChartsOption>(() => ({
   tooltip: {
+    ...chartTooltip.value,
     trigger: 'axis',
     formatter: (params: any) => {
       const p = params[0]
@@ -78,14 +89,14 @@ const albumCountChartOption = computed<EChartsOption>(() => ({
   xAxis: {
     type: 'category',
     data: years.value,
-    axisLabel: { color: '#9ca3af' },
-    axisLine: { lineStyle: { color: '#e5e7eb' } },
+    axisLabel: { color: chartColors.value.text },
+    axisLine: { lineStyle: { color: chartColors.value.line } },
   },
   yAxis: {
     type: 'value',
     minInterval: 1,
-    axisLabel: { color: '#9ca3af' },
-    splitLine: { lineStyle: { color: '#f3f4f6' } },
+    axisLabel: { color: chartColors.value.text },
+    splitLine: { lineStyle: { color: chartColors.value.grid } },
   },
   series: [
     {
@@ -98,6 +109,7 @@ const albumCountChartOption = computed<EChartsOption>(() => ({
 
 const durationChartOption = computed<EChartsOption>(() => ({
   tooltip: {
+    ...chartTooltip.value,
     trigger: 'axis',
     formatter: (params: any) => {
       const year = params[0].name
@@ -111,15 +123,15 @@ const durationChartOption = computed<EChartsOption>(() => ({
   xAxis: {
     type: 'category',
     data: years.value,
-    axisLabel: { color: '#9ca3af' },
-    axisLine: { lineStyle: { color: '#e5e7eb' } },
+    axisLabel: { color: chartColors.value.text },
+    axisLine: { lineStyle: { color: chartColors.value.line } },
   },
   yAxis: [
     {
       type: 'value',
       minInterval: 1,
       axisLabel: { color: '#a78bfa' },
-      splitLine: { lineStyle: { color: '#f3f4f6' } },
+      splitLine: { lineStyle: { color: chartColors.value.grid } },
     },
     {
       type: 'value',
@@ -163,32 +175,32 @@ const durationChartOption = computed<EChartsOption>(() => ({
     <PageHeader title="数据统计" subtitle="已收录音乐数据统计汇总" />
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 mt-2">
-      <div class="bg-black/5 rounded-xl p-4">
-        <div class="text-sm text-gray-500">
+      <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
           专辑总数
         </div>
         <div class="text-2xl md:text-3xl font-bold mt-1">
           {{ totalAlbums }}
         </div>
       </div>
-      <div class="bg-black/5 rounded-xl p-4">
-        <div class="text-sm text-gray-500">
+      <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
           歌曲总数
         </div>
         <div class="text-2xl md:text-3xl font-bold mt-1">
           {{ totalSongs }}
         </div>
       </div>
-      <div class="bg-black/5 rounded-xl p-4">
-        <div class="text-sm text-gray-500">
+      <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
           歌曲总时长
         </div>
         <div class="text-2xl md:text-3xl font-bold mt-1">
           {{ formatDuration(totalDuration) }}
         </div>
       </div>
-      <div class="bg-black/5 rounded-xl p-4">
-        <div class="text-sm text-gray-500">
+      <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
           覆盖游戏
         </div>
         <div class="text-2xl md:text-3xl font-bold mt-1">
@@ -198,8 +210,8 @@ const durationChartOption = computed<EChartsOption>(() => ({
     </div>
 
     <div v-if="albumList.length" class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 mt-4">
-      <div class="bg-black/5 rounded-xl p-4">
-        <div class="text-sm font-medium mb-3 text-gray-600">
+      <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+        <div class="text-sm font-medium mb-3 text-gray-600 dark:text-gray-400">
           专辑数量
         </div>
         <div class="w-full h-[200px] md:h-[250px]">
@@ -214,8 +226,8 @@ const durationChartOption = computed<EChartsOption>(() => ({
           </Suspense>
         </div>
       </div>
-      <div class="bg-black/5 rounded-xl p-4">
-        <div class="text-sm font-medium mb-3 text-gray-600">
+      <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
+        <div class="text-sm font-medium mb-3 text-gray-600 dark:text-gray-400">
           歌曲数量/时长
         </div>
         <div class="w-full h-[200px] md:h-[250px]">
@@ -233,14 +245,14 @@ const durationChartOption = computed<EChartsOption>(() => ({
     </div>
 
     <!-- 年份明细表格 -->
-    <div v-if="albumList.length" class="mt-4 bg-black/5 rounded-xl overflow-hidden">
-      <div class="px-4 pt-4 pb-2 text-sm font-medium text-gray-600">
+    <div v-if="albumList.length" class="mt-4 bg-black/5 dark:bg-white/5 rounded-xl overflow-hidden">
+      <div class="px-4 pt-4 pb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
         逐年数据
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="text-left text-gray-500">
+            <tr class="text-left text-gray-500 dark:text-gray-400">
               <th class="px-4 py-2 font-medium">
                 年份
               </th>
@@ -259,7 +271,7 @@ const durationChartOption = computed<EChartsOption>(() => ({
             <tr
               v-for="row in [...yearStats].reverse()"
               :key="row.year"
-              class="border-t border-black/5"
+              class="border-t border-black/5 dark:border-white/5"
             >
               <td class="px-4 py-2 font-medium">
                 {{ row.year }}

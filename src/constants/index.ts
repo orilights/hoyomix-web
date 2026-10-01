@@ -33,9 +33,9 @@ export interface MediaSourceRegionOption {
 }
 
 export const mediaSourceRegionOptions: MediaSourceRegionOption[] = [
-  { value: 'china', label: '中国大陆', badgeClass: 'bg-green-100 text-green-700' },
-  { value: 'overseas', label: '海外', badgeClass: 'bg-purple-100 text-purple-700' },
-  { value: 'global', label: '全球', badgeClass: 'bg-blue-100 text-blue-700' },
+  { value: 'china', label: '中国大陆', badgeClass: 'bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400' },
+  { value: 'overseas', label: '海外', badgeClass: 'bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400' },
+  { value: 'global', label: '全球', badgeClass: 'bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400' },
 ]
 
 export const artistTypeSort = [

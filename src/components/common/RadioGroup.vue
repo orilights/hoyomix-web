@@ -27,7 +27,7 @@ const groupId = useId()
     <label
       v-for="option in options"
       :key="option.value"
-      class="flex items-start gap-2 py-2 text-sm leading-5 text-gray-700 cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-blue-500 has-[:focus-visible]:outline-offset-2"
+      class="flex items-start gap-2 py-2 text-sm leading-5 text-gray-700 dark:text-gray-300 cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-blue-500 has-[:focus-visible]:outline-offset-2"
       :class="option.disabled ? 'opacity-50 cursor-not-allowed' : ''"
     >
       <input
@@ -41,8 +41,8 @@ const groupId = useId()
       >
       <span class="min-w-0">
         <span class="font-medium">{{ option.label }}</span>
-        <span v-if="option.description" class="block text-gray-500 mt-1">{{ option.description }}</span>
-        <span v-if="option.detail" class="block text-xs text-gray-500 mt-1">{{ option.detail }}</span>
+        <span v-if="option.description" class="block text-gray-500 dark:text-gray-400 mt-1">{{ option.description }}</span>
+        <span v-if="option.detail" class="block text-xs text-gray-500 dark:text-gray-400 mt-1">{{ option.detail }}</span>
       </span>
     </label>
   </div>

@@ -92,9 +92,9 @@ async function submit() {
 </script>
 
 <template>
-  <div class="bg-white/65 rounded-xl border border-gray-200/80 p-4">
-    <div v-if="replyTo" class="mb-2 flex items-center justify-between text-sm text-gray-500">
-      <span>回复 <strong class="text-gray-700">@{{ replyTo.user.name }}</strong><span v-if="replyToNumber" class="ml-1">#{{ replyToNumber }}</span></span>
+  <div class="bg-white/65 dark:bg-[var(--theme-surface)]/65 rounded-xl border border-gray-200/80 dark:border-gray-700/80 p-4">
+    <div v-if="replyTo" class="mb-2 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+      <span>回复 <strong class="text-gray-700 dark:text-gray-300">@{{ replyTo.user.name }}</strong><span v-if="replyToNumber" class="ml-1">#{{ replyToNumber }}</span></span>
       <AppButton icon-only size="xs" variant="ghost" title="取消回复" aria-label="取消回复" @click="emit('cancelReply')">
         <LucideX class="size-4" />
       </AppButton>
@@ -104,7 +104,7 @@ async function submit() {
       rows="3"
       maxlength="2000"
       :disabled="submitting || !isLoggedIn"
-      class="w-full resize-y bg-transparent outline-none text-sm leading-6 placeholder:text-gray-400 focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
+      class="w-full resize-y bg-transparent outline-none text-sm leading-6 placeholder:text-gray-400 placeholder:dark:text-gray-500 focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
       :placeholder="isLoggedIn ? '写下你的想法…' : '登录后参与讨论'"
       @keydown.ctrl.enter.prevent="submit"
       @keydown.meta.enter.prevent="submit"

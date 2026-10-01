@@ -107,18 +107,18 @@ onMounted(() => {
         v-model="tab"
         :options="periods"
       />
-      <label v-if="tab !== 'all'" class="flex items-center gap-2 text-sm text-gray-500">
+      <label v-if="tab !== 'all'" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         榜单日期
         <input
           v-model="displayDate"
           type="date"
-          class="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          class="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
       </label>
       <button
         v-if="tab !== 'all' && selectedDate"
         type="button"
-        class="text-sm text-blue-500 hover:text-blue-600 cursor-pointer"
+        class="text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer"
         @click="selectedDate = ''"
       >
         返回最新

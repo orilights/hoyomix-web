@@ -19,15 +19,15 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col items-center justify-center min-h-[60vh] py-16">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-md border border-gray-100 px-8 py-10">
+    <div class="w-full max-w-md bg-white dark:bg-[var(--theme-surface)] rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 px-8 py-10">
       <div class="flex flex-col items-center gap-4">
-        <div class="size-16 rounded-full bg-green-100 flex items-center justify-center">
-          <LucideMailCheck class="size-8 text-green-600" />
+        <div class="size-16 rounded-full bg-green-100 dark:bg-green-500/15 flex items-center justify-center">
+          <LucideMailCheck class="size-8 text-green-600 dark:text-green-400" />
         </div>
-        <h1 class="text-xl font-semibold text-gray-900">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
           邮箱验证成功
         </h1>
-        <p class="text-sm text-gray-500 text-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
           恭喜！邮箱验证已完成，点击下方按钮即可登录！
         </p>
         <AppButton

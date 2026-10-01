@@ -78,9 +78,9 @@ watch(() => auth.user?.id, () => {
     :inert="player.isFullscreen"
     :aria-hidden="player.isFullscreen || undefined"
     aria-label="桌面导航"
-    class="fixed left-0 top-0 bottom-[72px] z-10 w-[240px] flex flex-col bg-slate-400/10 border-r border-gray-200/60"
+    class="fixed left-0 top-0 bottom-[72px] z-10 w-[240px] flex flex-col bg-slate-400/10 border-r border-gray-200/60 dark:border-gray-700/60"
   >
-    <RouterLink to="/" class="sidebar-brand flex items-center gap-3 shrink-0 px-6 h-[72px] text-gray-900 font-bold tracking-wide">
+    <RouterLink to="/" class="sidebar-brand flex items-center gap-3 shrink-0 px-6 h-[72px] text-gray-900 dark:text-gray-100 font-bold tracking-wide">
       <span class="flex items-center justify-center size-9 rounded-xl bg-blue-500/10 text-blue-500">
         <img src="/favicon.png" alt="" class="size-8 object-contain">
       </span>
@@ -109,8 +109,8 @@ watch(() => auth.user?.id, () => {
           </RouterLink>
         </nav>
 
-        <div v-if="!auth.isLoggedIn" class="px-3 py-3 rounded-xl bg-black/5">
-          <p class="text-xs text-gray-500 mb-3">
+        <div v-if="!auth.isLoggedIn" class="px-3 py-3 rounded-xl bg-black/5 dark:bg-white/5">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
             登录后查看收藏的音乐和歌单
           </p>
           <AppButton size="sm" class="w-full" @click="auth.openAuthDialog()">
@@ -137,7 +137,7 @@ watch(() => auth.user?.id, () => {
             <div class="flex items-center justify-between px-3 mb-1">
               <RouterLink
                 :to="{ name: 'Playlists', query: { tab: group.tab } }"
-                class="sidebar-group-title text-xs text-gray-500 py-2 hover:text-blue-500"
+                class="sidebar-group-title text-xs text-gray-500 dark:text-gray-400 py-2 hover:text-blue-500"
                 :class="{ 'text-blue-500': route.name === 'Playlists' && route.query.tab === group.tab }"
                 :aria-current="route.name === 'Playlists' && route.query.tab === group.tab ? 'page' : undefined"
               >
@@ -150,7 +150,7 @@ watch(() => auth.user?.id, () => {
             <p v-if="group.loading" role="status" class="px-3 py-2 text-xs text-gray-400">
               加载中…
             </p>
-            <div v-else-if="group.error" class="px-3 py-2 text-xs text-gray-500">
+            <div v-else-if="group.error" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
               加载失败
               <AppButton size="sm" variant="ghost" :aria-label="`重新加载${group.title}`" @click="group.retry()">
                 重试
@@ -167,7 +167,7 @@ watch(() => auth.user?.id, () => {
               :class="{ 'is-active': isPlaylistActive(playlist.id) }"
               :aria-current="isPlaylistActive(playlist.id) ? 'page' : undefined"
             >
-              <span class="size-8 shrink-0 rounded-lg overflow-hidden bg-black/5 flex items-center justify-center">
+              <span class="size-8 shrink-0 rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 flex items-center justify-center">
                 <CoverImage v-if="coverUrl(playlist)" :key="coverUrl(playlist)" :src="coverUrl(playlist)" />
                 <LucideMusic v-else class="size-4 text-gray-400" />
               </span>
@@ -178,7 +178,7 @@ watch(() => auth.user?.id, () => {
       </div>
     </OverlayScrollbarsComponent>
 
-    <nav aria-label="应用" class="shrink-0 border-t border-gray-200/60 p-3 grid grid-cols-2 gap-1">
+    <nav aria-label="应用" class="shrink-0 border-t border-gray-200/60 dark:border-gray-700/60 p-3 grid grid-cols-2 gap-1">
       <RouterLink :to="{ name: 'Settings' }" class="sidebar-link" :class="{ 'is-active': route.name === 'Settings' }" :aria-current="route.name === 'Settings' ? 'page' : undefined">
         <LucideSlidersHorizontal class="size-4 shrink-0" />设置
       </RouterLink>
@@ -212,6 +212,18 @@ watch(() => auth.user?.id, () => {
 
 .sidebar-link:hover {
   background: rgb(0 0 0 / 5%);
+}
+
+:global(html.dark .sidebar-link) {
+  color: #9ca3af;
+}
+
+:global(html.dark .sidebar-link:hover) {
+  background: rgb(255 255 255 / 5%);
+}
+
+:global(html.dark .sidebar-link.is-active) {
+  color: #60a5fa;
 }
 
 .sidebar-link.is-active {
