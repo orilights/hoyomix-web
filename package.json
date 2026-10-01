@@ -1,8 +1,9 @@
 {
   "name": "hoyomix-web",
   "type": "module",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
