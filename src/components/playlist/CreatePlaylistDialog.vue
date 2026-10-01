@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AlbumListItemInfo, PlaylistListItem } from '@/types/core'
+import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { toast } from 'vue-sonner'
 import { createPlaylistApi, updatePlaylistApi, updatePlaylistSongsApi } from '@/api/music'
 import { useMainStore } from '@/store/main'
@@ -58,6 +59,33 @@ const filteredAlbums = computed<AlbumListItemInfo[]>(() => {
 })
 
 const showAlbumDropdown = ref(false)
+const albumInput = useTemplateRef<HTMLInputElement>('albumInput')
+const albumMenu = useTemplateRef<HTMLElement>('albumMenu')
+const albumMenuOpen = computed(() => visible.value && showAlbumDropdown.value && filteredAlbums.value.length > 0)
+const { floatingStyles: albumMenuStyles } = useFloating(albumInput, albumMenu, {
+  placement: 'bottom-start',
+  strategy: 'fixed',
+  open: albumMenuOpen,
+  whileElementsMounted: autoUpdate,
+  middleware: [
+    offset(4),
+    flip({ padding: 8 }),
+    shift({ padding: 8 }),
+    size({
+      padding: 8,
+      apply({ availableWidth, availableHeight, rects, elements }) {
+        Object.assign(elements.floating.style, {
+          width: `${Math.min(rects.reference.width, Math.max(0, availableWidth))}px`,
+          maxHeight: `${Math.max(0, Math.min(192, availableHeight))}px`,
+        })
+      },
+    }),
+  ],
+})
+
+watch(visible, () => {
+  showAlbumDropdown.value = false
+})
 
 function selectAlbum(album: AlbumListItemInfo) {
   coverAlbumId.value = album.id
@@ -68,12 +96,6 @@ function selectAlbum(album: AlbumListItemInfo) {
 function clearAlbum() {
   coverAlbumId.value = null
   albumSearchText.value = ''
-}
-
-function hideAlbumDropdown() {
-  window.setTimeout(() => {
-    showAlbumDropdown.value = false
-  }, 200)
 }
 
 function onAlbumInput() {
@@ -207,27 +229,33 @@ async function submit() {
           </div>
           <div class="relative flex-1">
             <input
+              ref="albumInput"
               v-model="albumSearchText"
               type="text"
               placeholder="搜索专辑..."
               class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               @input="onAlbumInput"
               @focus="showAlbumDropdown = true"
-              @blur="hideAlbumDropdown"
+              @blur="showAlbumDropdown = false"
             >
-            <div
-              v-if="showAlbumDropdown && filteredAlbums.length"
-              class="absolute top-full mt-1 left-0 right-0 bg-white dark:bg-[var(--theme-surface)] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto"
-            >
-              <button
-                v-for="album in filteredAlbums"
-                :key="album.id"
-                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer"
-                @mousedown.prevent="selectAlbum(album)"
+            <Teleport to="body">
+              <div
+                v-if="albumMenuOpen"
+                ref="albumMenu"
+                :style="albumMenuStyles"
+                class="bg-white dark:bg-[var(--theme-surface)] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-[1001] overflow-y-auto overscroll-contain"
+                @mousedown.prevent
               >
-                {{ album.name }}
-              </button>
-            </div>
+                <button
+                  v-for="album in filteredAlbums"
+                  :key="album.id"
+                  class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer"
+                  @click="selectAlbum(album)"
+                >
+                  {{ album.name }}
+                </button>
+              </div>
+            </Teleport>
           </div>
           <button
             v-if="coverAlbumId"

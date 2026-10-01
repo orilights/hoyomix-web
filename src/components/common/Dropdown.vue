@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Placement } from '@floating-ui/vue'
-import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/vue'
+import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { computed, onBeforeUnmount, ref } from 'vue'
 
 interface DropdownOption {
@@ -41,6 +41,15 @@ const middleware = computed(() => [
   offset(6),
   ...(props.position === 'auto' ? [flip()] : []),
   shift({ padding: 8 }),
+  size({
+    padding: 8,
+    apply({ availableWidth, availableHeight, elements }) {
+      Object.assign(elements.floating.style, {
+        maxWidth: `${Math.max(0, availableWidth)}px`,
+        maxHeight: `${Math.max(0, availableHeight)}px`,
+      })
+    },
+  }),
 ])
 
 const { floatingStyles } = useFloating(container, menu, {
@@ -97,7 +106,7 @@ onBeforeUnmount(() => {
       <div
         v-if="isOpen"
         ref="menu"
-        class="dropdown-menu rounded-lg w-fit text-sm shadow overflow-hidden z-999"
+        class="dropdown-menu rounded-lg w-fit text-sm shadow overflow-auto overscroll-contain z-[1001]"
         :class="dark ? 'bg-gray-800 text-white' : 'bg-white dark:bg-[var(--theme-surface)] dark:text-gray-100'"
         :style="floatingStyles"
         @click.stop
@@ -105,7 +114,7 @@ onBeforeUnmount(() => {
         <div
           v-for="(option, index) in options"
           :key="index"
-          class="p-2 transition-colors text-nowrap"
+          class="p-2 transition-colors break-words"
           :class="option.disabled
             ? dark ? 'text-white/30 cursor-not-allowed' : 'text-gray-400 cursor-not-allowed'
             : dark ? 'cursor-pointer hover:bg-white/10' : 'cursor-pointer hover:bg-gray-500/10'"
