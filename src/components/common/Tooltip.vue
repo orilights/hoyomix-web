@@ -79,7 +79,7 @@ function onMouseLeave() {
             v-if="content" class="px-2 py-1 text-xs rounded-md shadow whitespace-nowrap"
             :class="{
               'bg-gray-800 text-white': theme === 'dark',
-              'bg-white text-gray-800': theme === 'light',
+              'bg-white text-gray-800 dark:bg-[var(--theme-surface)] dark:text-gray-100': theme === 'light',
             }"
           >
             {{ content }}

@@ -266,7 +266,7 @@ onMounted(() => fetchNotifications(true))
 
 <template>
   <div class="flex flex-col">
-    <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+    <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-700">
       <span class="text-xs text-gray-400">
         {{ unreadCount > 0 ? `${unreadCount} 条未读` : '暂无未读通知' }}
       </span>
@@ -274,7 +274,7 @@ onMounted(() => fetchNotifications(true))
         <AppButton
           variant="ghost"
           size="xs"
-          :class="unreadCount > 0 ? 'hover:bg-gray-100 text-gray-500' : 'opacity-40 cursor-not-allowed text-gray-400'"
+          :class="unreadCount > 0 ? 'hover:bg-gray-100 hover:dark:bg-gray-800 text-gray-500 dark:text-gray-400' : 'opacity-40 cursor-not-allowed text-gray-400'"
           :disabled="unreadCount === 0"
           @click="markAllRead"
         >
@@ -283,7 +283,7 @@ onMounted(() => fetchNotifications(true))
         <AppButton
           variant="ghost"
           size="xs"
-          class="text-red-500 hover:text-red-500 hover:bg-red-50"
+          class="text-red-500 hover:text-red-500 hover:bg-red-50 hover:dark:bg-red-500/15"
           @click="deleteRead"
         >
           删除已读
@@ -302,23 +302,23 @@ onMounted(() => fetchNotifications(true))
         <div
           v-for="n in notifications"
           :key="n.id"
-          class="group flex items-start gap-2.5 px-3 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+          class="group flex items-start gap-2.5 px-3 py-3 hover:bg-gray-50 hover:dark:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-700 last:border-0"
           :class="{ 'cursor-pointer': !n.isRead || isCommentNotification(n), 'opacity-60': navigatingId === n.id }"
           :role="isCommentNotification(n) ? 'button' : undefined"
           :tabindex="isCommentNotification(n) ? 0 : undefined"
           @click="openNotification(n)"
           @keydown.enter.self="openNotification(n)"
         >
-          <div class="mt-1.5 size-1.5 rounded-full shrink-0 transition-colors" :class="n.isRead ? 'bg-gray-200' : 'bg-blue-500'" />
+          <div class="mt-1.5 size-1.5 rounded-full shrink-0 transition-colors" :class="n.isRead ? 'bg-gray-200 dark:bg-gray-700' : 'bg-blue-500'" />
           <div class="flex-1 min-w-0">
-            <p class="text-sm leading-snug" :class="n.isRead ? 'text-gray-500' : 'font-medium text-gray-900'">
+            <p class="text-sm leading-snug" :class="n.isRead ? 'text-gray-500 dark:text-gray-400' : 'font-medium text-gray-900 dark:text-gray-100'">
               {{ n.title }}
             </p>
             <p class="text-xs text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
               {{ n.content }}
             </p>
             <p class="text-[11px] text-gray-300 mt-1 flex items-center gap-1.5">
-              <span v-if="notificationTypeLabel(n)" class="rounded bg-blue-50 px-1.5 py-0.5 text-blue-500">{{ notificationTypeLabel(n) }}</span>
+              <span v-if="notificationTypeLabel(n)" class="rounded bg-blue-50 dark:bg-blue-500/15 px-1.5 py-0.5 text-blue-500">{{ notificationTypeLabel(n) }}</span>
               <span>{{ formatRelativeTime(n.createdAt) }}</span>
             </p>
           </div>
@@ -335,7 +335,7 @@ onMounted(() => fetchNotifications(true))
         </div>
         <button
           v-if="hasMore"
-          class="w-full py-2.5 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+          class="w-full py-2.5 text-xs text-gray-400 hover:text-gray-600 hover:dark:text-gray-400 hover:bg-gray-50 hover:dark:bg-gray-800 transition-colors cursor-pointer"
           :disabled="loading"
           @click.stop="loadMore"
         >

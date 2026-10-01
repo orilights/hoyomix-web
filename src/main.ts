@@ -5,6 +5,7 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import App from '@/App.vue'
 import router from '@/router'
+import { useThemeStore } from '@/store/theme'
 import { queryClient } from '@/utils/query-client'
 
 import 'overlayscrollbars/overlayscrollbars.css'
@@ -24,6 +25,7 @@ pinia.use(piniaPluginPersistedstate)
 app.use(head)
 app.use(router)
 app.use(pinia)
+useThemeStore(pinia).initialize()
 app.use(VueQueryPlugin, { queryClient })
 
 app.mount('#app')

@@ -88,18 +88,18 @@ async function select(playlist: PlaylistListItem) {
       <button
         v-for="pl in playlists"
         :key="pl.id"
-        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors disabled:opacity-50"
+        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer transition-colors disabled:opacity-50"
         :disabled="submitting"
         @click="select(pl)"
       >
-        <div class="size-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+        <div class="size-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
           <LazyImg v-if="getCover(pl)" class="size-full rounded-lg" :src="getCover(pl)" />
           <div v-else class="size-full flex items-center justify-center">
             <LucideMusic class="size-5 text-gray-300" />
           </div>
         </div>
         <div class="text-left min-w-0">
-          <p class="text-sm font-medium text-gray-900 truncate">
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
             {{ pl.name }}
           </p>
           <p class="text-xs text-gray-400">

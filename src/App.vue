@@ -9,8 +9,10 @@ import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
 import { usePlayerStore } from '@/store/player'
+import { useThemeStore } from '@/store/theme'
 
 const store = useMainStore()
+const theme = useThemeStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const queryClient = useQueryClient()
@@ -116,7 +118,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Toaster position="top-center" rich-colors />
+  <Toaster position="top-center" rich-colors :theme="theme.isDark ? 'dark' : 'light'" />
   <BackgroundLayer />
   <Header />
   <DesktopSidebar v-if="isDesktop" />

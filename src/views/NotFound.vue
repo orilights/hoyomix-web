@@ -24,7 +24,7 @@ onMounted(() => {
     <div class="text-8xl font-bold text-gray-300 mb-4">
       404
     </div>
-    <div class="text-xl mb-2 text-gray-500">
+    <div class="text-xl mb-2 text-gray-500 dark:text-gray-400">
       {{ errorMessage || '资源不存在' }}
     </div>
     <div class="text-sm text-gray-400 mb-8">

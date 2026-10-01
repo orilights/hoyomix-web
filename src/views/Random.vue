@@ -128,22 +128,22 @@ onMounted(() => {
     <PageHeader title="随机播放" subtitle="随机生成播放列表" />
 
     <div class="xl:grid xl:grid-cols-[320px_1fr] gap-6">
-      <div class="bg-white/80 rounded-2xl p-4 space-y-4">
+      <div class="bg-white/80 dark:bg-[var(--theme-surface)]/80 rounded-2xl p-4 space-y-4">
         <div>
-          <div class="text-sm font-medium text-gray-700 mb-2">
+          <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             生成模式
           </div>
-          <div class="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+          <div class="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-sm">
             <button
               class="flex-1 py-2 font-medium transition-colors cursor-pointer"
-              :class="randomPlaylistMode === 'random' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+              :class="randomPlaylistMode === 'random' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 hover:bg-gray-50 hover:dark:bg-gray-800'"
               @click="randomPlaylistMode = 'random'"
             >
               随机模式
             </button>
             <button
-              class="flex-1 py-2 font-medium transition-colors cursor-pointer border-l border-gray-200"
-              :class="randomPlaylistMode === 'album' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+              class="flex-1 py-2 font-medium transition-colors cursor-pointer border-l border-gray-200 dark:border-gray-700"
+              :class="randomPlaylistMode === 'album' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 hover:bg-gray-50 hover:dark:bg-gray-800'"
               @click="randomPlaylistMode = 'album'"
             >
               指定专辑
@@ -152,19 +152,19 @@ onMounted(() => {
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">歌曲数量</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">歌曲数量</label>
           <input
             v-model.number="randomPlaylistLimit"
             type="number"
             min="1"
             max="100"
-            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
         </div>
 
         <template v-if="randomPlaylistMode === 'random'">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               游戏范围
               <span v-if="!randomPlaylistProducts.length" class="text-gray-400 font-normal ml-1">（全部）</span>
             </label>
@@ -175,7 +175,7 @@ onMounted(() => {
                 class="px-3 py-1 rounded-full text-xs font-medium border transition-colors cursor-pointer"
                 :class="randomPlaylistProducts.includes(p.key)
                   ? 'bg-blue-500 text-white border-blue-500'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'"
+                  : 'bg-white dark:bg-[var(--theme-surface)] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-blue-300'"
                 @click="toggleProduct(p.key)"
               >
                 {{ p.name }}
@@ -184,7 +184,7 @@ onMounted(() => {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">发布日期范围</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">发布日期范围</label>
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <div class="text-xs text-gray-400 mb-1">
@@ -193,7 +193,7 @@ onMounted(() => {
                 <input
                   v-model="randomPlaylistDateFrom"
                   type="date"
-                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 >
               </div>
               <div>
@@ -203,21 +203,21 @@ onMounted(() => {
                 <input
                   v-model="randomPlaylistDateTo"
                   type="date"
-                  class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 >
               </div>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">排除专辑</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">排除专辑</label>
             <AppButton
               variant="outline"
               class="w-full !justify-start text-left"
               @click="showExcludeAlbumsDialog = true"
             >
               <LucideListX class="size-4 text-gray-400 shrink-0" />
-              <span class="flex-1 text-gray-600">
+              <span class="flex-1 text-gray-600 dark:text-gray-400">
                 {{ randomPlaylistExcludeAlbums.length ? `已排除 ${randomPlaylistExcludeAlbums.length} 张` : '点击选择要排除的专辑' }}
               </span>
               <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
@@ -228,15 +228,15 @@ onMounted(() => {
             <input
               v-model="randomPlaylistExcludeInstrumental"
               type="checkbox"
-              class="size-4 rounded border-gray-300 text-blue-500 focus:ring-blue-400 accent-blue-500 cursor-pointer"
+              class="size-4 rounded border-gray-300 dark:border-gray-700 text-blue-500 focus:ring-blue-400 accent-blue-500 cursor-pointer"
             >
-            <span class="text-sm text-gray-700">排除伴奏</span>
+            <span class="text-sm text-gray-700 dark:text-gray-300">排除伴奏</span>
           </label>
         </template>
 
         <template v-else>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">指定专辑</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">指定专辑</label>
             <AppButton
               variant="outline"
               class="w-full !justify-start text-left"
@@ -244,7 +244,7 @@ onMounted(() => {
               @click="showAlbumsDialog = true"
             >
               <LucideDisc class="size-4 text-gray-400 shrink-0" />
-              <span class="flex-1" :class="randomPlaylistAlbums.length ? 'text-gray-600' : 'text-gray-400'">
+              <span class="flex-1" :class="randomPlaylistAlbums.length ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400'">
                 {{ randomPlaylistAlbums.length ? `已选 ${randomPlaylistAlbums.length} 张` : '点击选择专辑（必选）' }}
               </span>
               <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
@@ -269,7 +269,7 @@ onMounted(() => {
         <AsyncFade>
           <div>
             <div v-if="randomPlaylist.length" class="mb-3 flex items-center gap-2 flex-wrap">
-              <span class="text-sm text-gray-500 mr-1">共 {{ randomPlaylist.length }} 首</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">共 {{ randomPlaylist.length }} 首</span>
               <AppButton
                 variant="primary"
                 @click="playAll"

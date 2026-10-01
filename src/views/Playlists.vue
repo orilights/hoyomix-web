@@ -275,7 +275,7 @@ onMounted(() => {
     </div>
 
     <AppDialog v-model="showDeleteDialog" title="删除歌单">
-      <div class="px-6 py-5 text-sm text-gray-600">
+      <div class="px-6 py-5 text-sm text-gray-600 dark:text-gray-400">
         <p>确定要删除歌单「{{ deleteTargetPlaylist?.name ?? '这个歌单' }}」吗？</p>
         <p class="mt-2 text-red-500">
           删除后无法恢复

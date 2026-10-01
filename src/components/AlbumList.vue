@@ -155,9 +155,9 @@ async function playAlbum(albumId: number) {
               {{ album_info.name }}
             </div>
             <div>
-              <span class="text-xs text-gray-500">{{ album_info.publishDate }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ album_info.publishDate }}</span>
               ·
-              <span class="text-xs text-gray-500">{{ album_info.songCount }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ album_info.songCount }}</span>
             </div>
           </div>
         </RouterLink>
@@ -175,7 +175,7 @@ async function playAlbum(albumId: number) {
               <div class="text-sm md:text-base font-medium truncate">
                 {{ album_info.name }}
               </div>
-              <div class="text-xs text-gray-500 truncate mt-2">
+              <div class="text-xs text-gray-500 dark:text-gray-400 truncate mt-2">
                 {{ album_info.publishDate }} · {{ album_info.songCount }}
               </div>
             </div>
@@ -183,7 +183,7 @@ async function playAlbum(albumId: number) {
               icon-only
               size="xs"
               variant="ghost"
-              class="shrink-0 text-gray-400 hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-all hidden md:inline-flex hover:scale-105 active:scale-95"
+              class="shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-all hidden md:inline-flex hover:scale-105 active:scale-95"
               aria-label="播放专辑"
               title="播放专辑"
               @click.prevent="playAlbum(album_info.id)"

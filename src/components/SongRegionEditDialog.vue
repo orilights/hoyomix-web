@@ -200,7 +200,7 @@ async function submit() {
       </div>
 
       <div>
-        <p class="text-sm font-medium text-gray-700 mb-1.5">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           当前地区
         </p>
         <div v-if="!maps.length" class="text-xs text-gray-400">
@@ -210,7 +210,7 @@ async function submit() {
           <div
             v-for="map in maps"
             :key="map.id"
-            class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-50 text-sm"
+            class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm"
             :class="{ 'opacity-50 line-through': isRemoved(map.id) }"
           >
             <span class="flex-1 truncate">{{ pathText(map.path) }}</span>
@@ -218,7 +218,7 @@ async function submit() {
             <button
               type="button"
               class="text-xs px-2 py-0.5 rounded shrink-0 cursor-pointer transition-colors"
-              :class="isRemoved(map.id) ? 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20' : 'bg-red-500/10 text-red-600 hover:bg-red-500/20'"
+              :class="isRemoved(map.id) ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20' : 'bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20'"
               @click="toggleNode(map.id)"
             >
               {{ isRemoved(map.id) ? '恢复' : '移除' }}
@@ -228,20 +228,20 @@ async function submit() {
       </div>
 
       <div v-if="addItems.length">
-        <p class="text-sm font-medium text-gray-700 mb-1.5">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           待添加地区
         </p>
         <div class="space-y-2">
           <div
             v-for="item in addItems"
             :key="item.mapId"
-            class="px-2 py-1.5 rounded-lg bg-blue-50 text-sm"
+            class="px-2 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-sm"
           >
             <div class="flex items-center gap-2">
               <span class="flex-1 truncate">{{ pathText(item.path) }}</span>
               <button
                 type="button"
-                class="text-xs text-red-500 hover:text-red-600 cursor-pointer shrink-0"
+                class="text-xs text-red-500 hover:text-red-600 hover:dark:text-red-400 cursor-pointer shrink-0"
                 @click="removeAddItem(item.mapId)"
               >
                 移除
@@ -252,21 +252,21 @@ async function submit() {
               type="text"
               placeholder="备注（可选，最多 500 字）"
               maxlength="500"
-              class="mt-1 w-full px-2 py-1 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+              class="mt-1 w-full px-2 py-1 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
           </div>
         </div>
       </div>
 
       <div>
-        <p class="text-sm font-medium text-gray-700 mb-1.5">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           选择地区
         </p>
         <input
           v-model="searchText"
           type="text"
           placeholder="搜索地区"
-          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
         <div class="mt-2">
           <div v-if="loading" class="flex items-center justify-center py-8 text-gray-400">
@@ -279,17 +279,17 @@ async function submit() {
           <div v-else-if="!tree.length" class="flex items-center justify-center py-8 text-gray-400 text-sm">
             该作品暂不支持地区标签
           </div>
-          <div v-else class="border border-gray-100 rounded-lg max-h-56 overflow-y-auto py-1">
+          <div v-else class="border border-gray-100 dark:border-gray-700 rounded-lg max-h-56 overflow-y-auto py-1">
             <div
               v-for="vn in visibleNodes"
               :key="vn.node.id"
-              class="flex items-center gap-1 px-2 py-1 hover:bg-gray-50 cursor-pointer"
+              class="flex items-center gap-1 px-2 py-1 hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer"
               :style="{ paddingLeft: `${8 + vn.depth * 16}px` }"
             >
               <button
                 v-if="vn.node.children.length"
                 type="button"
-                class="size-4 flex items-center justify-center text-gray-400 hover:text-gray-600 shrink-0 cursor-pointer"
+                class="size-4 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:dark:text-gray-400 shrink-0 cursor-pointer"
                 @click.stop="toggleExpand(vn.node.id)"
               >
                 <LucideChevronRight
@@ -306,11 +306,11 @@ async function submit() {
               >
                 <span
                   class="size-4 rounded border flex items-center justify-center shrink-0"
-                  :class="selectedIds.includes(vn.node.id) ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-300'"
+                  :class="selectedIds.includes(vn.node.id) ? 'bg-blue-500 border-blue-500' : 'bg-white dark:bg-[var(--theme-surface)] border-gray-300 dark:border-gray-700'"
                 >
                   <LucideCheck v-if="selectedIds.includes(vn.node.id)" class="size-3 text-white" />
                 </span>
-                <span class="truncate" :class="selectedIds.includes(vn.node.id) ? 'text-blue-600' : 'text-gray-700'">
+                <span class="truncate" :class="selectedIds.includes(vn.node.id) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'">
                   {{ vn.node.name }}
                 </span>
               </button>

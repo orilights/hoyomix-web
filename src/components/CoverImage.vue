@@ -8,7 +8,7 @@ const failed = ref(false)
 </script>
 
 <template>
-  <div class="relative w-full pt-[100%] bg-gray-200">
+  <div class="relative w-full pt-[100%] bg-gray-200 dark:bg-gray-700">
     <img
       v-if="!failed"
       class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-300"

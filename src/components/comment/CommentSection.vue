@@ -139,9 +139,9 @@ function onChanged() {
 </script>
 
 <template>
-  <section class="mt-6 bg-black/5 rounded-xl p-4 md:p-6">
+  <section class="mt-6 bg-black/5 dark:bg-white/5 rounded-xl p-4 md:p-6">
     <div class="flex items-center justify-between gap-3 mb-4">
-      <h2 class="text-lg font-semibold text-gray-900">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
         {{ title ?? '评论' }}
       </h2>
       <span v-if="commentCount" class="text-sm text-gray-400">{{ commentCount }} 条</span>

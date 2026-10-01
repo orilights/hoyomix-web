@@ -63,14 +63,14 @@ async function handleSubmit() {
   <AppDialog v-model="visible" title="修改用户名">
     <form class="px-6 py-5 space-y-3" @submit.prevent="handleSubmit">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">用户名</label>
         <input
           v-model="name"
           type="text"
           required
           autocomplete="name"
           placeholder="请输入新的用户名"
-          class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:border-blue-500 transition-colors"
+          class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
         >
       </div>
       <p v-if="errorMsg" class="text-sm text-red-500">

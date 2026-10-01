@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
         v-if="isOpen"
         ref="menu"
         class="dropdown-menu rounded-lg w-fit text-sm shadow overflow-hidden z-999"
-        :class="dark ? 'bg-gray-800 text-white' : 'bg-white'"
+        :class="dark ? 'bg-gray-800 text-white' : 'bg-white dark:bg-[var(--theme-surface)] dark:text-gray-100'"
         :style="floatingStyles"
         @click.stop
       >
@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
           @click="selectOption(option)"
         >
           {{ option.label }}
-          <span v-if="option.desc" class="text-xs text-gray-500">{{ option.desc }}</span>
+          <span v-if="option.desc" class="text-xs text-gray-500 dark:text-gray-400">{{ option.desc }}</span>
         </div>
       </div>
     </Transition>

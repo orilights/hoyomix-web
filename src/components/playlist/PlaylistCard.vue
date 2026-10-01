@@ -35,7 +35,7 @@ const coverUrl = computed(() =>
     <div class="group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
       <div class="rounded-2xl overflow-hidden relative">
         <CoverImage v-if="coverUrl" :src="coverUrl" />
-        <div v-else class="aspect-square flex items-center justify-center bg-gray-200">
+        <div v-else class="aspect-square flex items-center justify-center bg-gray-200 dark:bg-gray-700">
           <LucideMusic class="size-12 text-blue-400" />
         </div>
         <div class="absolute top-2 left-2 flex gap-2 flex-wrap">
@@ -77,7 +77,7 @@ const coverUrl = computed(() =>
       <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
         {{ playlist.name }}
       </div>
-      <div class="text-xs text-gray-500">
+      <div class="text-xs text-gray-500 dark:text-gray-400">
         <span>{{ getPublishDate(new Date(playlist.createdAt).getTime()) }}</span>
         ·
         <span>{{ playlist.songCount }}</span>

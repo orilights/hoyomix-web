@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
         @click="onTriggerClick($event, navigate)"
       >
         {{ artistName }}
-        <span class="text-xs text-gray-600">{{ songCount }}&nbsp;</span>
+        <span class="text-xs text-gray-600 dark:text-gray-400">{{ songCount }}&nbsp;</span>
       </a>
     </RouterLink>
   </span>
@@ -183,7 +183,7 @@ onBeforeUnmount(() => {
         tabindex="-1"
         role="dialog"
         :aria-label="`${artistName}的${role}歌曲`"
-        class="z-1000 w-80 max-w-[calc(100vw-16px)] overflow-hidden rounded-xl bg-white/95 backdrop-blur-xl border border-white/70 shadow-xl p-2 text-sm outline-none"
+        class="z-1000 w-80 max-w-[calc(100vw-16px)] overflow-hidden rounded-xl bg-white/95 dark:bg-[var(--theme-surface)]/95 backdrop-blur-xl border border-white/70 dark:border-gray-700/70 shadow-xl p-2 text-sm outline-none"
         :style="floatingStyles"
         @pointerenter="cancelClose"
         @pointerleave="scheduleClose"
@@ -194,23 +194,23 @@ onBeforeUnmount(() => {
           <span class="font-medium flex-1 min-w-0 truncate">{{ artistName }} · {{ role }} {{ songCount }}</span>
           <RouterLink
             :to="{ name: 'ArtistInfo', params: { name: artistName } }"
-            class="shrink-0 text-blue-600 hover:text-blue-700"
+            class="shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:dark:text-blue-400"
             @click="closeCard"
           >
             查看全部
           </RouterLink>
         </div>
 
-        <div v-if="isLoading" class="px-2 py-5 text-center text-gray-500">
+        <div v-if="isLoading" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
           加载中...
         </div>
-        <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500">
+        <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
           加载失败
-          <button class="ml-1 text-blue-600 cursor-pointer" @click="refetch()">
+          <button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
             重试
           </button>
         </div>
-        <div v-else-if="!songs.length" class="px-2 py-5 text-center text-gray-500">
+        <div v-else-if="!songs.length" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
           暂无歌曲
         </div>
         <OverlayScrollbarsComponent
@@ -222,14 +222,14 @@ onBeforeUnmount(() => {
             v-for="song in songs"
             :key="song.id"
             :to="{ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.id } }"
-            class="block rounded-lg px-2 py-1.5 hover:bg-black/5 transition-colors"
+            class="block rounded-lg px-2 py-1.5 hover:bg-black/5 hover:dark:bg-white/5 transition-colors"
             :title="song.name"
             @click="closeCard"
           >
             <div class="truncate">
               {{ song.name }}
             </div>
-            <div v-if="contextType === 'product'" class="truncate text-xs text-gray-500">
+            <div v-if="contextType === 'product'" class="truncate text-xs text-gray-500 dark:text-gray-400">
               {{ song.albumName }}
             </div>
           </RouterLink>

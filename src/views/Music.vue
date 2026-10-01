@@ -276,12 +276,12 @@ function refreshSongInfo() {
             {{ musicInfo.name }}
           </div>
 
-          <div v-if="musicInfo.description" class="truncate shrink-0 text-sm mt-1 md:text-base lg:text-lg text-gray-500">
+          <div v-if="musicInfo.description" class="truncate shrink-0 text-sm mt-1 md:text-base lg:text-lg text-gray-500 dark:text-gray-400">
             {{ musicInfo.description }}
           </div>
 
           <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base">
-            <span class="text-gray-500 hidden md:inline">所属</span>
+            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">所属</span>
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
               class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors shrink-0"
@@ -289,7 +289,7 @@ function refreshSongInfo() {
             >
               <LazyImg class="size-5 md:size-8 rounded-full" :src="getProductIconUrl(albumInfo.productName, '48px')" />
             </RouterLink>
-            <span class="text-gray-500 hidden md:inline">收录于</span>
+            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">收录于</span>
             <RouterLink
               :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"
               class="hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors truncate"
@@ -299,7 +299,7 @@ function refreshSongInfo() {
           </div>
 
           <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base">
-            <span class="text-gray-500">时长</span>
+            <span class="text-gray-500 dark:text-gray-400">时长</span>
             <span class="ml-4">
               {{ formatDuration(musicInfo.duration) }}
             </span>
@@ -361,21 +361,21 @@ function refreshSongInfo() {
       <div class="flex flex-wrap gap-2 mt-4 lg:hidden">
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'lyrics'"
         >
           歌词
         </button>
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'artists'"
         >
           制作人员
         </button>
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'comments'"
         >
           评论 {{ commentCount }}
@@ -397,7 +397,7 @@ function refreshSongInfo() {
             </AsyncFade>
           </div>
 
-          <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+          <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
             <ArtistListByType :id="musicId" type="song" />
           </div>
         </div>

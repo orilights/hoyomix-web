@@ -203,11 +203,11 @@ function addAlbumToPlaylist() {
                 {{ albumInfo.productName }}
               </span>
             </RouterLink>
-            <span class="text-gray-500 hidden md:inline">发布于</span>
+            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">发布于</span>
             <span>
               {{ albumInfo.publishDate }}
             </span>
-            <span class="text-gray-500 hidden md:inline">时长</span>
+            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">时长</span>
             <span>
               {{ formatDuration(albumInfo.totalDuration) }}
             </span>
@@ -250,14 +250,14 @@ function addAlbumToPlaylist() {
       <div class="flex flex-wrap gap-2 mt-4 lg:hidden">
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'songs'"
         >
           歌曲列表
         </button>
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'artists'"
         >
           制作人员
@@ -265,14 +265,14 @@ function addAlbumToPlaylist() {
         <button
           v-if="albumInfo.tags.length"
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'tags' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'tags' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'tags'"
         >
           其他信息
         </button>
         <button
           class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5'"
+          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
           @click="activeTab = 'comments'"
         >
           评论 {{ commentCount }}
@@ -285,7 +285,7 @@ function addAlbumToPlaylist() {
             <TagList :tags="albumInfo.tags" :album-id="albumInfo.id" />
           </div>
 
-          <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+          <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
             <ArtistListByType :id="albumInfo.id" type="album" />
           </div>
         </div>

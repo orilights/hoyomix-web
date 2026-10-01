@@ -56,7 +56,7 @@ function regionLabel(region: string): string {
 }
 
 function regionBadgeClass(region: string): string {
-  return mediaSourceRegionOptions.find(o => o.value === region)?.badgeClass ?? 'bg-gray-100 text-gray-600'
+  return mediaSourceRegionOptions.find(o => o.value === region)?.badgeClass ?? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
 }
 
 function qualityText(qualities: number[]): string {
@@ -84,9 +84,10 @@ const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:
 
 const versionClickCount = ref(0)
 const showDebugTool = ref(false)
-const activeSection = ref('settings-audio')
+const activeSection = ref('settings-appearance')
 const { scrollY } = usePageScroll()
 const settingsSections = computed(() => [
+  { id: 'settings-appearance', label: '外观' },
   { id: 'settings-audio', label: '媒体源' },
   { id: 'settings-player', label: '播放器' },
   { id: 'settings-account', label: '账号' },
@@ -164,14 +165,14 @@ onMounted(() => {
   <div>
     <PageHeader title="设置" subtitle="一些也许有用的设置" />
 
-    <nav aria-label="设置分类" class="sticky top-4 z-[9] w-max max-w-full rounded-2xl border border-white/70 bg-white/70 p-1.5 backdrop-blur-xl">
+    <nav aria-label="设置分类" class="sticky top-4 z-[9] w-max max-w-full rounded-2xl border border-white/70 dark:border-gray-700/70 bg-white/70 dark:bg-[var(--theme-surface)]/70 p-1.5 backdrop-blur-xl">
       <div class="flex gap-1 overflow-x-auto">
         <RouterLink
           v-for="section in settingsSections"
           :key="section.id"
           :to="{ hash: `#${section.id}` }"
           class="shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-500"
-          :class="activeSection === section.id ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'"
+          :class="activeSection === section.id ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 hover:dark:bg-gray-800 hover:text-gray-900 hover:dark:text-gray-100'"
           :aria-current="activeSection === section.id ? 'location' : undefined"
           @click="activeSection = section.id"
         >
@@ -181,7 +182,21 @@ onMounted(() => {
     </nav>
 
     <div class="mt-6">
-      <section id="settings-audio" class="scroll-mt-32 grid gap-4 py-6 border-t border-gray-200 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-audio-heading">
+      <section id="settings-appearance" class="scroll-mt-32 grid gap-4 py-6 border-t border-gray-200 dark:border-gray-700 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-appearance-heading">
+        <h2 id="settings-appearance-heading" class="font-bold text-xl">
+          外观
+        </h2>
+        <div class="min-w-0">
+          <div class="font-bold text-lg mb-2">
+            主题模式
+          </div>
+          <ThemeSwitcher />
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            跟随系统会根据设备的外观设置自动切换亮色与暗色模式。
+          </p>
+        </div>
+      </section>
+      <section id="settings-audio" class="scroll-mt-32 grid gap-4 py-6 border-t border-gray-200 dark:border-gray-700 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-audio-heading">
         <h2 id="settings-audio-heading" class="font-bold text-xl">
           媒体源
         </h2>
@@ -204,14 +219,14 @@ onMounted(() => {
               <button
                 class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
                 :class="mediaSource.selectedSource === 'auto'
-                  ? 'bg-white text-gray-700 border-blue-500'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+                  ? 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-blue-500'
+                  : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-800'"
                 @click="mediaSource.selectSource('auto')"
               >
                 <div class="flex items-center justify-between gap-2">
                   <span class="font-bold">自动选择</span>
                 </div>
-                <div class="text-sm mt-1 text-gray-500">
+                <div class="text-sm mt-1 text-gray-500 dark:text-gray-400">
                   <template v-if="mediaSource.isTestingLatency">
                     <LucideLoader2 class="size-4 inline animate-spin mr-1" />
                     延迟检测中…
@@ -230,8 +245,8 @@ onMounted(() => {
                 :key="source.name"
                 class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
                 :class="mediaSource.selectedSource === source.name
-                  ? 'bg-white text-gray-700 border-blue-500'
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+                  ? 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-blue-500'
+                  : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-800'"
                 @click="mediaSource.selectSource(source.name)"
               >
                 <div class="flex items-center justify-between gap-2">
@@ -248,7 +263,7 @@ onMounted(() => {
                     {{ formatLatency(mediaSource.latencyResults[source.name]) }}
                   </span>
                 </div>
-                <div class="text-xs text-gray-500 mt-1.5">
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
                   支持音质：{{ qualityText(source.supportedQualities) }}
                 </div>
               </button>
@@ -257,7 +272,7 @@ onMounted(() => {
               <LucideLoader2 class="size-5 animate-spin mr-2" />
               正在加载音频源配置…
             </div>
-            <div class="text-sm text-gray-600 mt-2">
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
               自动模式将根据延迟选择音频源，也可手动指定优先使用的音频源
             </div>
           </div>
@@ -272,7 +287,7 @@ onMounted(() => {
               :model-value="quality"
               @update:model-value="player.switchQuality($event as AudioQuality)"
             />
-            <div v-if="availableQualityOptions.length === 0" class="text-sm text-gray-500 mt-2">
+            <div v-if="availableQualityOptions.length === 0" class="text-sm text-gray-500 dark:text-gray-400 mt-2">
               暂无可用音质选项
             </div>
           </div>
@@ -287,14 +302,14 @@ onMounted(() => {
               :model-value="lyricsSource"
               @update:model-value="player.setLyricsSource($event as LyricsSource)"
             />
-            <div class="text-sm text-gray-600 mt-2">
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
               优先使用所选平台的歌词
             </div>
           </div>
         </div>
       </section>
 
-      <section id="settings-player" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-player-heading">
+      <section id="settings-player" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-player-heading">
         <h2 id="settings-player-heading" class="font-bold text-xl">
           播放器
         </h2>
@@ -318,7 +333,7 @@ onMounted(() => {
             <div class="flex items-center gap-3">
               <button
                 class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-                :class="immersiveModeEnabled ? 'bg-blue-500' : 'bg-gray-300'"
+                :class="immersiveModeEnabled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                 role="switch"
                 aria-label="启用全屏播放器沉浸模式"
                 :aria-checked="immersiveModeEnabled"
@@ -329,9 +344,9 @@ onMounted(() => {
                   :class="immersiveModeEnabled ? 'translate-x-5' : 'translate-x-0'"
                 />
               </button>
-              <span class="text-sm text-gray-600">{{ immersiveModeEnabled ? '已启用' : '已禁用' }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ immersiveModeEnabled ? '已启用' : '已禁用' }}</span>
             </div>
-            <div class="text-sm text-gray-600 mt-2">
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
               在全屏播放器中自动隐藏界面控件，移动鼠标或触摸屏幕后暂时显示。
             </div>
           </div>
@@ -367,7 +382,7 @@ onMounted(() => {
                 <div class="flex items-center gap-3">
                   <button
                     class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-                    :class="fullscreenCoverRotation ? 'bg-blue-500' : 'bg-gray-300'"
+                    :class="fullscreenCoverRotation ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                     role="switch"
                     aria-label="播放中封面旋转"
                     :aria-checked="fullscreenCoverRotation"
@@ -378,7 +393,7 @@ onMounted(() => {
                       :class="fullscreenCoverRotation ? 'translate-x-5' : 'translate-x-0'"
                     />
                   </button>
-                  <span class="text-sm text-gray-600">{{ fullscreenCoverRotation ? '已启用' : '已禁用' }}</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ fullscreenCoverRotation ? '已启用' : '已禁用' }}</span>
                 </div>
               </div>
 
@@ -389,7 +404,7 @@ onMounted(() => {
                 <div class="flex items-center gap-3">
                   <button
                     class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-                    :class="fullscreenCoverBorder ? 'bg-blue-500' : 'bg-gray-300'"
+                    :class="fullscreenCoverBorder ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                     role="switch"
                     aria-label="封面边框"
                     :aria-checked="fullscreenCoverBorder"
@@ -400,7 +415,7 @@ onMounted(() => {
                       :class="fullscreenCoverBorder ? 'translate-x-5' : 'translate-x-0'"
                     />
                   </button>
-                  <span class="text-sm text-gray-600">{{ fullscreenCoverBorder ? '已启用' : '已禁用' }}</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ fullscreenCoverBorder ? '已启用' : '已禁用' }}</span>
                 </div>
               </div>
             </div>
@@ -413,7 +428,7 @@ onMounted(() => {
             <div class="flex items-center gap-3">
               <button
                 class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-                :class="enableAudioContext ? 'bg-blue-500' : 'bg-gray-300'"
+                :class="enableAudioContext ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                 role="switch"
                 :aria-checked="enableAudioContext"
                 @click="player.setAudioContextEnabled(!enableAudioContext)"
@@ -423,9 +438,9 @@ onMounted(() => {
                   :class="enableAudioContext ? 'translate-x-5' : 'translate-x-0'"
                 />
               </button>
-              <span class="text-sm text-gray-600">{{ enableAudioContext ? '已启用' : '已禁用' }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ enableAudioContext ? '已启用' : '已禁用' }}</span>
             </div>
-            <div class="text-sm text-gray-600 mt-2">
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
               iOS 设备后台播放需禁用该 API <br>
               禁用后频谱可视化等功能将不可用
             </div>
@@ -438,7 +453,7 @@ onMounted(() => {
             <div class="flex items-center gap-3">
               <button
                 class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
-                :class="enableMediaSession ? 'bg-blue-500' : 'bg-gray-300'"
+                :class="enableMediaSession ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                 role="switch"
                 aria-label="启用 Media Session API"
                 :aria-checked="enableMediaSession"
@@ -449,9 +464,9 @@ onMounted(() => {
                   :class="enableMediaSession ? 'translate-x-5' : 'translate-x-0'"
                 />
               </button>
-              <span class="text-sm text-gray-600">{{ enableMediaSession ? '已启用' : '已禁用' }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ enableMediaSession ? '已启用' : '已禁用' }}</span>
             </div>
-            <div class="text-sm text-gray-600 mt-2">
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
               向系统媒体控件提供歌曲信息、播放进度和播放控制，支持情况取决于浏览器。
             </div>
           </div>
@@ -460,12 +475,12 @@ onMounted(() => {
         </div>
       </section>
 
-      <section id="settings-account" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-account-heading">
+      <section id="settings-account" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-account-heading">
         <h2 id="settings-account-heading" class="font-bold text-xl">
           账号
         </h2>
         <div class="min-w-0">
-          <div v-if="isLoggedIn" class="bg-white/60 rounded-xl border border-gray-200 p-4">
+          <div v-if="isLoggedIn" class="bg-white/60 dark:bg-[var(--theme-surface)]/60 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
             <div class="flex items-center gap-4">
               <div class="size-14 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
                 <LazyImg
@@ -482,7 +497,7 @@ onMounted(() => {
                 <p class="font-medium truncate">
                   {{ user?.name }}
                 </p>
-                <p class="text-sm text-gray-500 truncate mt-0.5">
+                <p class="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
                   {{ user?.email }}
                 </p>
               </div>
@@ -516,7 +531,7 @@ onMounted(() => {
         </div>
       </section>
 
-      <section id="settings-about" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-about-heading">
+      <section id="settings-about" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-about-heading">
         <h2 id="settings-about-heading" class="font-bold text-xl">
           关于
         </h2>
@@ -534,8 +549,8 @@ onMounted(() => {
           <div>
             <div>
               当前版本：<span class="cursor-default select-none" @click="onVersionClick">v{{ appVersion }}</span>
-              <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 ml-2">测试版</span>
-              <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 ml-2">构建于 {{ buildTime }}</span>
+              <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 dark:text-green-400 ml-2">测试版</span>
+              <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 dark:text-red-400 ml-2">构建于 {{ buildTime }}</span>
             </div>
             <div class="mt-2">
               <AppButton
@@ -547,7 +562,7 @@ onMounted(() => {
               <br>
             </div>
 
-            <div class="mt-2 px-4 py-2 bg-red-50 rounded-lg border border-red-500">
+            <div class="mt-2 px-4 py-2 bg-red-50 dark:bg-red-500/15 rounded-lg border border-red-500">
               <div class="font-bold text-red-500">
                 须知
               </div>
@@ -557,12 +572,12 @@ onMounted(() => {
         </div>
       </section>
 
-      <section v-if="showDebugTool" id="settings-debug" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-debug-heading">
+      <section v-if="showDebugTool" id="settings-debug" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-debug-heading">
         <h2 id="settings-debug-heading" class="font-bold text-xl">
           请求测试
         </h2>
         <div class="min-w-0">
-          <div class="bg-white/60 rounded-xl border border-gray-200 p-4 space-y-3">
+          <div class="bg-white/60 dark:bg-[var(--theme-surface)]/60 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
             <RadioGroup
               aria-label="请求方法"
               :options="debugMethods.map(method => ({ value: method, label: method }))"
@@ -571,13 +586,13 @@ onMounted(() => {
             />
             <input
               v-model="debugUrl"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder="请求地址"
             >
             <textarea
               v-model="debugBody"
               rows="4"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
               placeholder="Body"
             />
             <AppButton
@@ -590,13 +605,13 @@ onMounted(() => {
             </AppButton>
             <pre
               v-if="debugResult !== null"
-              class="bg-gray-100 rounded-lg p-3 text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto max-h-96"
+              class="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto max-h-96"
             >{{ debugResult }}</pre>
           </div>
         </div>
       </section>
 
-      <section id="settings-changelog" class="scroll-mt-32 grid gap-4 border-t border-gray-200 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-changelog-heading">
+      <section id="settings-changelog" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-changelog-heading">
         <h2 id="settings-changelog-heading" class="font-bold text-xl">
           更新日志
         </h2>
@@ -609,7 +624,7 @@ onMounted(() => {
             <div v-else-if="isChangelogError" class="flex items-center justify-center py-4 text-red-400">
               加载失败，请刷新重试
             </div>
-            <div v-else class="font-mono whitespace-pre-wrap bg-gray-100 rounded-lg p-4">
+            <div v-else class="font-mono whitespace-pre-wrap bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
               {{ changelog }}
             </div>
           </AsyncFade>

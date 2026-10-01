@@ -145,12 +145,12 @@ function handleGitHub() {
 
     <div v-if="registerSuccess" class="px-6 pb-8">
       <div class="flex flex-col items-center gap-4 py-2">
-        <div class="size-14 rounded-full bg-green-100 flex items-center justify-center">
-          <LucideMailCheck class="size-7 text-green-600" />
+        <div class="size-14 rounded-full bg-green-100 dark:bg-green-500/15 flex items-center justify-center">
+          <LucideMailCheck class="size-7 text-green-600 dark:text-green-400" />
         </div>
         <div class="text-center">
-          <p class="text-gray-600 text-sm mt-1">
-            验证邮件已发送至 <span class="font-medium text-gray-900">{{ registerEmail }}</span><br>
+          <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+            验证邮件已发送至 <span class="font-medium text-gray-900 dark:text-gray-100">{{ registerEmail }}</span><br>
             请点击邮件中的链接完成验证后登录。
           </p>
           <p class="text-xs text-gray-400 mt-1">
@@ -158,7 +158,7 @@ function handleGitHub() {
           </p>
         </div>
         <button
-          class="text-sm text-blue-500 hover:text-blue-600 cursor-pointer transition-colors"
+          class="text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer transition-colors"
           @click="tab = 'login'; registerSuccess = false"
         >
           前往登录
@@ -168,12 +168,12 @@ function handleGitHub() {
 
     <div v-else-if="forgotSuccess" class="px-6 pb-8">
       <div class="flex flex-col items-center gap-4 py-2">
-        <div class="size-14 rounded-full bg-green-100 flex items-center justify-center">
-          <LucideMailCheck class="size-7 text-green-600" />
+        <div class="size-14 rounded-full bg-green-100 dark:bg-green-500/15 flex items-center justify-center">
+          <LucideMailCheck class="size-7 text-green-600 dark:text-green-400" />
         </div>
         <div class="text-center">
-          <p class="text-gray-600 text-sm mt-1">
-            重置邮件已发送至 <span class="font-medium text-gray-900">{{ forgotEmail }}</span><br>
+          <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+            重置邮件已发送至 <span class="font-medium text-gray-900 dark:text-gray-100">{{ forgotEmail }}</span><br>
             请点击邮件中的链接完成密码重置。
           </p>
           <p class="text-xs text-gray-400 mt-1">
@@ -181,7 +181,7 @@ function handleGitHub() {
           </p>
         </div>
         <button
-          class="text-sm text-blue-500 hover:text-blue-600 cursor-pointer transition-colors"
+          class="text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer transition-colors"
           @click="tab = 'login'; forgotSuccess = false"
         >
           返回登录
@@ -190,17 +190,17 @@ function handleGitHub() {
     </div>
 
     <template v-else>
-      <div v-if="tab !== 'forgot'" class="flex border-b border-gray-200 px-6">
+      <div v-if="tab !== 'forgot'" class="flex border-b border-gray-200 dark:border-gray-700 px-6">
         <button
           class="pb-3 mr-6 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px"
-          :class="tab === 'login' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          :class="tab === 'login' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:dark:text-gray-300'"
           @click="tab = 'login'; errorMsg = ''"
         >
           登录
         </button>
         <button
           class="pb-3 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px"
-          :class="tab === 'register' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          :class="tab === 'register' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:dark:text-gray-300'"
           @click="tab = 'register'; errorMsg = ''"
         >
           注册
@@ -210,31 +210,31 @@ function handleGitHub() {
       <div class="px-6 py-5">
         <form v-if="tab === 'login'" class="space-y-3" @submit.prevent="handleLogin">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮箱</label>
             <input
               v-model="loginEmail"
               type="email"
               required
               autocomplete="email"
               placeholder="请输入邮箱"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:border-blue-500 transition-colors"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">密码</label>
             <input
               v-model="loginPassword"
               type="password"
               required
               autocomplete="current-password"
               placeholder="请输入密码"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:border-blue-500 transition-colors"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <div class="flex justify-end -mt-1">
             <button
               type="button"
-              class="text-xs text-blue-500 hover:text-blue-600 cursor-pointer transition-colors"
+              class="text-xs text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer transition-colors"
               @click="tab = 'forgot'; errorMsg = ''"
             >
               忘记密码？
@@ -259,47 +259,47 @@ function handleGitHub() {
 
         <form v-else-if="tab === 'register'" class="space-y-3" @submit.prevent="handleRegister">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">用户名</label>
             <input
               v-model="registerName"
               type="text"
               required
               autocomplete="name"
               placeholder="请输入用户名"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:border-blue-500 transition-colors"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮箱</label>
             <input
               v-model="registerEmail"
               type="email"
               required
               autocomplete="email"
               placeholder="请输入登录邮箱"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:border-blue-500 transition-colors"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">密码</label>
             <input
               v-model="registerPassword"
               type="password"
               required
               autocomplete="new-password"
               placeholder="至少 8 位"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:border-blue-500 transition-colors"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">确认密码</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">确认密码</label>
             <input
               v-model="registerConfirm"
               type="password"
               required
               autocomplete="new-password"
               placeholder="再次输入密码"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:border-blue-500 transition-colors"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <p v-if="errorMsg" class="text-sm text-red-500">
@@ -320,18 +320,18 @@ function handleGitHub() {
         </form>
 
         <form v-else class="space-y-3" @submit.prevent="handleForgot">
-          <p class="text-sm text-gray-500">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
             输入注册邮箱，我们将发送一封密码重置邮件。
           </p>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮箱</label>
             <input
               v-model="forgotEmail"
               type="email"
               required
               autocomplete="email"
               placeholder="请输入注册邮箱"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm outline-none focus:border-blue-500 transition-colors"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <p v-if="errorMsg" class="text-sm text-red-500">
@@ -351,7 +351,7 @@ function handleGitHub() {
           </AppButton>
           <button
             type="button"
-            class="w-full text-sm text-blue-500 hover:text-blue-600 cursor-pointer transition-colors"
+            class="w-full text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer transition-colors"
             @click="tab = 'login'; errorMsg = ''"
           >
             返回登录
@@ -360,9 +360,9 @@ function handleGitHub() {
 
         <div v-if="showThirdPartyLogin && tab !== 'forgot'" class="mt-4">
           <div class="relative flex items-center gap-2">
-            <div class="flex-1 border-t border-gray-200" />
+            <div class="flex-1 border-t border-gray-200 dark:border-gray-700" />
             <span class="text-xs text-gray-400 shrink-0">或</span>
-            <div class="flex-1 border-t border-gray-200" />
+            <div class="flex-1 border-t border-gray-200 dark:border-gray-700" />
           </div>
           <AppButton
             variant="outline"

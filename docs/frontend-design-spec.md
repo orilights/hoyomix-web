@@ -4,6 +4,8 @@
 
 本规范覆盖架构、目录、状态、数据、播放器、布局与工程化约定，作为开发与维护的参考基准。
 
+应用主题由独立的 `theme` Pinia store 管理，`ThemeMode` 为 `'system' | 'light' | 'dark'`，默认 `'system'`；仅持久化 `mode`，`isDark` 根据用户选择与系统偏好计算。初始化在应用挂载前完成，监听系统明暗变化，并同步根元素 `dark` class、`color-scheme` 与浏览器 `theme-color`。入口页内脚本提前读取同一存储键 `theme`，异常或无效记录回退至跟随系统，减少首屏闪烁。设置页和导航栏复用 `ThemeSwitcher`，分别提供三档单选与循环切换。
+
 ---
 
 ## 1. 项目概述

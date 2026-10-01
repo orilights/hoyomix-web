@@ -16,16 +16,16 @@ const colorModeOptions = [
       <h2 id="spectrum-heading" class="font-bold text-lg">
         频谱可视化
       </h2>
-      <button class="text-sm text-blue-500 hover:text-blue-600 cursor-pointer" @click="settings = createSpectrumSettings()">
+      <button class="text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer" @click="settings = createSpectrumSettings()">
         恢复默认样式
       </button>
     </div>
-    <div class="bg-white/60 rounded-xl border border-gray-200 p-4 space-y-4">
+    <div class="bg-white/60 dark:bg-[var(--theme-surface)]/60 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
       <label class="flex items-center gap-2 text-sm">
         <input v-model="showSpectrum" type="checkbox" :disabled="!enableAudioContext" class="accent-blue-500">
         在全屏播放器中显示频谱
       </label>
-      <p v-if="!enableAudioContext" class="text-sm text-gray-500">
+      <p v-if="!enableAudioContext" class="text-sm text-gray-500 dark:text-gray-400">
         启用 AudioContext API 后可显示实时频谱，仍可调整样式并查看示意预览。
       </p>
       <div class="rounded-xl bg-gray-900 p-3 overflow-hidden">
@@ -50,18 +50,18 @@ const colorModeOptions = [
               @update:model-value="settings.colorMode = $event as 'custom' | 'cover'"
             />
             <template v-if="settings.colorMode === 'custom'">
-              <input v-model="settings.color" type="color" aria-label="自定义频谱颜色" class="w-10 h-9 cursor-pointer rounded border border-gray-300">
-              <span class="text-xs text-gray-500 font-mono">{{ settings.color }}</span>
+              <input v-model="settings.color" type="color" aria-label="自定义频谱颜色" class="w-10 h-9 cursor-pointer rounded border border-gray-300 dark:border-gray-700">
+              <span class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ settings.color }}</span>
             </template>
           </div>
-          <p v-if="settings.colorMode === 'cover'" class="text-xs text-gray-500">
+          <p v-if="settings.colorMode === 'cover'" class="text-xs text-gray-500 dark:text-gray-400">
             自动提取当前歌曲的封面主色并适度提亮；无封面或取色失败时使用白色。
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div v-for="control in spectrumControls" :key="control.key">
               <label :for="`spectrum-${control.key}`" class="flex justify-between gap-2 text-sm mb-2">
                 <span>{{ control.label }}</span>
-                <span class="text-gray-500 tabular-nums">{{ settings[control.key] }} {{ control.unit }}</span>
+                <span class="text-gray-500 dark:text-gray-400 tabular-nums">{{ settings[control.key] }} {{ control.unit }}</span>
               </label>
               <input
                 :id="`spectrum-${control.key}`" v-model.number="settings[control.key]"

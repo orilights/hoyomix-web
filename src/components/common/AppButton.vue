@@ -18,9 +18,9 @@ const props = withDefaults(defineProps<Props>(), {
 const variantClasses: Record<NonNullable<Props['variant']>, string> = {
   primary: 'bg-blue-500/90 text-white hover:bg-blue-600',
   secondary: 'bg-gray-500/10 hover:bg-gray-500/20',
-  danger: 'bg-red-50 text-red-500 hover:bg-red-100',
-  outline: 'border border-gray-200 text-gray-700 hover:bg-gray-50',
-  ghost: 'text-gray-500 hover:text-gray-700 hover:bg-gray-500/10',
+  danger: 'bg-red-50 dark:bg-red-500/15 text-red-500 hover:bg-red-100 hover:dark:bg-red-500/15',
+  outline: 'border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 hover:dark:bg-gray-800',
+  ghost: 'text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:dark:text-gray-300 hover:bg-gray-500/10',
   dark: 'text-white/60 hover:text-white hover:bg-white/10',
 }
 
