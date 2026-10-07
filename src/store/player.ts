@@ -1,4 +1,5 @@
 import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, PlaylistItem, PlayMode, SongListPlayBehavior, SongMediaItem } from '@/types/player'
+import type { SleepTimerPreferences } from '@/utils/sleep-timer'
 import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api/music'
@@ -6,6 +7,7 @@ import { audioQualityOptions } from '@/constants'
 import { clearMediaSession, getAvailableQualities, parseSongMediaResponse, selectLyricProvider, selectMediaUrlsWithSource, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 import { queryClient } from '@/utils/query-client'
+import { checkSleepTimer, consumeSleepTimerSong, startSleepTimer as createRunningSleepTimer, createSleepTimerState, normalizeSleepTimerPreferences } from '@/utils/sleep-timer'
 import { createSpectrumSettings, normalizeSpectrumSettings } from '@/utils/spectrum'
 import { useMediaSourceStore } from './media-source'
 
@@ -32,6 +34,7 @@ export const usePlayerStore = defineStore('player', {
     fullscreenCoverRotation: true,
     fullscreenCoverBorder: true,
     immersiveModeEnabled: true,
+    sleepTimerPreferences: normalizeSleepTimerPreferences(),
 
     // 运行时状态
     isPlaying: false,
@@ -49,6 +52,9 @@ export const usePlayerStore = defineStore('player', {
     showPlaylist: false,
     consecutiveErrorCount: 0,
     isRecoveringFromError: false,
+    sleepTimer: createSleepTimerState(),
+    sleepTimerNow: Date.now(),
+    playbackRequestId: 0,
   }),
 
   getters: {
@@ -75,6 +81,52 @@ export const usePlayerStore = defineStore('player', {
   },
 
   actions: {
+    startSleepTimer(preferences?: SleepTimerPreferences) {
+      this.sleepTimerPreferences = normalizeSleepTimerPreferences(preferences ?? this.sleepTimerPreferences)
+      this.sleepTimerNow = Date.now()
+      this.sleepTimer = createRunningSleepTimer(this.sleepTimerPreferences, this.sleepTimerNow)
+    },
+
+    cancelSleepTimer() {
+      this.sleepTimer = createSleepTimerState()
+    },
+
+    completeSleepTimer() {
+      this.cancelSleepTimer()
+      // 使仍在获取音源的播放请求失效，防止到时后恢复自动播放。
+      this.playbackRequestId++
+      const player = getAudioPlayer()
+      player.pause()
+      if (this.isLoading)
+        player.urls = []
+      this.isPlaying = false
+      this.isLoading = false
+    },
+
+    checkSleepTimer(): boolean {
+      this.sleepTimerNow = Date.now()
+      if (checkSleepTimer(this.sleepTimer, this.sleepTimerNow, this.isPlaying, !!this.currentSong)) {
+        this.completeSleepTimer()
+        return true
+      }
+      return false
+    },
+
+    beforeSongTransition(): boolean {
+      if (this.checkSleepTimer())
+        return true
+      if (this.currentSong && consumeSleepTimerSong(this.sleepTimer)) {
+        this.completeSleepTimer()
+        return true
+      }
+      return false
+    },
+
+    async onSongEnded() {
+      if (!this.beforeSongTransition())
+        await this.playNext(false)
+    },
+
     initPlayer() {
       const player = getAudioPlayer()
       player.setVolume(this.volume)
@@ -84,6 +136,8 @@ export const usePlayerStore = defineStore('player', {
 
       player.on('play', () => {
         this.isPlaying = true
+        if (this.checkSleepTimer())
+          return
         if (this.enableMediaSession && 'mediaSession' in navigator)
           navigator.mediaSession.playbackState = 'playing'
       })
@@ -114,9 +168,15 @@ export const usePlayerStore = defineStore('player', {
         this.isLoading = false
       })
       player.on('ended', () => {
-        this.playNext()
+        this.onSongEnded()
       })
       player.on('error', () => {
+        if (this.checkSleepTimer())
+          return
+        if (this.sleepTimer.status === 'waiting') {
+          this.completeSleepTimer()
+          return
+        }
         if (this.isRecoveringFromError) {
           this.consecutiveErrorCount++
           return
@@ -137,7 +197,7 @@ export const usePlayerStore = defineStore('player', {
         // 播放出错时尝试下一首
         if (this.playlist.length > 1) {
           toast.error('播放失败，已切换下一首', { duration: 2000 })
-          this.playNext().finally(() => {
+          this.playNext(false).finally(() => {
             this.isRecoveringFromError = false
           })
         }
@@ -150,10 +210,15 @@ export const usePlayerStore = defineStore('player', {
       })
     },
 
-    async playSong(index: number) {
+    async playSong(index: number, countTransition = true) {
       if (index < 0 || index >= this.playlist.length)
         return
+      if (this.checkSleepTimer())
+        return
+      if (countTransition && (index !== this.currentIndex || this.sleepTimer.status === 'waiting') && this.beforeSongTransition())
+        return
 
+      const requestId = ++this.playbackRequestId
       this.currentIndex = index
       const song = this.playlist[index]
 
@@ -175,10 +240,14 @@ export const usePlayerStore = defineStore('player', {
           queryFn: () => getSongMediaApi(song.songId),
           staleTime: 1000 * 60 * 5,
         })
+        if (requestId !== this.playbackRequestId || this.checkSleepTimer())
+          return
         this.currentMediaItems = parseSongMediaResponse(data)
         this.availableQualities = getAvailableQualities(this.currentMediaItems)
       }
       catch (error) {
+        if (requestId !== this.playbackRequestId)
+          return
         this.currentMediaItems = []
         this.availableQualities = new Set()
         this.isPlaying = false
@@ -197,12 +266,16 @@ export const usePlayerStore = defineStore('player', {
 
       const player = getAudioPlayer()
       await player.loadSong(urls)
+      if (requestId !== this.playbackRequestId || this.checkSleepTimer())
+        return
       await player.play()
       if (this.enableMediaSession)
         updateMediaSession(song)
     },
 
     async togglePlay() {
+      if (this.checkSleepTimer())
+        return
       if (this.isLoading) {
         return
       }
@@ -225,7 +298,7 @@ export const usePlayerStore = defineStore('player', {
       }
     },
 
-    async playNext() {
+    async playNext(countTransition = true) {
       if (this.playlist.length === 0)
         return
 
@@ -258,7 +331,9 @@ export const usePlayerStore = defineStore('player', {
           }
       }
 
-      await this.playSong(nextIndex)
+      if (countTransition && this.beforeSongTransition())
+        return
+      await this.playSong(nextIndex, false)
     },
 
     async playPrev() {
@@ -294,15 +369,19 @@ export const usePlayerStore = defineStore('player', {
           }
       }
 
-      await this.playSong(prevIndex)
+      if (this.beforeSongTransition())
+        return
+      await this.playSong(prevIndex, false)
     },
 
     async replacePlaylist(items: PlaylistItem[], startIndex = 0) {
+      if (items.length > 0 && this.beforeSongTransition())
+        return
       this.playlist = items
       // 用户手动操作，重置连续错误计数
       this.consecutiveErrorCount = 0
       if (items.length > 0) {
-        await this.playSong(startIndex)
+        await this.playSong(startIndex, false)
       }
     },
 
@@ -322,6 +401,8 @@ export const usePlayerStore = defineStore('player', {
         await this.playSong(existingIndex)
         return
       }
+      if (this.beforeSongTransition())
+        return
 
       if (existingIndex !== -1) {
         this.playlist.splice(existingIndex, 1)
@@ -332,7 +413,7 @@ export const usePlayerStore = defineStore('player', {
       const nextIndex = this.currentIndex >= 0 ? this.currentIndex + 1 : 0
       this.playlist.splice(nextIndex, 0, item)
       this.consecutiveErrorCount = 0
-      await this.playSong(nextIndex)
+      await this.playSong(nextIndex, false)
     },
 
     setSongListPlayBehavior(behavior: SongListPlayBehavior) {
@@ -344,6 +425,7 @@ export const usePlayerStore = defineStore('player', {
         return
 
       const wasPlaying = index === this.currentIndex
+      const stopPlayback = wasPlaying && this.beforeSongTransition()
       this.playlist.splice(index, 1)
 
       if (this.playlist.length === 0) {
@@ -356,7 +438,13 @@ export const usePlayerStore = defineStore('player', {
       if (wasPlaying) {
         // 被删除的是当前歌曲，播放下一首
         const newIndex = Math.min(index, this.playlist.length - 1)
-        this.playSong(newIndex)
+        if (stopPlayback) {
+          this.currentIndex = newIndex
+          getAudioPlayer().urls = []
+        }
+        else {
+          this.playSong(newIndex, false)
+        }
       }
       else if (index < this.currentIndex) {
         this.currentIndex--
@@ -364,6 +452,9 @@ export const usePlayerStore = defineStore('player', {
     },
 
     clearPlaylist() {
+      if (this.sleepTimer.status === 'waiting')
+        this.completeSleepTimer()
+      this.playbackRequestId++
       this.playlist = []
       this.currentIndex = -1
       this.isPlaying = false
@@ -418,6 +509,7 @@ export const usePlayerStore = defineStore('player', {
 
       const savedTime = this.currentTime
       const wasPlaying = this.isPlaying
+      const requestId = this.playbackRequestId
 
       const urls = selectMediaUrlsWithSource(this.currentMediaItems, q, useMediaSourceStore().effectiveSource)
       if (urls.length === 0)
@@ -429,7 +521,7 @@ export const usePlayerStore = defineStore('player', {
       const onCanPlay = async () => {
         player.off('canplay', onCanPlay)
         player.seek(savedTime)
-        if (wasPlaying) {
+        if (wasPlaying && requestId === this.playbackRequestId && !this.checkSleepTimer()) {
           await player.play()
         }
       }
@@ -440,7 +532,7 @@ export const usePlayerStore = defineStore('player', {
       if (!this.currentSong)
         return
       const wasPlaying = this.isPlaying
-      await this.playSong(this.currentIndex)
+      await this.playSong(this.currentIndex, false)
       if (!wasPlaying) {
         getAudioPlayer().pause()
       }
@@ -572,6 +664,7 @@ export const usePlayerStore = defineStore('player', {
 
   persist: {
     afterHydrate: ({ store }) => {
+      store.sleepTimerPreferences = normalizeSleepTimerPreferences(store.sleepTimerPreferences ?? {})
       if (typeof store.enableMediaSession !== 'boolean')
         store.enableMediaSession = true
       if (!['ask', 'replace', 'insert-next'].includes(store.songListPlayBehavior))
@@ -611,6 +704,7 @@ export const usePlayerStore = defineStore('player', {
       'fullscreenCoverRotation',
       'fullscreenCoverBorder',
       'immersiveModeEnabled',
+      'sleepTimerPreferences',
     ],
   },
 })

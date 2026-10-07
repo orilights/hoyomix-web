@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { OverlayScrollbars, PartialOptions } from 'overlayscrollbars'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useMediaQuery } from '@vueuse/core'
+import { useEventListener, useIntervalFn, useMediaQuery } from '@vueuse/core'
 import { toast, Toaster } from 'vue-sonner'
 import { useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
 import { completePageRender, setPageScrollElement, updatePageScroll } from '@/composables/usePageScroll'
@@ -20,6 +20,16 @@ const mediaSource = useMediaSourceStore()
 const isDesktop = useMediaQuery('(min-width: 1280px)')
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist, isLoading } = storeToRefs(player)
+
+const { pause: pauseSleepTimerClock, resume: resumeSleepTimerClock } = useIntervalFn(() => player.checkSleepTimer(), 500, { immediate: false })
+watch(() => player.sleepTimer.status, (status) => {
+  if (status === 'running')
+    resumeSleepTimerClock()
+  else
+    pauseSleepTimerClock()
+}, { immediate: true })
+useEventListener(document, 'visibilitychange', () => player.checkSleepTimer())
+useEventListener(window, ['focus', 'pageshow'], () => player.checkSleepTimer())
 
 const { data: albumListData, isError: isAlbumListError, error: albumListError } = useAlbumListQuery()
 
