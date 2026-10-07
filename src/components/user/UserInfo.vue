@@ -11,9 +11,11 @@ const showChangePassword = ref(false)
 const showChangeName = ref(false)
 const avatar = useTemplateRef<HTMLElement>('avatar')
 const menu = useTemplateRef<HTMLElement>('menu')
-const { floatingStyles } = useFloating(avatar, menu, {
+const { floatingStyles, isPositioned } = useFloating(avatar, menu, {
   placement: 'bottom-end',
   strategy: 'fixed',
+  // Keep positioning separate from the menu's transform transition.
+  transform: false,
   open: showDropdown,
   whileElementsMounted: autoUpdate,
   middleware: [
@@ -109,7 +111,7 @@ onUnmounted(() => {
         <div
           v-if="showDropdown"
           ref="menu"
-          :style="floatingStyles"
+          :style="[floatingStyles, { visibility: showDropdown && !isPositioned ? 'hidden' : undefined }]"
           class="w-80 bg-white dark:bg-[var(--theme-surface)] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-auto overscroll-contain z-999"
           @click.stop
         >
