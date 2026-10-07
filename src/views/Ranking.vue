@@ -115,14 +115,14 @@ onMounted(() => {
           class="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
       </label>
-      <button
+      <AppButton
         v-if="tab !== 'all' && selectedDate"
-        type="button"
-        class="text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer"
+        variant="ghost"
+        size="sm"
         @click="selectedDate = ''"
       >
         返回最新
-      </button>
+      </AppButton>
       <div class="flex-1" />
       <div class="flex gap-2">
         <AppButton

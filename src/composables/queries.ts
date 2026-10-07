@@ -8,6 +8,7 @@ import {
   getAlbumListApi,
   getAlbumsByTagApi,
   getArtistInfoApi,
+  getArtistNameByAliasApi,
   getChangelog,
   getCreditInfoApi,
   getFavoritePlaylistsApi,
@@ -19,6 +20,7 @@ import {
   getSongInfoApi,
 } from '@/api/music'
 import { useAuthStore } from '@/store/auth'
+import { NotFoundError } from '@/utils/fetch'
 
 export function useAppConfigQuery() {
   return useQuery({
@@ -57,6 +59,15 @@ export function useArtistInfoQuery(name: Ref<string | null>) {
     queryKey: computed(() => ['artistInfo', name.value]),
     queryFn: () => getArtistInfoApi(name.value!),
     enabled: computed(() => !!name.value),
+  })
+}
+
+export function useArtistNameByAliasQuery(alias: Ref<string | null>) {
+  return useQuery({
+    queryKey: computed(() => ['artistNameByAlias', alias.value]),
+    queryFn: () => getArtistNameByAliasApi(alias.value!),
+    enabled: computed(() => !!alias.value),
+    retry: (failureCount, error) => !(error instanceof NotFoundError) && failureCount < 1,
   })
 }
 

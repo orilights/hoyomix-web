@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
-import { useArtistInfoQuery } from '@/composables/queries'
+import { useArtistInfoQuery, useArtistNameByAliasQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { useMainStore } from '@/store/main'
 import { getProductIconUrl, getProductName } from '@/utils'
@@ -17,14 +17,27 @@ const artistName = computed(() => route.params.name as string || null)
 
 const { data: artistInfo, isLoading, isError, error } = useArtistInfoQuery(artistName)
 
-watch(isError, (val) => {
-  if (!val)
+const artistAlias = computed(() => isError.value && error.value instanceof NotFoundError ? artistName.value : null)
+const { data: aliasMatch, isLoading: isAliasLoading, error: aliasError } = useArtistNameByAliasQuery(artistAlias)
+const isResolvingAlias = computed(() => !!artistAlias.value && !aliasError.value)
+
+watch([error, aliasMatch, aliasError], ([infoError, match, resolveError]) => {
+  if (!isError.value)
     return
-  if (error.value instanceof NotFoundError)
-    router.replace({ path: '/404', query: { errorMessage: error.value?.message } })
-  else
-    toast.error(`艺术家信息加载失败：${error.value?.message ?? '未知错误'}`)
-})
+  if (!(infoError instanceof NotFoundError)) {
+    toast.error(`艺术家信息加载失败：${infoError?.message ?? '未知错误'}`)
+    return
+  }
+  if (match && match.name !== artistName.value) {
+    router.replace({ name: 'ArtistInfo', params: { name: match.name }, query: route.query, hash: route.hash })
+  }
+  else if (resolveError instanceof NotFoundError || match) {
+    router.replace({ path: '/404', query: { errorMessage: infoError.message } })
+  }
+  else if (resolveError) {
+    toast.error(`艺术家别名查询失败：${resolveError.message}`)
+  }
+}, { immediate: true })
 
 const albumsFiltered = computed(() => {
   if (artistInfo.value) {
@@ -106,7 +119,7 @@ onMounted(() => {
 
 <template>
   <AsyncFade>
-    <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
+    <div v-if="isLoading || isAliasLoading || isResolvingAlias" class="flex items-center justify-center py-20 text-gray-400">
       <LucideLoader2 class="size-6 animate-spin mr-2" />
       加载中...
     </div>

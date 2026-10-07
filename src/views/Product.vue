@@ -184,22 +184,12 @@ watch(product, (val) => {
       </div>
     </div>
 
-    <div class="flex gap-2 mt-4 lg:hidden h-fit">
-      <button
-        class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-        :class="activeTab === 'albums' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-        @click="activeTab = 'albums'"
-      >
-        专辑列表
-      </button>
-      <button
-        class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-        :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-        @click="activeTab = 'artists'"
-      >
-        制作人员
-      </button>
-    </div>
+    <SegmentSwitch
+      v-model="activeTab"
+      :options="[{ key: 'albums', label: '专辑列表' }, { key: 'artists', label: '制作人员' }]"
+      class="mt-4 lg:hidden h-fit"
+      aria-label="游戏内容"
+    />
 
     <div class="flex flex-col lg:flex-row gap-4 mt-4">
       <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] shrink-0 p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block" :class="{ hidden: activeTab !== 'artists' }">

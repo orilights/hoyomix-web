@@ -420,22 +420,13 @@ async function deletePlaylist() {
         />
       </div>
 
-      <div v-if="playlist.isPublic" class="flex gap-2 mt-4 lg:hidden">
-        <button
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'songs'"
-        >
-          歌曲列表
-        </button>
-        <button
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'comments'"
-        >
-          评论 {{ commentCount }}
-        </button>
-      </div>
+      <SegmentSwitch
+        v-if="playlist.isPublic"
+        v-model="activeTab"
+        :options="[{ key: 'songs', label: '歌曲列表' }, { key: 'comments', label: `评论 ${commentCount}` }]"
+        class="mt-4 lg:hidden"
+        aria-label="歌单内容"
+      />
 
       <div v-show="activeTab === 'songs' || !playlist.isPublic" class="mt-4 lg:!block">
         <SongList

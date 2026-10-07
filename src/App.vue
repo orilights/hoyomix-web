@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { OverlayScrollbars, PartialOptions } from 'overlayscrollbars'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useMediaQuery } from '@vueuse/core'
+import { useEventListener, useIntervalFn, useMediaQuery } from '@vueuse/core'
 import { toast, Toaster } from 'vue-sonner'
 import { useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
-import { scrollPageToTop, setPageScrollElement, updatePageScroll } from '@/composables/usePageScroll'
+import { completePageRender, setPageScrollElement, updatePageScroll } from '@/composables/usePageScroll'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
@@ -18,9 +18,18 @@ const auth = useAuthStore()
 const queryClient = useQueryClient()
 const mediaSource = useMediaSourceStore()
 const isDesktop = useMediaQuery('(min-width: 1280px)')
-const route = useRoute()
 const { albumList, showSearch } = storeToRefs(store)
 const { volume, isFullscreen, showPlaylist, isLoading } = storeToRefs(player)
+
+const { pause: pauseSleepTimerClock, resume: resumeSleepTimerClock } = useIntervalFn(() => player.checkSleepTimer(), 500, { immediate: false })
+watch(() => player.sleepTimer.status, (status) => {
+  if (status === 'running')
+    resumeSleepTimerClock()
+  else
+    pauseSleepTimerClock()
+}, { immediate: true })
+useEventListener(document, 'visibilitychange', () => player.checkSleepTimer())
+useEventListener(window, ['focus', 'pageshow'], () => player.checkSleepTimer())
 
 const { data: albumListData, isError: isAlbumListError, error: albumListError } = useAlbumListQuery()
 
@@ -97,11 +106,6 @@ function onPageScrollDestroyed() {
   setPageScrollElement(null)
 }
 
-watch(() => route.path, async () => {
-  await nextTick()
-  scrollPageToTop()
-})
-
 watch(() => mediaSource.selectedSource, () => {
   if (!isLoading.value)
     player.reloadCurrentSong()
@@ -134,7 +138,8 @@ onUnmounted(() => {
   >
     <div class="px-4 md:px-16 xl:px-8 pt-6 pb-7">
       <router-view v-slot="{ Component }">
-        <Transition name="page-fade" mode="out-in" appear>
+        <!-- enter 时新页面已插入 DOM 且仍透明，滚动应在淡入开始前恢复。 -->
+        <Transition name="page-fade" mode="out-in" appear @enter="completePageRender">
           <component :is="Component" :key="$route.path" />
         </Transition>
       </router-view>

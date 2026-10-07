@@ -127,6 +127,14 @@ History 模式，全部 `() => import(...)` 懒加载；`scrollBehavior` 返回�
 
 `PlayerBar`（常驻播放条，移动端滑动切歌）、`PlayerControl`/`PlayerControlMobile`、`PlayerPlayBtn`、`PlayerProgress`（进度/缓冲，支持拖拽）、`PlayerBarSongInfo`、`PlayerFullscreen`（全屏大屏 + 动态渐变背景 + 下滑收起）、`PlayerLyrics`、`PlayerSpectrum`、`PlayerPlaylist`（vuedraggable 排序/删除/清空）。
 
+### 8.6 定时播放
+
+- 全屏播放器的定时按钮打开 `PlayerSleepTimer` 面板，桌面和移动端复用 `AppDialog` 弹窗并跟随应用亮暗主题；按钮使用 `AppButton`，模式切换使用 `SegmentSwitch` 的 `block` 模式（铺满父容器、选项等宽；默认关闭以保留其他页面的内容宽度布局）。提供时长滑块（5–120 分钟、步长 5、默认 30）和歌曲数量（1–50 首、默认 5），运行中可取消或重新设置；修改选项后点击“重新开始”才替换当前任务。
+- 时长从开启时持续倒计时，暂停和缓冲期间仍计时。可勾选“播放完最后一首歌曲”（默认关闭）：到时正在播放则等待当前歌曲结束，等待期间手动切歌立即暂停；到时已暂停或无歌曲则直接结束。
+- 歌曲模式计入自然结束和手动切歌，单曲循环每播完一次计一首。进度拖动、暂停恢复、音质和音源重载不计数；自动错误恢复不计数。达到目标时在下一次自动播放之前拦截并暂停。
+- `player` store 保存任务运行状态，并仅持久化 `sleepTimerPreferences`。`App.vue` 的全局时钟按截止时间校准，并在页面可见性变化、聚焦和恢复时立即检查；退出全屏后继续执行，刷新后取消任务并保留偏好。
+- 开启或取消任务不改变播放状态，任务完成保留队列。加载中的媒体请求和音源重试受暂停保护，避免任务完成后恢复播放。
+
 ---
 
 ## 9. 全局 UI / 布局
@@ -155,12 +163,16 @@ Toaster（全局提示）
 | `Dropdown` | 下拉菜单：`alignment`/`position`（up/down/**auto** 翻转）/`dark`；点击外部关闭、`disabled` 项 |
 | `Tooltip` | `placement`/`align`/`theme`；支持 touch 切换 |
 | `AppDialog` | 模态（`Teleport to body`）：`size` sm/md，遮罩与 `Esc` 关闭，title/footer 插槽 |
-| `SegmentSwitch` | 分段切换（灰底、选中白底阴影） |
+| `SegmentSwitch` | 单选分段切换；底色 `bg-black/5 dark:bg-white/5`，保留暗色描边及激活项 `bg-blue-500/90`；`block` 铺满父容器并等分选项，默认按内容宽度显示 |
 | `LazyImg` / `CoverImage` | 懒加载淡入图 / 方形封面（`pt-[100%]`） |
 | `PageHeader` | 标题 + 副标题 + `extra` 插槽 |
 | `AsyncFade` | 异步内容淡入容器 |
 
 > 基础按钮使用 `components/common/AppButton.vue` 统一变体、尺寸、焦点和禁用态；筛选/分段、开关、列表行和播放器沉浸控制等特殊控件保留专用实现。输入框仍按页面内联规范维护。
+
+互斥模式与内容标签统一复用 `SegmentSwitch`，包括随机播放生成模式、定时播放模式、搜索类型、热榜周期、歌单列表，以及专辑/歌曲/歌单/游戏详情的移动端内容切换。保留原有状态、条件选项、评论数量和响应式显示；多选筛选、媒体源卡片、列表行及专用播放器控件按各自交互维护。
+
+随机播放的歌曲数量使用 10–200 首滑块，步长 5，默认 20；实时显示所选数量并沿用 `randomPlaylistLimit` 的本地持久化。两种生成模式均通过 `/random-playlist` 的 `limit` 参数请求数量，后端上限同为 200；候选歌曲不足时返回实际可用数量。
 
 ---
 

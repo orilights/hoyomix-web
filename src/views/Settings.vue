@@ -5,7 +5,7 @@ import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
 import { usePageScroll } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
-import { apiBase, appDescription, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { apiBase, appDescription, appGithubRepoUrl, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
@@ -154,6 +154,10 @@ watch(isChangelogError, (val) => {
   if (val)
     toast.error(`更新日志加载失败：${changelogError.value?.message ?? '未知错误'}`)
 })
+
+function openGithubRepo() {
+  window.open(appGithubRepoUrl, '_blank')
+}
 
 onMounted(() => {
   store.setBackground()
@@ -552,12 +556,13 @@ onMounted(() => {
               <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 dark:text-green-400 ml-2">测试版</span>
               <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 dark:text-red-400 ml-2">构建于 {{ buildTime }}</span>
             </div>
-            <div class="mt-2">
-              <AppButton
-                class="my-2"
-                @click="$router.push({ name: 'Feedback' })"
-              >
+            <div class="mt-2 flex gap-2">
+              <AppButton @click="$router.push({ name: 'Feedback' })">
                 反馈问题
+              </AppButton>
+
+              <AppButton @click="openGithubRepo">
+                GitHub
               </AppButton>
               <br>
             </div>

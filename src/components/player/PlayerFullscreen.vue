@@ -5,6 +5,7 @@ import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { fallbackCoverColors } from '@/utils/cover'
+import { getSleepTimerLabel } from '@/utils/sleep-timer'
 
 const router = useRouter()
 const player = usePlayerStore()
@@ -32,6 +33,8 @@ const {
 } = storeToRefs(player)
 
 const isRoundCover = computed(() => fullscreenCoverShape.value === 'circle')
+const showSleepTimer = ref(false)
+const sleepTimerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.sleepTimerNow))
 const isMobileViewport = useMediaQuery('(max-width: 767px)')
 const coverMenu = ref<{ x: number, y: number } | null>(null)
 const coverMenuRef = ref<HTMLElement | null>(null)
@@ -126,8 +129,14 @@ onMounted(() => {
 })
 
 watch(isFullscreen, (value) => {
-  if (!value)
+  if (!value) {
     closeCoverMenu()
+    showSleepTimer.value = false
+  }
+})
+watch(currentSong, (song) => {
+  if (!song)
+    showSleepTimer.value = false
 })
 
 const coverUrl = computed(() => {
@@ -363,6 +372,21 @@ function onHeaderTouchEnd() {
 
           <div class="flex items-center gap-1">
             <div class="flex items-center gap-1">
+              <Tooltip placement="bottom" align="center" :content="sleepTimerLabel">
+                <button
+                  type="button"
+                  class="size-10 shrink-0 inline-flex items-center justify-center rounded-full transition-colors cursor-pointer hover:bg-white/10"
+                  :class="player.sleepTimer.status !== 'off' ? 'text-blue-400' : 'text-white/60 hover:text-white'"
+                  :aria-label="`定时播放：${sleepTimerLabel}`"
+                  :aria-pressed="player.sleepTimer.status !== 'off'"
+                  aria-haspopup="dialog"
+                  @touchstart.stop
+                  @click="showSleepTimer = true"
+                >
+                  <LucideTimer class="size-5" />
+                </button>
+              </Tooltip>
+
               <Tooltip
                 placement="bottom"
                 align="center"
@@ -590,6 +614,7 @@ function onHeaderTouchEnd() {
       </div>
     </div>
   </Transition>
+  <PlayerSleepTimer v-model="showSleepTimer" />
 </template>
 
 <style scoped>

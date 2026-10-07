@@ -358,29 +358,12 @@ function refreshSongInfo() {
         </AsyncFade>
       </div>
 
-      <div class="flex flex-wrap gap-2 mt-4 lg:hidden">
-        <button
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'lyrics' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'lyrics'"
-        >
-          歌词
-        </button>
-        <button
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'artists'"
-        >
-          制作人员
-        </button>
-        <button
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'comments'"
-        >
-          评论 {{ commentCount }}
-        </button>
-      </div>
+      <SegmentSwitch
+        v-model="activeTab"
+        :options="[{ key: 'lyrics', label: '歌词' }, { key: 'artists', label: '制作人员' }, { key: 'comments', label: `评论 ${commentCount}` }]"
+        class="mt-4 lg:hidden"
+        aria-label="歌曲内容"
+      />
 
       <div v-show="activeTab !== 'comments'" class="flex flex-col lg:!flex lg:flex-row lg:gap-4 mt-4">
         <div class="w-full lg:w-[400px]">

@@ -38,6 +38,13 @@ const typeOptions: { label: string, value: SearchType | undefined }[] = [
   { label: '游戏', value: 'product' },
   { label: '艺术家', value: 'artist' },
 ]
+const searchMode = computed({
+  get: () => searchType.value ?? 'all',
+  set: (value: SearchType | 'all') => {
+    searchType.value = value === 'all' ? undefined : value
+  },
+})
+const searchModeOptions = typeOptions.map(option => ({ key: option.value ?? 'all', label: option.label }))
 
 const debouncedKeyword = refDebounced(keyword, 300)
 
@@ -224,16 +231,8 @@ onUnmounted(() => {
             <kbd class="hidden md:inline-flex items-center text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">ESC</kbd>
           </div>
 
-          <div class="flex gap-1.5 px-4 py-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-            <button
-              v-for="opt in typeOptions"
-              :key="opt.label"
-              class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
-              :class="searchType === opt.value ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-              @click="searchType = opt.value"
-            >
-              {{ opt.label }}
-            </button>
+          <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+            <SegmentSwitch v-model="searchMode" :options="searchModeOptions" class="min-w-max" aria-label="搜索类型" />
           </div>
 
           <div

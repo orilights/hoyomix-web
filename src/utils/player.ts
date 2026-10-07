@@ -21,6 +21,7 @@ export class AudioPlayer {
   public urls: string[] = []
   private urlIndex = 0
   private audioContextEnabled = true
+  private playRevision = 0
 
   constructor() {
     this.audio = new Audio()
@@ -79,12 +80,14 @@ export class AudioPlayer {
     this.audio.addEventListener('error', () => {
       // 尝试下一个 URL
       if (this.urlIndex < this.urls.length - 1) {
+        const revision = this.playRevision
         this.urlIndex++
         this.loadUrl(this.urls[this.urlIndex])
         // 自动重试播放：等新 URL 可播放后自动调用 play()
         const onCanPlay = () => {
           this.audio.removeEventListener('canplay', onCanPlay)
-          this.audio.play().catch(() => {})
+          if (revision === this.playRevision)
+            this.play().catch(() => {})
         }
         this.audio.addEventListener('canplay', onCanPlay)
       }
@@ -109,7 +112,7 @@ export class AudioPlayer {
   }
 
   async loadSong(urls: string[]) {
-    this.audio.pause()
+    this.pause()
     this.urls = urls
     this.urlIndex = 0
 
@@ -125,14 +128,17 @@ export class AudioPlayer {
   }
 
   async play() {
+    const revision = this.playRevision
     this.initAudioContext()
     if (this.audioContext?.state === 'suspended') {
       await this.audioContext.resume()
     }
-    await this.audio.play()
+    if (revision === this.playRevision)
+      await this.audio.play()
   }
 
   pause() {
+    this.playRevision++
     this.audio.pause()
   }
 

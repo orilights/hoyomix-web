@@ -53,7 +53,11 @@ export function getCreditInfoApi(id: number | string, type: 'album' | 'song' | '
 }
 
 export function getArtistInfoApi(artistName: string) {
-  return fetchJson<ArtistInfo>(`${apiBase}/artists/${artistName}`)
+  return fetchJson<ArtistInfo>(`${apiBase}/artists/${encodeURIComponent(artistName)}`)
+}
+
+export function getArtistNameByAliasApi(alias: string) {
+  return fetchJson<{ name: string }>(`${apiBase}/artists/resolve-alias?${new URLSearchParams({ alias })}`)
 }
 
 export function getLyricsApi(provider: 'qq' | 'ncm', songId: number | string) {

@@ -71,12 +71,12 @@ function onMouseLeave() {
       <div
         v-if="show"
         ref="floating"
-        class="z-100 pointer-events-none"
+        class="z-[1002] pointer-events-none max-w-[calc(100vw-16px)]"
         :style="floatingStyles"
       >
         <slot name="tooltip">
           <div
-            v-if="content" class="px-2 py-1 text-xs rounded-md shadow whitespace-nowrap"
+            v-if="content" class="px-2 py-1 text-xs rounded-md shadow break-words"
             :class="{
               'bg-gray-800 text-white': theme === 'dark',
               'bg-white text-gray-800 dark:bg-[var(--theme-surface)] dark:text-gray-100': theme === 'light',

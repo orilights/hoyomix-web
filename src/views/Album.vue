@@ -135,6 +135,12 @@ function playAll() {
 }
 
 const activeTab = ref<'songs' | 'artists' | 'tags' | 'comments'>('songs')
+const tabOptions = computed(() => [
+  { key: 'songs' as const, label: '歌曲列表' },
+  { key: 'artists' as const, label: '制作人员' },
+  { key: 'tags' as const, label: '其他信息' },
+  { key: 'comments' as const, label: `评论 ${commentCount.value}` },
+].filter(option => option.key !== 'tags' || albumInfo.value?.tags.length))
 
 watch([commentPostId, () => route.query.commentPostId], ([postId, targetPostId]) => {
   if (postId && targetPostId === postId)
@@ -247,37 +253,7 @@ function addAlbumToPlaylist() {
         />
       </div>
 
-      <div class="flex flex-wrap gap-2 mt-4 lg:hidden">
-        <button
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'songs' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'songs'"
-        >
-          歌曲列表
-        </button>
-        <button
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'artists' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'artists'"
-        >
-          制作人员
-        </button>
-        <button
-          v-if="albumInfo.tags.length"
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'tags' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'tags'"
-        >
-          其他信息
-        </button>
-        <button
-          class="text-sm px-3 py-2 rounded-lg transition-colors cursor-pointer"
-          :class="activeTab === 'comments' ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5'"
-          @click="activeTab = 'comments'"
-        >
-          评论 {{ commentCount }}
-        </button>
-      </div>
+      <SegmentSwitch v-model="activeTab" :options="tabOptions" class="mt-4 lg:hidden" aria-label="专辑内容" />
 
       <div v-show="activeTab !== 'comments'" class="flex flex-col lg:!flex lg:flex-row lg:gap-4 mt-4">
         <div class="w-full lg:w-[400px]">
