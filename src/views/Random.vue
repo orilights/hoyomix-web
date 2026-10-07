@@ -133,22 +133,13 @@ onMounted(() => {
           <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             生成模式
           </div>
-          <div class="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-sm">
-            <button
-              class="flex-1 py-2 font-medium transition-colors cursor-pointer"
-              :class="randomPlaylistMode === 'random' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 hover:bg-gray-50 hover:dark:bg-gray-800'"
-              @click="randomPlaylistMode = 'random'"
-            >
-              随机模式
-            </button>
-            <button
-              class="flex-1 py-2 font-medium transition-colors cursor-pointer border-l border-gray-200 dark:border-gray-700"
-              :class="randomPlaylistMode === 'album' ? 'bg-blue-500 text-white' : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 hover:bg-gray-50 hover:dark:bg-gray-800'"
-              @click="randomPlaylistMode = 'album'"
-            >
-              指定专辑
-            </button>
-          </div>
+          <SegmentSwitch
+            v-model="randomPlaylistMode"
+            :options="[{ key: 'random', label: '随机模式' }, { key: 'album', label: '指定专辑' }]"
+            block
+            role="group"
+            aria-label="生成模式"
+          />
         </div>
 
         <div>

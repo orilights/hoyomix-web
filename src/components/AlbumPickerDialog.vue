@@ -58,12 +58,13 @@ function confirm() {
     </div>
     <div class="px-6 pb-2 flex items-center justify-between text-sm">
       <span class="text-gray-500 dark:text-gray-400">已选 {{ localSelected.length }} 张</span>
-      <button
-        class="text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer"
+      <AppButton
+        variant="ghost"
+        size="sm"
         @click="localSelected = []"
       >
         清空
-      </button>
+      </AppButton>
     </div>
     <div class="h-72 overflow-y-auto px-3 pb-2">
       <button
