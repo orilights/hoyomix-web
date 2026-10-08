@@ -31,6 +31,7 @@ export interface MapTreeNode {
 
 /** 歌曲地图（地区）关联的增量变更 */
 export interface SongMapsChange {
+  update?: { mapId: number, note: string | null }[]
   add?: { mapId: number, note?: string | null }[]
   remove?: { mapId: number }[]
 }

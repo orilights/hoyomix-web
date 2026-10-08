@@ -13,6 +13,7 @@ import {
   getCreditInfoApi,
   getFavoritePlaylistsApi,
   getLyricsApi,
+  getMapTreeApi,
   getMyPlaylistsApi,
   getPlaylistDetailApi,
   getPublicPlaylistsApi,
@@ -184,5 +185,13 @@ export function useCommentRepliesQuery(
     queryFn: () => getCommentRepliesApi(threadId.value!, postId.value!, page.value),
     enabled: computed(() => !!threadId.value && !!postId.value && (enabled?.value ?? true)),
     staleTime: 1000 * 30,
+  })
+}
+
+export function useMapTreeQuery(game: Ref<string>, enabled: Ref<boolean>) {
+  return useQuery({
+    queryKey: computed(() => ['mapTree', game.value]),
+    queryFn: () => getMapTreeApi(game.value),
+    enabled: computed(() => enabled.value && !!game.value),
   })
 }
