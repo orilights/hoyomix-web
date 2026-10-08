@@ -322,8 +322,8 @@ async function deletePlaylist() {
 
           <div class="mt-1 md:mt-2 flex items-center gap-x-2 flex-wrap text-sm md:text-base">
             <span class="text-gray-500 dark:text-gray-400 hidden md:inline">创建人</span>
-            <span class="w-[200px] truncate" :title="playlist.userId">
-              {{ playlist.userId }}
+            <span class="max-w-[100px] truncate" :title="playlist.username ">
+              {{ playlist.username }}
             </span>
             <span class="text-gray-500 dark:text-gray-400 hidden md:inline">创建于</span>
             <span>

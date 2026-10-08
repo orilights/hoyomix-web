@@ -29,6 +29,7 @@ declare module 'vue' {
     CommentItem: typeof import('./components/comment/CommentItem.vue')['default']
     CommentSection: typeof import('./components/comment/CommentSection.vue')['default']
     CommentThread: typeof import('./components/comment/CommentThread.vue')['default']
+    ContributionCard: typeof import('./components/common/ContributionCard.vue')['default']
     CoverImage: typeof import('./components/CoverImage.vue')['default']
     CreatePlaylistDialog: typeof import('./components/playlist/CreatePlaylistDialog.vue')['default']
     DesktopSidebar: typeof import('./components/DesktopSidebar.vue')['default']

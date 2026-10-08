@@ -10,6 +10,7 @@ import {
   getArtistInfoApi,
   getArtistNameByAliasApi,
   getChangelog,
+  getContributionsApi,
   getCreditInfoApi,
   getFavoritePlaylistsApi,
   getLyricsApi,
@@ -193,5 +194,13 @@ export function useMapTreeQuery(game: Ref<string>, enabled: Ref<boolean>) {
     queryKey: computed(() => ['mapTree', game.value]),
     queryFn: () => getMapTreeApi(game.value),
     enabled: computed(() => enabled.value && !!game.value),
+  })
+}
+
+export function useContributionsQuery(id: Ref<number | null>, type: Ref<'album' | 'song'>) {
+  return useQuery({
+    queryKey: computed(() => ['contributions', type.value, id.value]),
+    queryFn: () => getContributionsApi(id.value!, type.value),
+    enabled: computed(() => !!id.value),
   })
 }

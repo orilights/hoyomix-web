@@ -194,7 +194,7 @@ watch([musicInfo, albumInfo], ([song, album]) => {
   }
 }, { immediate: true })
 
-const activeTab = ref<'lyrics' | 'artists' | 'comments'>('lyrics')
+const activeTab = ref<'lyrics' | 'artists' | 'contributions' | 'comments'>('lyrics')
 
 watch(musicId, () => {
   activeTab.value = 'lyrics'
@@ -251,6 +251,7 @@ function openEditVideo() {
 
 function refreshSongInfo() {
   queryClient.invalidateQueries({ queryKey: ['songInfo', musicId.value] })
+  queryClient.invalidateQueries({ queryKey: ['contributions', 'song', musicId.value] })
 }
 </script>
 
@@ -360,7 +361,7 @@ function refreshSongInfo() {
 
       <SegmentSwitch
         v-model="activeTab"
-        :options="[{ key: 'lyrics', label: '歌词' }, { key: 'artists', label: '制作人员' }, { key: 'comments', label: `评论 ${commentCount}` }]"
+        :options="[{ key: 'lyrics', label: '歌词' }, { key: 'artists', label: '制作人员' }, { key: 'contributions', label: '贡献信息' }, { key: 'comments', label: `评论 ${commentCount}` }]"
         class="mt-4 lg:hidden"
         aria-label="歌曲内容"
       />
@@ -383,6 +384,14 @@ function refreshSongInfo() {
           <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
             <ArtistListByType :id="musicId" type="song" />
           </div>
+
+          <ContributionCard
+            v-show="activeTab === 'contributions'"
+            :id="musicId"
+            type="song"
+            class="mt-4 lg:!block"
+            :class="{ hidden: activeTab !== 'contributions' }"
+          />
         </div>
 
         <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">

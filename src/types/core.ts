@@ -1,3 +1,8 @@
+export interface ContributionInfo {
+  total: number
+  items: { id: number, username: string, summary: string }[]
+}
+
 export interface AlbumInfo {
   id: number
   name: string
@@ -192,6 +197,7 @@ export interface PlaylistSongItem {
 }
 
 export interface PlaylistDetail extends Omit<PlaylistListItem, 'songCount'> {
+  username: string
   songCount: number
   songs: PlaylistSongItem[]
 }
