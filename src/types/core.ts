@@ -1,6 +1,6 @@
 export interface ContributionInfo {
   total: number
-  items: { id: number, username: string, summary: string }[]
+  items: { id: number, username: string, summary: string, detail: string, createdAt: string }[]
 }
 
 export interface AlbumInfo {

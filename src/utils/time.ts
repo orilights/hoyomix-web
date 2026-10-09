@@ -37,3 +37,17 @@ export function formatRelativeTime(isoStr: string): string {
     return `${months}个月前`
   return `${Math.floor(months / 12)}年前`
 }
+
+/** 贡献记录仅显示天、月、年；缺失或无效时间兼容旧版接口。 */
+export function formatContributionTime(isoStr: string, now = Date.now()): string {
+  const diff = now - new Date(isoStr).getTime()
+  if (!Number.isFinite(diff) || diff < 86400000)
+    return '最近'
+  const days = Math.floor(diff / 86400000)
+  if (days < 30)
+    return `${days}天前`
+  const months = Math.floor(days / 30)
+  if (months < 12)
+    return `${months}个月前`
+  return `${Math.floor(months / 12)}年前`
+}
