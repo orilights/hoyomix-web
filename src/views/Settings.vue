@@ -3,6 +3,7 @@ import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreen
 import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
+import { useImageCache } from '@/composables/useImageCache'
 import { usePageScroll } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { apiBase, appDescription, appGithubRepoUrl, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
@@ -16,6 +17,15 @@ const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
+const { supported: imageCacheSupported, bytes: imageCacheBytes, count: imageCacheCount, busy: imageCacheBusy, error: imageCacheError, update: updateImageCache } = useImageCache()
+const imageCacheSize = computed(() => imageCacheBytes.value === null ? '正在读取…' : `${(imageCacheBytes.value / 1024 / 1024).toFixed(2)} MB`)
+
+async function clearImageCache() {
+  if (await updateImageCache('clear'))
+    toast.success('图片缓存已清理')
+  else
+    toast.error(imageCacheError.value || '图片缓存清理失败，请稍后重试')
+}
 const { quality, enableAudioContext, enableMediaSession, lyricsSource, songListPlayBehavior, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
@@ -91,6 +101,7 @@ const settingsSections = computed(() => [
   { id: 'settings-audio', label: '媒体源' },
   { id: 'settings-player', label: '播放器' },
   { id: 'settings-account', label: '账号' },
+  { id: 'settings-cache', label: '缓存' },
   { id: 'settings-about', label: '关于' },
   ...(showDebugTool.value ? [{ id: 'settings-debug', label: '请求测试' }] : []),
   { id: 'settings-changelog', label: '更新日志' },
@@ -532,6 +543,38 @@ onMounted(() => {
               登录
             </AppButton>
           </div>
+        </div>
+      </section>
+
+      <section id="settings-cache" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-cache-heading">
+        <h2 id="settings-cache-heading" class="font-bold text-xl">
+          缓存
+        </h2>
+        <div class="min-w-0 space-y-3">
+          <div class="font-bold text-lg">
+            图片缓存
+          </div>
+          <template v-if="imageCacheSupported">
+            <p aria-live="polite" class="text-sm text-gray-600 dark:text-gray-400">
+              已使用 {{ imageCacheSize }} / 100 MB<span v-if="imageCacheBytes !== null">，共 {{ imageCacheCount }} 张图片</span>
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <AppButton variant="outline" size="sm" :disabled="imageCacheBusy" @click="updateImageCache()">
+                <LucideRefreshCw class="size-4" :class="imageCacheBusy ? 'animate-spin' : ''" />
+                刷新用量
+              </AppButton>
+              <AppButton variant="outline" size="sm" :disabled="imageCacheBusy || imageCacheBytes === 0" @click="clearImageCache">
+                <LucideTrash2 class="size-4" />
+                清理图片缓存
+              </AppButton>
+            </div>
+            <p v-if="imageCacheError" role="alert" class="text-sm text-red-600 dark:text-red-400">
+              {{ imageCacheError }}
+            </p>
+          </template>
+          <p v-else class="text-sm text-gray-600 dark:text-gray-400">
+            当前浏览器或访问环境不支持图片缓存，请使用 HTTPS 或 localhost 访问。
+          </p>
         </div>
       </section>
 

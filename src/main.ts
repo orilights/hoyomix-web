@@ -6,6 +6,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import App from '@/App.vue'
 import router from '@/router'
 import { useThemeStore } from '@/store/theme'
+import { registerImageCache } from '@/utils/image-cache'
 import { queryClient } from '@/utils/query-client'
 
 import 'overlayscrollbars/overlayscrollbars.css'
@@ -29,3 +30,5 @@ useThemeStore(pinia).initialize()
 app.use(VueQueryPlugin, { queryClient })
 
 app.mount('#app')
+
+void registerImageCache().catch(() => {})

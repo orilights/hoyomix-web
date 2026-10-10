@@ -193,6 +193,9 @@ Toaster（全局提示）
 
 ## 13. 工程化与构建
 
+- **图片缓存**：入口注册 `public/image-cache-sw.js`，仅缓存 `VITE_RESOURCE_BASE` 下 `/cover/ncm/`、`/cover/qq/` 的专辑封面（所有现有尺寸）。Cache Storage 中图片数据上限为 100 × 1024 × 1024 字节，超过时按写入顺序淘汰旧图片；不缓存失败响应或单张超过上限的图片。跨域请求使用 CORS 读取实际图片大小，无法读取时回退到原始请求并跳过缓存。
+- **缓存管理**：`utils/image-cache.ts` 通过 MessageChannel 与 Service Worker 通信；`composables/useImageCache.ts` 在每次打开设置页时读取一次用量，不定时刷新。设置的「缓存」区块展示图片数据大小、数量，支持手动刷新和清理；清理使此前未完成的下载失效，避免清理后旧请求重新写入。仅清理本站图片缓存，浏览器存储元数据及 HTTP 缓存不计入用量。不支持 Service Worker 的环境显示提示；生产环境需 HTTPS，开发用 localhost。
+
 - **Vite**：别名 `@ → src`；代码分割 `vendor`（echarts 外 node_modules）+ `pages`（views 除 Statistics）。
 - **插件**：`vue()`、`UnoCSS()`（`uno.config.ts` 配置 `presetWind4`）、`AutoImport`（vue/vue-router/pinia）、`Components`（自动解析组件 + 透传 `Lucide*`/`OverlayScrollbarsComponent`）、`buildInfo()`（注入 `__BUILD_TIME__`）、`injectHead()`（构建时注入 base64 到 `<head>`）。
 - **约定**：`ref`/`computed`/`watch`/`useRoute`/`storeToRefs` 等由 auto-import 自动引入，无需手写 import；`auto-imports.d.ts`/`components.d.ts` 勿手改。
