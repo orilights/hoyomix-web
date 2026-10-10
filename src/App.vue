@@ -66,6 +66,8 @@ watch(() => auth.isLoggedIn, (loggedIn) => {
 watch(() => auth.user?.id ?? null, () => {
   queryClient.removeQueries({ queryKey: ['commentThreads'] })
   queryClient.removeQueries({ queryKey: ['commentReplies'] })
+  queryClient.removeQueries({ queryKey: ['editRequests'] })
+  queryClient.removeQueries({ queryKey: ['editRequestDetail'] })
 }, { immediate: true })
 
 function onKeydown(e: KeyboardEvent) {

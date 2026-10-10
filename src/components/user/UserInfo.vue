@@ -138,6 +138,10 @@ onUnmounted(() => {
             </div>
           </div>
           <div class="p-2">
+            <RouterLink to="/edit-requests" class="flex items-center gap-1 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-500/10 focus-visible:ring-2 focus-visible:ring-blue-400/60" @click="closeDropdown">
+              <LucideClipboardList class="size-4" />
+              我的编辑申请
+            </RouterLink>
             <AppButton
               variant="ghost"
               class="w-full !justify-start"

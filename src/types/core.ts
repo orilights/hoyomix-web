@@ -59,6 +59,7 @@ export type EditRequestResponse
     | { directApproved?: undefined, id: number, status: string }
 
 export interface ArtistInfo {
+  id: number
   name: string
   alias: string[]
   isHoyomix: boolean

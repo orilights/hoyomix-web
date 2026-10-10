@@ -250,6 +250,8 @@ function openEditVideo() {
 }
 
 function refreshSongInfo() {
+  queryClient.invalidateQueries({ queryKey: ['editRequests'] })
+  queryClient.invalidateQueries({ queryKey: ['editRequestDetail'] })
   queryClient.invalidateQueries({ queryKey: ['songInfo', musicId.value] })
   queryClient.invalidateQueries({ queryKey: ['contributions', 'song', musicId.value] })
 }
@@ -305,6 +307,8 @@ function refreshSongInfo() {
               {{ formatDuration(musicInfo.duration) }}
             </span>
           </div>
+
+          <MyEditRequestsEntry resource-type="song" :resource-id="musicId" />
 
           <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <MusicActions

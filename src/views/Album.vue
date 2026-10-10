@@ -228,6 +228,8 @@ function addAlbumToPlaylist() {
             {{ albumInfo.description }}
           </OverlayScrollbarsComponent>
 
+          <MyEditRequestsEntry resource-type="album" :resource-id="albumInfo.id" />
+
           <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <AlbumActions
               :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"

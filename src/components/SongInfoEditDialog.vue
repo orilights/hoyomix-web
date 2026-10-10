@@ -71,7 +71,7 @@ async function submit() {
 
     <div class="p-6 space-y-4">
       <div class="px-3 py-2 rounded-lg bg-orange-100 text-orange-600 text-xs leading-relaxed">
-        信息修改需审核后生效，对一首歌曲每类修改最多同时提交一次申请
+        信息修改需审核后生效，同一资源最多同时存在一条待审核申请
       </div>
 
       <div>

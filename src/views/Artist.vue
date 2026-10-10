@@ -136,6 +136,7 @@ onMounted(() => {
             HOYO-MiX 成员
           </div>
         </div>
+        <MyEditRequestsEntry v-if="artistInfo?.id" resource-type="artist" :resource-id="artistInfo.id" />
         <div class="font-bold mt-2 mb-1">
           参与项目
         </div>

@@ -1,4 +1,5 @@
 import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
@@ -17,6 +18,23 @@ export function getAlbumInfoApi(albumId: number) {
 
 export function getSongInfoApi(songId: number) {
   return fetchJson<SongInfo>(`${apiBase}/songs/${songId}`)
+}
+
+export function getMyEditRequestsApi(params: EditRequestParams) {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined)
+      query.set(key, String(value))
+  }
+  return fetchJson<EditRequestList>(`${apiBase}/edit-requests/me?${query}`)
+}
+
+export function getEditRequestApi(id: number) {
+  return fetchJson<EditRequestDetail>(`${apiBase}/edit-requests/${id}`)
+}
+
+export function cancelEditRequestApi(id: number) {
+  return fetchJsonMutation<void>(`${apiBase}/edit-requests/${id}`, 'DELETE')
 }
 
 export function getMapTreeApi(game: string) {
