@@ -105,7 +105,7 @@ async function submit() {
       maxlength="2000"
       :disabled="submitting || !isLoggedIn"
       class="w-full resize-y bg-transparent outline-none text-sm leading-6 placeholder:text-gray-400 placeholder:dark:text-gray-500 focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
-      :placeholder="isLoggedIn ? '写下你的想法…' : '登录后参与讨论'"
+      :placeholder="isLoggedIn ? '写下你此刻的想法…' : '登录后参与讨论'"
       @keydown.ctrl.enter.prevent="submit"
       @keydown.meta.enter.prevent="submit"
     />

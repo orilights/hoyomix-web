@@ -24,7 +24,7 @@ const emit = defineEmits<{
       :key="opt.key"
       type="button"
       :aria-pressed="modelValue === opt.key"
-      class="py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer"
+      class="py-1 rounded-lg text-sm font-medium transition-all cursor-pointer"
       :class="[
         block ? 'flex-1 basis-0 min-w-0 px-2' : 'px-5',
         modelValue === opt.key ? 'bg-white dark:bg-blue-500/90 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:dark:text-gray-300',

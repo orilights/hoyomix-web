@@ -1,10 +1,16 @@
 export type CommentState = 'normal' | 'pending' | 'rejected' | 'deleted'
 export type VoteType = 1 | -1
 
+export interface CommentUserTag {
+  key: string
+  label: string
+}
+
 export interface CommentUser {
   id: string
   name: string
   image: string | null
+  tags?: CommentUserTag[]
 }
 
 export interface Comment {

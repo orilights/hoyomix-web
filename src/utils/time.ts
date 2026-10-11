@@ -38,6 +38,29 @@ export function formatRelativeTime(isoStr: string): string {
   return `${Math.floor(months / 12)}年前`
 }
 
+export function formatCommentTime(isoStr: string, now = Date.now()): string {
+  const date = new Date(isoStr)
+  const diff = now - date.getTime()
+  if (!Number.isFinite(diff))
+    return '-'
+  if (diff < 60000)
+    return '刚刚'
+  if (diff < 3600000)
+    return `${Math.floor(diff / 60000)}分钟前`
+  if (diff < 86400000)
+    return `${Math.floor(diff / 3600000)}小时前`
+
+  const time = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (date.getFullYear() === yesterday.getFullYear()
+    && date.getMonth() === yesterday.getMonth()
+    && date.getDate() === yesterday.getDate()) {
+    return `昨天 ${time}`
+  }
+  return `${getPublishDate(date.getTime())} ${time}`
+}
+
 /** 贡献记录仅显示天、月、年；缺失或无效时间兼容旧版接口。 */
 export function formatContributionTime(isoStr: string, now = Date.now()): string {
   const diff = now - new Date(isoStr).getTime()
