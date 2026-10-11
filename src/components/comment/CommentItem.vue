@@ -4,6 +4,7 @@ import { useResizeObserver } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { CommentApiError, deleteCommentApi, updateCommentApi, voteCommentApi } from '@/api/comment'
 import { useAuthStore } from '@/store/auth'
+import { formatCommentTime } from '@/utils/time'
 
 const props = withDefaults(defineProps<{
   comment: Comment
@@ -178,10 +179,15 @@ async function voteComment(type: VoteType) {
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 flex-wrap text-sm">
           <span class="font-medium text-gray-800 dark:text-gray-200">{{ localComment.user.name }}</span>
+          <span
+            v-for="tag in localComment.user.tags ?? []"
+            :key="tag.key"
+            class="px-1.5 py-0.5 rounded text-xs font-medium"
+            :class="tag.key === 'admin' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-gray-500/10 text-gray-600 dark:text-gray-400'"
+          >{{ tag.label }}</span>
           <span v-if="replyNumber" class="text-xs text-gray-400">#{{ replyNumber }}</span>
           <span v-if="localComment.state === 'pending'" class="px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 text-xs">审核中</span>
           <span v-else-if="localComment.state === 'rejected'" class="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400 text-xs">未通过</span>
-          <span class="text-xs text-gray-400">{{ new Date(localComment.createdAt).toLocaleString() }}</span>
           <button
             v-if="localComment.replyTo && localComment.replyToUser"
             type="button"
@@ -192,12 +198,12 @@ async function voteComment(type: VoteType) {
             回复 <span class="text-blue-500">@{{ localComment.replyToUser.name }}</span><span v-if="replyToNumber" class="ml-1 text-blue-500">#{{ replyToNumber }}</span>
           </button>
         </div>
-        <textarea
+        <CommentEditor
           v-if="editing"
           v-model="editContent"
-          rows="3"
-          maxlength="2000"
-          class="mt-2 w-full resize-y rounded-lg border border-blue-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 p-2 text-sm leading-6 outline-none focus:ring-2 focus:ring-blue-400/30"
+          :disabled="saving"
+          class="mt-2 rounded-lg border border-blue-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 p-2"
+          @submit="!saving && saveEdit()"
         />
         <p
           v-else
@@ -206,7 +212,7 @@ async function voteComment(type: VoteType) {
           class="whitespace-pre-wrap break-words text-sm leading-6 text-gray-700 dark:text-gray-300"
           :class="[depth === 1 ? 'mt-1' : 'mt-2', contentCollapsed ? 'max-h-60 overflow-hidden' : '']"
         >
-          {{ localComment.content }}
+          <CommentContent :content="localComment.content" />
         </p>
         <AppButton
           v-if="!editing && hasMoreContent"
@@ -221,7 +227,8 @@ async function voteComment(type: VoteType) {
           <LucideChevronDown v-if="contentCollapsed" class="size-3.5" />
           <LucideChevronUp v-else class="size-3.5" />
         </AppButton>
-        <div class="flex items-center gap-1" :class="depth === 1 ? 'mt-1' : 'mt-2'">
+        <div class="flex flex-wrap items-center gap-1" :class="depth === 1 ? 'mt-1' : 'mt-2'">
+          <time :datetime="localComment.createdAt" :title="new Date(localComment.createdAt).toLocaleString()" class="mr-2 text-xs text-gray-400 whitespace-nowrap">{{ formatCommentTime(localComment.createdAt) }}</time>
           <AppButton v-if="localComment.state === 'normal'" icon-only size="xs" variant="ghost" title="点赞" aria-label="点赞" :aria-pressed="vote === 1" :class="vote === 1 ? 'text-blue-500' : ''" :disabled="voting || (isLoggedIn && !canWrite)" @click="voteComment(1)">
             <LucideThumbsUp class="size-4" :fill="vote === 1 ? 'currentColor' : 'none'" />
             <span class="ml-1 text-xs">{{ localComment.upvoteCount }}</span>

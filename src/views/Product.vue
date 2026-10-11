@@ -169,7 +169,7 @@ watch(product, (val) => {
             {{ albumsFiltered.length }}
           </span>
           <span class="ml-4 text-gray-500 dark:text-gray-400">
-            音乐
+            歌曲
           </span>
           <span>
             {{ sumBy(albumsFiltered, (i) => i.songCount) }}
@@ -197,71 +197,38 @@ watch(product, (val) => {
       </div>
 
       <div v-show="activeTab === 'albums'" class="flex-1 lg:!block overflow-hidden" :class="{ hidden: activeTab !== 'albums' }">
-        <section v-if="albumSeries.length" class="mb-4">
+        <section v-if="albumSeries.length" class="mb-2">
           <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
             专辑系列
           </h2>
-          <div class="flex flex-wrap gap-2">
-            <button
-              class="text-sm px-3 py-1.5 rounded-md transition-colors cursor-pointer"
-              :class="selectedSeries === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-              :aria-pressed="selectedSeries === null"
-              @click="selectedSeries = null"
-            >
-              全部
-            </button>
-            <button
-              v-for="series in albumSeries"
-              :key="series.name"
-              :title="series.displayName"
-              class="inline-flex items-center gap-2 max-w-full min-w-0 px-3 py-1.5 rounded-md transition-colors cursor-pointer text-sm"
-              :class="selectedSeries === series.name ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-              :aria-pressed="selectedSeries === series.name"
-              @click="selectedSeries = series.name"
-            >
-              <span class="truncate">{{ series.displayName }}</span>
-              <span class="shrink-0 text-xs" :class="selectedSeries === series.name ? 'text-white/75' : 'text-gray-500 dark:text-gray-400'">{{ series.count }}</span>
-            </button>
-          </div>
+          <FilterChips
+            v-model="selectedSeries"
+            :options="[{ value: null, label: '全部' }, ...albumSeries.map(series => ({ value: series.name, label: series.displayName, title: series.displayName, count: series.count }))]"
+            aria-label="专辑系列筛选"
+          />
         </section>
 
-        <div v-if="versionRanges.length > 0" class="flex flex-wrap items-center gap-2 mb-2">
-          <button
-            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedVersion === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-            @click="selectedVersion = null"
-          >
-            全部
-          </button>
-          <button
-            v-for="range in versionRanges"
-            :key="range.major"
-            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedVersion === range.major ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-            @click="selectedVersion = range.major"
-          >
-            {{ getVersionLabel(range.major) }}
-          </button>
-        </div>
+        <section v-if="versionRanges.length > 0" class="mb-2">
+          <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+            版本
+          </h2>
+          <FilterChips
+            v-model="selectedVersion"
+            :options="[{ value: null, label: '全部' }, ...versionRanges.map(range => ({ value: range.major, label: getVersionLabel(range.major) }))]"
+            aria-label="版本筛选"
+          />
+        </section>
 
-        <div class="flex flex-wrap items-center gap-2 mb-2">
-          <button
-            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-            @click="selectedYear = null"
-          >
-            全部
-          </button>
-          <button
-            v-for="year in availableYears"
-            :key="year"
-            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-            @click="selectedYear = year"
-          >
-            {{ year }}
-          </button>
-        </div>
+        <section class="mb-2">
+          <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+            年份
+          </h2>
+          <FilterChips
+            v-model="selectedYear"
+            :options="[{ value: null, label: '全部' }, ...availableYears.map(year => ({ value: year, label: String(year) }))]"
+            aria-label="年份筛选"
+          />
+        </section>
 
         <AlbumList default-layout="list" :albums-list="albumsFilteredByYear" persist-key="product">
           <template #toolbar>

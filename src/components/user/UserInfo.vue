@@ -11,9 +11,11 @@ const showChangePassword = ref(false)
 const showChangeName = ref(false)
 const avatar = useTemplateRef<HTMLElement>('avatar')
 const menu = useTemplateRef<HTMLElement>('menu')
-const { floatingStyles } = useFloating(avatar, menu, {
+const { floatingStyles, isPositioned } = useFloating(avatar, menu, {
   placement: 'bottom-end',
   strategy: 'fixed',
+  // Keep positioning separate from the menu's transform transition.
+  transform: false,
   open: showDropdown,
   whileElementsMounted: autoUpdate,
   middleware: [
@@ -109,7 +111,7 @@ onUnmounted(() => {
         <div
           v-if="showDropdown"
           ref="menu"
-          :style="floatingStyles"
+          :style="[floatingStyles, { visibility: showDropdown && !isPositioned ? 'hidden' : undefined }]"
           class="w-80 bg-white dark:bg-[var(--theme-surface)] rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-auto overscroll-contain z-999"
           @click.stop
         >
@@ -136,6 +138,10 @@ onUnmounted(() => {
             </div>
           </div>
           <div class="p-2">
+            <RouterLink to="/edit-requests" class="flex items-center gap-1 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-500/10 focus-visible:ring-2 focus-visible:ring-blue-400/60" @click="closeDropdown">
+              <LucideClipboardList class="size-4" />
+              编辑申请记录
+            </RouterLink>
             <AppButton
               variant="ghost"
               class="w-full !justify-start"

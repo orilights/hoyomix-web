@@ -1,11 +1,8 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
-
-export function getChangelog() {
-  return fetchJson<Record<string, string>>('https://api.amarea.cn/config/hoyomix.changelog', false)
-}
 
 export function getAlbumListApi() {
   return fetchJson<AlbumListItemInfo[]>(`${apiBase}/albums`)
@@ -17,6 +14,23 @@ export function getAlbumInfoApi(albumId: number) {
 
 export function getSongInfoApi(songId: number) {
   return fetchJson<SongInfo>(`${apiBase}/songs/${songId}`)
+}
+
+export function getMyEditRequestsApi(params: EditRequestParams) {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined)
+      query.set(key, String(value))
+  }
+  return fetchJson<EditRequestList>(`${apiBase}/edit-requests/me?${query}`)
+}
+
+export function getEditRequestApi(id: number) {
+  return fetchJson<EditRequestDetail>(`${apiBase}/edit-requests/${id}`)
+}
+
+export function cancelEditRequestApi(id: number) {
+  return fetchJsonMutation<void>(`${apiBase}/edit-requests/${id}`, 'DELETE')
 }
 
 export function getMapTreeApi(game: string) {
@@ -70,24 +84,6 @@ export function getSongMediaApi(songId: number | string) {
 
 export function fetchAppConfig() {
   return fetchJson<AppConfigResponse>(`${apiBase}/app-config`, false)
-}
-
-const trailingSlashRegex = /\/+$/
-
-export async function pingMediaSource(baseUrl: string, signal?: AbortSignal): Promise<number | null> {
-  const url = `${baseUrl.replace(trailingSlashRegex, '')}/test`
-  const start = performance.now()
-  try {
-    await fetch(url, {
-      method: 'HEAD',
-      credentials: 'omit',
-      signal: signal ?? AbortSignal.timeout(5000),
-    })
-    return performance.now() - start
-  }
-  catch {
-    return null
-  }
 }
 
 export function getSearchApi(q: string, type?: string, limit?: number) {
@@ -236,4 +232,8 @@ export function getRankingApi(period: RankingPeriod, date?: string) {
   if (date)
     params.set('date', date)
   return fetchJson<RankingResponse>(`${apiBase}/ranking?${params}`)
+}
+
+export function getContributionsApi(id: number, type: 'album' | 'song') {
+  return fetchJson<ContributionInfo>(`${apiBase}/${type === 'album' ? 'albums' : 'songs'}/${id}/contributions`)
 }

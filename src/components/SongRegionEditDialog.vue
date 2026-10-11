@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { MapTreeNode, SongMapInfo, SongMapsChange } from '@/types/core'
 import { toast } from 'vue-sonner'
-import { getMapTreeApi, submitSongRegionEditApi } from '@/api/music'
+import { submitSongRegionEditApi } from '@/api/music'
+import { useMapTreeQuery } from '@/composables/queries'
+import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { useAuthStore } from '@/store/auth'
 
 const props = defineProps<{
   songId: number
@@ -13,12 +16,16 @@ const emit = defineEmits<{
   success: []
 }>()
 
+const auth = useAuthStore()
 const visible = defineModel<boolean>({ required: true })
+const { pendingRequest, checking, blocked, checkError, retryCheck, checkBeforeSubmit } = usePendingSongEditRequest(computed(() => props.songId), visible)
 
 // ── 地图树数据 ──────────────────────────────
-const tree = ref<MapTreeNode[]>([])
-const loading = ref(false)
-const loadError = ref(false)
+const { data: mapTree, isPending: loading, isError: loadError } = useMapTreeQuery(
+  computed(() => props.game),
+  visible,
+)
+const tree = computed(() => mapTree.value ?? [])
 const expandedIds = ref<Set<number>>(new Set())
 const searchText = ref('')
 const pathById = ref<Map<number, string[]>>(new Map())
@@ -28,6 +35,17 @@ interface AddItem { mapId: number, path: string[], note: string }
 const removeIds = ref<number[]>([])
 const addItems = ref<AddItem[]>([])
 const submitting = ref(false)
+const noteDrafts = ref<Record<number, string>>({})
+const originalNotes = ref<Record<number, string>>({})
+
+function normalizeNote(note: string | undefined) {
+  return note?.trim() || null
+}
+
+const noteUpdates = computed(() => props.maps
+  .filter(m => !removeIds.value.includes(m.id)
+    && normalizeNote(noteDrafts.value[m.id]) !== normalizeNote(originalNotes.value[m.id]))
+  .map(m => ({ mapId: m.id, note: normalizeNote(noteDrafts.value[m.id]) })))
 
 function buildPathIndex(nodes: MapTreeNode[], parent: string[] = []) {
   for (const n of nodes) {
@@ -37,33 +55,21 @@ function buildPathIndex(nodes: MapTreeNode[], parent: string[] = []) {
   }
 }
 
-watch(visible, async (v) => {
+watch(visible, (v) => {
   if (!v)
     return
-  // 重置状态
   removeIds.value = []
   addItems.value = []
+  noteDrafts.value = Object.fromEntries(props.maps.map(m => [m.id, m.note ?? '']))
+  originalNotes.value = { ...noteDrafts.value }
   searchText.value = ''
   expandedIds.value = new Set()
-  tree.value = []
+}, { immediate: true })
+
+watch(tree, (nodes) => {
   pathById.value = new Map()
-  loadError.value = false
-  if (!props.game) {
-    loadError.value = true
-    return
-  }
-  loading.value = true
-  try {
-    tree.value = await getMapTreeApi(props.game)
-    buildPathIndex(tree.value)
-  }
-  catch {
-    loadError.value = true
-  }
-  finally {
-    loading.value = false
-  }
-})
+  buildPathIndex(nodes)
+}, { immediate: true })
 
 // 过滤树：保留匹配节点及其祖先
 function filterTree(nodes: MapTreeNode[], kw: string): MapTreeNode[] {
@@ -150,17 +156,23 @@ function isRemoved(id: number) {
   return removeIds.value.includes(id)
 }
 
-const canSubmit = computed(() => removeIds.value.length > 0 || addItems.value.length > 0)
+const canSubmit = computed(() => removeIds.value.length > 0 || addItems.value.length > 0 || noteUpdates.value.length > 0)
 
 function close() {
   visible.value = false
 }
 
 async function submit() {
-  if (!canSubmit.value || submitting.value)
+  if (submitting.value || blocked.value)
     return
+  if (!canSubmit.value)
+    return
+  const submissionSongId = props.songId
+  const submissionUserId = auth.user?.id
   submitting.value = true
   try {
+    if (!await checkBeforeSubmit())
+      return
     const maps: SongMapsChange = {}
     if (addItems.value.length) {
       maps.add = addItems.value.map(a => ({
@@ -171,7 +183,12 @@ async function submit() {
     if (removeIds.value.length)
       maps.remove = removeIds.value.map(id => ({ mapId: id }))
 
-    const res = await submitSongRegionEditApi(props.songId, maps)
+    if (noteUpdates.value.length)
+      maps.update = noteUpdates.value
+
+    const res = await submitSongRegionEditApi(submissionSongId, maps)
+    if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
+      return
     if (res.directApproved)
       toast.success('地区变更已生效')
     else
@@ -180,6 +197,9 @@ async function submit() {
     emit('success')
   }
   catch (error) {
+    if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
+      return
+    void retryCheck()
     toast.error(error instanceof Error ? error.message : '提交失败')
   }
   finally {
@@ -195,9 +215,7 @@ async function submit() {
     </template>
 
     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-      <div class="px-3 py-2 rounded-lg bg-orange-100 text-orange-600 text-xs leading-relaxed">
-        信息修改需审核后生效，对一首歌曲每类修改最多同时提交一次申请
-      </div>
+      <PendingEditRequestNotice :pending-request="pendingRequest" :checking="checking" :check-error="checkError" @retry="retryCheck()" />
 
       <div>
         <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -210,19 +228,29 @@ async function submit() {
           <div
             v-for="map in maps"
             :key="map.id"
-            class="flex items-center gap-2 px-2 py-1 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm"
-            :class="{ 'opacity-50 line-through': isRemoved(map.id) }"
+            class="px-2 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm"
+            :class="{ 'opacity-50': isRemoved(map.id) }"
           >
-            <span class="flex-1 truncate">{{ pathText(map.path) }}</span>
-            <span v-if="map.note" class="text-xs text-gray-400 shrink-0">（{{ map.note }}）</span>
-            <button
-              type="button"
-              class="text-xs px-2 py-0.5 rounded shrink-0 cursor-pointer transition-colors"
-              :class="isRemoved(map.id) ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20' : 'bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20'"
-              @click="toggleNode(map.id)"
+            <div class="flex items-center gap-2" :class="{ 'line-through': isRemoved(map.id) }">
+              <span class="flex-1 truncate">{{ pathText(map.path) }}</span>
+              <button
+                type="button"
+                class="text-xs px-2 py-0.5 rounded shrink-0 cursor-pointer transition-colors"
+                :class="isRemoved(map.id) ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20' : 'bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20'"
+                @click="toggleNode(map.id)"
+              >
+                {{ isRemoved(map.id) ? '恢复' : '移除' }}
+              </button>
+            </div>
+            <input
+              v-model="noteDrafts[map.id]"
+              type="text"
+              :disabled="isRemoved(map.id)"
+              :aria-label="`${pathText(map.path)}备注`"
+              placeholder="备注（可选，最多 500 字）"
+              maxlength="500"
+              class="mt-1 w-full px-2 py-1 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed"
             >
-              {{ isRemoved(map.id) ? '恢复' : '移除' }}
-            </button>
           </div>
         </div>
       </div>
@@ -269,11 +297,11 @@ async function submit() {
           class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
         <div class="mt-2">
-          <div v-if="loading" class="flex items-center justify-center py-8 text-gray-400">
+          <div v-if="loading && game" class="flex items-center justify-center py-8 text-gray-400">
             <LucideLoader2 class="size-5 animate-spin mr-2" />
             加载中...
           </div>
-          <div v-else-if="loadError" class="flex items-center justify-center py-8 text-gray-400 text-sm">
+          <div v-else-if="loadError || !game" class="flex items-center justify-center py-8 text-gray-400 text-sm">
             地图数据加载失败
           </div>
           <div v-else-if="!tree.length" class="flex items-center justify-center py-8 text-gray-400 text-sm">
@@ -334,7 +362,7 @@ async function submit() {
         <AppButton
           type="button"
           variant="primary"
-          :disabled="!canSubmit || submitting"
+          :disabled="!canSubmit || submitting || blocked"
           @click="submit"
         >
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />

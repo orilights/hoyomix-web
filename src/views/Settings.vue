@@ -3,19 +3,28 @@ import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreen
 import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
+import { useImageCache } from '@/composables/useImageCache'
 import { usePageScroll } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
-import { apiBase, appDescription, appGithubRepoUrl, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { appDescription, appGithubRepoUrl, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
 import { usePlayerStore } from '@/store/player'
-import { fetchJsonMutation } from '@/utils/fetch'
 
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
+const { supported: imageCacheSupported, bytes: imageCacheBytes, count: imageCacheCount, busy: imageCacheBusy, error: imageCacheError, update: updateImageCache } = useImageCache()
+const imageCacheSize = computed(() => imageCacheBytes.value === null ? '正在读取…' : `${(imageCacheBytes.value / 1024 / 1024).toFixed(2)} MB`)
+
+async function clearImageCache() {
+  if (await updateImageCache('clear'))
+    toast.success('图片缓存已清理')
+  else
+    toast.error(imageCacheError.value || '图片缓存清理失败，请稍后重试')
+}
 const { quality, enableAudioContext, enableMediaSession, lyricsSource, songListPlayBehavior, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
@@ -82,8 +91,6 @@ async function logout() {
 
 const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
 
-const versionClickCount = ref(0)
-const showDebugTool = ref(false)
 const activeSection = ref('settings-appearance')
 const { scrollY } = usePageScroll()
 const settingsSections = computed(() => [
@@ -91,8 +98,8 @@ const settingsSections = computed(() => [
   { id: 'settings-audio', label: '媒体源' },
   { id: 'settings-player', label: '播放器' },
   { id: 'settings-account', label: '账号' },
+  { id: 'settings-cache', label: '缓存' },
   { id: 'settings-about', label: '关于' },
-  ...(showDebugTool.value ? [{ id: 'settings-debug', label: '请求测试' }] : []),
   { id: 'settings-changelog', label: '更新日志' },
 ])
 
@@ -105,46 +112,6 @@ function updateActiveSection() {
 }
 
 watch(scrollY, updateActiveSection, { flush: 'post' })
-
-const debugMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-const debugMethod = ref('GET')
-const debugUrl = ref('')
-const debugBody = ref('')
-const debugResult = ref<string | null>(null)
-const debugLoading = ref(false)
-
-function onVersionClick() {
-  versionClickCount.value++
-  if (versionClickCount.value >= 5)
-    showDebugTool.value = true
-}
-
-async function sendDebugRequest() {
-  if (!debugUrl.value.trim())
-    return
-  debugLoading.value = true
-  debugResult.value = null
-  try {
-    const url = debugUrl.value.startsWith('http') ? debugUrl.value : `${apiBase}${debugUrl.value}`
-    let body: unknown
-    if (debugBody.value.trim()) {
-      try {
-        body = JSON.parse(debugBody.value)
-      }
-      catch {
-        body = debugBody.value
-      }
-    }
-    const result = await fetchJsonMutation<unknown>(url, debugMethod.value, body)
-    debugResult.value = JSON.stringify(result, null, 2)
-  }
-  catch (e) {
-    debugResult.value = `错误：${e instanceof Error ? e.message : String(e)}`
-  }
-  finally {
-    debugLoading.value = false
-  }
-}
 
 const { data: changelogData, isLoading: isChangelogLoading, isError: isChangelogError, error: changelogError } = useChangelogQuery()
 
@@ -351,7 +318,7 @@ onMounted(() => {
               <span class="text-sm text-gray-600 dark:text-gray-400">{{ immersiveModeEnabled ? '已启用' : '已禁用' }}</span>
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              在全屏播放器中自动隐藏界面控件，移动鼠标或触摸屏幕后暂时显示。
+              在全屏播放器中自动隐藏界面控件
             </div>
           </div>
 
@@ -471,7 +438,7 @@ onMounted(() => {
               <span class="text-sm text-gray-600 dark:text-gray-400">{{ enableMediaSession ? '已启用' : '已禁用' }}</span>
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              向系统媒体控件提供歌曲信息、播放进度和播放控制，支持情况取决于浏览器。
+              向系统媒体控件提供歌曲信息、播放进度和播放控制，支持情况取决于系统与浏览器
             </div>
           </div>
 
@@ -535,6 +502,38 @@ onMounted(() => {
         </div>
       </section>
 
+      <section id="settings-cache" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-cache-heading">
+        <h2 id="settings-cache-heading" class="font-bold text-xl">
+          缓存
+        </h2>
+        <div class="min-w-0 space-y-3">
+          <div class="font-bold text-lg">
+            图片缓存
+          </div>
+          <template v-if="imageCacheSupported">
+            <p aria-live="polite" class="text-sm text-gray-600 dark:text-gray-400">
+              已使用 {{ imageCacheSize }} / 100 MB<span v-if="imageCacheBytes !== null">，共 {{ imageCacheCount }} 张图片</span>
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <AppButton variant="outline" size="sm" :disabled="imageCacheBusy" @click="updateImageCache()">
+                <LucideRefreshCw class="size-4" :class="imageCacheBusy ? 'animate-spin' : ''" />
+                刷新用量
+              </AppButton>
+              <AppButton variant="outline" size="sm" :disabled="imageCacheBusy || imageCacheBytes === 0" @click="clearImageCache">
+                <LucideTrash2 class="size-4" />
+                清理图片缓存
+              </AppButton>
+            </div>
+            <p v-if="imageCacheError" role="alert" class="text-sm text-red-600 dark:text-red-400">
+              {{ imageCacheError }}
+            </p>
+          </template>
+          <p v-else class="text-sm text-gray-600 dark:text-gray-400">
+            当前浏览器或访问环境不支持图片缓存
+          </p>
+        </div>
+      </section>
+
       <section id="settings-about" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-about-heading">
         <h2 id="settings-about-heading" class="font-bold text-xl">
           关于
@@ -552,7 +551,7 @@ onMounted(() => {
           </div>
           <div>
             <div>
-              当前版本：<span class="cursor-default select-none" @click="onVersionClick">v{{ appVersion }}</span>
+              当前版本：<span>v{{ appVersion }}</span>
               <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 dark:text-green-400 ml-2">测试版</span>
               <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 dark:text-red-400 ml-2">构建于 {{ buildTime }}</span>
             </div>
@@ -573,45 +572,6 @@ onMounted(() => {
               </div>
               本网站由爱好者制作，并非 HOYO-MiX 官方网站。 网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section v-if="showDebugTool" id="settings-debug" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-debug-heading">
-        <h2 id="settings-debug-heading" class="font-bold text-xl">
-          请求测试
-        </h2>
-        <div class="min-w-0">
-          <div class="bg-white/60 dark:bg-[var(--theme-surface)]/60 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-            <RadioGroup
-              aria-label="请求方法"
-              :options="debugMethods.map(method => ({ value: method, label: method }))"
-              :model-value="debugMethod"
-              @update:model-value="debugMethod = String($event)"
-            />
-            <input
-              v-model="debugUrl"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="请求地址"
-            >
-            <textarea
-              v-model="debugBody"
-              rows="4"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"
-              placeholder="Body"
-            />
-            <AppButton
-              variant="primary"
-              :disabled="debugLoading || !debugUrl.trim()"
-              @click="sendDebugRequest"
-            >
-              <LucideLoader2 v-if="debugLoading" class="size-4 animate-spin" />
-              发送
-            </AppButton>
-            <pre
-              v-if="debugResult !== null"
-              class="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-sm font-mono whitespace-pre-wrap break-all overflow-x-auto max-h-96"
-            >{{ debugResult }}</pre>
           </div>
         </div>
       </section>

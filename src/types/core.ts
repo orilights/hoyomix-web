@@ -1,3 +1,8 @@
+export interface ContributionInfo {
+  total: number
+  items: { id: number, username: string, summary: string, detail: string, createdAt: string }[]
+}
+
 export interface AlbumInfo {
   id: number
   name: string
@@ -18,6 +23,7 @@ export interface SongMapInfo {
 
 export interface SongInfo {
   id: number
+  descriptionFull: string
   tags: TagInfo[]
   maps?: SongMapInfo[]
 }
@@ -31,6 +37,7 @@ export interface MapTreeNode {
 
 /** 歌曲地图（地区）关联的增量变更 */
 export interface SongMapsChange {
+  update?: { mapId: number, note: string | null }[]
   add?: { mapId: number, note?: string | null }[]
   remove?: { mapId: number }[]
 }
@@ -41,10 +48,11 @@ export interface SongTagsChange {
   remove?: { tagType: string, tagName: string }[]
 }
 
-/** 歌曲基础信息（名称/描述）的变更 */
+/** 歌曲基础信息（名称/简短描述/完整描述）的变更 */
 export interface SongInfoChange {
   name?: string
   description?: string
+  descriptionFull?: string
 }
 
 /** 提交编辑申请响应（普通用户待审核 ｜ 管理员直接生效） */
@@ -53,6 +61,7 @@ export type EditRequestResponse
     | { directApproved?: undefined, id: number, status: string }
 
 export interface ArtistInfo {
+  id: number
   name: string
   alias: string[]
   isHoyomix: boolean
@@ -191,6 +200,7 @@ export interface PlaylistSongItem {
 }
 
 export interface PlaylistDetail extends Omit<PlaylistListItem, 'songCount'> {
+  username: string
   songCount: number
   songs: PlaylistSongItem[]
 }

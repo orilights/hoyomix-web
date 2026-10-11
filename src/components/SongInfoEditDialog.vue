@@ -2,21 +2,27 @@
 import type { SongInfoChange } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { submitSongInfoEditApi } from '@/api/music'
+import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { useAuthStore } from '@/store/auth'
 
 const props = defineProps<{
   songId: number
   name: string
   description: string
+  descriptionFull?: string
 }>()
 
 const emit = defineEmits<{
   success: []
 }>()
 
+const auth = useAuthStore()
 const visible = defineModel<boolean>({ required: true })
+const { pendingRequest, checking, blocked, checkError, retryCheck, checkBeforeSubmit } = usePendingSongEditRequest(computed(() => props.songId), visible)
 
 const nameInput = ref('')
 const descriptionInput = ref('')
+const descriptionFullInput = ref('')
 const submitting = ref(false)
 
 watch(visible, (v) => {
@@ -24,9 +30,16 @@ watch(visible, (v) => {
     return
   nameInput.value = props.name
   descriptionInput.value = props.description
+  descriptionFullInput.value = props.descriptionFull ?? ''
+})
+
+watch(() => props.songId, () => {
+  visible.value = false
 })
 
 async function submit() {
+  if (submitting.value || blocked.value)
+    return
   const newName = nameInput.value.trim()
   if (!newName) {
     toast.error('请输入歌曲名称')
@@ -38,15 +51,23 @@ async function submit() {
     changes.name = newName
   if (descriptionInput.value !== props.description)
     changes.description = descriptionInput.value
+  if (props.descriptionFull !== undefined && descriptionFullInput.value !== props.descriptionFull)
+    changes.descriptionFull = descriptionFullInput.value
 
   if (Object.keys(changes).length === 0) {
     toast.error('未做任何修改')
     return
   }
 
+  const submissionSongId = props.songId
+  const submissionUserId = auth.user?.id
   submitting.value = true
   try {
-    const res = await submitSongInfoEditApi(props.songId, changes)
+    if (!await checkBeforeSubmit())
+      return
+    const res = await submitSongInfoEditApi(submissionSongId, changes)
+    if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
+      return
     if (res.directApproved)
       toast.success('歌曲信息已更新')
     else
@@ -55,6 +76,9 @@ async function submit() {
     emit('success')
   }
   catch (error) {
+    if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
+      return
+    void retryCheck()
     toast.error(error instanceof Error ? error.message : '提交失败')
   }
   finally {
@@ -69,10 +93,8 @@ async function submit() {
       修改歌曲信息
     </template>
 
-    <div class="p-6 space-y-4">
-      <div class="px-3 py-2 rounded-lg bg-orange-100 text-orange-600 text-xs leading-relaxed">
-        信息修改需审核后生效，对一首歌曲每类修改最多同时提交一次申请
-      </div>
+    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+      <PendingEditRequestNotice :pending-request="pendingRequest" :checking="checking" :check-error="checkError" @retry="retryCheck()" />
 
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -88,12 +110,25 @@ async function submit() {
 
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          描述（可选）
+          简短描述（可选）
+        </label>
+        <input
+          v-model="descriptionInput"
+          type="text"
+          placeholder="输入简短描述"
+          class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          完整描述（可选）
         </label>
         <textarea
-          v-model="descriptionInput"
+          v-model="descriptionFullInput"
+          :disabled="descriptionFull === undefined"
           rows="4"
-          placeholder="输入歌曲描述"
+          placeholder="输入完整描述"
           class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
         />
       </div>
@@ -110,7 +145,7 @@ async function submit() {
         <AppButton
           type="button"
           variant="primary"
-          :disabled="submitting"
+          :disabled="submitting || blocked"
           @click="submit"
         >
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />

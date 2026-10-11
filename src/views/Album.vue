@@ -134,11 +134,12 @@ function playAll() {
   toast.success('已替换播放列表')
 }
 
-const activeTab = ref<'songs' | 'artists' | 'tags' | 'comments'>('songs')
+const activeTab = ref<'songs' | 'artists' | 'tags' | 'contributions' | 'comments'>('songs')
 const tabOptions = computed(() => [
   { key: 'songs' as const, label: '歌曲列表' },
   { key: 'artists' as const, label: '制作人员' },
   { key: 'tags' as const, label: '其他信息' },
+  { key: 'contributions' as const, label: '贡献信息' },
   { key: 'comments' as const, label: `评论 ${commentCount.value}` },
 ].filter(option => option.key !== 'tags' || albumInfo.value?.tags.length))
 
@@ -264,6 +265,14 @@ function addAlbumToPlaylist() {
           <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
             <ArtistListByType :id="albumInfo.id" type="album" />
           </div>
+
+          <ContributionCard
+            v-show="activeTab === 'contributions'"
+            :id="albumInfo.id"
+            type="album"
+            class="lg:mt-4 lg:!block"
+            :class="{ hidden: activeTab !== 'contributions' }"
+          />
         </div>
 
         <div v-show="activeTab === 'songs'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'songs' }">
@@ -272,7 +281,7 @@ function addAlbumToPlaylist() {
       </div>
 
       <div v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
-        <CommentSection :post-id="`hoyomix:album:${albumInfo.id}`" />
+        <CommentSection class="max-lg:!mt-4" :post-id="`hoyomix:album:${albumInfo.id}`" />
       </div>
 
       <CreatePlaylistDialog

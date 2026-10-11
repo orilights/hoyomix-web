@@ -16,6 +16,7 @@ interface Props {
   prevDisabled?: boolean
   nextDisabled?: boolean
   canEditRegion?: boolean
+  hasPendingEditRequest?: boolean
   commentCount: number
 }
 
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   prevDisabled: false,
   nextDisabled: false,
   canEditRegion: false,
+  hasPendingEditRequest: false,
 })
 
 const emit = defineEmits<{
@@ -35,6 +37,7 @@ const emit = defineEmits<{
   editInfo: []
   editRegion: []
   editVideo: []
+  myRequests: []
   showComments: []
 }>()
 
@@ -81,6 +84,7 @@ const nextTooltip = computed(() => props.isPlaylistContext ? '前往歌单下一
 
 const infoEditOptions = computed<DropdownOption[]>(() => {
   const options: DropdownOption[] = []
+  options.push({ label: '我的申请', onClick: () => emit('myRequests') })
   options.push({ label: '歌曲信息', onClick: () => emit('editInfo') })
   if (props.canEditRegion) {
     options.push({ label: '地区关联', onClick: () => emit('editRegion') })
@@ -116,6 +120,7 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
     <AppButton>
       <LucidePencil class="size-4" />
       信息修改
+      <span v-if="hasPendingEditRequest" class="text-xs rounded px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400">审核中</span>
     </AppButton>
   </Dropdown>
 

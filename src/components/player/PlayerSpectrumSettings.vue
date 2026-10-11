@@ -21,13 +21,34 @@ const colorModeOptions = [
       </button>
     </div>
     <div class="bg-white/60 dark:bg-[var(--theme-surface)]/60 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4">
-      <label class="flex items-center gap-2 text-sm">
-        <input v-model="showSpectrum" type="checkbox" :disabled="!enableAudioContext" class="accent-blue-500">
-        在全屏播放器中显示频谱
-      </label>
-      <p v-if="!enableAudioContext" class="text-sm text-gray-500 dark:text-gray-400">
-        启用 AudioContext API 后可显示实时频谱，仍可调整样式并查看示意预览。
-      </p>
+      <div>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="showSpectrum ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
+            role="switch"
+            aria-label="在全屏播放器中显示频谱"
+            aria-describedby="spectrum-enabled-description"
+            :aria-checked="showSpectrum"
+            :disabled="!enableAudioContext"
+            @click="showSpectrum = !showSpectrum"
+          >
+            <span
+              class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200"
+              :class="showSpectrum ? 'translate-x-5' : 'translate-x-0'"
+            />
+          </button>
+          <span class="text-sm text-gray-600 dark:text-gray-400">{{ showSpectrum ? '已启用' : '已禁用' }}</span>
+        </div>
+        <p id="spectrum-enabled-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+          在全屏播放器中显示频谱
+          <template v-if="!enableAudioContext">
+            <br>
+            频谱可视化功能当前不可用，请先启用 AudioContext API
+          </template>
+        </p>
+      </div>
       <div class="rounded-xl bg-gray-900 p-3 overflow-hidden">
         <div class="text-xs text-white/60 mb-3">
           {{ isPlaying && enableAudioContext ? '实时预览' : '样式预览 · 示意数据' }}
@@ -55,7 +76,7 @@ const colorModeOptions = [
             </template>
           </div>
           <p v-if="settings.colorMode === 'cover'" class="text-xs text-gray-500 dark:text-gray-400">
-            自动提取当前歌曲的封面主色并适度提亮；无封面或取色失败时使用白色。
+            自动提取当前歌曲的封面主色；无封面或取色失败时使用白色
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div v-for="control in spectrumControls" :key="control.key">

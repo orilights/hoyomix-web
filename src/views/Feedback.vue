@@ -20,7 +20,7 @@ usePageSeo({
         rel="noopener noreferrer"
         class="text-blue-600 dark:text-blue-400 underline underline-offset-4 hover:text-blue-500"
       >GitHub Issues</a>
-      反馈问题或提出建议。
+      反馈问题或提出建议
     </p>
     <CommentSection post-id="hoyomix:feedback" title="反馈与讨论" />
   </div>

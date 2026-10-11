@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useCommentThreadsQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -194,7 +195,7 @@ watch([musicInfo, albumInfo], ([song, album]) => {
   }
 }, { immediate: true })
 
-const activeTab = ref<'lyrics' | 'artists' | 'comments'>('lyrics')
+const activeTab = ref<'lyrics' | 'artists' | 'contributions' | 'comments'>('lyrics')
 
 watch(musicId, () => {
   activeTab.value = 'lyrics'
@@ -230,10 +231,31 @@ const productCode = computed(() => getProductCode(albumInfo.value?.productName ?
 const showEditRegionDialog = ref(false)
 const showEditVideoDialog = ref(false)
 const showEditInfoDialog = ref(false)
+const showMyRequestsDialog = ref(false)
+const requestPage = ref(1)
+const { pendingRequest } = usePendingSongEditRequest(musicId)
+const requestParams = computed(() => ({ resourceType: 'song' as const, resourceId: musicId.value, page: requestPage.value, limit: 10 }))
+function openMyRequests() {
+  if (!auth.requireLogin())
+    return
+  requestPage.value = 1
+  showMyRequestsDialog.value = true
+}
+watch(() => [musicId.value, auth.user?.id], () => {
+  showMyRequestsDialog.value = false
+  showEditInfoDialog.value = false
+  showEditRegionDialog.value = false
+  showEditVideoDialog.value = false
+  requestPage.value = 1
+}, { flush: 'sync' })
 
 function openEditInfo() {
   if (!auth.requireLogin())
     return
+  if (isSongLoading.value || isSongError.value || songInfo.value?.id !== musicId.value) {
+    toast.error('歌曲详情尚未加载完成，请稍后重试')
+    return
+  }
   showEditInfoDialog.value = true
 }
 
@@ -250,7 +272,13 @@ function openEditVideo() {
 }
 
 function refreshSongInfo() {
+  queryClient.invalidateQueries({ queryKey: ['editRequests'] })
+  queryClient.invalidateQueries({ queryKey: ['editRequestDetail'] })
   queryClient.invalidateQueries({ queryKey: ['songInfo', musicId.value] })
+  queryClient.invalidateQueries({ queryKey: ['albumInfo', albumId.value] })
+  if (isPlaylistContext.value)
+    queryClient.invalidateQueries({ queryKey: ['playlistDetail', detailPlaylistId.value] })
+  queryClient.invalidateQueries({ queryKey: ['contributions', 'song', musicId.value] })
 }
 </script>
 
@@ -266,12 +294,12 @@ function refreshSongInfo() {
     </div>
 
     <div v-else-if="albumInfo && musicInfo" class="overflow-hidden">
-      <div class="flex md:h-[200px] lg:h-[300px]">
+      <div class="flex md:h-[200px] lg:h-[300px]" :class="{ 'md:min-h-[260px]': !!songInfo?.descriptionFull }">
         <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
           <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
         </div>
 
-        <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
+        <div class="flex flex-col ml-4 md:ml-8 overflow-hidden min-w-0 flex-1">
           <div class="truncate shrink-0 md:text-xl lg:text-3xl font-bold">
             {{ musicInfo.name }}
           </div>
@@ -280,7 +308,7 @@ function refreshSongInfo() {
             {{ musicInfo.description }}
           </div>
 
-          <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base">
+          <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base shrink-0">
             <span class="text-gray-500 dark:text-gray-400 hidden md:inline">所属</span>
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
@@ -298,12 +326,21 @@ function refreshSongInfo() {
             </RouterLink>
           </div>
 
-          <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base">
+          <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base shrink-0">
             <span class="text-gray-500 dark:text-gray-400">时长</span>
             <span class="ml-4">
               {{ formatDuration(musicInfo.duration) }}
             </span>
           </div>
+
+          <OverlayScrollbarsComponent
+            v-if="songInfo?.descriptionFull"
+            class="hidden md:block mt-1 md:mt-2 flex-1 min-h-0 text-xs md:text-sm lg:text-base whitespace-pre-wrap break-words"
+            :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
+            defer
+          >
+            {{ songInfo.descriptionFull }}
+          </OverlayScrollbarsComponent>
 
           <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <MusicActions
@@ -312,11 +349,13 @@ function refreshSongInfo() {
               :prev-disabled="!hasPrev"
               :next-disabled="!hasNext"
               :can-edit-region="productCode === 'genshin'"
+              :has-pending-edit-request="!!pendingRequest"
               :comment-count="commentCount"
               @play="handlePlay"
               @prev="goPrevMusic"
               @next="goNextMusic"
               @add-to-playlist="addSongToUserPlaylist"
+              @my-requests="openMyRequests"
               @edit-info="openEditInfo"
               @edit-region="openEditRegion"
               @edit-video="openEditVideo"
@@ -326,6 +365,15 @@ function refreshSongInfo() {
         </div>
       </div>
 
+      <OverlayScrollbarsComponent
+        v-if="songInfo?.descriptionFull"
+        class="md:hidden mt-4 max-h-[120px] text-xs whitespace-pre-wrap break-words"
+        :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
+        defer
+      >
+        {{ songInfo.descriptionFull }}
+      </OverlayScrollbarsComponent>
+
       <div class="flex gap-2 flex-wrap md:hidden mt-4">
         <MusicActions
           :music-info="musicInfo"
@@ -333,11 +381,13 @@ function refreshSongInfo() {
           :prev-disabled="!hasPrev"
           :next-disabled="!hasNext"
           :can-edit-region="productCode === 'genshin'"
+          :has-pending-edit-request="!!pendingRequest"
           :comment-count="commentCount"
           @play="handlePlay"
           @prev="goPrevMusic"
           @next="goNextMusic"
           @add-to-playlist="addSongToUserPlaylist"
+          @my-requests="openMyRequests"
           @edit-info="openEditInfo"
           @edit-region="openEditRegion"
           @edit-video="openEditVideo"
@@ -360,7 +410,7 @@ function refreshSongInfo() {
 
       <SegmentSwitch
         v-model="activeTab"
-        :options="[{ key: 'lyrics', label: '歌词' }, { key: 'artists', label: '制作人员' }, { key: 'comments', label: `评论 ${commentCount}` }]"
+        :options="[{ key: 'lyrics', label: '歌词' }, { key: 'artists', label: '制作人员' }, { key: 'contributions', label: '贡献信息' }, { key: 'comments', label: `评论 ${commentCount}` }]"
         class="mt-4 lg:hidden"
         aria-label="歌曲内容"
       />
@@ -383,6 +433,14 @@ function refreshSongInfo() {
           <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
             <ArtistListByType :id="musicId" type="song" />
           </div>
+
+          <ContributionCard
+            v-show="activeTab === 'contributions'"
+            :id="musicId"
+            type="song"
+            class="lg:mt-4 lg:!block"
+            :class="{ hidden: activeTab !== 'contributions' }"
+          />
         </div>
 
         <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
@@ -396,7 +454,7 @@ function refreshSongInfo() {
       </div>
 
       <div v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
-        <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
+        <CommentSection class="max-lg:!mt-4" :post-id="`hoyomix:song:${musicInfo.id}`" />
       </div>
 
       <SelectPlaylistDialog
@@ -405,11 +463,18 @@ function refreshSongInfo() {
         mode="add"
       />
 
+      <AppDialog v-model="showMyRequestsDialog" title="我的申请" size="md">
+        <div class="p-4 sm:p-6 max-h-[65vh] overflow-y-auto overscroll-contain">
+          <EditRequestList v-if="showMyRequestsDialog" :params="requestParams" @page="requestPage = $event" />
+        </div>
+      </AppDialog>
+
       <SongInfoEditDialog
         v-model="showEditInfoDialog"
         :song-id="musicId"
         :name="musicInfo?.name ?? ''"
         :description="musicInfo?.description ?? ''"
+        :description-full="!isSongLoading && !isSongError && songInfo?.id === musicId ? songInfo.descriptionFull : undefined"
         @success="refreshSongInfo"
       />
 

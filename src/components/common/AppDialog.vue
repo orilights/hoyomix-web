@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { dialogStack, removeDialog } from '@/utils/dialog-stack'
+
 withDefaults(defineProps<{
   title?: string
   size?: 'sm' | 'md'
@@ -9,6 +11,30 @@ withDefaults(defineProps<{
 })
 
 const visible = defineModel<boolean>({ required: true })
+
+const dialogId = Symbol('dialog')
+const titleId = useId()
+const panel = ref<HTMLElement | null>(null)
+const isTopDialog = computed(() => dialogStack.value.at(-1) === dialogId)
+const stackIndex = computed(() => dialogStack.value.indexOf(dialogId))
+let returnFocus: HTMLElement | null = null
+
+watch(visible, async (value) => {
+  if (value) {
+    returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    dialogStack.value = [...dialogStack.value, dialogId]
+    await nextTick()
+    if (visible.value && isTopDialog.value)
+      panel.value?.focus()
+  }
+  else {
+    const wasTop = isTopDialog.value
+    removeDialog(dialogId)
+    await nextTick()
+    if (wasTop && returnFocus?.isConnected && !returnFocus.closest('[inert]'))
+      returnFocus.focus()
+  }
+}, { immediate: true, flush: 'sync' })
 
 function close() {
   visible.value = false
@@ -26,12 +52,38 @@ function onOverlayClick(e: MouseEvent) {
 }
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && visible.value)
+  if (!visible.value || !isTopDialog.value)
+    return
+  if (e.key === 'Tab') {
+    const elements = [...(panel.value?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex="0"]') ?? [])]
+      .filter(element => element.getClientRects().length && !element.closest('[inert]'))
+    const first = elements[0]
+    const last = elements.at(-1)
+    if (!first) {
+      e.preventDefault()
+      panel.value?.focus()
+    }
+    else if (e.shiftKey && (document.activeElement === first || document.activeElement === panel.value)) {
+      e.preventDefault()
+      last?.focus()
+    }
+    else if (!e.shiftKey && (document.activeElement === last || document.activeElement === panel.value)) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+  if (e.key === 'Escape' && visible.value && isTopDialog.value) {
+    e.preventDefault()
+    e.stopImmediatePropagation()
     close()
+  }
 }
 
 onMounted(() => window.addEventListener('keydown', onKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  removeDialog(dialogId)
+})
 </script>
 
 <template>
@@ -40,15 +92,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
       <div
         v-if="visible"
         class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+        :style="{ zIndex: 1000 + Math.max(0, stackIndex) }"
+        :inert="!isTopDialog"
         @mousedown="onOverlayMousedown"
         @click="onOverlayClick"
       >
         <div
-          class="w-full bg-white dark:bg-[var(--theme-surface)] rounded-2xl shadow-2xl overflow-hidden"
+          ref="panel"
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="titleId"
+          tabindex="-1"
+          class="outline-none w-full bg-white dark:bg-[var(--theme-surface)] rounded-2xl shadow-2xl overflow-hidden"
           :class="size === 'md' ? 'max-w-md' : 'max-w-sm'"
         >
           <div class="flex items-center justify-between px-6 py-4" :class="[hideHeaderBorder ? '' : 'border-b border-gray-100 dark:border-gray-700']">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h2 :id="titleId" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
               <slot name="title">
                 {{ title }}
               </slot>

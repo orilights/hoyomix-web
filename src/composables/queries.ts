@@ -1,7 +1,10 @@
 import type { PlaylistsQueryParams } from '@/api/music'
+import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
 import { useQuery } from '@tanstack/vue-query'
 import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
+import { getEmoticonsApi } from '@/api/emoticon'
+import { getChangelog } from '@/api/misc'
 import {
   fetchAppConfig,
   getAlbumInfoApi,
@@ -9,10 +12,13 @@ import {
   getAlbumsByTagApi,
   getArtistInfoApi,
   getArtistNameByAliasApi,
-  getChangelog,
+  getContributionsApi,
   getCreditInfoApi,
+  getEditRequestApi,
   getFavoritePlaylistsApi,
   getLyricsApi,
+  getMapTreeApi,
+  getMyEditRequestsApi,
   getMyPlaylistsApi,
   getPlaylistDetailApi,
   getPublicPlaylistsApi,
@@ -21,6 +27,34 @@ import {
 } from '@/api/music'
 import { useAuthStore } from '@/store/auth'
 import { NotFoundError } from '@/utils/fetch'
+
+export function useEmoticonsQuery(enabled: Ref<boolean> = ref(true)) {
+  return useQuery({
+    queryKey: ['emoticons'],
+    queryFn: getEmoticonsApi,
+    enabled,
+  })
+}
+
+export function useMyEditRequestsQuery(params: Ref<EditRequestParams>, enabled: Ref<boolean> = ref(true)) {
+  const auth = useAuthStore()
+  return useQuery({
+    queryKey: computed(() => ['editRequests', auth.user?.id ?? null, params.value]),
+    queryFn: () => getMyEditRequestsApi(params.value),
+    enabled: computed(() => !auth.isPending && auth.isLoggedIn && enabled.value),
+    staleTime: 0,
+  })
+}
+
+export function useEditRequestQuery(id: Ref<number | null>) {
+  const auth = useAuthStore()
+  return useQuery({
+    queryKey: computed(() => ['editRequestDetail', auth.user?.id ?? null, id.value]),
+    queryFn: () => getEditRequestApi(id.value!),
+    enabled: computed(() => !auth.isPending && auth.isLoggedIn && id.value !== null),
+    staleTime: 0,
+  })
+}
 
 export function useAppConfigQuery() {
   return useQuery({
@@ -184,5 +218,21 @@ export function useCommentRepliesQuery(
     queryFn: () => getCommentRepliesApi(threadId.value!, postId.value!, page.value),
     enabled: computed(() => !!threadId.value && !!postId.value && (enabled?.value ?? true)),
     staleTime: 1000 * 30,
+  })
+}
+
+export function useMapTreeQuery(game: Ref<string>, enabled: Ref<boolean>) {
+  return useQuery({
+    queryKey: computed(() => ['mapTree', game.value]),
+    queryFn: () => getMapTreeApi(game.value),
+    enabled: computed(() => enabled.value && !!game.value),
+  })
+}
+
+export function useContributionsQuery(id: Ref<number | null>, type: Ref<'album' | 'song'>) {
+  return useQuery({
+    queryKey: computed(() => ['contributions', type.value, id.value]),
+    queryFn: () => getContributionsApi(id.value!, type.value),
+    enabled: computed(() => !!id.value),
   })
 }

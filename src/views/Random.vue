@@ -276,7 +276,7 @@ onMounted(() => {
       <div class="mt-4 xl:mt-0">
         <AsyncFade>
           <div>
-            <div v-if="randomPlaylist.length" class="mb-3 flex items-center gap-2 flex-wrap">
+            <div v-if="randomPlaylist.length" class="mb-4 flex items-center gap-2 flex-wrap">
               <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">共 {{ randomPlaylist.length }} 首</span>
               <AppButton
                 variant="primary"
