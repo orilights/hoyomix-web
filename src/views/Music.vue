@@ -420,7 +420,7 @@ function refreshSongInfo() {
             v-show="activeTab === 'contributions'"
             :id="musicId"
             type="song"
-            class="mt-4 lg:!block"
+            class="lg:mt-4 lg:!block"
             :class="{ hidden: activeTab !== 'contributions' }"
           />
         </div>
@@ -436,7 +436,7 @@ function refreshSongInfo() {
       </div>
 
       <div v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
-        <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
+        <CommentSection class="max-lg:!mt-4" :post-id="`hoyomix:song:${musicInfo.id}`" />
       </div>
 
       <SelectPlaylistDialog

@@ -272,7 +272,7 @@ function addAlbumToPlaylist() {
             v-show="activeTab === 'contributions'"
             :id="albumInfo.id"
             type="album"
-            class="mt-4 lg:!block"
+            class="lg:mt-4 lg:!block"
             :class="{ hidden: activeTab !== 'contributions' }"
           />
         </div>
@@ -283,7 +283,7 @@ function addAlbumToPlaylist() {
       </div>
 
       <div v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
-        <CommentSection :post-id="`hoyomix:album:${albumInfo.id}`" />
+        <CommentSection class="max-lg:!mt-4" :post-id="`hoyomix:album:${albumInfo.id}`" />
       </div>
 
       <CreatePlaylistDialog

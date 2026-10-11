@@ -455,7 +455,7 @@ async function deletePlaylist() {
       </div>
 
       <div v-if="playlist.isPublic" v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
-        <CommentSection :post-id="`hoyomix:playlist:${playlist.id}`" />
+        <CommentSection class="max-lg:!mt-4" :post-id="`hoyomix:playlist:${playlist.id}`" />
       </div>
 
       <Teleport to="body">
