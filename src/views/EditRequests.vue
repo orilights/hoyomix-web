@@ -13,7 +13,7 @@ const page = computed(() => {
   const value = Number(route.query.page)
   return Number.isSafeInteger(value) && value > 0 ? value : 1
 })
-const params = computed(() => ({ status: status.value, page: page.value, limit: 20 }))
+const params = computed(() => ({ status: status.value, page: page.value, limit: 10 }))
 const options = [
   { value: '', label: '全部' },
   { value: 'pending', label: '审核中' },
@@ -31,10 +31,10 @@ function setPage(value: number) {
 
 <template>
   <div class="py-4">
-    <PageHeader title="我的编辑申请" subtitle="查看提交记录、审核结果与驳回原因" />
-    <p v-if="auth.isPending" class="py-8 text-gray-500" role="status">
-      加载中...
-    </p>
+    <PageHeader title="我的编辑申请" subtitle="数据库编辑申请提交历史记录" />
+    <div v-if="auth.isPending" class="flex items-center justify-center py-8 text-gray-400" role="status">
+      <LucideLoader2 class="size-6 animate-spin mr-2" />加载中...
+    </div>
     <div v-else-if="!auth.isLoggedIn" class="py-12 text-center">
       <p class="text-gray-500 dark:text-gray-400 mb-4">
         登录后查看自己的编辑申请记录

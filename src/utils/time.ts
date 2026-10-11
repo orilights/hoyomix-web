@@ -19,6 +19,16 @@ export function getPublishDate(publishTime: number | string) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
+export function formatDateTime(isoStr: string): string {
+  const date = new Date(isoStr)
+  if (!Number.isFinite(date.getTime()))
+    return '-'
+  const time = [date.getHours(), date.getMinutes(), date.getSeconds()]
+    .map(value => String(value).padStart(2, '0'))
+    .join(':')
+  return `${getPublishDate(date.getTime())} ${time}`
+}
+
 export function formatRelativeTime(isoStr: string): string {
   const diff = Date.now() - new Date(isoStr).getTime()
   const minutes = Math.floor(diff / 60000)

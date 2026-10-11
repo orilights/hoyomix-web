@@ -72,8 +72,8 @@ watch(() => auth.user?.id ?? null, () => {
 
 function onKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement
-  // 输入框/文本域/可编辑元素内不触发
-  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+  // 表单、交互控件和对话框内不触发播放器快捷键
+  if (e.defaultPrevented || target.closest('button, a, [role="dialog"]') || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
     return
 
   if (e.code === 'Space') {

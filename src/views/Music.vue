@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useCommentThreadsQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -230,6 +231,23 @@ const productCode = computed(() => getProductCode(albumInfo.value?.productName ?
 const showEditRegionDialog = ref(false)
 const showEditVideoDialog = ref(false)
 const showEditInfoDialog = ref(false)
+const showMyRequestsDialog = ref(false)
+const requestPage = ref(1)
+const { pendingRequest } = usePendingSongEditRequest(musicId)
+const requestParams = computed(() => ({ resourceType: 'song' as const, resourceId: musicId.value, page: requestPage.value, limit: 10 }))
+function openMyRequests() {
+  if (!auth.requireLogin())
+    return
+  requestPage.value = 1
+  showMyRequestsDialog.value = true
+}
+watch(() => [musicId.value, auth.user?.id], () => {
+  showMyRequestsDialog.value = false
+  showEditInfoDialog.value = false
+  showEditRegionDialog.value = false
+  showEditVideoDialog.value = false
+  requestPage.value = 1
+}, { flush: 'sync' })
 
 function openEditInfo() {
   if (!auth.requireLogin())
@@ -324,10 +342,6 @@ function refreshSongInfo() {
             {{ songInfo.descriptionFull }}
           </OverlayScrollbarsComponent>
 
-          <div class="shrink-0">
-            <MyEditRequestsEntry resource-type="song" :resource-id="musicId" />
-          </div>
-
           <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <MusicActions
               :music-info="musicInfo"
@@ -335,11 +349,13 @@ function refreshSongInfo() {
               :prev-disabled="!hasPrev"
               :next-disabled="!hasNext"
               :can-edit-region="productCode === 'genshin'"
+              :has-pending-edit-request="!!pendingRequest"
               :comment-count="commentCount"
               @play="handlePlay"
               @prev="goPrevMusic"
               @next="goNextMusic"
               @add-to-playlist="addSongToUserPlaylist"
+              @my-requests="openMyRequests"
               @edit-info="openEditInfo"
               @edit-region="openEditRegion"
               @edit-video="openEditVideo"
@@ -365,11 +381,13 @@ function refreshSongInfo() {
           :prev-disabled="!hasPrev"
           :next-disabled="!hasNext"
           :can-edit-region="productCode === 'genshin'"
+          :has-pending-edit-request="!!pendingRequest"
           :comment-count="commentCount"
           @play="handlePlay"
           @prev="goPrevMusic"
           @next="goNextMusic"
           @add-to-playlist="addSongToUserPlaylist"
+          @my-requests="openMyRequests"
           @edit-info="openEditInfo"
           @edit-region="openEditRegion"
           @edit-video="openEditVideo"
@@ -444,6 +462,12 @@ function refreshSongInfo() {
         :song-ids="currentSongId"
         mode="add"
       />
+
+      <AppDialog v-model="showMyRequestsDialog" title="我的申请" size="md">
+        <div class="p-4 sm:p-6 max-h-[65vh] overflow-y-auto overscroll-contain">
+          <EditRequestList v-if="showMyRequestsDialog" :params="requestParams" @page="requestPage = $event" />
+        </div>
+      </AppDialog>
 
       <SongInfoEditDialog
         v-model="showEditInfoDialog"

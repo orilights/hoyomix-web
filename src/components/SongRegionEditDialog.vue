@@ -3,6 +3,8 @@ import type { MapTreeNode, SongMapInfo, SongMapsChange } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { submitSongRegionEditApi } from '@/api/music'
 import { useMapTreeQuery } from '@/composables/queries'
+import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { useAuthStore } from '@/store/auth'
 
 const props = defineProps<{
   songId: number
@@ -14,7 +16,9 @@ const emit = defineEmits<{
   success: []
 }>()
 
+const auth = useAuthStore()
 const visible = defineModel<boolean>({ required: true })
+const { pendingRequest, checking, blocked, checkError, retryCheck, checkBeforeSubmit } = usePendingSongEditRequest(computed(() => props.songId), visible)
 
 // ── 地图树数据 ──────────────────────────────
 const { data: mapTree, isPending: loading, isError: loadError } = useMapTreeQuery(
@@ -159,10 +163,16 @@ function close() {
 }
 
 async function submit() {
-  if (!canSubmit.value || submitting.value)
+  if (submitting.value || blocked.value)
     return
+  if (!canSubmit.value)
+    return
+  const submissionSongId = props.songId
+  const submissionUserId = auth.user?.id
   submitting.value = true
   try {
+    if (!await checkBeforeSubmit())
+      return
     const maps: SongMapsChange = {}
     if (addItems.value.length) {
       maps.add = addItems.value.map(a => ({
@@ -176,7 +186,9 @@ async function submit() {
     if (noteUpdates.value.length)
       maps.update = noteUpdates.value
 
-    const res = await submitSongRegionEditApi(props.songId, maps)
+    const res = await submitSongRegionEditApi(submissionSongId, maps)
+    if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
+      return
     if (res.directApproved)
       toast.success('地区变更已生效')
     else
@@ -185,6 +197,9 @@ async function submit() {
     emit('success')
   }
   catch (error) {
+    if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
+      return
+    void retryCheck()
     toast.error(error instanceof Error ? error.message : '提交失败')
   }
   finally {
@@ -200,9 +215,7 @@ async function submit() {
     </template>
 
     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-      <div class="px-3 py-2 rounded-lg bg-orange-100 text-orange-600 text-xs leading-relaxed">
-        信息修改需审核后生效，同一资源最多同时存在一条待审核申请
-      </div>
+      <PendingEditRequestNotice :pending-request="pendingRequest" :checking="checking" :check-error="checkError" @retry="retryCheck()" />
 
       <div>
         <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
@@ -349,7 +362,7 @@ async function submit() {
         <AppButton
           type="button"
           variant="primary"
-          :disabled="!canSubmit || submitting"
+          :disabled="!canSubmit || submitting || blocked"
           @click="submit"
         >
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />

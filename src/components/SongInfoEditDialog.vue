@@ -2,6 +2,8 @@
 import type { SongInfoChange } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { submitSongInfoEditApi } from '@/api/music'
+import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { useAuthStore } from '@/store/auth'
 
 const props = defineProps<{
   songId: number
@@ -14,7 +16,9 @@ const emit = defineEmits<{
   success: []
 }>()
 
+const auth = useAuthStore()
 const visible = defineModel<boolean>({ required: true })
+const { pendingRequest, checking, blocked, checkError, retryCheck, checkBeforeSubmit } = usePendingSongEditRequest(computed(() => props.songId), visible)
 
 const nameInput = ref('')
 const descriptionInput = ref('')
@@ -34,6 +38,8 @@ watch(() => props.songId, () => {
 })
 
 async function submit() {
+  if (submitting.value || blocked.value)
+    return
   const newName = nameInput.value.trim()
   if (!newName) {
     toast.error('请输入歌曲名称')
@@ -53,9 +59,15 @@ async function submit() {
     return
   }
 
+  const submissionSongId = props.songId
+  const submissionUserId = auth.user?.id
   submitting.value = true
   try {
-    const res = await submitSongInfoEditApi(props.songId, changes)
+    if (!await checkBeforeSubmit())
+      return
+    const res = await submitSongInfoEditApi(submissionSongId, changes)
+    if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
+      return
     if (res.directApproved)
       toast.success('歌曲信息已更新')
     else
@@ -64,6 +76,9 @@ async function submit() {
     emit('success')
   }
   catch (error) {
+    if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
+      return
+    void retryCheck()
     toast.error(error instanceof Error ? error.message : '提交失败')
   }
   finally {
@@ -78,10 +93,8 @@ async function submit() {
       修改歌曲信息
     </template>
 
-    <div class="p-6 space-y-4">
-      <div class="px-3 py-2 rounded-lg bg-orange-100 text-orange-600 text-xs leading-relaxed">
-        信息修改需审核后生效，同一资源最多同时存在一条待审核申请
-      </div>
+    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+      <PendingEditRequestNotice :pending-request="pendingRequest" :checking="checking" :check-error="checkError" @retry="retryCheck()" />
 
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -132,7 +145,7 @@ async function submit() {
         <AppButton
           type="button"
           variant="primary"
-          :disabled="submitting"
+          :disabled="submitting || blocked"
           @click="submit"
         >
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />
