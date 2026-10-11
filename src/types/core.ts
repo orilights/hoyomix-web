@@ -23,6 +23,7 @@ export interface SongMapInfo {
 
 export interface SongInfo {
   id: number
+  descriptionFull: string
   tags: TagInfo[]
   maps?: SongMapInfo[]
 }
@@ -47,10 +48,11 @@ export interface SongTagsChange {
   remove?: { tagType: string, tagName: string }[]
 }
 
-/** 歌曲基础信息（名称/描述）的变更 */
+/** 歌曲基础信息（名称/简短描述/完整描述）的变更 */
 export interface SongInfoChange {
   name?: string
   description?: string
+  descriptionFull?: string
 }
 
 /** 提交编辑申请响应（普通用户待审核 ｜ 管理员直接生效） */

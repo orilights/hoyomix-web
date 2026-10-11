@@ -291,6 +291,11 @@ onUnmounted(() => {
                         v-html="getHighlight(item, 'description')"
                       />
                       <div
+                        v-if="getHighlight(item, 'descriptionFull')"
+                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
+                        v-html="getHighlight(item, 'descriptionFull')"
+                      />
+                      <div
                         v-if="getHighlight(item, 'lyrics')"
                         class="search-highlight text-xs text-gray-400 truncate mt-0.5"
                         v-html="getHighlight(item, 'lyrics')"

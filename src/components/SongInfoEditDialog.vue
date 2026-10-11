@@ -7,6 +7,7 @@ const props = defineProps<{
   songId: number
   name: string
   description: string
+  descriptionFull?: string
 }>()
 
 const emit = defineEmits<{
@@ -17,6 +18,7 @@ const visible = defineModel<boolean>({ required: true })
 
 const nameInput = ref('')
 const descriptionInput = ref('')
+const descriptionFullInput = ref('')
 const submitting = ref(false)
 
 watch(visible, (v) => {
@@ -24,6 +26,11 @@ watch(visible, (v) => {
     return
   nameInput.value = props.name
   descriptionInput.value = props.description
+  descriptionFullInput.value = props.descriptionFull ?? ''
+})
+
+watch(() => props.songId, () => {
+  visible.value = false
 })
 
 async function submit() {
@@ -38,6 +45,8 @@ async function submit() {
     changes.name = newName
   if (descriptionInput.value !== props.description)
     changes.description = descriptionInput.value
+  if (props.descriptionFull !== undefined && descriptionFullInput.value !== props.descriptionFull)
+    changes.descriptionFull = descriptionFullInput.value
 
   if (Object.keys(changes).length === 0) {
     toast.error('未做任何修改')
@@ -88,12 +97,25 @@ async function submit() {
 
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          描述（可选）
+          简短描述（可选）
+        </label>
+        <input
+          v-model="descriptionInput"
+          type="text"
+          placeholder="输入简短描述"
+          class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          完整描述（可选）
         </label>
         <textarea
-          v-model="descriptionInput"
+          v-model="descriptionFullInput"
+          :disabled="descriptionFull === undefined"
           rows="4"
-          placeholder="输入歌曲描述"
+          placeholder="输入完整描述"
           class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
         />
       </div>

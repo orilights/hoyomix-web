@@ -234,6 +234,10 @@ const showEditInfoDialog = ref(false)
 function openEditInfo() {
   if (!auth.requireLogin())
     return
+  if (isSongLoading.value || isSongError.value || songInfo.value?.id !== musicId.value) {
+    toast.error('歌曲详情尚未加载完成，请稍后重试')
+    return
+  }
   showEditInfoDialog.value = true
 }
 
@@ -253,6 +257,9 @@ function refreshSongInfo() {
   queryClient.invalidateQueries({ queryKey: ['editRequests'] })
   queryClient.invalidateQueries({ queryKey: ['editRequestDetail'] })
   queryClient.invalidateQueries({ queryKey: ['songInfo', musicId.value] })
+  queryClient.invalidateQueries({ queryKey: ['albumInfo', albumId.value] })
+  if (isPlaylistContext.value)
+    queryClient.invalidateQueries({ queryKey: ['playlistDetail', detailPlaylistId.value] })
   queryClient.invalidateQueries({ queryKey: ['contributions', 'song', musicId.value] })
 }
 </script>
@@ -269,12 +276,12 @@ function refreshSongInfo() {
     </div>
 
     <div v-else-if="albumInfo && musicInfo" class="overflow-hidden">
-      <div class="flex md:h-[200px] lg:h-[300px]">
+      <div class="flex md:h-[200px] lg:h-[300px]" :class="{ 'md:min-h-[260px]': !!songInfo?.descriptionFull }">
         <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
           <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
         </div>
 
-        <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
+        <div class="flex flex-col ml-4 md:ml-8 overflow-hidden min-w-0 flex-1">
           <div class="truncate shrink-0 md:text-xl lg:text-3xl font-bold">
             {{ musicInfo.name }}
           </div>
@@ -283,7 +290,7 @@ function refreshSongInfo() {
             {{ musicInfo.description }}
           </div>
 
-          <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base">
+          <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base shrink-0">
             <span class="text-gray-500 dark:text-gray-400 hidden md:inline">所属</span>
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
@@ -301,14 +308,25 @@ function refreshSongInfo() {
             </RouterLink>
           </div>
 
-          <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base">
+          <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base shrink-0">
             <span class="text-gray-500 dark:text-gray-400">时长</span>
             <span class="ml-4">
               {{ formatDuration(musicInfo.duration) }}
             </span>
           </div>
 
-          <MyEditRequestsEntry resource-type="song" :resource-id="musicId" />
+          <OverlayScrollbarsComponent
+            v-if="songInfo?.descriptionFull"
+            class="hidden md:block mt-1 md:mt-2 flex-1 min-h-0 text-xs md:text-sm lg:text-base whitespace-pre-wrap break-words"
+            :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
+            defer
+          >
+            {{ songInfo.descriptionFull }}
+          </OverlayScrollbarsComponent>
+
+          <div class="shrink-0">
+            <MyEditRequestsEntry resource-type="song" :resource-id="musicId" />
+          </div>
 
           <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <MusicActions
@@ -330,6 +348,15 @@ function refreshSongInfo() {
           </div>
         </div>
       </div>
+
+      <OverlayScrollbarsComponent
+        v-if="songInfo?.descriptionFull"
+        class="md:hidden mt-4 max-h-[120px] text-xs whitespace-pre-wrap break-words"
+        :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
+        defer
+      >
+        {{ songInfo.descriptionFull }}
+      </OverlayScrollbarsComponent>
 
       <div class="flex gap-2 flex-wrap md:hidden mt-4">
         <MusicActions
@@ -423,6 +450,7 @@ function refreshSongInfo() {
         :song-id="musicId"
         :name="musicInfo?.name ?? ''"
         :description="musicInfo?.description ?? ''"
+        :description-full="!isSongLoading && !isSongError && songInfo?.id === musicId ? songInfo.descriptionFull : undefined"
         @success="refreshSongInfo"
       />
 
