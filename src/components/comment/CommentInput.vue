@@ -99,27 +99,24 @@ async function submit() {
         <LucideX class="size-4" />
       </AppButton>
     </div>
-    <textarea
+    <CommentEditor
       v-model="content"
-      rows="3"
-      maxlength="2000"
       :disabled="submitting || !isLoggedIn"
-      class="w-full resize-y bg-transparent outline-none text-sm leading-6 placeholder:text-gray-400 placeholder:dark:text-gray-500 focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
       :placeholder="isLoggedIn ? '写下你此刻的想法…' : '登录后参与讨论'"
-      @keydown.ctrl.enter.prevent="submit"
-      @keydown.meta.enter.prevent="submit"
-    />
-    <div class="mt-2 flex items-center justify-between gap-3">
-      <span class="text-xs text-gray-400">{{ content.length }}/{{ maxLength }}</span>
-      <AppButton v-if="!isLoggedIn" variant="primary" size="sm" @click="auth.openAuthDialog()">
-        <LucideLogIn class="size-4" />
-        登录
-      </AppButton>
-      <AppButton v-else variant="primary" size="sm" :disabled="submitting" @click="submit">
-        <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />
-        <LucideSend v-else class="size-4" />
-        {{ submitting ? '发表中' : '发表' }}
-      </AppButton>
-    </div>
+      :max-length="maxLength"
+      @submit="submit"
+    >
+      <template #actions>
+        <AppButton v-if="!isLoggedIn" variant="primary" size="sm" @click="auth.openAuthDialog()">
+          <LucideLogIn class="size-4" />
+          登录
+        </AppButton>
+        <AppButton v-else variant="primary" size="sm" :disabled="submitting" @click="submit">
+          <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />
+          <LucideSend v-else class="size-4" />
+          {{ submitting ? '发表中' : '发表' }}
+        </AppButton>
+      </template>
+    </CommentEditor>
   </div>
 </template>

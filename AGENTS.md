@@ -22,7 +22,7 @@
 - `src/auto-imports.d.ts`、`src/components.d.ts` 为自动生成文件,勿手改
 
 ## 目录结构
-- `src/api/music.ts` — 全部 API 函数与请求封装
+- `src/api/` — 按业务拆分接口：`music.ts` 为音乐服务，`emoticon.ts` 为表情，`media.ts` 为媒体源，`misc.ts` 为难归类的杂项；请求封装位于 `src/utils/fetch.ts`
 - `src/composables/queries.ts` — vue-query hooks(useXxxQuery)
 - `src/store/` — Pinia stores:main(产品/专辑/收藏)、player(播放器)、auth(认证)、media-source(媒体源)
 - `src/types/` — 数据模型(TS 接口);`src/constants/index.ts` — 常量与环境变量
@@ -31,9 +31,9 @@
 
 ## 数据请求约定(重要)
 - 组件内**不要直接 fetch**;所有数据获取都走 `src/composables/queries.ts` 的 `useXxxQuery` hooks
-- API 函数集中在 `src/api/music.ts`,统一经 `fetchJson` / `fetchJsonMutation` 封装(`credentials: include`,404 抛 `NotFoundError`)
+- API 函数按业务归入 `src/api/` 对应文件，难归类的接口放在 `misc.ts`；统一经 `fetchJson` / `fetchJsonMutation` 封装(`credentials: include`,404 抛 `NotFoundError`)
 - 全局 queryClient 配置见 `src/utils/query-client.ts`(staleTime 5min、retry 1、refetchOnWindowFocus false)
-- 新接口流程:在 `music.ts` 加函数 → 在 `queries.ts` 加对应 hook → 组件调用 hook
+- 新接口流程:在 `src/api/` 对应业务文件加函数 → 在 `queries.ts` 加对应 hook → 组件调用 hook
 
 ## 状态管理
 - setup 语法 store:auth、media-source;options 语法 store:main、player

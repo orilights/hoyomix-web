@@ -4,10 +4,6 @@ import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
 
-export function getChangelog() {
-  return fetchJson<Record<string, string>>('https://api.amarea.cn/config/hoyomix.changelog', false)
-}
-
 export function getAlbumListApi() {
   return fetchJson<AlbumListItemInfo[]>(`${apiBase}/albums`)
 }
@@ -88,24 +84,6 @@ export function getSongMediaApi(songId: number | string) {
 
 export function fetchAppConfig() {
   return fetchJson<AppConfigResponse>(`${apiBase}/app-config`, false)
-}
-
-const trailingSlashRegex = /\/+$/
-
-export async function pingMediaSource(baseUrl: string, signal?: AbortSignal): Promise<number | null> {
-  const url = `${baseUrl.replace(trailingSlashRegex, '')}/test`
-  const start = performance.now()
-  try {
-    await fetch(url, {
-      method: 'HEAD',
-      credentials: 'omit',
-      signal: signal ?? AbortSignal.timeout(5000),
-    })
-    return performance.now() - start
-  }
-  catch {
-    return null
-  }
 }
 
 export function getSearchApi(q: string, type?: string, limit?: number) {

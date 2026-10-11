@@ -3,6 +3,7 @@ const MAX_BYTES = 100 * 1024 * 1024
 const SIZE_HEADER = 'x-hoyomix-image-bytes'
 const resourceBase = new URL(globalThis.location.href).searchParams.get('resourceBase')
 const imageBase = resourceBase ? new URL(`${resourceBase.replace(/\/+$/, '')}/cover/`, globalThis.location.origin) : null
+const assetBase = new URL('https://icdn.amarea.cn/gi-assets/img/')
 let queue = Promise.resolve()
 let generation = 0
 
@@ -36,10 +37,10 @@ globalThis.addEventListener('activate', event => event.waitUntil(globalThis.clie
 
 globalThis.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
-  // Match only the configured resource service's album cover paths.
-  if (!imageBase || event.request.method !== 'GET'
-    || url.origin !== imageBase.origin || !url.pathname.startsWith(imageBase.pathname)
-    || !/^(?:ncm|qq)\/[^/]+_(?:96|128|256|512|800)px\.jpg$/.test(url.pathname.slice(imageBase.pathname.length))) {
+  const isAsset = url.origin === assetBase.origin && url.pathname.startsWith(assetBase.pathname)
+  const isCover = imageBase && url.origin === imageBase.origin && url.pathname.startsWith(imageBase.pathname)
+    && /^(?:ncm|qq)\/[^/]+_(?:96|128|256|512|800)px\.jpg$/.test(url.pathname.slice(imageBase.pathname.length))
+  if (event.request.method !== 'GET' || (!isAsset && !isCover)) {
     return
   }
   const requestGeneration = generation
@@ -59,7 +60,7 @@ globalThis.addEventListener('fetch', (event) => {
     catch {
       return fetch(event.request)
     }
-    if (response.ok && response.status === 200 && response.headers.get('content-type')?.startsWith('image/')) {
+    if (response.ok && response.status === 200 && (isAsset || response.headers.get('content-type')?.startsWith('image/'))) {
       const copy = response.clone()
       event.waitUntil((async () => {
         const blob = await copy.blob()

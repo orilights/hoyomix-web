@@ -198,12 +198,12 @@ async function voteComment(type: VoteType) {
             回复 <span class="text-blue-500">@{{ localComment.replyToUser.name }}</span><span v-if="replyToNumber" class="ml-1 text-blue-500">#{{ replyToNumber }}</span>
           </button>
         </div>
-        <textarea
+        <CommentEditor
           v-if="editing"
           v-model="editContent"
-          rows="3"
-          maxlength="2000"
-          class="mt-2 w-full resize-y rounded-lg border border-blue-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 p-2 text-sm leading-6 outline-none focus:ring-2 focus:ring-blue-400/30"
+          :disabled="saving"
+          class="mt-2 rounded-lg border border-blue-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 p-2"
+          @submit="!saving && saveEdit()"
         />
         <p
           v-else
@@ -212,7 +212,7 @@ async function voteComment(type: VoteType) {
           class="whitespace-pre-wrap break-words text-sm leading-6 text-gray-700 dark:text-gray-300"
           :class="[depth === 1 ? 'mt-1' : 'mt-2', contentCollapsed ? 'max-h-60 overflow-hidden' : '']"
         >
-          {{ localComment.content }}
+          <CommentContent :content="localComment.content" />
         </p>
         <AppButton
           v-if="!editing && hasMoreContent"

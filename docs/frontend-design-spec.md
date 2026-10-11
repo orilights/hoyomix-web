@@ -34,7 +34,7 @@ plugins/            # 自定义 Vite 插件（buildInfo、injectHead）
 src/
 ├── main.ts         # 应用入口（装配 router/pinia/vue-query/scrollbars）
 ├── App.vue         # 全局壳：BackgroundLayer + Header + 路由视图 + 播放器 + Toaster
-├── api/music.ts    # 全部 API 函数与 fetch 封装
+├── api/            # 按业务拆分接口（music / comment / notification / emoticon / media / misc）
 ├── composables/queries.ts  # vue-query hooks（useXxxQuery）
 ├── store/          # Pinia：main、player、auth、media-source
 ├── router/         # routes.ts（懒加载路由表）+ index.ts
@@ -50,7 +50,7 @@ src/
 
 ## 4. 架构与分层
 
-- **API 层（`api/music.ts`）**：唯一网络出入口。`fetchJson`/`fetchJsonMutation` 统一封装（`credentials: include`、404 抛 `NotFoundError`、`{error}` 消息），接口以 `xxxApi` 命名。
+- **API 层（`api/`）**：按业务拆分网络接口。音乐服务接口位于 `music.ts`，表情目录位于 `emoticon.ts`，媒体源测速位于 `media.ts`，更新日志等难归类接口位于 `misc.ts`。`utils/fetch.ts` 的 `fetchJson`/`fetchJsonMutation` 提供统一请求封装（`credentials: include`、404 抛 `NotFoundError`、`{error}` 消息），接口以 `xxxApi` 命名。
 - **数据访问层（`composables/queries.ts`）**：`useXxxQuery` 封装 queryKey、enabled、staleTime。
 - **状态层（`store/*`）**：Pinia 承载全局 UI 与播放器状态。
 - **工具层（`utils/*`）**：无 Vue 依赖的纯函数。
@@ -87,7 +87,7 @@ History 模式，全部 `() => import(...)` 懒加载；`scrollBehavior` 返回�
 
 - 全局 `queryClient`：`staleTime 5min`、`retry 1`、`refetchOnWindowFocus: false`。
 - 各查询定制 `staleTime`（专辑 10min、歌词 30min、公告 1h 等），用 `computed` queryKey 与 `enabled` 控制。
-- 新接口流程：`music.ts` 加函数 → `queries.ts` 加 hook → 组件调用 hook。
+- 新接口流程：`api/` 对应业务文件加函数 → `queries.ts` 加 hook → 组件调用 hook。
 - 环境变量 → 常量：`apiBase`、`resourceBase`、`userApiBase`、`feedbackPageUrl`。
 
 ---
@@ -193,7 +193,7 @@ Toaster（全局提示）
 
 ## 13. 工程化与构建
 
-- **图片缓存**：入口注册 `public/image-cache-sw.js`，仅缓存 `VITE_RESOURCE_BASE` 下 `/cover/ncm/`、`/cover/qq/` 的专辑封面（所有现有尺寸）。Cache Storage 中图片数据上限为 100 × 1024 × 1024 字节，超过时按写入顺序淘汰旧图片；不缓存失败响应或单张超过上限的图片。跨域请求使用 CORS 读取实际图片大小，无法读取时回退到原始请求并跳过缓存。
+- **图片缓存**：入口注册 `public/image-cache-sw.js`，缓存 `VITE_RESOURCE_BASE` 下 `/cover/ncm/`、`/cover/qq/` 的专辑封面（所有现有尺寸），以及 `https://icdn.amarea.cn/gi-assets/img/` 目录下请求过的所有文件（含子目录，不限制扩展名或 Content-Type）。两类资源共用 Cache Storage，数据总上限为 100 × 1024 × 1024 字节，超过时按写入顺序淘汰旧资源；不缓存失败响应、空文件或单个超过上限的文件。跨域请求使用 CORS 读取实际数据大小，无法读取时回退到原始请求并跳过缓存。
 - **缓存管理**：`utils/image-cache.ts` 通过 MessageChannel 与 Service Worker 通信；`composables/useImageCache.ts` 在每次打开设置页时读取一次用量，不定时刷新。设置的「缓存」区块展示图片数据大小、数量，支持手动刷新和清理；清理使此前未完成的下载失效，避免清理后旧请求重新写入。仅清理本站图片缓存，浏览器存储元数据及 HTTP 缓存不计入用量。不支持 Service Worker 的环境显示提示；生产环境需 HTTPS，开发用 localhost。
 
 - **Vite**：别名 `@ → src`；代码分割 `vendor`（echarts 外 node_modules）+ `pages`（views 除 Statistics）。

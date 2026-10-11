@@ -1,7 +1,7 @@
 import type { MediaSourceConfig } from '@/types/core'
 import type { MediaSourceSelection } from '@/types/player'
 import { defineStore } from 'pinia'
-import { pingMediaSource } from '@/api/music'
+import { pingMediaSource } from '@/api/media'
 
 // 每个源的延迟测试轮数
 const LATENCY_TEST_ROUNDS = 3

@@ -3,6 +3,8 @@ import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
 import { useQuery } from '@tanstack/vue-query'
 import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
+import { getEmoticonsApi } from '@/api/emoticon'
+import { getChangelog } from '@/api/misc'
 import {
   fetchAppConfig,
   getAlbumInfoApi,
@@ -10,7 +12,6 @@ import {
   getAlbumsByTagApi,
   getArtistInfoApi,
   getArtistNameByAliasApi,
-  getChangelog,
   getContributionsApi,
   getCreditInfoApi,
   getEditRequestApi,
@@ -26,6 +27,14 @@ import {
 } from '@/api/music'
 import { useAuthStore } from '@/store/auth'
 import { NotFoundError } from '@/utils/fetch'
+
+export function useEmoticonsQuery(enabled: Ref<boolean> = ref(true)) {
+  return useQuery({
+    queryKey: ['emoticons'],
+    queryFn: getEmoticonsApi,
+    enabled,
+  })
+}
 
 export function useMyEditRequestsQuery(params: Ref<EditRequestParams>, enabled: Ref<boolean> = ref(true)) {
   const auth = useAuthStore()
