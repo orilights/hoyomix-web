@@ -36,6 +36,7 @@ declare module 'vue' {
     Dropdown: typeof import('./components/common/Dropdown.vue')['default']
     EditRequestList: typeof import('./components/user/EditRequestList.vue')['default']
     FavoriteButton: typeof import('./components/common/FavoriteButton.vue')['default']
+    FilterChips: typeof import('./components/common/FilterChips.vue')['default']
     FloatingActions: typeof import('./components/common/FloatingActions.vue')['default']
     Header: typeof import('./components/Header.vue')['default']
     IconGitHub: typeof import('./components/icon/IconGitHub.vue')['default']

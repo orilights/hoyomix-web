@@ -38,13 +38,6 @@ const typeOptions: { label: string, value: SearchType | undefined }[] = [
   { label: '游戏', value: 'product' },
   { label: '艺术家', value: 'artist' },
 ]
-const searchMode = computed({
-  get: () => searchType.value ?? 'all',
-  set: (value: SearchType | 'all') => {
-    searchType.value = value === 'all' ? undefined : value
-  },
-})
-const searchModeOptions = typeOptions.map(option => ({ key: option.value ?? 'all', label: option.label }))
 
 const debouncedKeyword = refDebounced(keyword, 300)
 
@@ -231,9 +224,13 @@ onUnmounted(() => {
             <kbd class="hidden md:inline-flex items-center text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">ESC</kbd>
           </div>
 
-          <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-            <SegmentSwitch v-model="searchMode" :options="searchModeOptions" class="min-w-max" aria-label="搜索类型" />
-          </div>
+          <FilterChips
+            v-model="searchType"
+            :options="typeOptions"
+            scroll
+            class="px-4 py-2 border-b border-gray-200 dark:border-gray-700"
+            aria-label="搜索类型"
+          />
 
           <div
             class="overflow-hidden transition-[height] duration-300 ease-in-out"

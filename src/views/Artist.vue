@@ -176,24 +176,16 @@ onMounted(() => {
       </div>
 
       <div class="flex-1 overflow-hidden">
-        <div v-if="availableYears.length > 1" class="flex flex-wrap items-center gap-2 mb-2">
-          <button
-            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedYear === null ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-            @click="selectedYear = null"
-          >
-            全部
-          </button>
-          <button
-            v-for="year in availableYears"
-            :key="year"
-            class="text-sm px-3 py-1 rounded-lg transition-colors cursor-pointer"
-            :class="selectedYear === year ? 'bg-blue-500/90 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10'"
-            @click="selectedYear = year"
-          >
-            {{ year }}
-          </button>
-        </div>
+        <section v-if="availableYears.length > 1" class="mb-4">
+          <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+            年份
+          </h2>
+          <FilterChips
+            v-model="selectedYear"
+            :options="[{ value: null, label: '全部' }, ...availableYears.map(year => ({ value: year, label: String(year) }))]"
+            aria-label="年份筛选"
+          />
+        </section>
         <ArtistAlbumList v-if="artistInfoResolved" :albums-list="albumsFilteredByYear" :artist-info="artistInfoResolved" :selected-role="selectedRole" :selected-product="selectedProduct" />
       </div>
     </div>
