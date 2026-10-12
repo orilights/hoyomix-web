@@ -21,7 +21,7 @@
 | 框架/构建 | Vue 3.5（`<script setup>` + TS 6）、Vite 8 + rolldown |
 | 路由/状态 | vue-router 5（History 模式）、Pinia 4 + `pinia-plugin-persistedstate` |
 | 数据请求 | @tanstack/vue-query 5（读取）、原生 fetch 封装（写入） |
-| 样式/图标 | UnoCSS（`unocss/vite` + `@unocss/preset-wind4`）、@lucide/vue |
+| 样式/图标 | UnoCSS（`unocss/vite` + `@unocss/preset-wind3`）、@lucide/vue |
 | 其他 | OverlayScrollbars、ECharts 6 + vue-echarts、better-auth、vue-sonner、vuedraggable、@vueuse/core |
 | 代码规范 | @antfu/eslint-config（无分号、单引号、2 空格） |
 
@@ -197,7 +197,7 @@ Toaster（全局提示）
 - **缓存管理**：`utils/image-cache.ts` 通过 MessageChannel 与 Service Worker 通信；`composables/useImageCache.ts` 在每次打开设置页时读取一次用量，不定时刷新。设置的「缓存」区块展示图片数据大小、数量，支持手动刷新和清理；清理使此前未完成的下载失效，避免清理后旧请求重新写入。仅清理本站图片缓存，浏览器存储元数据及 HTTP 缓存不计入用量。不支持 Service Worker 的环境显示提示；生产环境需 HTTPS，开发用 localhost。
 
 - **Vite**：别名 `@ → src`；代码分割 `vendor`（echarts 外 node_modules）+ `pages`（views 除 Statistics）。
-- **插件**：`vue()`、`UnoCSS()`（`uno.config.ts` 配置 `presetWind4`）、`AutoImport`（vue/vue-router/pinia）、`Components`（自动解析组件 + 透传 `Lucide*`/`OverlayScrollbarsComponent`）、`buildInfo()`（注入 `__BUILD_TIME__`）、`injectHead()`（构建时注入 base64 到 `<head>`）。
+- **插件**：`vue()`、`UnoCSS()`（`uno.config.ts` 配置 `presetWind3`，通过 `uno-theme.ts` 和兼容规则保留原有视觉取值）、`AutoImport`（vue/vue-router/pinia）、`Components`（自动解析组件 + 透传 `Lucide*`/`OverlayScrollbarsComponent`）、`buildInfo()`（注入 `__BUILD_TIME__`）、`injectHead()`（构建时注入 base64 到 `<head>`）。
 - **约定**：`ref`/`computed`/`watch`/`useRoute`/`storeToRefs` 等由 auto-import 自动引入，无需手写 import；`auto-imports.d.ts`/`components.d.ts` 勿手改。
 - **脚本**：`dev`/`build`（`vue-tsc -b && vite build`）/`preview`/`lint`/`lintf`；包管理器 **pnpm**。
 

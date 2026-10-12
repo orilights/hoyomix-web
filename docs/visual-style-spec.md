@@ -462,10 +462,10 @@ textarea 加 resize-y；调试 Body 用 font-mono
 
 ---
 
-## 15. 实现约定（UnoCSS wind4 + 手写 CSS）
+## 15. 实现约定（UnoCSS wind3 + 手写 CSS）
 
-1. **样式首选 UnoCSS 工具类**；`uno.config.ts` 仅配置 `presetWind4()`，不维护自定义 config，跨项目直接用默认调色板 + 任意值（`size-4.5`、`w-[240px]`、`pt-[100px]`）。
-2. **手写 CSS 仅用于**：全局过渡类（`style.css`）、OverlayScrollbars 主题、歌词 `mask-image`/隐藏滚动条、竖排音量滑块（`writing-mode: vertical-lr`）、动画类（`animate-spin` 由 UnoCSS 提供）。
+1. **样式首选 UnoCSS 工具类**；`uno.config.ts` 使用 `presetWind3()`，`uno-theme.ts` 固定迁移前的调色板、阴影、模糊和断点；配置中的兼容规则保留 CSS 变量背景透明度、焦点轮廓、渐变和过渡行为。继续使用既有工具类与任意值（`size-4.5`、`w-[240px]`、`pt-[100px]`）。
+2. **手写 CSS 仅用于**：全局基础样式（`reset.css`，在 UnoCSS 样式前加载）、全局过渡类（`style.css`）、OverlayScrollbars 主题、歌词 `mask-image`/隐藏滚动条、竖排音量滑块（`writing-mode: vertical-lr`）、动画类（`animate-spin` 由 UnoCSS 提供）。
 3. **局部过渡动画**：写在组件 `<style scoped>` 内，配合 Vue `<Transition>`。
 4. **深色区组件（播放器）**：`.volume-slider`、`.dropdown-*`、`.os-theme-custom-light` 等规则集中在对应组件。
 5. 全站统一「玻璃拟态 + 半透明悬浮 + 蓝色强调」三原则，新增页面/组件优先复用既有取值，不做风格漂移。

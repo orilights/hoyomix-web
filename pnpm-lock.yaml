@@ -63,7 +63,7 @@ importers:
       '@types/node':
         specifier: ^26.2.0
         version: 26.2.0
-      '@unocss/preset-wind4':
+      '@unocss/preset-wind3':
         specifier: ^66.9.2
         version: 66.9.2
       '@vitejs/plugin-vue':
