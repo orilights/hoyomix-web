@@ -11,7 +11,7 @@ import { queryClient } from '@/utils/query-client'
 
 import 'overlayscrollbars/overlayscrollbars.css'
 import 'vue-sonner/style.css'
-import '@/assets/reset.css'
+import '@unocss/reset/tailwind-v4.css'
 import 'virtual:uno.css'
 import '@/assets/style.css'
 
