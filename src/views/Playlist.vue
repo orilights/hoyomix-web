@@ -701,11 +701,11 @@ async function deletePlaylist() {
 <style scoped>
 .action-bar-enter-active,
 .action-bar-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease, translate 0.2s ease;
 }
 .action-bar-enter-from,
 .action-bar-leave-to {
   opacity: 0;
-  transform: translateY(12px);
+  translate: 0 12px;
 }
 </style>
