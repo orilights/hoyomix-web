@@ -1,7 +1,7 @@
-import type { PlaylistsQueryParams } from '@/api/music'
+import type { PlaylistsQueryParams, RandomPlaylistParams } from '@/api/music'
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery } from '@tanstack/vue-query'
 import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
 import { getEmoticonsApi } from '@/api/emoticon'
 import { getChangelog } from '@/api/misc'
@@ -22,11 +22,18 @@ import {
   getMyPlaylistsApi,
   getPlaylistDetailApi,
   getPublicPlaylistsApi,
+  getRandomPlaylistApi,
   getSearchApi,
   getSongInfoApi,
 } from '@/api/music'
 import { useAuthStore } from '@/store/auth'
 import { NotFoundError } from '@/utils/fetch'
+
+export function useRandomPlaylistQuery() {
+  return useMutation({
+    mutationFn: (params: RandomPlaylistParams) => getRandomPlaylistApi(params),
+  })
+}
 
 export function useEmoticonsQuery(enabled: Ref<boolean> = ref(true)) {
   return useQuery({

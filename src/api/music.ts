@@ -163,6 +163,7 @@ export function cancelPlaylistReviewApi(id: string) {
 }
 
 export interface RandomPlaylistParams {
+  minDuration?: number
   limit?: number
   products?: string[]
   albums?: number[]
@@ -176,6 +177,8 @@ export function getRandomPlaylistApi(params?: RandomPlaylistParams) {
   const query = new URLSearchParams()
   if (params?.limit)
     query.set('limit', String(params.limit))
+  if (params?.minDuration !== undefined)
+    query.set('minDuration', String(params.minDuration))
   if (params?.products?.length)
     query.set('products', params.products.join(','))
   if (params?.albums?.length)
