@@ -203,25 +203,25 @@ onMounted(() => {
 
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">发布日期范围</label>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="min-w-0">
                   <div class="text-xs text-gray-400 mb-1">
                     起始
                   </div>
                   <input
                     v-model="randomPlaylistDateFrom"
                     type="date"
-                    class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    class="block w-full min-w-0 max-w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                 </div>
-                <div>
+                <div class="min-w-0">
                   <div class="text-xs text-gray-400 mb-1">
                     截止
                   </div>
                   <input
                     v-model="randomPlaylistDateTo"
                     type="date"
-                    class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    class="block w-full min-w-0 max-w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                 </div>
               </div>
