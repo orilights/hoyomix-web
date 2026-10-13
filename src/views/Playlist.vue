@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { PlaylistSongItem } from '@/types/core'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
-import { useCommentThreadsQuery, usePlaylistDetailQuery } from '@/composables/queries'
+import { useCommentThreadsQuery, usePlaylistDetailQuery, useSavePlaylistOrderQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
 import { useAuthStore } from '@/store/auth'
@@ -105,7 +106,132 @@ watch(store.favoriteSongIds, () => {
     refetch()
 }, { deep: false })
 
+const showMultiSelect = ref(false)
+const selectedIds = ref<Set<number>>(new Set())
 const localSongs = ref<PlaylistSongItem[]>([])
+const isMobile = useMediaQuery('(max-width: 767px)')
+const sorting = ref(false)
+const sortDragging = ref(false)
+const draftSongs = ref<PlaylistSongItem[]>([])
+const originalOrder = ref<number[]>([])
+const { mutateAsync: savePlaylistOrder } = useSavePlaylistOrderQuery()
+const orderChanged = computed(() => sorting.value
+  && (draftSongs.value.length !== originalOrder.value.length
+    || draftSongs.value.some((song, index) => song.songId !== originalOrder.value[index])),
+)
+const displayedSongs = computed({
+  get: () => sorting.value ? draftSongs.value : localSongs.value,
+  set: (songs: PlaylistSongItem[]) => {
+    if (sorting.value)
+      draftSongs.value = songs
+    else
+      localSongs.value = songs
+  },
+})
+const showUnsavedOrderDialog = ref(false)
+let resolveNavigation: ((leave: boolean) => void) | null = null
+
+function startSorting() {
+  if (!canEdit.value || savingOrder.value || localSongs.value.length < 2)
+    return
+  showMultiSelect.value = false
+  selectedIds.value = new Set()
+  activeTab.value = 'songs'
+  draftSongs.value = [...localSongs.value]
+  originalOrder.value = localSongs.value.map(song => song.songId)
+  sorting.value = true
+}
+
+function cancelSorting() {
+  if (savingOrder.value)
+    return
+  sorting.value = false
+  draftSongs.value = []
+  originalOrder.value = []
+  sortDragging.value = false
+}
+
+function finishNavigation(leave: boolean) {
+  const resolve = resolveNavigation
+  resolveNavigation = null
+  showUnsavedOrderDialog.value = false
+  resolve?.(leave)
+}
+
+async function saveSorting() {
+  if (!canEdit.value || !playlist.value || savingOrder.value || sortDragging.value || !orderChanged.value)
+    return false
+  const id = playlist.value.id
+  const songs = [...draftSongs.value]
+  savingOrder.value = true
+  try {
+    await savePlaylistOrder({ id, songIds: songs.map(song => song.songId) })
+    // 同步详情缓存，避免退出排序模式时被旧顺序覆盖。
+    queryClient.setQueryData(['playlistDetail', id], { ...playlist.value, songs })
+    localSongs.value = songs
+    sorting.value = false
+    draftSongs.value = []
+    originalOrder.value = []
+    void queryClient.invalidateQueries({ queryKey: ['playlistDetail', id] })
+    toast.success('已保存歌曲顺序')
+    return true
+  }
+  catch (error) {
+    toast.error(`保存顺序失败：${error instanceof Error ? error.message : '未知错误'}`)
+    return false
+  }
+  finally {
+    savingOrder.value = false
+  }
+}
+
+function confirmNavigation() {
+  if (savingOrder.value || sortDragging.value)
+    return false
+  if (!orderChanged.value) {
+    cancelSorting()
+    return true
+  }
+  resolveNavigation?.(false)
+  showUnsavedOrderDialog.value = true
+  return new Promise<boolean>((resolve) => {
+    resolveNavigation = resolve
+  })
+}
+
+async function saveAndLeave() {
+  if (await saveSorting())
+    finishNavigation(true)
+}
+
+function discardAndLeave() {
+  cancelSorting()
+  finishNavigation(true)
+}
+
+onBeforeRouteLeave(confirmNavigation)
+onBeforeRouteUpdate((to, from) => to.params.id !== from.params.id ? confirmNavigation() : true)
+watch(showUnsavedOrderDialog, (visible) => {
+  if (!visible)
+    finishNavigation(false)
+})
+watch(canEdit, (editable) => {
+  if (!editable) {
+    cancelSorting()
+    finishNavigation(false)
+  }
+})
+function onBeforeUnload(event: BeforeUnloadEvent) {
+  if (orderChanged.value || savingOrder.value) {
+    event.preventDefault()
+    event.returnValue = ''
+  }
+}
+onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', onBeforeUnload)
+  finishNavigation(false)
+})
 
 watch(playlist, (val) => {
   if (val)
@@ -136,9 +262,6 @@ function addAllToPlaylist() {
   }
   toast.success(addCount > 0 ? `已添加 ${addCount} 首至播放列表` : '所有歌曲已在播放列表中')
 }
-
-const showMultiSelect = ref(false)
-const selectedIds = ref<Set<number>>(new Set())
 
 function toggleMultiSelect() {
   showMultiSelect.value = !showMultiSelect.value
@@ -213,6 +336,9 @@ async function removeSelected() {
 const showEditDialog = ref(false)
 
 async function onDragEnd() {
+  sortDragging.value = false
+  if (sorting.value)
+    return
   if (!playlist.value)
     return
   savingOrder.value = true
@@ -384,7 +510,7 @@ async function deletePlaylist() {
             {{ playlist.description }}
           </OverlayScrollbarsComponent>
 
-          <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
+          <div v-if="!sorting" class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
             <PlaylistActions
               :is-owner="canManagePlaylist"
               :multi-select-active="showMultiSelect"
@@ -403,14 +529,17 @@ async function deletePlaylist() {
         </div>
       </div>
 
-      <div class="flex gap-2 flex-wrap md:hidden mt-4">
+      <div v-if="!sorting" class="flex gap-2 flex-wrap md:hidden mt-4">
         <PlaylistActions
           :is-owner="canManagePlaylist"
+          :can-sort="canEdit"
+          :sort-disabled="savingOrder || localSongs.length < 2"
           :multi-select-active="showMultiSelect"
           :playlist-id="playlist.id"
           :show-favorite="!isFavoritesPlaylist"
           :show-comments="playlist.isPublic"
           :comment-count="commentCount"
+          @sort="startSorting"
           @play-all="playAll"
           @add-all="addAllToPlaylist"
           @toggle-multi-select="toggleMultiSelect"
@@ -421,25 +550,31 @@ async function deletePlaylist() {
       </div>
 
       <SegmentSwitch
-        v-if="playlist.isPublic"
+        v-if="playlist.isPublic && !sorting"
         v-model="activeTab"
         :options="[{ key: 'songs', label: '歌曲列表' }, { key: 'comments', label: `评论 ${commentCount}` }]"
         class="mt-4 lg:hidden"
         aria-label="歌单内容"
       />
 
-      <div v-show="activeTab === 'songs' || !playlist.isPublic" class="mt-4 lg:!block">
+      <div v-if="sorting" class="mt-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 p-3 text-sm text-blue-700 dark:text-blue-300" role="status">
+        拖动右侧手柄调整歌曲顺序，完成后点击保存
+      </div>
+
+      <div v-show="sorting || activeTab === 'songs' || !playlist.isPublic" class="mt-4 lg:!block" :class="{ 'pb-24': sorting }">
         <SongList
-          v-model:songs="localSongs"
+          v-model:songs="displayedSongs"
           v-model:selected-ids="selectedIds"
           :playlist-id="playlistId"
-          :selectable="showMultiSelect"
-          :reorderable="canEdit"
+          :selectable="showMultiSelect && !sorting"
+          :reorderable="canEdit && (!isMobile || sorting)"
+          :sorting="sorting"
           :busy="savingOrder"
           empty-text="歌单暂无歌曲"
+          @reorder-start="sortDragging = true"
           @reorder-end="onDragEnd"
         >
-          <template v-if="canEdit" #row-actions="{ song }">
+          <template v-if="canEdit && !sorting" #row-actions="{ song }">
             <AppButton
               icon-only
               size="xs"
@@ -454,11 +589,23 @@ async function deletePlaylist() {
         </SongList>
       </div>
 
-      <div v-if="playlist.isPublic" v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
+      <div v-if="playlist.isPublic && !sorting" v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
         <CommentSection class="max-lg:!mt-4" :post-id="`hoyomix:playlist:${playlist.id}`" />
       </div>
 
       <Teleport to="body">
+        <div v-if="sorting" class="fixed bottom-20 left-4 right-4 md:left-auto md:w-96 z-40 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-[var(--theme-surface)]/95 backdrop-blur-xl shadow-xl p-3">
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ orderChanged ? '顺序未保存' : '调整顺序' }}</span>
+          <div class="flex gap-2 shrink-0">
+            <AppButton variant="outline" :disabled="savingOrder || sortDragging" @click="cancelSorting">
+              取消
+            </AppButton>
+            <AppButton variant="primary" :disabled="!orderChanged || savingOrder || sortDragging" @click="saveSorting">
+              <LucideLoader2 v-if="savingOrder" class="size-4 animate-spin" />
+              {{ savingOrder ? '保存中...' : '保存顺序' }}
+            </AppButton>
+          </div>
+        </div>
         <Transition name="action-bar">
           <div
             v-if="selectedIds.size > 0"
@@ -500,6 +647,26 @@ async function deletePlaylist() {
           </div>
         </Transition>
       </Teleport>
+
+      <AppDialog v-model="showUnsavedOrderDialog" title="歌曲顺序尚未保存">
+        <div class="px-6 py-5 text-sm text-gray-600 dark:text-gray-400">
+          离开前是否保存调整后的歌曲顺序？
+        </div>
+        <template #footer>
+          <div class="px-4 py-3 flex flex-wrap justify-end gap-2">
+            <AppButton variant="outline" :disabled="savingOrder" @click="finishNavigation(false)">
+              继续调整
+            </AppButton>
+            <AppButton variant="danger" :disabled="savingOrder" @click="discardAndLeave">
+              放弃更改
+            </AppButton>
+            <AppButton variant="primary" :disabled="savingOrder" @click="saveAndLeave">
+              <LucideLoader2 v-if="savingOrder" class="size-4 animate-spin" />
+              {{ savingOrder ? '保存中...' : '保存并离开' }}
+            </AppButton>
+          </div>
+        </template>
+      </AppDialog>
 
       <CreatePlaylistDialog
         v-if="playlist"

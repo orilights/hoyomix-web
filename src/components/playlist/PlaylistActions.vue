@@ -3,6 +3,8 @@ import { useMainStore } from '@/store/main'
 
 interface Props {
   isOwner?: boolean
+  canSort?: boolean
+  sortDisabled?: boolean
   multiSelectActive?: boolean
   playlistId?: string
   showFavorite?: boolean
@@ -21,6 +23,7 @@ const emit = defineEmits<{
   playAll: []
   addAll: []
   toggleMultiSelect: []
+  sort: []
   edit: []
   delete: []
   showComments: []
@@ -72,6 +75,11 @@ const favoriteTooltip = computed(() =>
       多选
     </AppButton>
   </Tooltip>
+
+  <AppButton v-if="canSort" class="md:hidden" :disabled="sortDisabled" @click="emit('sort')">
+    <LucideGripVertical class="size-4" />
+    调整顺序
+  </AppButton>
 
   <template v-if="isOwner">
     <Tooltip placement="top" theme="light" content="编辑歌单信息">

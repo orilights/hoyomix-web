@@ -25,9 +25,16 @@ import {
   getRandomPlaylistApi,
   getSearchApi,
   getSongInfoApi,
+  updatePlaylistSongsApi,
 } from '@/api/music'
 import { useAuthStore } from '@/store/auth'
 import { NotFoundError } from '@/utils/fetch'
+
+export function useSavePlaylistOrderQuery() {
+  return useMutation({
+    mutationFn: ({ id, songIds }: { id: string, songIds: number[] }) => updatePlaylistSongsApi(id, songIds),
+  })
+}
 
 export function useRandomPlaylistQuery() {
   return useMutation({
