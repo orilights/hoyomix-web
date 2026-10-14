@@ -1,12 +1,13 @@
 <script setup lang="ts">
 const props = withDefaults(defineProps<{ src: string, alt: string, enabled?: boolean }>(), { enabled: true })
 const emit = defineEmits<{ error: [event: Event] }>()
-const image = useTemplateRef<HTMLImageElement>('image')
+const image = useTemplateRef<HTMLElement>('image')
 const requestedSrc = ref<string>()
 const imageSrc = computed(() => requestedSrc.value === props.src ? requestedSrc.value : undefined)
 let observer: IntersectionObserver | undefined
 
-// 不提前设置 src：原生 loading="lazy" 仍可能预取视口附近的图片。
+// 请求前观察占位元素：WebKit 会对没有 src 的 img 触发 error，误报加载失败。
+// 不提前创建图片：原生 loading="lazy" 仍可能预取视口附近的图片。
 watch([image, () => props.src, () => props.enabled], ([element, src, enabled]) => {
   observer?.disconnect()
   observer = undefined
@@ -30,5 +31,6 @@ onBeforeUnmount(() => observer?.disconnect())
 </script>
 
 <template>
-  <img ref="image" :src="imageSrc" :alt="alt" loading="eager" decoding="async" referrerpolicy="no-referrer" @error="emit('error', $event)">
+  <img v-if="imageSrc" :key="imageSrc" ref="image" :src="imageSrc" :alt="alt" loading="eager" decoding="async" referrerpolicy="no-referrer" @error="emit('error', $event)">
+  <span v-else ref="image" aria-hidden="true" class="inline-block" />
 </template>
