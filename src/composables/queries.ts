@@ -5,7 +5,7 @@ import type { SearchType } from '@/types/search'
 import { useMutation, useQuery } from '@tanstack/vue-query'
 import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
 import { getEmoticonsApi } from '@/api/emoticon'
-import { getChangelog } from '@/api/misc'
+import { getChangelog, getNotice } from '@/api/misc'
 import {
   fetchAppConfig,
   getAlbumInfoApi,
@@ -148,6 +148,14 @@ export function useChangelogQuery() {
   return useQuery({
     queryKey: ['changelog'],
     queryFn: () => getChangelog(),
+    staleTime: 1000 * 60 * 60,
+  })
+}
+
+export function useNoticeQuery() {
+  return useQuery({
+    queryKey: ['notice'],
+    queryFn: getNotice,
     staleTime: 1000 * 60 * 60,
   })
 }

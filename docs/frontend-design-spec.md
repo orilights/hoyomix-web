@@ -85,6 +85,16 @@ History 模式，全部 `() => import(...)` 懒加载；`scrollBehavior` 返回�
 
 ## 7. 数据层
 
+### 公告
+
+首页公告读取配置服务 `hoyomix.notice` 的有序 JSON 数组字符串，每个元素包含 `title`、`summary`、`publishedAt`、`updatedAt`、`important`、`content`，正文为 Markdown。通过 `api/misc.ts` → `useNoticeQuery` 读取，staleTime 为 1 小时。只接受数组，不兼容旧单篇对象；空配置/空数组隐藏，空正文条目不展示，格式错误可重试。顺序由管理端保存的数组决定，不再按日期重排。
+
+多条公告时首页每 5 秒轮播，并提供上一条/下一条按钮；悬停、焦点位于卡片内、公告弹窗打开或页面不可见时暂停。单条不轮播。点击当前卡片打开该篇全文。`NoticeDialog` 使用 lg 尺寸，多条时左侧为可滚动公告侧栏，右侧独立滚动正文，切换后正文回到顶部。
+
+列表中存在任意未读重要公告时自动打开弹窗，默认选中第一篇未读重要公告；打开弹窗即将当前全部公告标记为已读，手动打开也相同。已读内容指纹由 notice store 持久化，排序、JSON 格式及未知字段变化不影响指纹；任一已知元数据或正文变更视为新版本。弹窗已打开时更新列表不会重复打开，但会同步内容并将最新列表标记已读。Markdown 禁止源 HTML 并过滤危险链接。
+
+### 查询约定
+
 - 全局 `queryClient`：`staleTime 5min`、`retry 1`、`refetchOnWindowFocus: false`。
 - 各查询定制 `staleTime`（专辑 10min、歌词 30min、公告 1h 等），用 `computed` queryKey 与 `enabled` 控制。
 - 新接口流程：`api/` 对应业务文件加函数 → `queries.ts` 加 hook → 组件调用 hook。
@@ -162,7 +172,7 @@ Toaster（全局提示）
 | --- | --- |
 | `Dropdown` | 下拉菜单：`alignment`/`position`（up/down/**auto** 翻转）/`dark`；点击外部关闭、`disabled` 项 |
 | `Tooltip` | `placement`/`align`/`theme`；支持 touch 切换 |
-| `AppDialog` | 模态（`Teleport to body`）：`size` sm/md，遮罩与 `Esc` 关闭，title/footer 插槽 |
+| `AppDialog` | 模态（`Teleport to body`）：`size` sm/md/lg，最大宽度分别为 384/448/512px，默认 sm；公告使用 lg。遮罩与 `Esc` 关闭，title/footer 插槽 |
 | `SegmentSwitch` | 单选分段切换；底色 `bg-black/5 dark:bg-white/5`，保留暗色描边及激活项 `bg-blue-500/90`；`block` 铺满父容器并等分选项，默认按内容宽度显示 |
 | `LazyImg` / `CoverImage` | 懒加载淡入图 / 方形封面（`pt-[100%]`） |
 | `PageHeader` | 标题 + 副标题 + `extra` 插槽 |
@@ -200,7 +210,7 @@ Toaster（全局提示）
 - **图片缓存**：入口注册 `public/image-cache-sw.js`，缓存 `VITE_RESOURCE_BASE` 下 `/cover/ncm/`、`/cover/qq/` 的专辑封面（所有现有尺寸），以及 `https://icdn.amarea.cn/gi-assets/img/` 目录下请求过的所有文件（含子目录，不限制扩展名或 Content-Type）。两类资源共用 Cache Storage，数据总上限为 100 × 1024 × 1024 字节，超过时按写入顺序淘汰旧资源；不缓存失败响应、空文件或单个超过上限的文件。跨域请求使用 CORS 读取实际数据大小，无法读取时回退到原始请求并跳过缓存。
 - **缓存管理**：`utils/image-cache.ts` 通过 MessageChannel 与 Service Worker 通信；`composables/useImageCache.ts` 在每次打开设置页时读取一次用量，不定时刷新。设置的「缓存」区块展示图片数据大小、数量，支持手动刷新和清理；清理使此前未完成的下载失效，避免清理后旧请求重新写入。仅清理本站图片缓存，浏览器存储元数据及 HTTP 缓存不计入用量。不支持 Service Worker 的环境显示提示；生产环境需 HTTPS，开发用 localhost。
 
-- **Vite**：别名 `@ → src`；代码分割 `vendor`（echarts 外 node_modules）+ `pages`（views 除 Statistics）。
+- **Vite**：别名 `@ → src`；代码分割为 `echarts-core`（echarts/zrender/tslib，优先级 50）、`core`（Vue/router/Pinia，优先级 30）、`vendor`（其余非图表依赖，优先级 20）和 `pages`（views，优先级 10）。统计页保留动态导入图表入口，图表引擎与 Vue 适配层按需加载。引擎不依赖通用 vendor，业务依赖更新不会连带改变其 hash；图表引用范围、图表依赖及构建工具版本仍会影响产物。
 - **插件**：`vue()`、`UnoCSS()`（`uno.config.ts` 配置 `presetWind3`，通过 `uno-theme.ts` 和兼容规则保留原有视觉取值）、`AutoImport`（vue/vue-router/pinia）、`Components`（自动解析组件 + 透传 `Lucide*`/`OverlayScrollbarsComponent`）、`buildInfo()`（注入 `__BUILD_TIME__`）、`injectHead()`（构建时注入 base64 到 `<head>`）。
 - **约定**：`ref`/`computed`/`watch`/`useRoute`/`storeToRefs` 等由 auto-import 自动引入，无需手写 import；`auto-imports.d.ts`/`components.d.ts` 勿手改。
 - **脚本**：`dev`/`build`（`vue-tsc -b && vite build`）/`preview`/`lint`/`lintf`；包管理器 **pnpm**。

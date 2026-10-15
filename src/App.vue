@@ -152,6 +152,7 @@ onUnmounted(() => {
   <PlayerBar />
   <PlayerFullscreen />
   <FloatingActions />
+  <NoticeDialog />
 </template>
 
 <style scoped>

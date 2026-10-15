@@ -19,6 +19,7 @@
     "@vueuse/core": "^14.4.0",
     "better-auth": "^1.6.26",
     "echarts": "^6.1.0",
+    "markdown-it": "^15.0.2",
     "overlayscrollbars": "^2.16.0",
     "overlayscrollbars-vue": "^0.5.10",
     "pinia": "^4.0.2",
