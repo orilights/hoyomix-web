@@ -72,7 +72,6 @@ onMounted(() => {
 
 <template>
   <div class="overflow-hidden">
-    <NoticeCard />
     <div>
       <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="font-bold text-2xl">

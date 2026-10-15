@@ -133,6 +133,7 @@ declare module 'vue' {
     MarkdownContent: typeof import('./components/common/MarkdownContent.vue')['default']
     MusicActions: typeof import('./components/MusicActions.vue')['default']
     MusicLyrics: typeof import('./components/MusicLyrics.vue')['default']
+    NoticeButton: typeof import('./components/common/NoticeButton.vue')['default']
     NoticeCard: typeof import('./components/common/NoticeCard.vue')['default']
     NoticeDialog: typeof import('./components/common/NoticeDialog.vue')['default']
     NotificationBell: typeof import('./components/user/NotificationBell.vue')['default']
