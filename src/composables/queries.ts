@@ -1,4 +1,5 @@
 import type { PlaylistsQueryParams, RandomPlaylistParams } from '@/api/music'
+import type { ContributionRankingPeriod } from '@/types/core'
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
 import { useMutation, useQuery } from '@tanstack/vue-query'
@@ -12,6 +13,7 @@ import {
   getAlbumsByTagApi,
   getArtistInfoApi,
   getArtistNameByAliasApi,
+  getContributionRankingApi,
   getContributionsApi,
   getCreditInfoApi,
   getEditRequestApi,
@@ -248,5 +250,13 @@ export function useContributionsQuery(id: Ref<number | null>, type: Ref<'album' 
     queryKey: computed(() => ['contributions', type.value, id.value]),
     queryFn: () => getContributionsApi(id.value!, type.value),
     enabled: computed(() => !!id.value),
+  })
+}
+
+export function useContributionRankingQuery(period: Ref<ContributionRankingPeriod>) {
+  return useQuery({
+    queryKey: computed(() => ['contributionRanking', period.value]),
+    queryFn: () => getContributionRankingApi(period.value),
+    staleTime: 60_000,
   })
 }

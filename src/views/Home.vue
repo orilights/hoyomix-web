@@ -173,6 +173,23 @@ onMounted(() => {
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
       </RouterLink>
       <RouterLink
+        :to="{ name: 'ContributionRanking' }"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
+      >
+        <div class="px-2 md:px-3">
+          <LucideTrophy class="size-5 md:size-6 text-gray-900 dark:text-gray-100" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
+            贡献榜
+          </div>
+          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            数据库贡献榜单
+          </div>
+        </div>
+        <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
+      </RouterLink>
+      <RouterLink
         :to="{ name: 'Feedback' }"
         class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
       >

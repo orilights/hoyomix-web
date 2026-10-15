@@ -1,5 +1,6 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
 import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
+
 import type { SearchResponse } from '@/types/search'
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
@@ -239,4 +240,8 @@ export function getRankingApi(period: RankingPeriod, date?: string) {
 
 export function getContributionsApi(id: number, type: 'album' | 'song') {
   return fetchJson<ContributionInfo>(`${apiBase}/${type === 'album' ? 'albums' : 'songs'}/${id}/contributions`)
+}
+
+export function getContributionRankingApi(period: ContributionRankingPeriod) {
+  return fetchJson<ContributionRankingResponse>(`${apiBase}/contributions/ranking?${new URLSearchParams({ period })}`)
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
-import { Disc3, House, ListMusic, Shuffle, TrendingUp } from '@lucide/vue'
+import { Disc3, House, ListMusic, Shuffle, TrendingUp, Trophy } from '@lucide/vue'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
@@ -23,6 +23,7 @@ const navigation = [
   { name: 'Playlists', label: '歌单广场', icon: ListMusic },
   { name: 'Random', label: '随机播放', icon: Shuffle },
   { name: 'Ranking', label: '热榜', icon: TrendingUp },
+  { name: 'ContributionRanking', label: '贡献榜', icon: Trophy },
 ]
 
 const likedSongs = computed(() => mine.data.value?.find(item => item.type === 'favorites'))

@@ -123,6 +123,7 @@ declare module 'vue' {
     LucideTrash2: typeof import('@lucide/vue')['Trash2']
     LucideTrendingUp: typeof import('@lucide/vue')['TrendingUp']
     LucideTriangleAlert: typeof import('@lucide/vue')['TriangleAlert']
+    LucideTrophy: typeof import('@lucide/vue')['Trophy']
     LucideUser: typeof import('@lucide/vue')['User']
     LucideVideo: typeof import('@lucide/vue')['Video']
     LucideVolume2: typeof import('@lucide/vue')['Volume2']

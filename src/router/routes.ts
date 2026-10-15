@@ -103,6 +103,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/Ranking.vue'),
   },
   {
+    path: '/contribution-ranking',
+    name: 'ContributionRanking',
+    meta: { showScrollToTop: true },
+    component: () => import('@/views/ContributionRanking.vue'),
+  },
+  {
     path: '/email-verified',
     name: 'EmailVerified',
     component: () => import('@/views/EmailVerified.vue'),

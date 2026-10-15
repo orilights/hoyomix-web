@@ -1,3 +1,12 @@
+export type ContributionRankingPeriod = '30d' | '365d' | 'all'
+
+export interface ContributionRankingResponse {
+  period: ContributionRankingPeriod
+  startAt: string | null
+  endAt: string
+  items: { rank: number, userId: string, username: string, count: number }[]
+}
+
 export interface ContributionInfo {
   total: number
   items: { id: number, username: string, summary: string, detail: string, createdAt: string }[]
