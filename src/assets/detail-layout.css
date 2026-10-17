@@ -1,0 +1,132 @@
+/* 专辑、歌曲和歌单详情页共用，断点均以页面内容宽度为准。 */
+.detail-page {
+  container-type: inline-size;
+}
+
+.detail-page .detail-header {
+  --detail-cover-size: 80px;
+  display: grid;
+  grid-template-columns: var(--detail-cover-size) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.detail-page .detail-cover {
+  width: var(--detail-cover-size);
+  height: var(--detail-cover-size);
+}
+
+.detail-page .detail-title {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.detail-page .detail-meta {
+  column-gap: 0.5rem;
+  row-gap: 0.25rem;
+}
+
+.detail-page .detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.detail-page .detail-tabs,
+.detail-page .detail-content {
+  margin-top: 16px;
+}
+
+.detail-page .detail-content,
+.detail-page .detail-sidebar-stack {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.detail-page .detail-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px 16px;
+}
+
+.detail-page .detail-description-collapsed {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow-wrap: anywhere;
+}
+
+.detail-page .detail-comment-action {
+  display: none;
+}
+
+@container (min-width: 600px) {
+  .detail-page .detail-header {
+    --detail-cover-size: 144px;
+    grid-template-rows: 1fr auto;
+    column-gap: 24px;
+    row-gap: 12px;
+  }
+
+  .detail-page .detail-cover {
+    grid-row: span 2;
+    align-self: end;
+  }
+
+  .detail-page .detail-actions {
+    grid-column: 2;
+    align-self: end;
+  }
+
+  .detail-page .detail-title {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  .detail-page .detail-meta {
+    column-gap: 1rem;
+    row-gap: 0.5rem;
+  }
+}
+
+@container (min-width: 900px) {
+  .detail-page .detail-header {
+    --detail-cover-size: 200px;
+  }
+
+  .detail-page .detail-title {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .detail-page .detail-tabs {
+    display: none;
+  }
+
+  .detail-page .detail-content {
+    grid-template-columns: minmax(0, 7fr) minmax(260px, 3fr);
+  }
+
+  .detail-page .detail-content-single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detail-page .detail-comments {
+    margin-top: 16px;
+  }
+
+  .detail-page .detail-desktop-visible {
+    display: block !important;
+  }
+
+  .detail-page .detail-sidebar-stack {
+    display: grid !important;
+  }
+
+  .detail-page .detail-comment-action {
+    display: block;
+  }
+}

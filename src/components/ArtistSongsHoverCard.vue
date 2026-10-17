@@ -7,9 +7,11 @@ import { useMainStore } from '@/store/main'
 const props = defineProps<{
   artistName: string
   role: string
+  roles?: string[]
   contextId: number | string
   contextType: 'album' | 'product'
   songCount: number
+  block?: boolean
 }>()
 
 const route = useRoute()
@@ -23,7 +25,7 @@ const { data: artist, isLoading, isError, refetch } = useArtistInfoQuery(queryNa
 
 const songs = computed(() => {
   const filtered = (artist.value?.songs ?? []).filter(song =>
-    song.roles.includes(props.role)
+    (props.roles ?? [props.role]).some(role => song.roles.includes(role))
     && (props.contextType === 'album'
       ? song.albumId === Number(props.contextId)
       : song.productName === props.contextId),
@@ -142,7 +144,7 @@ watch(isOpen, (open) => {
   }
 })
 
-watch(() => [route.fullPath, props.artistName, props.role, props.contextId, props.contextType], closeCard)
+watch(() => [route.fullPath, props.artistName, props.role, props.roles, props.contextId, props.contextType], closeCard)
 
 onBeforeUnmount(() => {
   cancelHover()
@@ -153,10 +155,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <span ref="trigger" class="inline-flex">
+  <span ref="trigger" class="inline-flex" :class="{ 'w-full': block }">
     <RouterLink v-slot="{ href, navigate }" :to="{ name: 'ArtistInfo', params: { name: artistName } }" custom>
       <a
         :href="href"
+        :class="block ? 'flex items-center justify-between gap-2 w-full min-w-0 rounded-xl bg-black/5 dark:bg-white/5 px-3 py-2 hover:bg-black/10 hover:dark:bg-white/10 transition-colors' : undefined"
         :aria-controls="cardId"
         :aria-expanded="isOpen"
         aria-haspopup="dialog"
@@ -168,8 +171,8 @@ onBeforeUnmount(() => {
         @keydown.down.stop.prevent="focusCard"
         @click="onTriggerClick($event, navigate)"
       >
-        {{ artistName }}
-        <span class="text-xs text-gray-600 dark:text-gray-400">{{ songCount }}&nbsp;</span>
+        <span class="min-w-0">{{ artistName }}</span>
+        <span v-if="songCount != null" class="mx-1 shrink-0 text-xs text-gray-600 dark:text-gray-400 tabular-nums">{{ songCount }}</span>
       </a>
     </RouterLink>
   </span>

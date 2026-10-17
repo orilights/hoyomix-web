@@ -125,7 +125,7 @@ function clearAll() {
 
                 <LazyImg
                   class="size-10 rounded"
-                  :src="getCoverUrl(element.albumPlatforms, '128px')"
+                  :src="getCoverUrl(element.albumPlatforms, '96px')"
                 />
 
                 <div

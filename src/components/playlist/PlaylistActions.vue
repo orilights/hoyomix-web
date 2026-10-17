@@ -59,7 +59,7 @@ const favoriteTooltip = computed(() =>
     />
   </Tooltip>
 
-  <div v-if="showComments" class="hidden lg:block">
+  <div v-if="showComments" class="detail-comment-action">
     <AppButton @click="emit('showComments')">
       <LucideMessageCircle class="size-4" />
       评论 {{ commentCount }}
@@ -76,7 +76,7 @@ const favoriteTooltip = computed(() =>
     </AppButton>
   </Tooltip>
 
-  <AppButton v-if="canSort" class="md:hidden" :disabled="sortDisabled" @click="emit('sort')">
+  <AppButton v-if="canSort" :disabled="sortDisabled" @click="emit('sort')">
     <LucideGripVertical class="size-4" />
     调整顺序
   </AppButton>

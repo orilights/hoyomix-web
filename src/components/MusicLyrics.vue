@@ -17,6 +17,12 @@ const { lyricsSource } = storeToRefs(player)
 
 const providerRef = toRef(props, 'lyricProvider')
 const songIdRef = toRef(props, 'lyricSongId')
+const expanded = ref(false)
+const lyricsId = useId()
+
+watch([providerRef, songIdRef], () => {
+  expanded.value = false
+})
 
 const { data: lyricsData, isLoading: isLyricsLoading, isError: isLyricsError, error: lyricsError } = useLyricsQuery(providerRef, songIdRef)
 
@@ -25,6 +31,7 @@ const lyricList = computed(() => {
     return []
   return mergeLyrics(lyricsData.value.content, lyricsData.value.translation ?? '')
 })
+const visibleLyrics = computed(() => expanded.value ? lyricList.value : lyricList.value.slice(0, 5))
 
 watch(isLyricsError, (val) => {
   if (!val || lyricsError.value instanceof NotFoundError)
@@ -66,13 +73,25 @@ watch(isLyricsError, (val) => {
         加载中...
       </div>
       <div v-else>
-        <div v-if="lyricList.length === 0" class="text-gray-400 text-sm text-center py-4">
-          暂无数据
+        <div :id="lyricsId">
+          <div v-if="lyricList.length === 0" class="text-gray-400 text-sm text-center py-4">
+            暂无数据
+          </div>
+          <div v-for="line, index in visibleLyrics" v-else :key="index" class="my-1">
+            <span>{{ line.text }}</span>
+            <span v-if="line.translation" class="text-gray-500 dark:text-gray-400 ml-2">/ {{ line.translation }}</span>
+          </div>
         </div>
-        <div v-for="line, index in lyricList" v-else :key="index" class="my-1">
-          <span>{{ line.text }}</span>
-          <span v-if="line.translation" class="text-gray-500 dark:text-gray-400 ml-2">/ {{ line.translation }}</span>
-        </div>
+        <button
+          v-if="lyricList.length > 5"
+          type="button"
+          class="mt-2 text-sm text-blue-500 hover:text-blue-600 cursor-pointer"
+          :aria-expanded="expanded"
+          :aria-controls="lyricsId"
+          @click="expanded = !expanded"
+        >
+          {{ expanded ? '收起歌词' : '展开歌词' }}
+        </button>
       </div>
     </AsyncFade>
   </div>

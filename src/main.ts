@@ -14,6 +14,7 @@ import 'vue-sonner/style.css'
 import '@unocss/reset/tailwind-v4.css'
 import 'virtual:uno.css'
 import '@/assets/style.css'
+import '@/assets/detail-layout.css'
 
 OverlayScrollbars.plugin(ClickScrollPlugin)
 

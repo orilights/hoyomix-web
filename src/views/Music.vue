@@ -39,6 +39,7 @@ const albumId = computed(() => {
 
 const { data: albumInfo, isLoading, isError: isAlbumError, error: albumError } = useAlbumInfoQuery(albumId)
 const { data: songInfo, isLoading: isSongLoading, isError: isSongError, error: songError } = useSongInfoQuery(musicId)
+const showDiscName = computed(() => new Set(albumInfo.value?.songs.map(song => song.disc)).size > 1)
 
 const musicInfo = computed<SongListItemInfo | null>(() => {
   if (isPlaylistContext.value) {
@@ -195,10 +196,10 @@ watch([musicInfo, albumInfo], ([song, album]) => {
   }
 }, { immediate: true })
 
-const activeTab = ref<'lyrics' | 'artists' | 'contributions' | 'comments'>('lyrics')
+const activeTab = ref<'info' | 'artists' | 'contributions' | 'comments'>('info')
 
 watch(musicId, () => {
-  activeTab.value = 'lyrics'
+  activeTab.value = 'info'
 })
 
 const commentPostId = computed(() => musicInfo.value ? `hoyomix:song:${musicInfo.value.id}` : null)
@@ -213,7 +214,9 @@ const { data: commentThreads } = useCommentThreadsQuery(commentPostId, commentUs
 const commentCount = computed(() => commentThreads.value?.commentCount ?? commentThreads.value?.pagination.total ?? 0)
 const commentSection = ref<HTMLElement | null>(null)
 
-function scrollToComments() {
+async function scrollToComments() {
+  activeTab.value = 'comments'
+  await nextTick()
   commentSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
@@ -293,168 +296,153 @@ function refreshSongInfo() {
       加载失败，请刷新重试
     </div>
 
-    <div v-else-if="albumInfo && musicInfo" class="overflow-hidden">
-      <div class="flex md:h-[200px] lg:h-[300px]" :class="{ 'md:min-h-[260px]': !!songInfo?.descriptionFull }">
-        <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
-          <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
+    <div v-else-if="albumInfo && musicInfo" class="music-page detail-page">
+      <div class="detail-header">
+        <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
+          <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px')" />
         </div>
-
-        <div class="flex flex-col ml-4 md:ml-8 overflow-hidden min-w-0 flex-1">
-          <div class="truncate shrink-0 md:text-xl lg:text-3xl font-bold">
+        <div class="min-w-0">
+          <div class="detail-title font-bold break-words" :title="musicInfo.name">
             {{ musicInfo.name }}
           </div>
-
-          <div v-if="musicInfo.description" class="truncate shrink-0 text-sm mt-1 md:text-base lg:text-lg text-gray-500 dark:text-gray-400">
+          <p v-if="musicInfo.description" class="mt-1 text-sm text-gray-500 dark:text-gray-400 break-words">
             {{ musicInfo.description }}
-          </div>
-
-          <div class="mt-1 md:mt-2 flex items-center gap-x-2 text-nowrap text-sm md:text-base shrink-0">
-            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">所属</span>
+          </p>
+          <div class="detail-meta mt-1 flex items-center flex-wrap text-sm">
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
-              class="flex items-center hover:bg-gray-500/20 p-1 rounded-lg transition-colors shrink-0"
-              :title="albumInfo.productName"
+              class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
             >
-              <LazyImg class="size-5 md:size-8 rounded-full" :src="getProductIconUrl(albumInfo.productName, '48px')" />
+              <LazyImg class="size-5 rounded-full" :src="getProductIconUrl(albumInfo.productName, '48px')" />
+              <span class="ml-2">{{ albumInfo.productName }}</span>
             </RouterLink>
-            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">收录于</span>
-            <RouterLink
-              :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }"
-              class="hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors truncate"
-            >
-              {{ albumInfo.name }}
-            </RouterLink>
-          </div>
-
-          <div class="mt-1 md:mt-2 flex items-center flex-wrap text-sm md:text-base shrink-0">
-            <span class="text-gray-500 dark:text-gray-400">时长</span>
-            <span class="ml-4">
+            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" aria-label="时长">
+              <LucideClock class="size-4 shrink-0" aria-hidden="true" />
               {{ formatDuration(musicInfo.duration) }}
             </span>
           </div>
-
-          <OverlayScrollbarsComponent
-            v-if="songInfo?.descriptionFull"
-            class="hidden md:block mt-1 md:mt-2 flex-1 min-h-0 text-xs md:text-sm lg:text-base whitespace-pre-wrap break-words"
-            :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
-            defer
-          >
-            {{ songInfo.descriptionFull }}
-          </OverlayScrollbarsComponent>
-
-          <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
-            <MusicActions
-              :music-info="musicInfo"
-              :is-playlist-context="isPlaylistContext"
-              :prev-disabled="!hasPrev"
-              :next-disabled="!hasNext"
-              :can-edit-region="productCode === 'genshin'"
-              :has-pending-edit-request="!!pendingRequest"
-              :comment-count="commentCount"
-              @play="handlePlay"
-              @prev="goPrevMusic"
-              @next="goNextMusic"
-              @add-to-playlist="addSongToUserPlaylist"
-              @my-requests="openMyRequests"
-              @edit-info="openEditInfo"
-              @edit-region="openEditRegion"
-              @edit-video="openEditVideo"
-              @show-comments="scrollToComments"
-            />
-          </div>
+        </div>
+        <div class="detail-actions">
+          <MusicActions
+            :music-info="musicInfo"
+            :is-playlist-context="isPlaylistContext"
+            :prev-disabled="!hasPrev"
+            :next-disabled="!hasNext"
+            :can-edit-region="productCode === 'genshin'"
+            :has-pending-edit-request="!!pendingRequest"
+            :comment-count="commentCount"
+            @play="handlePlay"
+            @prev="goPrevMusic"
+            @next="goNextMusic"
+            @add-to-playlist="addSongToUserPlaylist"
+            @my-requests="openMyRequests"
+            @edit-info="openEditInfo"
+            @edit-region="openEditRegion"
+            @edit-video="openEditVideo"
+            @show-comments="scrollToComments"
+          />
         </div>
       </div>
 
-      <OverlayScrollbarsComponent
-        v-if="songInfo?.descriptionFull"
-        class="md:hidden mt-4 max-h-[120px] text-xs whitespace-pre-wrap break-words"
-        :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
-        defer
-      >
-        {{ songInfo.descriptionFull }}
-      </OverlayScrollbarsComponent>
-
-      <div class="flex gap-2 flex-wrap md:hidden mt-4">
-        <MusicActions
-          :music-info="musicInfo"
-          :is-playlist-context="isPlaylistContext"
-          :prev-disabled="!hasPrev"
-          :next-disabled="!hasNext"
-          :can-edit-region="productCode === 'genshin'"
-          :has-pending-edit-request="!!pendingRequest"
-          :comment-count="commentCount"
-          @play="handlePlay"
-          @prev="goPrevMusic"
-          @next="goNextMusic"
-          @add-to-playlist="addSongToUserPlaylist"
-          @my-requests="openMyRequests"
-          @edit-info="openEditInfo"
-          @edit-region="openEditRegion"
-          @edit-video="openEditVideo"
-          @show-comments="scrollToComments"
+      <div class="detail-tabs">
+        <SegmentSwitch
+          v-model="activeTab"
+          :options="[{ key: 'info', label: '资料' }, { key: 'artists', label: '制作人员' }, { key: 'contributions', label: '贡献信息' }, { key: 'comments', label: `评论 ${commentCount}` }]"
+          block
+          aria-label="歌曲内容"
         />
       </div>
 
-      <div v-if="isSongLoading || isSongError || songInfo?.tags.length || songInfo?.maps?.length" class="mt-4 lg:hidden">
-        <AsyncFade>
-          <div v-if="isSongLoading" class="flex items-center justify-center py-2 text-gray-400">
-            <LucideLoader2 class="size-6 animate-spin mr-2" />
-            加载中...
-          </div>
-          <div v-else-if="isSongError" class="flex items-center justify-center py-2 text-red-400">
-            加载失败，请刷新重试
-          </div>
-          <TagList v-else-if="songInfo?.tags.length || songInfo?.maps?.length" :tags="songInfo.tags" :maps="songInfo.maps" />
-        </AsyncFade>
-      </div>
+      <div class="detail-content">
+        <div v-show="activeTab === 'info' || activeTab === 'comments'" class="detail-desktop-visible min-w-0">
+          <div v-show="activeTab === 'info'" class="detail-desktop-visible">
+            <section>
+              <dl class="detail-facts text-sm p-4 bg-black/5 dark:bg-white/5 rounded-xl">
+                <template v-if="songInfo?.descriptionFull">
+                  <dt class="text-gray-500 dark:text-gray-400">
+                    简介
+                  </dt>
+                  <dd class="mb-4 text-sm">
+                    <p
+                      id="music-description-content"
+                      class="whitespace-pre-wrap break-words"
+                    >
+                      {{ songInfo.descriptionFull }}
+                    </p>
+                  </dd>
+                </template>
 
-      <SegmentSwitch
-        v-model="activeTab"
-        :options="[{ key: 'lyrics', label: '歌词' }, { key: 'artists', label: '制作人员' }, { key: 'contributions', label: '贡献信息' }, { key: 'comments', label: `评论 ${commentCount}` }]"
-        class="mt-4 lg:hidden"
-        aria-label="歌曲内容"
-      />
+                <dt class="text-gray-500 dark:text-gray-400">
+                  所属专辑
+                </dt>
+                <dd class="min-w-0 break-words">
+                  <RouterLink :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }" class="text-blue-500 hover:text-blue-600">
+                    {{ albumInfo.name }}
+                  </RouterLink>
+                </dd>
+                <template v-if="showDiscName && musicInfo.disc">
+                  <dt class="text-gray-500 dark:text-gray-400">
+                    分碟
+                  </dt>
+                  <dd class="min-w-0 break-words">
+                    {{ musicInfo.disc }}
+                  </dd>
+                </template>
+                <template v-if="musicInfo.track">
+                  <dt class="text-gray-500 dark:text-gray-400">
+                    序号
+                  </dt>
+                  <dd>{{ musicInfo.track }}</dd>
+                </template>
+                <template v-if="isPlaylistContext && playlistDetail">
+                  <dt class="text-gray-500 dark:text-gray-400">
+                    来自歌单
+                  </dt>
+                  <dd class="min-w-0 break-words">
+                    <RouterLink :to="{ name: 'PlaylistDetail', params: { id: playlistDetail.id } }" class="text-blue-500 hover:text-blue-600">
+                      {{ playlistDetail.name }}
+                    </RouterLink>
+                  </dd>
+                </template>
+              </dl>
 
-      <div v-show="activeTab !== 'comments'" class="flex flex-col lg:!flex lg:flex-row lg:gap-4 mt-4">
-        <div class="w-full lg:w-[400px]">
-          <div v-if="isSongLoading || isSongError || songInfo?.tags.length || songInfo?.maps?.length" class="w-full lg:w-[400px] h-fit lg:mb-4 hidden lg:block">
-            <AsyncFade>
-              <div v-if="isSongLoading" class="flex items-center justify-center py-2 text-gray-400">
-                <LucideLoader2 class="size-6 animate-spin mr-2" />
-                加载中...
+              <div class="mt-4">
+                <AsyncFade>
+                  <div v-if="isSongLoading" class="flex items-center gap-2 py-2 text-gray-400">
+                    <LucideLoader2 class="size-4 animate-spin" />
+                    加载中...
+                  </div>
+                  <p v-else-if="isSongError" class="py-2 text-sm text-red-400">
+                    加载失败，请刷新重试
+                  </p>
+                  <div v-else>
+                    <TagList v-if="songInfo?.tags.length || songInfo?.maps?.length" :tags="songInfo.tags" :maps="songInfo.maps" />
+                  </div>
+                </AsyncFade>
               </div>
-              <div v-else-if="isSongError" class="flex items-center justify-center py-2 text-red-400">
-                加载失败，请刷新重试
-              </div>
-              <TagList v-else-if="songInfo?.tags.length || songInfo?.maps?.length" :tags="songInfo.tags" :maps="songInfo.maps" />
-            </AsyncFade>
-          </div>
+            </section>
 
-          <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+            <section class="mt-4">
+              <MusicLyrics
+                :lyric-provider="lyricProvider"
+                :lyric-song-id="lyricSongId"
+                :has-ncm-platform="hasNcmPlatform"
+                :has-qq-platform="hasQQPlatform"
+              />
+            </section>
+          </div>
+          <div v-show="activeTab === 'comments'" ref="commentSection" class="detail-comments detail-desktop-visible">
+            <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
+          </div>
+        </div>
+        <div v-show="activeTab === 'artists' || activeTab === 'contributions'" class="detail-sidebar detail-sidebar-stack detail-desktop-visible min-w-0">
+          <div v-show="activeTab === 'artists'" class="detail-desktop-visible">
             <ArtistListByType :id="musicId" type="song" />
           </div>
-
-          <ContributionCard
-            v-show="activeTab === 'contributions'"
-            :id="musicId"
-            type="song"
-            class="lg:mt-4 lg:!block"
-            :class="{ hidden: activeTab !== 'contributions' }"
-          />
+          <div v-show="activeTab === 'contributions'" class="detail-desktop-visible">
+            <ContributionCard :id="musicId" type="song" />
+          </div>
         </div>
-
-        <div v-show="activeTab === 'lyrics'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'lyrics' }">
-          <MusicLyrics
-            :lyric-provider="lyricProvider"
-            :lyric-song-id="lyricSongId"
-            :has-ncm-platform="hasNcmPlatform"
-            :has-qq-platform="hasQQPlatform"
-          />
-        </div>
-      </div>
-
-      <div v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
-        <CommentSection class="max-lg:!mt-4" :post-id="`hoyomix:song:${musicInfo.id}`" />
       </div>
 
       <SelectPlaylistDialog
@@ -495,6 +483,3 @@ function refreshSongInfo() {
     </div>
   </AsyncFade>
 </template>
-
-<style scoped>
-</style>

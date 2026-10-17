@@ -80,12 +80,12 @@ export function scrollPageToTop(behavior: ScrollBehavior = 'auto') {
   scrollElement?.scrollTo({ top: 0, behavior })
 }
 
-export function scrollPageToElement(element: Element, offset = 0): boolean {
+export function scrollPageToElement(element: Element, offset = 0, behavior: ScrollBehavior = 'auto'): boolean {
   if (!scrollElement)
     return false
 
   const top = scrollElement.scrollTop + element.getBoundingClientRect().top - scrollElement.getBoundingClientRect().top - offset
-  scrollElement.scrollTo({ top, behavior: 'auto' })
+  scrollElement.scrollTo({ top, behavior })
   return true
 }
 

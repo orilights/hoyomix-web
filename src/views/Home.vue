@@ -132,7 +132,7 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             歌单
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             发现和管理歌单
           </div>
         </div>
@@ -149,7 +149,7 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             随机播放
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             随机生成播放列表
           </div>
         </div>
@@ -166,7 +166,7 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             热榜
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             看看大家都在听什么
           </div>
         </div>
@@ -183,7 +183,7 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             贡献榜
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             数据库贡献榜单
           </div>
         </div>
@@ -200,7 +200,7 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             反馈
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             问题与建议
           </div>
         </div>
