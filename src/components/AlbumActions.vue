@@ -7,6 +7,7 @@ interface DropdownOption {
 }
 
 interface Props {
+  albumId: number
   ncmOptions?: DropdownOption[]
   qqOptions?: DropdownOption[]
   dropdownPosition?: 'down' | 'up' | 'auto'
@@ -32,6 +33,8 @@ const emit = defineEmits<{
       播放全部
     </AppButton>
   </Tooltip>
+
+  <FavoriteButton type="album" :album-id="albumId" variant="action" />
 
   <AppButton @click="emit('saveAsPlaylist')">
     <LucideListPlus class="size-4" />

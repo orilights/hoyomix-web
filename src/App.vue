@@ -3,7 +3,7 @@ import type { OverlayScrollbars, PartialOptions } from 'overlayscrollbars'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useEventListener, useIntervalFn, useMediaQuery } from '@vueuse/core'
 import { toast, Toaster } from 'vue-sonner'
-import { useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
+import { useAlbumFavoritesQuery, useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
 import { completePageRender, setPageScrollElement, updatePageScroll } from '@/composables/usePageScroll'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -35,6 +35,33 @@ const { data: albumListData, isError: isAlbumListError, error: albumListError } 
 
 const { data: appConfigData } = useAppConfigQuery()
 
+// 登录、退出或切换账号时，统一清理身份相关缓存，再加载当前账号的收藏。
+watch(() => auth.user?.id ?? null, (userId, previousUserId) => {
+  store.clearFavorites()
+  const queryKeys = [
+    ['albumFavorites', previousUserId ?? null],
+    ['commentThreads'],
+    ['commentReplies'],
+    ['editRequests'],
+    ['editRequestDetail'],
+  ]
+  for (const queryKey of queryKeys) {
+    void queryClient.cancelQueries({ queryKey })
+    queryClient.removeQueries({ queryKey })
+  }
+  if (userId) {
+    void store.fetchFavoriteSongs()
+    void store.fetchFavoritePlaylists()
+  }
+}, { immediate: true, flush: 'sync' })
+
+const { data: albumFavoritesData } = useAlbumFavoritesQuery()
+
+watch(albumFavoritesData, (data) => {
+  if (data && data.userId === auth.user?.id && !store.pendingAlbumFavorites.length)
+    store.favoriteAlbumIds = [...data.albumIds]
+}, { immediate: true })
+
 watch(albumListData, (data) => {
   if (data)
     albumList.value = [...data].reverse()
@@ -51,24 +78,6 @@ watch(isAlbumListError, (val) => {
   if (val)
     toast.error(`专辑列表加载失败：${albumListError.value?.message ?? '未知错误'}`)
 })
-
-watch(() => auth.isLoggedIn, (loggedIn) => {
-  if (loggedIn) {
-    store.fetchFavoriteSongs()
-    store.fetchFavoritePlaylists()
-  }
-  else {
-    store.clearFavorites()
-  }
-}, { immediate: true })
-
-// 评论列表包含当前用户的审核状态与投票，切换账号时不能复用旧身份缓存。
-watch(() => auth.user?.id ?? null, () => {
-  queryClient.removeQueries({ queryKey: ['commentThreads'] })
-  queryClient.removeQueries({ queryKey: ['commentReplies'] })
-  queryClient.removeQueries({ queryKey: ['editRequests'] })
-  queryClient.removeQueries({ queryKey: ['editRequestDetail'] })
-}, { immediate: true })
 
 function onKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement

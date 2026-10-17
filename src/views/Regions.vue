@@ -130,8 +130,8 @@ async function playAll() {
               重试
             </AppButton>
           </div>
-          <OverlayScrollbarsComponent v-else class="max-h-[calc(100dvh-300px)]" :options="{ overflow: { x: 'hidden', y: 'scroll' }, scrollbars: { theme: 'os-theme-custom', autoHide: 'leave' } }" defer>
-            <RegionTree v-model:keyword="keyword" v-model:expanded="expanded" :tree="tree" :selected-id="regionId" @select="selectRegion" />
+          <OverlayScrollbarsComponent v-else class="-mr-3 max-h-[calc(100dvh-300px)]" :options="{ overflow: { x: 'hidden', y: 'scroll' }, scrollbars: { theme: 'os-theme-custom', autoHide: 'leave' } }" defer>
+            <RegionTree v-model:keyword="keyword" v-model:expanded="expanded" class="pr-3" :tree="tree" :selected-id="regionId" @select="selectRegion" />
           </OverlayScrollbarsComponent>
         </div>
       </aside>

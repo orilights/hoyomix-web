@@ -37,25 +37,32 @@ function onFocusOut(event: FocusEvent) {
 <template>
   <section v-if="notices.length || isError" class="mb-6" aria-label="公告" @mouseenter="hovered = true" @mouseleave="hovered = false" @focusin="focused = true" @focusout="onFocusOut">
     <div v-if="current" class="bg-black/5 dark:bg-white/5 rounded-xl overflow-hidden">
-      <button
-        type="button"
-        class="w-full flex items-center gap-3 p-4 text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400"
-        @click="noticeStore.open(notices, activeIndex)"
-      >
-        <LucideMegaphone class="size-5 text-blue-500 dark:text-blue-400 shrink-0" />
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 class="font-semibold break-words [overflow-wrap:anywhere] line-clamp-2">
-              {{ current.title }}
-            </h2>
-            <time v-if="current.publishedAt" :datetime="current.publishedAt" class="text-xs text-gray-500 dark:text-gray-400">{{ formatNoticeDate(current.publishedAt) }}</time>
+      <div class="grid grid-cols-1">
+        <button
+          v-for="(notice, index) in notices"
+          :key="`${notice.key}-${index}`"
+          type="button"
+          class="[grid-area:1/1] min-w-0 w-full flex items-center gap-3 p-4 text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-400"
+          :class="{ invisible: index !== activeIndex }"
+          :inert="index !== activeIndex"
+          :aria-hidden="index !== activeIndex"
+          @click="noticeStore.open(notices, index)"
+        >
+          <LucideMegaphone class="size-5 text-blue-500 dark:text-blue-400 shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 class="font-semibold break-words [overflow-wrap:anywhere] line-clamp-2">
+                {{ notice.title }}
+              </h2>
+              <time v-if="notice.publishedAt" :datetime="notice.publishedAt" class="text-xs text-gray-500 dark:text-gray-400">{{ formatNoticeDate(notice.publishedAt) }}</time>
+            </div>
+            <p v-if="notice.summary" class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2 break-words [overflow-wrap:anywhere]">
+              {{ notice.summary }}
+            </p>
           </div>
-          <p v-if="current.summary" class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2 break-words [overflow-wrap:anywhere]">
-            {{ current.summary }}
-          </p>
-        </div>
-        <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
-      </button>
+          <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
+        </button>
+      </div>
       <div v-if="notices.length > 1" class="flex items-center justify-end gap-2 px-4 pb-3">
         <AppButton size="sm" variant="ghost" icon-only aria-label="上一条公告" @click="changeNotice(-1)">
           <LucideChevronLeft class="size-4" />

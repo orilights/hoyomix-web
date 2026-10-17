@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { useAlbumFavoriteMutation, useAlbumFavoritesQuery } from '@/composables/queries'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 
 interface Props {
-  type: 'song' | 'playlist'
+  type: 'song' | 'playlist' | 'album'
+  albumId?: number
   songId?: number
   playlistId?: string
   size?: 'sm' | 'md'
@@ -19,20 +21,42 @@ const props = withDefaults(defineProps<Props>(), {
 const auth = useAuthStore()
 const mainStore = useMainStore()
 const loading = ref(false)
+const albumMutation = props.type === 'album' ? useAlbumFavoriteMutation() : null
+const albumFavorites = props.type === 'album' ? useAlbumFavoritesQuery() : null
+const busy = computed(() => loading.value || (props.type === 'album' && (mainStore.pendingAlbumFavorites.includes(props.albumId!) || (auth.isLoggedIn && albumFavorites?.isPending.value))))
 
 const isFavorited = computed(() => {
+  if (props.type === 'album')
+    return props.albumId != null && mainStore.favoriteAlbumIds.includes(props.albumId)
   if (props.type === 'song')
     return props.songId != null && mainStore.favoriteSongIds.includes(props.songId)
   return props.playlistId != null && mainStore.favoritePlaylistIds.includes(props.playlistId)
 })
 
 async function handleClick() {
+  if (busy.value)
+    return
   if (!auth.requireLogin())
     return
 
   loading.value = true
   try {
-    if (props.type === 'song') {
+    if (props.type === 'album' && albumFavorites && albumMutation) {
+      const albumId = props.albumId
+      const userId = auth.user?.id
+      if (albumId == null)
+        return
+      if (albumFavorites.isError.value) {
+        const result = await albumFavorites.refetch()
+        if (result.isError)
+          throw new Error('收藏状态加载失败，请重试')
+        await nextTick()
+      }
+      if (userId !== auth.user?.id)
+        return
+      await albumMutation.mutateAsync({ albumId, favorite: !mainStore.favoriteAlbumIds.includes(albumId) })
+    }
+    else if (props.type === 'song') {
       if (props.songId == null)
         return
       if (isFavorited.value)
@@ -62,11 +86,12 @@ async function handleClick() {
   <AppButton
     v-if="variant === 'action'"
     class="group/favorite"
-    :disabled="loading"
+    :disabled="busy"
+    :aria-pressed="isFavorited"
     @click.stop="handleClick"
   >
     <LucideLoader2
-      v-if="loading"
+      v-if="busy"
       class="size-4 animate-spin text-gray-400"
     />
     <LucideHeart
@@ -88,13 +113,14 @@ async function handleClick() {
     :class="{
       'opacity-50': loading,
     }"
-    :disabled="loading"
+    :disabled="busy"
+    :aria-pressed="isFavorited"
     :title="isFavorited ? '取消收藏' : '收藏'"
     :aria-label="isFavorited ? '取消收藏' : '收藏'"
     @click.stop="handleClick"
   >
     <LucideLoader2
-      v-if="loading"
+      v-if="busy"
       class="animate-spin text-gray-400"
       :class="size === 'md' ? 'size-5' : 'size-4'"
     />

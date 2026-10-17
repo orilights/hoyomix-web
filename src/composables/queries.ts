@@ -2,12 +2,14 @@ import type { MapSongsParams, PlaylistsQueryParams, RandomPlaylistParams } from 
 import type { ContributionRankingPeriod } from '@/types/core'
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
-import { useMutation, useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
 import { getEmoticonsApi } from '@/api/emoticon'
 import { getChangelog, getNotice } from '@/api/misc'
 import {
+  addAlbumFavoriteApi,
   fetchAppConfig,
+  getAlbumFavoritesApi,
   getAlbumInfoApi,
   getAlbumListApi,
   getAlbumsByTagApi,
@@ -29,10 +31,61 @@ import {
   getRandomPlaylistApi,
   getSearchApi,
   getSongInfoApi,
+  removeAlbumFavoriteApi,
   updatePlaylistSongsApi,
 } from '@/api/music'
 import { useAuthStore } from '@/store/auth'
+import { useMainStore } from '@/store/main'
 import { NotFoundError } from '@/utils/fetch'
+
+export function useAlbumFavoritesQuery() {
+  const auth = useAuthStore()
+  return useQuery({
+    queryKey: computed(() => ['albumFavorites', auth.user?.id ?? null]),
+    queryFn: async ({ queryKey }) => {
+      const userId = queryKey[1]
+      const result = await getAlbumFavoritesApi()
+      return { ...result, userId }
+    },
+    enabled: computed(() => !auth.isPending && auth.isLoggedIn),
+  })
+}
+
+export function useAlbumFavoriteMutation() {
+  const auth = useAuthStore()
+  const store = useMainStore()
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: ({ albumId, favorite }: { albumId: number, favorite: boolean }) => favorite ? addAlbumFavoriteApi(albumId) : removeAlbumFavoriteApi(albumId),
+    onMutate: async ({ albumId, favorite }) => {
+      const userId = auth.user?.id
+      const revision = store.favoritesRevision
+      await client.cancelQueries({ queryKey: ['albumFavorites', userId] })
+      if (revision !== store.favoritesRevision || userId !== auth.user?.id)
+        throw new Error('登录状态已变化，请重试')
+      const wasFavorited = store.favoriteAlbumIds.includes(albumId)
+      store.pendingAlbumFavorites.push(albumId)
+      store.favoriteAlbumIds = store.favoriteAlbumIds.filter(id => id !== albumId)
+      if (favorite)
+        store.favoriteAlbumIds.push(albumId)
+      return { userId, revision, wasFavorited }
+    },
+    onError: (_error, { albumId }, context) => {
+      if (!context || context.revision !== store.favoritesRevision)
+        return
+      store.favoriteAlbumIds = store.favoriteAlbumIds.filter(id => id !== albumId)
+      if (context.wasFavorited)
+        store.favoriteAlbumIds.push(albumId)
+    },
+    onSettled: (_data, _error, { albumId }, context) => {
+      if (!context || context.revision !== store.favoritesRevision)
+        return
+      store.pendingAlbumFavorites = store.pendingAlbumFavorites.filter(id => id !== albumId)
+      if (!store.pendingAlbumFavorites.length)
+        return client.invalidateQueries({ queryKey: ['albumFavorites', context.userId] })
+    },
+  })
+}
 
 export function useSavePlaylistOrderQuery() {
   return useMutation({
