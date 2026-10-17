@@ -3,7 +3,7 @@ import { dialogStack, removeDialog } from '@/utils/dialog-stack'
 
 withDefaults(defineProps<{
   title?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   hideHeaderBorder?: boolean
 }>(), {
   size: 'sm',
@@ -16,6 +16,7 @@ const sizeClasses = {
   sm: 'max-w-sm',
   md: 'max-w-md',
   lg: 'max-w-lg',
+  xl: 'max-w-[800px]',
 }
 
 const dialogId = Symbol('dialog')

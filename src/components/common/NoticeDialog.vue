@@ -18,10 +18,10 @@ watch(currentIndex, () => {
 </script>
 
 <template>
-  <AppDialog v-model="visible" title="公告" size="lg">
+  <AppDialog v-model="visible" title="公告" size="xl">
     <div v-if="current" class="flex h-[65vh] min-h-0 overflow-hidden">
-      <nav v-if="notices.length > 1" aria-label="公告列表" class="w-24 sm:w-36 shrink-0 overflow-y-auto overscroll-contain border-r border-gray-100 dark:border-gray-700 p-2 space-y-1">
-        <button v-for="(notice, index) in notices" :key="`${notice.key}-${index}`" type="button" :aria-current="index === currentIndex ? 'page' : undefined" class="flex items-start gap-2 w-full p-2 rounded-lg text-left text-xs sm:text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" :class="index === currentIndex ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5'" @click="noticeStore.select(index)">
+      <nav v-if="notices.length > 1" aria-label="公告列表" class="w-[calc(8em+3rem)] text-xs sm:text-sm shrink-0 overflow-y-auto overscroll-contain border-r border-gray-100 dark:border-gray-700 p-2 space-y-1">
+        <button v-for="(notice, index) in notices" :key="`${notice.key}-${index}`" type="button" :aria-current="index === currentIndex ? 'page' : undefined" class="flex items-start gap-2 w-full p-2 rounded-lg text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400" :class="index === currentIndex ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5'" @click="noticeStore.select(index)">
           <span class="flex-1 min-w-0 break-words [overflow-wrap:anywhere]">{{ notice.title }}</span>
           <span v-if="!noticeStore.isRead(notice)" class="mt-1 size-1.5 shrink-0 rounded-full bg-red-500" role="status" aria-label="未读公告" />
         </button>
