@@ -1,7 +1,8 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
 import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
 
 import type { SearchResponse } from '@/types/search'
+
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
 
@@ -34,8 +35,27 @@ export function cancelEditRequestApi(id: number) {
   return fetchJsonMutation<void>(`${apiBase}/edit-requests/${id}`, 'DELETE')
 }
 
-export function getMapTreeApi(game: string) {
-  return fetchJson<MapTreeNode[]>(`${apiBase}/maps?game=${encodeURIComponent(game)}`)
+export function getMapTreeApi(game: string, withSongCounts = false) {
+  const query = new URLSearchParams({ game })
+  if (withSongCounts)
+    query.set('withSongCounts', 'true')
+  return fetchJson<MapTreeNode[]>(`${apiBase}/maps?${query}`)
+}
+
+export interface MapSongsParams {
+  game: string
+  includeChildren: boolean
+  page: number
+}
+
+export function getMapSongsApi(id: number, params: MapSongsParams) {
+  const query = new URLSearchParams({ game: params.game, includeChildren: String(params.includeChildren), page: String(params.page), limit: '50' })
+  return fetchJson<MapSongsResponse>(`${apiBase}/maps/${id}/songs?${query}`)
+}
+
+export function getMapPlaybackApi(id: number, game: string, includeChildren: boolean) {
+  const query = new URLSearchParams({ game, includeChildren: String(includeChildren) })
+  return fetchJson<{ songs: PlaylistSongItem[] }>(`${apiBase}/maps/${id}/songs/playback?${query}`)
 }
 
 export function submitSongRegionEditApi(songId: number, maps: SongMapsChange) {

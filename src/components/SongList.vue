@@ -26,6 +26,7 @@ const props = withDefaults(defineProps<{
   reorderable?: boolean
   sorting?: boolean
   busy?: boolean
+  loadPlaybackSongs?: () => Promise<PlaylistSongItem[]>
 }>(), {
   songs: () => [],
   groups: () => [],
@@ -43,6 +44,7 @@ const emit = defineEmits<{
 const slots = defineSlots<{
   'row-actions': (props: { song: PlaylistSongItem }) => any
   'empty': () => any
+  'song-description': (props: { song: PlaylistSongItem }) => any
 }>()
 const router = useRouter()
 const store = useMainStore()
@@ -179,7 +181,7 @@ function playSong(song: PlaylistSongItem) {
   playbackDialog.value?.play({
     songId: song.songId,
     loadSong: async () => song,
-    loadSongs: async () => songs,
+    loadSongs: props.loadPlaybackSongs ?? (async () => songs),
   })
 }
 
@@ -318,6 +320,7 @@ function handleDragEnd() {
               <p v-if="row.song.songDescription" class="truncate text-xs text-gray-500 dark:text-gray-400">
                 {{ row.song.songDescription }}
               </p>
+              <slot name="song-description" :song="row.song" />
             </td>
             <td v-if="showAlbum" class="hidden md:table-cell p-2 text-sm text-gray-500 dark:text-gray-400 truncate" :title="row.song.albumName">
               <RouterLink

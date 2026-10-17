@@ -156,6 +156,23 @@ onMounted(() => {
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
       </RouterLink>
       <RouterLink
+        :to="{ name: 'Regions' }"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
+      >
+        <div class="px-2 md:px-3">
+          <LucideMapPin class="size-5 md:size-6 text-gray-900 dark:text-gray-100" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
+            地区
+          </div>
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            根据地区检索歌曲
+          </div>
+        </div>
+        <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
+      </RouterLink>
+      <RouterLink
         :to="{ name: 'Ranking' }"
         class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
       >
