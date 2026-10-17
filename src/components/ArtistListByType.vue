@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { Component } from 'vue'
 import type { ArtistTypeInfo } from '@/types/core'
+import { AudioLines, Building2, ListMusic, MicVocal, Music2, PenLine, SlidersHorizontal, UsersRound } from '@lucide/vue'
 import { useCreditInfoQuery } from '@/composables/queries'
 
 const props = defineProps<{
@@ -13,6 +15,20 @@ const type = computed(() => props.type)
 const { data: rawData, isLoading, isError } = useCreditInfoQuery(id, type)
 
 type CreditArtist = ArtistTypeInfo[string][number] & { roles: string[] }
+
+const groupIcons: Record<string, Component> = {
+  '作曲': Music2,
+  '编曲': ListMusic,
+  '作词': PenLine,
+  '演唱 / 人声': MicVocal,
+  '出品': Building2,
+  '制作人': SlidersHorizontal,
+  '其他': UsersRound,
+}
+
+function groupIcon(label: string) {
+  return groupIcons[label] ?? AudioLines
+}
 
 const priorityGroups = [
   { label: '作曲', roles: ['作曲'] },
@@ -77,7 +93,8 @@ const displayGroups = computed(() => {
         class="min-w-0"
         :class="{ 'col-span-2': group.other || group.entries[0]?.artists.length !== 1 }"
       >
-        <h3 class="font-bold mb-2">
+        <h3 class="flex items-center gap-2 font-bold mb-2">
+          <component :is="groupIcon(group.label)" class="size-4 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
           {{ group.label }}
         </h3>
         <div :class="{ 'p-4 bg-black/5 dark:bg-white/5 rounded-xl': group.other }">
