@@ -63,33 +63,37 @@ onMounted(() => store.setBackground())
       <div v-else-if="!data?.items.length" class="py-20 text-center text-gray-500 dark:text-gray-400">
         暂无贡献记录
       </div>
-      <div v-else class="bg-black/5 dark:bg-white/5 rounded-xl overflow-hidden">
-        <table class="w-full table-fixed text-sm">
+      <div v-else class="bg-black/5 dark:bg-white/5 rounded-xl pt-2 pb-4 overflow-hidden">
+        <table class="w-full table-fixed">
           <caption class="sr-only">
             {{ rangeLabel }}排名
           </caption>
-          <thead class="text-gray-500 dark:text-gray-400 border-b border-black/5 dark:border-white/10">
-            <tr>
-              <th scope="col" class="w-16 sm:w-20 px-3 py-3 text-center font-medium">
-                排名
+          <thead>
+            <tr class="text-left">
+              <th scope="col" class="w-[56px] p-2 text-center">
+                #
               </th>
-              <th scope="col" class="px-3 py-3 text-left font-medium">
+              <th scope="col" class="p-2">
                 贡献者
               </th>
-              <th scope="col" class="w-24 sm:w-32 px-4 py-3 text-right font-medium">
+              <th scope="col" class="w-[150px] p-2">
                 贡献次数
               </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in data.items" :key="item.userId" class="border-b last:border-b-0 border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-              <td class="px-3 py-4 text-center font-semibold tabular-nums" :class="item.rank <= 3 ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'">
-                {{ item.rank }}
+            <tr v-for="item in data.items" :key="item.userId">
+              <td class="p-2 text-center text-sm text-gray-500 dark:text-gray-400 tabular-nums">
+                <span
+                  class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold"
+                >
+                  {{ item.rank }}
+                </span>
               </td>
-              <th scope="row" class="px-3 py-4 text-left font-medium break-words [overflow-wrap:anywhere]">
+              <th scope="row" class="p-2 text-sm text-left font-medium break-words [overflow-wrap:anywhere]">
                 {{ item.username }}
               </th>
-              <td class="px-4 py-4 text-right tabular-nums">
+              <td class="p-2 text-sm tabular-nums">
                 {{ item.count.toLocaleString('zh-CN') }}
               </td>
             </tr>
