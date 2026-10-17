@@ -23,6 +23,9 @@ export const useMainStore = defineStore('main', {
     randomPlaylist: [] as PlaylistSongItem[],
     // 收藏
     favoriteSongIds: [] as number[],
+    favoriteAlbumIds: [] as number[],
+    pendingAlbumFavorites: [] as number[],
+    favoritesRevision: 0,
     favoritePlaylistIds: [] as string[],
   }),
   getters: {
@@ -44,16 +47,22 @@ export const useMainStore = defineStore('main', {
       this.albumLayoutMap[key] = layout
     },
     clearFavorites() {
+      this.favoritesRevision++
+      this.favoriteAlbumIds = []
+      this.pendingAlbumFavorites = []
       this.favoriteSongIds = []
       this.favoritePlaylistIds = []
     },
     async fetchFavoriteSongs() {
+      const revision = this.favoritesRevision
       try {
         const res = await getAllFavoritesApi()
-        this.favoriteSongIds = res.songIds
+        if (revision === this.favoritesRevision)
+          this.favoriteSongIds = res.songIds
       }
       catch {
-        this.favoriteSongIds = []
+        if (revision === this.favoritesRevision)
+          this.favoriteSongIds = []
       }
     },
     async addFavoriteSong(songId: number) {
@@ -83,12 +92,15 @@ export const useMainStore = defineStore('main', {
       }
     },
     async fetchFavoritePlaylists() {
+      const revision = this.favoritesRevision
       try {
         const res = await getFavoritePlaylistsApi()
-        this.favoritePlaylistIds = res.items.map(item => item.id)
+        if (revision === this.favoritesRevision)
+          this.favoritePlaylistIds = res.items.map(item => item.id)
       }
       catch {
-        this.favoritePlaylistIds = []
+        if (revision === this.favoritesRevision)
+          this.favoritePlaylistIds = []
       }
     },
     async addFavoritePlaylist(id: string) {

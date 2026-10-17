@@ -220,6 +220,18 @@ export function getAllFavoritesApi() {
   return fetchJson<{ songIds: number[] }>(`${apiBase}/favorites`)
 }
 
+export function getAlbumFavoritesApi() {
+  return fetchJson<{ albumIds: number[] }>(`${apiBase}/album-favorites`)
+}
+
+export function addAlbumFavoriteApi(albumId: number) {
+  return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/albums/${albumId}/favorite`, 'POST')
+}
+
+export function removeAlbumFavoriteApi(albumId: number) {
+  return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/albums/${albumId}/favorite`, 'DELETE')
+}
+
 export function addFavoriteApi(songId: number) {
   return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/favorites/${songId}`, 'POST')
 }

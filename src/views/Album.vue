@@ -247,6 +247,7 @@ function addAlbumToPlaylist() {
 
         <div class="detail-actions">
           <AlbumActions
+            :album-id="albumInfo.id"
             :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
             :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
             :comment-count="commentCount"
