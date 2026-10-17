@@ -21,7 +21,7 @@
 | 框架/构建 | Vue 3.5（`<script setup>` + TS 6）、Vite 8 + rolldown |
 | 路由/状态 | vue-router 5（History 模式）、Pinia 4 + `pinia-plugin-persistedstate` |
 | 数据请求 | @tanstack/vue-query 5（读取）、原生 fetch 封装（写入） |
-| 样式/图标 | UnoCSS（`unocss/vite` + `@unocss/preset-wind4`）、@lucide/vue |
+| 样式/图标 | UnoCSS（`unocss/vite` + `@unocss/preset-wind3`）、@lucide/vue |
 | 其他 | OverlayScrollbars、ECharts 6 + vue-echarts、better-auth、vue-sonner、vuedraggable、@vueuse/core |
 | 代码规范 | @antfu/eslint-config（无分号、单引号、2 空格） |
 
@@ -84,6 +84,18 @@ History 模式，全部 `() => import(...)` 懒加载；`scrollBehavior` 返回�
 ---
 
 ## 7. 数据层
+
+### 公告
+
+公告读取配置服务 `hoyomix.notice` 的有序 JSON 数组字符串，每个元素包含 `title`、`summary`、`publishedAt`、`updatedAt`、`important`、`content`，正文为 Markdown。通过 `api/misc.ts` → `useNoticeQuery` 读取，staleTime 为 1 小时。只接受数组，不兼容旧单篇对象；空配置/空数组隐藏，空正文条目不展示，格式错误可重试。顺序由管理端保存的数组决定，不再按日期重排。
+
+公告轮播位于反馈页，多条时每 5 秒切换，并提供上一条/下一条按钮；悬停、焦点位于卡片内、公告弹窗打开或页面不可见时暂停。单条不轮播。点击当前卡片打开该篇全文。`NoticeDialog` 使用 lg 尺寸，多条时左侧为可滚动公告侧栏，右侧独立滚动正文，切换后正文回到顶部。
+
+顶栏站内信按钮左侧提供公告入口，游客也可使用；存在任意未读公告时显示红点，弹窗左侧的未读条目也显示红点。点击入口默认打开第一篇未读公告，没有未读则打开第一篇；反馈页卡片打开当前轮播的公告。
+
+notice store 将状态分为 `readKeys`（已读）和 `promptedKeys`（重要公告已弹窗），分别持久化。列表中存在未弹窗的重要公告时自动打开，默认选中第一篇未弹窗的重要公告。每次打开弹窗将全部重要公告记为已弹窗，但只将当前显示的一篇记为已读；点击侧栏再标记对应篇已读。未查看的重要公告可持续显示红点，但不会重复自动弹窗。弹窗打开期间同步最新列表时采用相同规则。排序、JSON 格式及未知字段变化不影响单篇内容指纹；已知元数据或正文变更视为新版本。Markdown 禁止源 HTML 并过滤危险链接。
+
+### 查询约定
 
 - 全局 `queryClient`：`staleTime 5min`、`retry 1`、`refetchOnWindowFocus: false`。
 - 各查询定制 `staleTime`（专辑 10min、歌词 30min、公告 1h 等），用 `computed` queryKey 与 `enabled` 控制。
@@ -162,7 +174,7 @@ Toaster（全局提示）
 | --- | --- |
 | `Dropdown` | 下拉菜单：`alignment`/`position`（up/down/**auto** 翻转）/`dark`；点击外部关闭、`disabled` 项 |
 | `Tooltip` | `placement`/`align`/`theme`；支持 touch 切换 |
-| `AppDialog` | 模态（`Teleport to body`）：`size` sm/md，遮罩与 `Esc` 关闭，title/footer 插槽 |
+| `AppDialog` | 模态（`Teleport to body`）：`size` sm/md/lg，最大宽度分别为 384/448/512px，默认 sm；公告使用 lg。遮罩与 `Esc` 关闭，title/footer 插槽 |
 | `SegmentSwitch` | 单选分段切换；底色 `bg-black/5 dark:bg-white/5`，保留暗色描边及激活项 `bg-blue-500/90`；`block` 铺满父容器并等分选项，默认按内容宽度显示 |
 | `LazyImg` / `CoverImage` | 懒加载淡入图 / 方形封面（`pt-[100%]`） |
 | `PageHeader` | 标题 + 副标题 + `extra` 插槽 |
@@ -171,6 +183,10 @@ Toaster（全局提示）
 > 基础按钮使用 `components/common/AppButton.vue` 统一变体、尺寸、焦点和禁用态；筛选/分段、开关、列表行和播放器沉浸控制等特殊控件保留专用实现。输入框仍按页面内联规范维护。
 
 互斥模式与内容标签统一复用 `SegmentSwitch`，包括随机播放生成模式、定时播放模式、搜索类型、热榜周期、歌单列表，以及专辑/歌曲/歌单/游戏详情的移动端内容切换。保留原有状态、条件选项、评论数量和响应式显示；多选筛选、媒体源卡片、列表行及专用播放器控件按各自交互维护。
+
+移动端可编辑歌单提供“调整顺序”模式，复用 `SongList`：隐藏时长、显示右侧拖拽手柄，支持边缘自动滚动。排序保存在本地草稿，保存时统一提交，取消恢复原序；有未保存更改时离开页面提示保存或放弃，保存失败保留草稿。桌面端继续使用行内拖拽自动保存，歌单排序不修改当前播放队列。
+
+随机播放提供 0–120 秒的最短时长滑块，步长 10，默认 0（无限制），设置通过 `randomPlaylistMinDuration` 本地持久化。两种生成模式均传递 `/random-playlist` 的 `minDuration` 参数，后端在随机抽样前排除小于阈值的歌曲，等于阈值的歌曲保留。
 
 随机播放的歌曲数量使用 10–200 首滑块，步长 5，默认 20；实时显示所选数量并沿用 `randomPlaylistLimit` 的本地持久化。两种生成模式均通过 `/random-playlist` 的 `limit` 参数请求数量，后端上限同为 200；候选歌曲不足时返回实际可用数量。
 
@@ -196,8 +212,8 @@ Toaster（全局提示）
 - **图片缓存**：入口注册 `public/image-cache-sw.js`，缓存 `VITE_RESOURCE_BASE` 下 `/cover/ncm/`、`/cover/qq/` 的专辑封面（所有现有尺寸），以及 `https://icdn.amarea.cn/gi-assets/img/` 目录下请求过的所有文件（含子目录，不限制扩展名或 Content-Type）。两类资源共用 Cache Storage，数据总上限为 100 × 1024 × 1024 字节，超过时按写入顺序淘汰旧资源；不缓存失败响应、空文件或单个超过上限的文件。跨域请求使用 CORS 读取实际数据大小，无法读取时回退到原始请求并跳过缓存。
 - **缓存管理**：`utils/image-cache.ts` 通过 MessageChannel 与 Service Worker 通信；`composables/useImageCache.ts` 在每次打开设置页时读取一次用量，不定时刷新。设置的「缓存」区块展示图片数据大小、数量，支持手动刷新和清理；清理使此前未完成的下载失效，避免清理后旧请求重新写入。仅清理本站图片缓存，浏览器存储元数据及 HTTP 缓存不计入用量。不支持 Service Worker 的环境显示提示；生产环境需 HTTPS，开发用 localhost。
 
-- **Vite**：别名 `@ → src`；代码分割 `vendor`（echarts 外 node_modules）+ `pages`（views 除 Statistics）。
-- **插件**：`vue()`、`UnoCSS()`（`uno.config.ts` 配置 `presetWind4`）、`AutoImport`（vue/vue-router/pinia）、`Components`（自动解析组件 + 透传 `Lucide*`/`OverlayScrollbarsComponent`）、`buildInfo()`（注入 `__BUILD_TIME__`）、`injectHead()`（构建时注入 base64 到 `<head>`）。
+- **Vite**：别名 `@ → src`；代码分割为 `echarts-core`（echarts/zrender/tslib，优先级 50）、`core`（Vue/router/Pinia，优先级 30）、`vendor`（其余非图表依赖，优先级 20）和 `pages`（views，优先级 10）。统计页保留动态导入图表入口，图表引擎与 Vue 适配层按需加载。引擎不依赖通用 vendor，业务依赖更新不会连带改变其 hash；图表引用范围、图表依赖及构建工具版本仍会影响产物。
+- **插件**：`vue()`、`UnoCSS()`（`uno.config.ts` 配置 `presetWind3`，通过 `uno-theme.ts` 和兼容规则保留原有视觉取值）、`AutoImport`（vue/vue-router/pinia）、`Components`（自动解析组件 + 透传 `Lucide*`/`OverlayScrollbarsComponent`）、`buildInfo()`（注入 `__BUILD_TIME__`）、`injectHead()`（构建时注入 base64 到 `<head>`）。
 - **约定**：`ref`/`computed`/`watch`/`useRoute`/`storeToRefs` 等由 auto-import 自动引入，无需手写 import；`auto-imports.d.ts`/`components.d.ts` 勿手改。
 - **脚本**：`dev`/`build`（`vue-tsc -b && vite build`）/`preview`/`lint`/`lintf`；包管理器 **pnpm**。
 

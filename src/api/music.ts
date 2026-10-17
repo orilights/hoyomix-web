@@ -1,6 +1,8 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, EditRequestResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
 import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
+
 import type { SearchResponse } from '@/types/search'
+
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
 
@@ -33,8 +35,27 @@ export function cancelEditRequestApi(id: number) {
   return fetchJsonMutation<void>(`${apiBase}/edit-requests/${id}`, 'DELETE')
 }
 
-export function getMapTreeApi(game: string) {
-  return fetchJson<MapTreeNode[]>(`${apiBase}/maps?game=${encodeURIComponent(game)}`)
+export function getMapTreeApi(game: string, withSongCounts = false) {
+  const query = new URLSearchParams({ game })
+  if (withSongCounts)
+    query.set('withSongCounts', 'true')
+  return fetchJson<MapTreeNode[]>(`${apiBase}/maps?${query}`)
+}
+
+export interface MapSongsParams {
+  game: string
+  includeChildren: boolean
+  page: number
+}
+
+export function getMapSongsApi(id: number, params: MapSongsParams) {
+  const query = new URLSearchParams({ game: params.game, includeChildren: String(params.includeChildren), page: String(params.page), limit: '50' })
+  return fetchJson<MapSongsResponse>(`${apiBase}/maps/${id}/songs?${query}`)
+}
+
+export function getMapPlaybackApi(id: number, game: string, includeChildren: boolean) {
+  const query = new URLSearchParams({ game, includeChildren: String(includeChildren) })
+  return fetchJson<{ songs: PlaylistSongItem[] }>(`${apiBase}/maps/${id}/songs/playback?${query}`)
 }
 
 export function submitSongRegionEditApi(songId: number, maps: SongMapsChange) {
@@ -163,6 +184,7 @@ export function cancelPlaylistReviewApi(id: string) {
 }
 
 export interface RandomPlaylistParams {
+  minDuration?: number
   limit?: number
   products?: string[]
   albums?: number[]
@@ -176,6 +198,8 @@ export function getRandomPlaylistApi(params?: RandomPlaylistParams) {
   const query = new URLSearchParams()
   if (params?.limit)
     query.set('limit', String(params.limit))
+  if (params?.minDuration !== undefined)
+    query.set('minDuration', String(params.minDuration))
   if (params?.products?.length)
     query.set('products', params.products.join(','))
   if (params?.albums?.length)
@@ -236,4 +260,8 @@ export function getRankingApi(period: RankingPeriod, date?: string) {
 
 export function getContributionsApi(id: number, type: 'album' | 'song') {
   return fetchJson<ContributionInfo>(`${apiBase}/${type === 'album' ? 'albums' : 'songs'}/${id}/contributions`)
+}
+
+export function getContributionRankingApi(period: ContributionRankingPeriod) {
+  return fetchJson<ContributionRankingResponse>(`${apiBase}/contributions/ranking?${new URLSearchParams({ period })}`)
 }

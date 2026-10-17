@@ -1,3 +1,12 @@
+export type ContributionRankingPeriod = '30d' | '365d' | 'all'
+
+export interface ContributionRankingResponse {
+  period: ContributionRankingPeriod
+  startAt: string | null
+  endAt: string
+  items: { rank: number, userId: string, username: string, count: number }[]
+}
+
 export interface ContributionInfo {
   total: number
   items: { id: number, username: string, summary: string, detail: string, createdAt: string }[]
@@ -18,7 +27,20 @@ export interface AlbumInfo {
 export interface SongMapInfo {
   id: number
   path: string[]
-  note?: string
+  pathIds: number[]
+  game: string
+  note?: string | null
+}
+
+export interface MapSongItem extends PlaylistSongItem {
+  matchedRegions: { id: number, path: string[], note: string | null }[]
+}
+
+export interface MapSongsResponse {
+  total: number
+  page: number
+  limit: number
+  items: MapSongItem[]
 }
 
 export interface SongInfo {
@@ -33,6 +55,8 @@ export interface MapTreeNode {
   id: number
   name: string
   children: MapTreeNode[]
+  /** 包含全部子地区的去重歌曲数，仅计数查询返回。 */
+  songCount?: number
 }
 
 /** 歌曲地图（地区）关联的增量变更 */

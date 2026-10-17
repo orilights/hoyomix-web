@@ -25,7 +25,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="fixed left-0 xl:left-[240px] right-0 top-0 z-10 px-4 md:px-16 xl:px-8 py-2 transition-all duration-500 flex items-center" :class="{
+    class="fixed left-0 xl:left-[240px] right-0 top-0 z-10 px-2 sm:px-4 md:px-16 xl:px-8 py-2 transition-all duration-500 flex items-center" :class="{
       '-translate-y-full opacity-0 pointer-events-none': isFullscreen,
     }"
   >
@@ -40,7 +40,7 @@ onUnmounted(() => {
           <LucideChevronLeft class="size-4.5" />
         </AppButton>
       </Tooltip>
-      <Tooltip class="ml-2 xl:hidden" content="返回首页" placement="bottom" align="center">
+      <Tooltip class="ml-0.5 sm:ml-2 xl:hidden" content="返回首页" placement="bottom" align="center">
         <AppButton
           icon-only
           shape="pill"
@@ -50,8 +50,9 @@ onUnmounted(() => {
           <LucideLayoutGrid class="size-4.5" />
         </AppButton>
       </Tooltip>
-      <Tooltip class="ml-2" content="搜索" placement="bottom" align="center">
+      <Tooltip class="ml-0.5 sm:ml-2" content="搜索" placement="bottom" align="center">
         <AppButton
+          class="max-md:w-9 max-md:px-0"
           shape="pill"
           aria-label="搜索"
           @click="showSearch = true"
@@ -61,7 +62,7 @@ onUnmounted(() => {
         </AppButton>
       </Tooltip>
     </div>
-    <div class="ml-auto flex items-center gap-2">
+    <div class="ml-auto flex items-center gap-0.5 sm:gap-2">
       <ThemeSwitcher compact />
       <Tooltip class="xl:hidden" content="打开设置" placement="bottom" align="center">
         <AppButton
@@ -73,6 +74,7 @@ onUnmounted(() => {
           <LucideSlidersHorizontal class="size-4.5" />
         </AppButton>
       </Tooltip>
+      <NoticeButton />
       <NotificationBell />
       <UserInfo />
     </div>

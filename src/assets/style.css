@@ -1,3 +1,9 @@
+/* Keep the root font stack used before importing the official reset. */
+html,
+:host {
+  font-family: ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

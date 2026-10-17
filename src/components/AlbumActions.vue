@@ -43,7 +43,7 @@ const emit = defineEmits<{
     添加至歌单
   </AppButton>
 
-  <div class="hidden lg:block">
+  <div class="detail-comment-action">
     <AppButton @click="emit('showComments')">
       <LucideMessageCircle class="size-4" />
       评论 {{ commentCount }}

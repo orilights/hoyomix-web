@@ -192,7 +192,7 @@ watch(product, (val) => {
     />
 
     <div class="flex flex-col lg:flex-row gap-4 mt-4">
-      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] shrink-0 p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block" :class="{ hidden: activeTab !== 'artists' }">
+      <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] shrink-0 lg:!block" :class="{ hidden: activeTab !== 'artists' }">
         <ArtistListByType :id="product" type="product" />
       </div>
 

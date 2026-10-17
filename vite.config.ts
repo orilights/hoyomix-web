@@ -25,6 +25,11 @@ export default defineConfig({
         codeSplitting: {
           groups: [
             {
+              name: 'echarts-core',
+              test: /node_modules[\\/](echarts|zrender|tslib)[\\/]/,
+              priority: 50,
+            },
+            {
               name: 'core',
               test: /node_modules[\\/](vue|vue-router|pinia)[\\/]/,
               priority: 30,

@@ -43,9 +43,18 @@ function goSourceLink(url: string) {
       :key="`map-${mi}`"
       class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl flex flex-wrap items-center gap-1 text-sm"
     >
+      <LucideMapPin class="size-3.5 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
       <template v-for="(segment, si) in map.path" :key="si">
         <LucideChevronRight v-if="si > 0" class="h-3 w-3 text-gray-400" />
-        <span>{{ segment }}</span>
+        <RouterLink
+          v-if="map.pathIds?.[si] && map.game === 'genshin'"
+          :to="{ name: 'Regions', query: { game: map.game, region: map.pathIds[si] } }"
+          class="rounded hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-colors"
+          :aria-label="`查看${map.path.slice(0, si + 1).join(' / ')}的歌曲`"
+        >
+          {{ segment }}
+        </RouterLink>
+        <span v-else>{{ segment }}</span>
       </template>
       <span v-if="map.note" class="text-gray-500 dark:text-gray-400">（{{ map.note }}）</span>
     </div>

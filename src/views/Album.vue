@@ -2,6 +2,7 @@
 import type { SongListGroup } from '@/types/song-list'
 import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useCommentThreadsQuery } from '@/composables/queries'
+import { scrollPageToElement } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
 import { useAuthStore } from '@/store/auth'
@@ -32,8 +33,12 @@ const commentPage = ref(1)
 const { data: commentThreads } = useCommentThreadsQuery(commentPostId, commentUserId, commentPage)
 const commentCount = computed(() => commentThreads.value?.commentCount ?? commentThreads.value?.pagination.total ?? 0)
 const commentSection = ref<HTMLElement | null>(null)
+const activeTab = ref<'songs' | 'artists' | 'info' | 'comments'>('songs')
+const descriptionExpanded = ref(false)
 
-function scrollToComments() {
+async function scrollToComments() {
+  activeTab.value = 'comments'
+  await nextTick()
   commentSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
@@ -134,14 +139,28 @@ function playAll() {
   toast.success('已替换播放列表')
 }
 
-const activeTab = ref<'songs' | 'artists' | 'tags' | 'contributions' | 'comments'>('songs')
 const tabOptions = computed(() => [
-  { key: 'songs' as const, label: '歌曲列表' },
+  { key: 'songs' as const, label: '曲目' },
   { key: 'artists' as const, label: '制作人员' },
-  { key: 'tags' as const, label: '其他信息' },
-  { key: 'contributions' as const, label: '贡献信息' },
+  { key: 'info' as const, label: '专辑信息' },
   { key: 'comments' as const, label: `评论 ${commentCount.value}` },
-].filter(option => option.key !== 'tags' || albumInfo.value?.tags.length))
+])
+
+const songSection = ref<HTMLElement | null>(null)
+
+async function scrollToDisc(index: number) {
+  const firstSong = discList.value[index]?.songs[0]
+  if (!firstSong)
+    return
+  activeTab.value = 'songs'
+  await nextTick()
+  const row = songSection.value?.querySelector(`[data-song-id="${firstSong.id}"]`)
+  const target = row?.previousElementSibling ?? row
+  if (target) {
+    if (!scrollPageToElement(target, 32, 'smooth'))
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 
 watch([commentPostId, () => route.query.commentPostId], ([postId, targetPostId]) => {
   if (postId && targetPostId === postId)
@@ -150,6 +169,7 @@ watch([commentPostId, () => route.query.commentPostId], ([postId, targetPostId])
 
 watch(albumId, () => {
   activeTab.value = 'songs'
+  descriptionExpanded.value = false
 })
 
 const showCreatePlaylistDialog = ref(false)
@@ -189,99 +209,125 @@ function addAlbumToPlaylist() {
       加载失败，请刷新重试
     </div>
 
-    <div v-else-if="albumInfo">
-      <div class="flex md:h-[200px] lg:h-[300px]">
-        <div class="size-[100px] md:size-[200px] lg:size-[300px] rounded-2xl shrink-0 shadow-md overflow-hidden">
-          <CoverImage :src="getCoverUrl(albumInfo.platforms, '800px')" />
+    <div v-else-if="albumInfo" class="album-page detail-page">
+      <div class="detail-header">
+        <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
+          <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px')" />
         </div>
 
-        <div class="flex flex-col ml-4 md:ml-8 overflow-hidden">
-          <div class="md:text-xl lg:text-3xl font-bold truncate" :title="albumInfo.name">
+        <div class="min-w-0">
+          <div class="detail-title font-bold break-words" :title="albumInfo.name">
             {{ albumInfo.name }}
           </div>
 
-          <div class="mt-1 md:mt-2 flex items-center gap-x-2 flex-wrap text-sm md:text-base">
+          <div class="detail-meta mt-1 flex items-center flex-wrap text-sm">
             <RouterLink
               :to="{ name: 'ProductInfo', params: { name: albumInfo.productName } }"
               class="flex items-center hover:bg-gray-500/20 px-2 py-1 rounded-lg transition-colors"
             >
-              <LazyImg class="size-5 md:size-8 rounded-full" :src="getProductIconUrl(albumInfo.productName, '48px')" />
-              <span class="ml-2 hidden md:inline">
+              <LazyImg class="size-5 rounded-full" :src="getProductIconUrl(albumInfo.productName, '48px')" />
+              <span class="ml-2">
                 {{ albumInfo.productName }}
               </span>
             </RouterLink>
-            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">发布于</span>
-            <span>
+            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" aria-label="发布日期">
+              <LucideCalendarDays class="size-4 shrink-0" aria-hidden="true" />
               {{ albumInfo.publishDate }}
             </span>
-            <span class="text-gray-500 dark:text-gray-400 hidden md:inline">时长</span>
-            <span>
+            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" aria-label="歌曲数量">
+              <LucideMusic class="size-4 shrink-0" aria-hidden="true" />
+              {{ albumInfo.songs.length }}
+            </span>
+            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" aria-label="总时长">
+              <LucideClock class="size-4 shrink-0" aria-hidden="true" />
               {{ formatDuration(albumInfo.totalDuration) }}
             </span>
           </div>
+        </div>
 
-          <OverlayScrollbarsComponent
-            class="mt-1 md:mt-2 flex-1 text-xs md:text-sm lg:text-base"
-            :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
-            defer
-          >
-            {{ albumInfo.description }}
-          </OverlayScrollbarsComponent>
-
-          <div class="hidden md:flex gap-2 pt-2 mt-auto flex-wrap shrink-0">
-            <AlbumActions
-              :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
-              :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
-              :comment-count="commentCount"
-              @play-all="playAll"
-              @save-as-playlist="saveAsPlaylist"
-              @add-to-playlist="addAlbumToPlaylist"
-              @show-comments="scrollToComments"
-            />
-          </div>
+        <div class="detail-actions">
+          <AlbumActions
+            :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
+            :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
+            :comment-count="commentCount"
+            @play-all="playAll"
+            @save-as-playlist="saveAsPlaylist"
+            @add-to-playlist="addAlbumToPlaylist"
+            @show-comments="scrollToComments"
+          />
         </div>
       </div>
 
-      <div class="flex gap-2 flex-wrap md:hidden mt-4">
-        <AlbumActions
-          :ncm-options="albumInfo.platforms.ncm ? neteaseOptions : undefined"
-          :qq-options="albumInfo.platforms.qq ? qqMusicOptions : undefined"
-          :comment-count="commentCount"
-          @play-all="playAll"
-          @save-as-playlist="saveAsPlaylist"
-          @add-to-playlist="addAlbumToPlaylist"
-          @show-comments="scrollToComments"
-        />
+      <div class="detail-tabs">
+        <SegmentSwitch v-model="activeTab" :options="tabOptions" block aria-label="专辑内容" />
       </div>
 
-      <SegmentSwitch v-model="activeTab" :options="tabOptions" class="mt-4 lg:hidden" aria-label="专辑内容" />
-
-      <div v-show="activeTab !== 'comments'" class="flex flex-col lg:!flex lg:flex-row lg:gap-4 mt-4">
-        <div class="w-full lg:w-[400px]">
-          <div v-if="albumInfo.tags.length" v-show="activeTab === 'tags'" class="w-full lg:w-[400px] lg:!block h-fit lg:mb-4" :class="{ hidden: activeTab !== 'tags' }">
-            <TagList :tags="albumInfo.tags" :album-id="albumInfo.id" />
+      <div class="detail-content">
+        <div v-show="activeTab === 'songs' || activeTab === 'comments'" class="detail-desktop-visible min-w-0">
+          <div v-show="activeTab === 'songs'" ref="songSection" class="detail-desktop-visible">
+            <nav
+              v-if="showDiscName"
+              class="mb-3 w-fit max-w-full"
+              aria-label="分碟导航"
+            >
+              <div class="flex gap-2 overflow-x-auto">
+                <AppButton
+                  v-for="(disc, index) in discList"
+                  :key="disc.name"
+                  class="shrink-0"
+                  :title="disc.name"
+                  :aria-label="`定位到 ${disc.name}，共 ${disc.songs.length} 首`"
+                  @click="scrollToDisc(index)"
+                >
+                  {{ disc.name }}
+                  <span class="text-gray-500 dark:text-gray-400">{{ disc.songs.length }}</span>
+                </AppButton>
+              </div>
+            </nav>
+            <SongList :songs="songListItems" :groups="songGroups" />
           </div>
 
-          <div v-show="activeTab === 'artists'" class="w-full lg:w-[400px] p-4 bg-black/5 dark:bg-white/5 rounded-xl lg:!block h-fit" :class="{ hidden: activeTab !== 'artists' }">
+          <div v-show="activeTab === 'comments'" ref="commentSection" class="detail-comments detail-desktop-visible">
+            <CommentSection :post-id="`hoyomix:album:${albumInfo.id}`" />
+          </div>
+        </div>
+
+        <div v-show="activeTab === 'artists' || activeTab === 'info'" class="detail-sidebar detail-sidebar-stack detail-desktop-visible min-w-0">
+          <div v-show="activeTab === 'info'" class="detail-desktop-visible">
+            <div v-if="albumInfo.description" class="album-description text-sm bg-black/5 dark:bg-white/5 rounded-xl p-4">
+              <p
+                id="album-description-content"
+                class="whitespace-pre-wrap break-words"
+                :class="{ 'detail-description-collapsed': !descriptionExpanded }"
+              >
+                {{ albumInfo.description }}
+              </p>
+              <button
+                type="button"
+                class="mt-2 text-blue-500 hover:text-blue-600 cursor-pointer"
+                :aria-expanded="descriptionExpanded"
+                aria-controls="album-description-content"
+                @click="descriptionExpanded = !descriptionExpanded"
+              >
+                {{ descriptionExpanded ? '收起介绍' : '展开介绍' }}
+              </button>
+            </div>
+            <p v-else class="text-sm text-gray-500 dark:text-gray-400">
+              暂无简介
+            </p>
+            <div v-if="albumInfo.tags.length" class="mt-4">
+              <TagList :tags="albumInfo.tags" :album-id="albumInfo.id" />
+            </div>
+          </div>
+
+          <div v-show="activeTab === 'artists'" class="detail-desktop-visible">
             <ArtistListByType :id="albumInfo.id" type="album" />
           </div>
 
-          <ContributionCard
-            v-show="activeTab === 'contributions'"
-            :id="albumInfo.id"
-            type="album"
-            class="lg:mt-4 lg:!block"
-            :class="{ hidden: activeTab !== 'contributions' }"
-          />
+          <div v-show="activeTab === 'info'" class="detail-desktop-visible">
+            <ContributionCard :id="albumInfo.id" type="album" />
+          </div>
         </div>
-
-        <div v-show="activeTab === 'songs'" class="flex-1 lg:!block h-fit" :class="{ hidden: activeTab !== 'songs' }">
-          <SongList :songs="songListItems" :groups="songGroups" />
-        </div>
-      </div>
-
-      <div v-show="activeTab === 'comments'" ref="commentSection" class="lg:!block">
-        <CommentSection class="max-lg:!mt-4" :post-id="`hoyomix:album:${albumInfo.id}`" />
       </div>
 
       <CreatePlaylistDialog
@@ -300,6 +346,3 @@ function addAlbumToPlaylist() {
     </div>
   </AsyncFade>
 </template>
-
-<style scoped>
-</style>

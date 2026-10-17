@@ -5,7 +5,7 @@
 
 ## 技术栈
 - Vue 3.5(`<script setup>` + TS 严格模式)、Vite 8 + rolldown、TypeScript 6、vue-router 5、Pinia 4、@tanstack/vue-query 5
-- 样式:UnoCSS(`unocss/vite` + `@unocss/preset-wind4`),视觉体系为「浅色玻璃拟态 + 主题化背景」
+- 样式:UnoCSS(`unocss/vite` + `@unocss/preset-wind3`),视觉体系为「浅色玻璃拟态 + 主题化背景」
 - 图标:@lucide/vue;图表:ECharts 6 + vue-echarts;认证:better-auth;提示:vue-sonner;工具:@vueuse/core
 - 代码规范:@antfu/eslint-config(无分号、单引号、2 空格缩进)
 
@@ -51,6 +51,10 @@
 ## 代码风格要点
 - ESLint 用 `@antfu/eslint-config`;提交前跑 `pnpm lintf`
 - 类型导入用 `import type`
+
+## 界面文案
+- 只展示有助于用户理解内容、作出选择或完成操作的文案，避免无实际使用价值的说明、重复描述及内部实现细节。
+- 排行榜计数口径、截断数量、并列规则、管理员处理方式等规则保留在开发文档中，不默认堆放在页面上；必要的时间范围、状态反馈与操作提示可以保留。完整约定见 `docs/visual-style-spec.md` 的「界面文案」。
 
 ## 特别注意
 - 后端存在 CORS 域名校验，开发环境需要以 localhost 域名启动，推荐直接使用 `pnpm dev` 命令

@@ -1,10 +1,11 @@
-import type { PlaylistsQueryParams } from '@/api/music'
+import type { MapSongsParams, PlaylistsQueryParams, RandomPlaylistParams } from '@/api/music'
+import type { ContributionRankingPeriod } from '@/types/core'
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
-import { useQuery } from '@tanstack/vue-query'
+import { useMutation, useQuery } from '@tanstack/vue-query'
 import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
 import { getEmoticonsApi } from '@/api/emoticon'
-import { getChangelog } from '@/api/misc'
+import { getChangelog, getNotice } from '@/api/misc'
 import {
   fetchAppConfig,
   getAlbumInfoApi,
@@ -12,21 +13,38 @@ import {
   getAlbumsByTagApi,
   getArtistInfoApi,
   getArtistNameByAliasApi,
+  getContributionRankingApi,
   getContributionsApi,
   getCreditInfoApi,
   getEditRequestApi,
   getFavoritePlaylistsApi,
   getLyricsApi,
+  getMapPlaybackApi,
+  getMapSongsApi,
   getMapTreeApi,
   getMyEditRequestsApi,
   getMyPlaylistsApi,
   getPlaylistDetailApi,
   getPublicPlaylistsApi,
+  getRandomPlaylistApi,
   getSearchApi,
   getSongInfoApi,
+  updatePlaylistSongsApi,
 } from '@/api/music'
 import { useAuthStore } from '@/store/auth'
 import { NotFoundError } from '@/utils/fetch'
+
+export function useSavePlaylistOrderQuery() {
+  return useMutation({
+    mutationFn: ({ id, songIds }: { id: string, songIds: number[] }) => updatePlaylistSongsApi(id, songIds),
+  })
+}
+
+export function useRandomPlaylistQuery() {
+  return useMutation({
+    mutationFn: (params: RandomPlaylistParams) => getRandomPlaylistApi(params),
+  })
+}
 
 export function useEmoticonsQuery(enabled: Ref<boolean> = ref(true)) {
   return useQuery({
@@ -136,6 +154,14 @@ export function useChangelogQuery() {
   })
 }
 
+export function useNoticeQuery() {
+  return useQuery({
+    queryKey: ['notice'],
+    queryFn: getNotice,
+    staleTime: 1000 * 60 * 60,
+  })
+}
+
 export function useSearchQuery(
   keyword: Ref<string>,
   type: Ref<SearchType | undefined>,
@@ -221,11 +247,25 @@ export function useCommentRepliesQuery(
   })
 }
 
-export function useMapTreeQuery(game: Ref<string>, enabled: Ref<boolean>) {
+export function useMapTreeQuery(game: Ref<string>, enabled: Ref<boolean>, withSongCounts = false) {
   return useQuery({
-    queryKey: computed(() => ['mapTree', game.value]),
-    queryFn: () => getMapTreeApi(game.value),
+    queryKey: computed(() => ['mapTree', game.value, withSongCounts]),
+    queryFn: () => getMapTreeApi(game.value, withSongCounts),
     enabled: computed(() => enabled.value && !!game.value),
+  })
+}
+
+export function useMapSongsQuery(id: Ref<number | null>, params: Ref<MapSongsParams>) {
+  return useQuery({
+    queryKey: computed(() => ['mapSongs', id.value, params.value]),
+    queryFn: () => getMapSongsApi(id.value!, params.value),
+    enabled: computed(() => id.value !== null && params.value.game === 'genshin'),
+  })
+}
+
+export function useMapPlaybackQuery() {
+  return useMutation({
+    mutationFn: ({ id, game, includeChildren }: { id: number, game: string, includeChildren: boolean }) => getMapPlaybackApi(id, game, includeChildren),
   })
 }
 
@@ -234,5 +274,13 @@ export function useContributionsQuery(id: Ref<number | null>, type: Ref<'album' 
     queryKey: computed(() => ['contributions', type.value, id.value]),
     queryFn: () => getContributionsApi(id.value!, type.value),
     enabled: computed(() => !!id.value),
+  })
+}
+
+export function useContributionRankingQuery(period: Ref<ContributionRankingPeriod>) {
+  return useQuery({
+    queryKey: computed(() => ['contributionRanking', period.value]),
+    queryFn: () => getContributionRankingApi(period.value),
+    staleTime: 60_000,
   })
 }

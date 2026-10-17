@@ -3,7 +3,7 @@ import { dialogStack, removeDialog } from '@/utils/dialog-stack'
 
 withDefaults(defineProps<{
   title?: string
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   hideHeaderBorder?: boolean
 }>(), {
   size: 'sm',
@@ -11,6 +11,13 @@ withDefaults(defineProps<{
 })
 
 const visible = defineModel<boolean>({ required: true })
+
+const sizeClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-[800px]',
+}
 
 const dialogId = Symbol('dialog')
 const titleId = useId()
@@ -104,7 +111,7 @@ onUnmounted(() => {
           :aria-labelledby="titleId"
           tabindex="-1"
           class="outline-none w-full bg-white dark:bg-[var(--theme-surface)] rounded-2xl shadow-2xl overflow-hidden"
-          :class="size === 'md' ? 'max-w-md' : 'max-w-sm'"
+          :class="sizeClasses[size]"
         >
           <div class="flex items-center justify-between px-6 py-4" :class="[hideHeaderBorder ? '' : 'border-b border-gray-100 dark:border-gray-700']">
             <h2 :id="titleId" class="text-lg font-semibold text-gray-900 dark:text-gray-100">

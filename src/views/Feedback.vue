@@ -12,6 +12,7 @@ usePageSeo({
 <template>
   <div class="max-w-3xl mx-auto">
     <PageHeader title="反馈" subtitle="告诉我们你遇到的问题或想法" />
+    <NoticeCard />
     <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
       也欢迎前往
       <a

@@ -132,7 +132,7 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             歌单
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             发现和管理歌单
           </div>
         </div>
@@ -149,8 +149,25 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             随机播放
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             随机生成播放列表
+          </div>
+        </div>
+        <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
+      </RouterLink>
+      <RouterLink
+        :to="{ name: 'Regions' }"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
+      >
+        <div class="px-2 md:px-3">
+          <LucideMapPin class="size-5 md:size-6 text-gray-900 dark:text-gray-100" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
+            地区
+          </div>
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            根据地区检索歌曲
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -166,8 +183,25 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             热榜
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             看看大家都在听什么
+          </div>
+        </div>
+        <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
+      </RouterLink>
+      <RouterLink
+        :to="{ name: 'ContributionRanking' }"
+        class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
+      >
+        <div class="px-2 md:px-3">
+          <LucideTrophy class="size-5 md:size-6 text-gray-900 dark:text-gray-100" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
+            贡献榜
+          </div>
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            数据库贡献榜单
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -183,7 +217,7 @@ onMounted(() => {
           <div class="font-semibold text-gray-900 dark:text-gray-100">
             反馈
           </div>
-          <div class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             问题与建议
           </div>
         </div>

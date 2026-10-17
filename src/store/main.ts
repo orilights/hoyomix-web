@@ -13,6 +13,7 @@ export const useMainStore = defineStore('main', {
     // 随机播放列表
     randomPlaylistMode: 'random' as 'random' | 'album',
     randomPlaylistLimit: 20,
+    randomPlaylistMinDuration: 0,
     randomPlaylistProducts: [] as string[],
     randomPlaylistDateFrom: '',
     randomPlaylistDateTo: '',
@@ -118,6 +119,6 @@ export const useMainStore = defineStore('main', {
     },
   },
   persist: {
-    pick: ['albumLayoutMap', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistExcludeInstrumental', 'randomPlaylistAlbums', 'randomPlaylist'],
+    pick: ['albumLayoutMap', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistMinDuration', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistExcludeInstrumental', 'randomPlaylistAlbums', 'randomPlaylist'],
   },
 })

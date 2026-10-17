@@ -458,7 +458,7 @@ function onHeaderTouchEnd() {
               <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
                 {{ currentSong.songName }}
               </div>
-              <div v-if="currentSong.songDescription && (!isImmersive || immersiveControlsVisible)" class="text-white/50 text-sm mt-1">
+              <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">
                 {{ currentSong.songDescription }}
               </div>
             </div>

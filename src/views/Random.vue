@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PlaylistItem } from '@/types/player'
 import { toast } from 'vue-sonner'
-import { getRandomPlaylistApi } from '@/api/music'
+import { useRandomPlaylistQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
 import { useAuthStore } from '@/store/auth'
@@ -22,6 +22,7 @@ usePageSeo({
 const {
   randomPlaylistMode,
   randomPlaylistLimit,
+  randomPlaylistMinDuration,
   randomPlaylistProducts,
   randomPlaylistDateFrom,
   randomPlaylistDateTo,
@@ -31,7 +32,7 @@ const {
   randomPlaylist,
 } = storeToRefs(store)
 
-const isLoading = ref(false)
+const { mutateAsync: generatePlaylist, isPending: isLoading } = useRandomPlaylistQuery()
 const showExcludeAlbumsDialog = ref(false)
 const showAlbumsDialog = ref(false)
 const showCreatePlaylistDialog = ref(false)
@@ -47,6 +48,16 @@ watch(randomPlaylistLimit, (value) => {
   const limit = normalizePlaylistLimit(value)
   if (value !== limit)
     randomPlaylistLimit.value = limit
+}, { immediate: true })
+
+function normalizeMinDuration(value: number) {
+  return Math.max(0, Math.min(120, Math.round((Number.isFinite(value) ? value : 0) / 10) * 10))
+}
+
+watch(randomPlaylistMinDuration, (value) => {
+  const duration = normalizeMinDuration(value)
+  if (value !== duration)
+    randomPlaylistMinDuration.value = duration
 }, { immediate: true })
 
 const productList = computed(() =>
@@ -67,24 +78,27 @@ function toggleProduct(key: string) {
 }
 
 async function generate() {
-  isLoading.value = true
   try {
     const limit = normalizePlaylistLimit(randomPlaylistLimit.value)
     randomPlaylistLimit.value = limit
+    const minDuration = normalizeMinDuration(randomPlaylistMinDuration.value)
+    randomPlaylistMinDuration.value = minDuration
 
     if (randomPlaylistMode.value === 'album') {
       if (!randomPlaylistAlbums.value.length) {
         toast.warning('请先选择专辑')
         return
       }
-      randomPlaylist.value = await getRandomPlaylistApi({
+      randomPlaylist.value = await generatePlaylist({
         limit,
+        minDuration,
         albums: randomPlaylistAlbums.value,
       })
     }
     else {
-      randomPlaylist.value = await getRandomPlaylistApi({
+      randomPlaylist.value = await generatePlaylist({
         limit,
+        minDuration,
         products: randomPlaylistProducts.value.length ? randomPlaylistProducts.value.map(k => getProductName(k)) : undefined,
         dateFrom: randomPlaylistDateFrom.value || undefined,
         dateTo: randomPlaylistDateTo.value || undefined,
@@ -95,9 +109,6 @@ async function generate() {
   }
   catch (e: any) {
     toast.error(e.message ?? '生成失败')
-  }
-  finally {
-    isLoading.value = false
   }
 }
 
@@ -192,25 +203,25 @@ onMounted(() => {
 
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">发布日期范围</label>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="min-w-0">
                   <div class="text-xs text-gray-400 mb-1">
                     起始
                   </div>
                   <input
                     v-model="randomPlaylistDateFrom"
                     type="date"
-                    class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    class="block w-full min-w-0 max-w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                 </div>
-                <div>
+                <div class="min-w-0">
                   <div class="text-xs text-gray-400 mb-1">
                     截止
                   </div>
                   <input
                     v-model="randomPlaylistDateTo"
                     type="date"
-                    class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    class="block w-full min-w-0 max-w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                 </div>
               </div>
@@ -239,6 +250,30 @@ onMounted(() => {
               >
               <span class="text-sm text-gray-700 dark:text-gray-300">排除伴奏</span>
             </label>
+
+            <div>
+              <label for="random-playlist-min-duration" class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <span>最短时长</span>
+                <span class="text-blue-500 dark:text-blue-400 tabular-nums">{{ randomPlaylistMinDuration === 0 ? '无限制' : `${randomPlaylistMinDuration} 秒` }}</span>
+              </label>
+              <input
+                id="random-playlist-min-duration"
+                v-model.number="randomPlaylistMinDuration"
+                type="range"
+                min="0"
+                max="120"
+                step="10"
+                :aria-valuetext="randomPlaylistMinDuration === 0 ? '无限制' : `${randomPlaylistMinDuration} 秒`"
+                class="w-full accent-blue-500 cursor-pointer"
+              >
+              <div class="flex justify-between mt-1 text-xs text-gray-400">
+                <span>无限制</span>
+                <span>120 秒</span>
+              </div>
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                排除时长小于所选秒数的歌曲
+              </p>
+            </div>
           </template>
 
           <template v-else>

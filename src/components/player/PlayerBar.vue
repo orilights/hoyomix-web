@@ -278,7 +278,7 @@ onMounted(() => {
                     <LucideVolume2 v-if="volume > 0" class="size-4" />
                     <LucideVolumeX v-else class="size-4" />
                   </AppButton>
-                  <Transition name="dropdown">
+                  <Transition name="volume-panel">
                     <div
                       v-show="showVolumeSlider"
                       class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 rounded-lg p-3 shadow-xl"
@@ -345,17 +345,13 @@ onMounted(() => {
   opacity: 1;
 }
 
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: all 0.2s ease;
+.volume-panel-enter-active,
+.volume-panel-leave-active {
+  transition: opacity 0.2s ease, translate 0.2s ease;
 }
-.dropdown-enter-from,
-.dropdown-leave-to {
+.volume-panel-enter-from,
+.volume-panel-leave-to {
   opacity: 0;
-  transform: translateY(4px);
-}
-.dropdown-enter-to,
-.dropdown-leave-from {
-  transform: translateY(0);
+  translate: 0 4px;
 }
 </style>

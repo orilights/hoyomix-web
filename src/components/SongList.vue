@@ -24,7 +24,9 @@ const props = withDefaults(defineProps<{
   selectable?: boolean
   selectedIds?: Set<number>
   reorderable?: boolean
+  sorting?: boolean
   busy?: boolean
+  loadPlaybackSongs?: () => Promise<PlaylistSongItem[]>
 }>(), {
   songs: () => [],
   groups: () => [],
@@ -42,11 +44,51 @@ const emit = defineEmits<{
 const slots = defineSlots<{
   'row-actions': (props: { song: PlaylistSongItem }) => any
   'empty': () => any
+  'song-description': (props: { song: PlaylistSongItem }) => any
 }>()
 const router = useRouter()
 const store = useMainStore()
 const player = usePlayerStore()
 const isDragging = ref(false)
+const listRoot = useTemplateRef<HTMLElement>('listRoot')
+let dragPointerY = 0
+let scrollFrame = 0
+let previousScrollTime = 0
+
+function stopSortScroll() {
+  cancelAnimationFrame(scrollFrame)
+  scrollFrame = 0
+  previousScrollTime = 0
+}
+
+function onSortPointerMove(event: PointerEvent | TouchEvent) {
+  if (!props.sorting)
+    return
+  const pointer = 'touches' in event ? event.touches[0] : event
+  if (pointer)
+    dragPointerY = pointer.clientY
+}
+
+function scrollWhileSorting(time: number) {
+  if (!props.sorting || !isDragging.value) {
+    stopSortScroll()
+    return
+  }
+  const viewport = listRoot.value?.closest<HTMLElement>('[data-overlayscrollbars-viewport]')
+  if (viewport) {
+    const bounds = viewport.getBoundingClientRect()
+    const edge = Math.min(80, bounds.height / 3)
+    const velocity = dragPointerY < bounds.top + edge
+      ? -Math.min(1, Math.max(0, (bounds.top + edge - dragPointerY) / edge))
+      : Math.min(1, Math.max(0, (dragPointerY - bounds.bottom + edge) / edge))
+    const elapsed = previousScrollTime ? Math.min(time - previousScrollTime, 50) : 0
+    viewport.scrollTop += velocity * elapsed * 0.5
+  }
+  previousScrollTime = time
+  scrollFrame = requestAnimationFrame(scrollWhileSorting)
+}
+
+onUnmounted(stopSortScroll)
 const showSmColumns = useMediaQuery('(min-width: 640px)')
 const showMdColumns = useMediaQuery('(min-width: 768px)')
 const playbackDialog = useTemplateRef<InstanceType<typeof SongListPlaybackDialog>>('playbackDialog')
@@ -90,9 +132,9 @@ const allSelected = computed(() =>
 
 const columnCount = computed(() =>
   3 + Number(props.selectable)
+  + Number(!props.sorting && showMdColumns.value)
   + Number(props.showCover && showSmColumns.value)
-  + Number(props.showAlbum && showMdColumns.value)
-  + Number(showMdColumns.value),
+  + Number(props.showAlbum && showMdColumns.value),
 )
 
 const hasExtraActions = computed(() => props.reorderable || Boolean(slots['row-actions']))
@@ -118,6 +160,8 @@ function toggleSelectAll() {
 }
 
 function openSong(song: PlaylistSongItem) {
+  if (props.sorting || isDragging.value)
+    return
   if (props.playlistId) {
     router.push({
       name: 'PlaylistMusicInfo',
@@ -137,7 +181,7 @@ function playSong(song: PlaylistSongItem) {
   playbackDialog.value?.play({
     songId: song.songId,
     loadSong: async () => song,
-    loadSongs: async () => songs,
+    loadSongs: props.loadPlaybackSongs ?? (async () => songs),
   })
 }
 
@@ -148,17 +192,25 @@ function addSongToPlaylist(song: PlaylistSongItem) {
 
 function handleDragStart() {
   isDragging.value = true
+  if (props.sorting)
+    scrollFrame = requestAnimationFrame(scrollWhileSorting)
   emit('reorderStart')
 }
 
 function handleDragEnd() {
   isDragging.value = false
+  stopSortScroll()
   emit('reorderEnd')
 }
 </script>
 
 <template>
-  <div class="bg-black/5 dark:bg-white/5 rounded-xl pt-2 pb-4 overflow-hidden">
+  <div
+    ref="listRoot"
+    class="bg-black/5 dark:bg-white/5 rounded-xl pt-2 pb-4 overflow-hidden"
+    @pointermove.capture="onSortPointerMove"
+    @touchmove.capture="onSortPointerMove"
+  >
     <table v-if="songCount" class="w-full table-fixed">
       <thead>
         <tr class="text-left">
@@ -181,10 +233,14 @@ function handleDragEnd() {
           <th v-if="showAlbum" class="hidden md:table-cell p-2 w-[200px]">
             专辑
           </th>
-          <th class="p-2 w-[100px]">
+          <th v-if="!sorting" class="p-2 w-[100px]">
             时长
           </th>
+          <th v-if="sorting" class="p-2 w-[56px]">
+            <span class="sr-only">拖拽排序</span>
+          </th>
           <th
+            v-else
             class="hidden md:table-cell p-2"
             :class="hasExtraActions ? 'w-[160px]' : 'w-[120px]'"
           />
@@ -197,6 +253,9 @@ function handleDragEnd() {
         handle=".song-list-drag-handle"
         :disabled="!reorderable || busy"
         :animation="200"
+        :force-fallback="sorting"
+        :fallback-on-body="sorting"
+        :scroll="!sorting"
         @start="handleDragStart"
         @end="handleDragEnd"
       >
@@ -261,6 +320,7 @@ function handleDragEnd() {
               <p v-if="row.song.songDescription" class="truncate text-xs text-gray-500 dark:text-gray-400">
                 {{ row.song.songDescription }}
               </p>
+              <slot name="song-description" :song="row.song" />
             </td>
             <td v-if="showAlbum" class="hidden md:table-cell p-2 text-sm text-gray-500 dark:text-gray-400 truncate" :title="row.song.albumName">
               <RouterLink
@@ -271,10 +331,21 @@ function handleDragEnd() {
                 {{ row.song.albumName }}
               </RouterLink>
             </td>
-            <td class="p-2 text-sm text-gray-500 dark:text-gray-400">
+            <td v-if="!sorting" class="p-2 text-sm text-gray-500 dark:text-gray-400">
               {{ formatDuration(row.song.duration) }}
             </td>
-            <td class="hidden md:table-cell p-2" @click.stop>
+            <td v-if="sorting" class="p-2" @click.stop>
+              <button
+                type="button"
+                class="song-list-drag-handle size-10 flex items-center justify-center rounded-lg text-gray-400 cursor-grab active:cursor-grabbing touch-none select-none hover:bg-gray-500/10"
+                :class="{ 'pointer-events-none opacity-40': busy }"
+                :disabled="busy"
+                :aria-label="`拖动排序：${row.song.songName}`"
+              >
+                <LucideGripVertical class="size-5" />
+              </button>
+            </td>
+            <td v-else class="hidden md:table-cell p-2" @click.stop>
               <div class="flex gap-1">
                 <div
                   v-if="!store.favoriteSongIds.includes(row.song.songId)"

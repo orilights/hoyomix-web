@@ -1,10 +1,14 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   src: string
 }>()
 
 const loaded = ref(false)
 const failed = ref(false)
+watch(() => props.src, () => {
+  loaded.value = false
+  failed.value = false
+})
 </script>
 
 <template>
