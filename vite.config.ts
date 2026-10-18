@@ -6,6 +6,7 @@ import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 import pkg from './package.json' with { type: 'json' }
 import buildInfo from './plugins/buildInfo.ts'
+import imageCacheWorker from './plugins/imageCacheWorker.ts'
 import injectHead from './plugins/injectHead.ts'
 
 export default defineConfig({
@@ -53,6 +54,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
+    imageCacheWorker(),
     UnoCSS(),
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia'],
