@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useFullscreen, useMediaQuery, useWindowSize } from '@vueuse/core'
+import { useElementSize, useFullscreen, useMediaQuery, useWindowSize } from '@vueuse/core'
 import { usePlayerCoverColors } from '@/composables/usePlayerCoverColors'
 import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
 import { usePlayerStore } from '@/store/player'
@@ -17,6 +17,7 @@ const {
   bufferedEnd,
   isFullscreen,
   isImmersive,
+  immersiveModeEnabled,
   immersiveControlsVisible,
   lyricData,
   lyricTranslation,
@@ -38,6 +39,32 @@ const sleepTimerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, pla
 const isMobileViewport = useMediaQuery('(max-width: 767px)')
 const coverMenu = ref<{ x: number, y: number } | null>(null)
 const coverMenuRef = ref<HTMLElement | null>(null)
+const showPlayerMenu = ref(false)
+const playerMenuRef = ref<HTMLElement | null>(null)
+const playerMenuTriggerRef = ref<HTMLButtonElement | null>(null)
+const playerMenuId = useId()
+const headerStartRef = ref<HTMLElement | null>(null)
+const headerEndRef = ref<HTMLElement | null>(null)
+const { width: headerStartWidth } = useElementSize(headerStartRef)
+const { width: headerEndWidth } = useElementSize(headerEndRef)
+const headerColumns = computed(() => {
+  const sideWidth = Math.max(headerStartWidth.value, headerEndWidth.value)
+  return `minmax(${sideWidth}px, 1fr) minmax(0, auto) minmax(${sideWidth}px, 1fr)`
+})
+
+function closePlayerMenu(restoreFocus = false) {
+  const wasOpen = showPlayerMenu.value
+  showPlayerMenu.value = false
+  if (restoreFocus && wasOpen)
+    playerMenuTriggerRef.value?.focus()
+}
+
+function togglePlayerMenu() {
+  showPlayerMenu.value = !showPlayerMenu.value
+  closeCoverMenu()
+  if (showPlayerMenu.value)
+    nextTick(() => playerMenuRef.value?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus())
+}
 let coverPressTimer: ReturnType<typeof setTimeout> | null = null
 let coverPressStart: { x: number, y: number } | null = null
 let suppressCoverClick = false
@@ -47,6 +74,7 @@ function closeCoverMenu() {
 }
 
 function openCoverMenu(x: number, y: number) {
+  closePlayerMenu()
   const menuWidth = 216
   const menuHeight = 214
   const margin = 8
@@ -114,12 +142,30 @@ function onMobileCoverClick(event: MouseEvent) {
 function onDocumentPointerDown(event: PointerEvent) {
   if (coverMenu.value && !coverMenuRef.value?.contains(event.target as Node))
     closeCoverMenu()
+  if (showPlayerMenu.value && !playerMenuRef.value?.contains(event.target as Node) && !playerMenuTriggerRef.value?.contains(event.target as Node))
+    closePlayerMenu()
 }
 
 function onDocumentKeyDown(event: KeyboardEvent) {
-  if (coverMenu.value && event.key === 'Escape') {
+  const menu = showPlayerMenu.value ? playerMenuRef.value : coverMenu.value ? coverMenuRef.value : null
+  if (!menu)
+    return
+  if (event.key === 'Escape') {
+    event.preventDefault()
     event.stopPropagation()
     closeCoverMenu()
+    closePlayerMenu(true)
+  }
+  else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+    event.preventDefault()
+    const items = Array.from(menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'))
+    const index = items.indexOf(document.activeElement as HTMLButtonElement)
+    const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length
+    items[nextIndex]?.focus()
+  }
+  else if (event.key === 'Tab') {
+    closeCoverMenu()
+    closePlayerMenu(true)
   }
 }
 
@@ -131,6 +177,7 @@ onMounted(() => {
 watch(isFullscreen, (value) => {
   if (!value) {
     closeCoverMenu()
+    closePlayerMenu()
     showSleepTimer.value = false
   }
 })
@@ -191,6 +238,9 @@ function showImmersiveControls() {
   player.setImmersiveControlsVisible(true)
   if (immersiveTimer)
     clearTimeout(immersiveTimer)
+  immersiveTimer = null
+  if (showPlayerMenu.value || coverMenu.value || showSleepTimer.value)
+    return
   immersiveTimer = setTimeout(() => {
     player.setImmersiveControlsVisible(false)
   }, IMMERSIVE_HIDE_DELAY)
@@ -202,8 +252,8 @@ function onImmersiveActivity() {
   showImmersiveControls()
 }
 
-watch(isImmersive, (val) => {
-  if (val) {
+watch([isImmersive, showPlayerMenu, coverMenu, showSleepTimer], ([immersive]) => {
+  if (immersive) {
     showImmersiveControls()
   }
   else {
@@ -324,13 +374,14 @@ function onHeaderTouchEnd() {
 
       <div class="relative flex-1 flex flex-col z-10 min-h-0">
         <div
-          class="relative z-10 flex items-center justify-between px-6 py-4 shrink-0 transition-opacity duration-300"
+          class="relative z-20 grid items-center gap-3 px-6 py-4 shrink-0 transition-opacity duration-300"
+          :style="{ gridTemplateColumns: headerColumns }"
           :class="{ 'opacity-0': isImmersive && !immersiveControlsVisible }"
           @touchstart="onHeaderTouchStart"
           @touchmove.prevent="onHeaderTouchMove"
           @touchend="onHeaderTouchEnd"
         >
-          <div class="flex items-center gap-1">
+          <div ref="headerStartRef" class="flex items-center gap-1 justify-self-start">
             <Tooltip
               placement="bottom"
               align="center"
@@ -364,79 +415,84 @@ function onHeaderTouchEnd() {
 
           <div
             v-show="!isImmersive || immersiveControlsVisible"
-            class="text-white/60 text-sm text-nowrap truncate cursor-pointer"
+            class="col-start-2 min-w-0 text-center text-white/60 text-sm text-nowrap truncate cursor-pointer"
             @click="toAlbum"
           >
             {{ currentSong.albumName }}
           </div>
 
-          <div class="flex items-center gap-1">
-            <div class="flex items-center gap-1">
-              <Tooltip placement="bottom" align="center" :content="sleepTimerLabel">
-                <button
-                  type="button"
-                  class="size-10 shrink-0 inline-flex items-center justify-center rounded-full transition-colors cursor-pointer hover:bg-white/10"
-                  :class="player.sleepTimer.status !== 'off' ? 'text-blue-400' : 'text-white/60 hover:text-white'"
-                  :aria-label="`定时播放：${sleepTimerLabel}`"
-                  :aria-pressed="player.sleepTimer.status !== 'off'"
-                  aria-haspopup="dialog"
-                  @touchstart.stop
-                  @click="showSleepTimer = true"
-                >
-                  <LucideTimer class="size-5" />
-                </button>
-              </Tooltip>
-
-              <Tooltip
-                placement="bottom"
-                align="center"
-                :content="showFullscreenLyrics ? '隐藏歌词' : '显示歌词'"
+          <div ref="headerEndRef" class="relative col-start-3 justify-self-end" @touchstart.stop>
+            <button
+              ref="playerMenuTriggerRef"
+              type="button"
+              class="size-10 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              :class="{ 'bg-white/10': showPlayerMenu }"
+              aria-label="播放器菜单"
+              aria-haspopup="menu"
+              :aria-expanded="showPlayerMenu"
+              :aria-controls="showPlayerMenu ? playerMenuId : undefined"
+              @click="togglePlayerMenu"
+              @keydown.down.prevent="!showPlayerMenu && togglePlayerMenu()"
+            >
+              <LucideEllipsis class="size-5" />
+            </button>
+            <Transition name="player-menu">
+              <div
+                v-if="showPlayerMenu"
+                :id="playerMenuId"
+                ref="playerMenuRef"
+                role="menu"
+                aria-label="播放器设置"
+                class="player-popup-menu absolute right-0 top-full mt-2 origin-top-right max-h-[calc(100dvh-96px)] overflow-y-auto"
+                @click="closePlayerMenu()"
               >
+                <button type="button" role="menuitem" class="player-menu-item" @click="showSleepTimer = true">
+                  <LucideTimer class="size-4 shrink-0" />
+                  <span class="flex-1">定时播放</span>
+                  <span v-if="player.sleepTimer.status !== 'off'" class="text-xs text-blue-400">{{ sleepTimerLabel }}</span>
+                </button>
+                <div class="my-1 border-t border-white/15" />
                 <button
-                  class="size-10 shrink-0 hidden md:inline-flex items-center justify-center rounded-full transition-colors cursor-pointer hover:bg-white/10"
-                  :class="showFullscreenLyrics ? 'text-blue-400' : 'text-white/60 hover:text-white'"
-                  :aria-label="showFullscreenLyrics ? '隐藏歌词' : '显示歌词'"
-                  :aria-pressed="showFullscreenLyrics"
+                  type="button" role="menuitemcheckbox" class="player-menu-item"
+                  :aria-checked="immersiveModeEnabled"
+                  @click="player.setImmersiveModeEnabled(!immersiveModeEnabled)"
+                >
+                  <LucideFocus class="size-4 shrink-0" />
+                  <span class="flex-1">沉浸模式</span>
+                  <LucideCheck v-if="immersiveModeEnabled" class="size-4 text-blue-400" />
+                </button>
+                <button
+                  v-if="!isMobileViewport"
+                  type="button" role="menuitemcheckbox" class="player-menu-item"
+                  :aria-checked="showFullscreenLyrics"
                   @click="player.toggleFullscreenLyrics()"
                 >
-                  <LucideScrollText class="size-5" />
+                  <LucideScrollText class="size-4 shrink-0" />
+                  <span class="flex-1">显示歌词</span>
+                  <LucideCheck v-if="showFullscreenLyrics" class="size-4 text-blue-400" />
                 </button>
-              </Tooltip>
-
-              <Tooltip
-                placement="bottom"
-                align="center"
-                :content="!lyricTranslation ? '当前歌曲无歌词翻译' : '歌词翻译'"
-              >
                 <button
-                  class="size-10 shrink-0 inline-flex items-center justify-center rounded-full transition-colors"
-                  :class="!lyricTranslation
-                    ? 'text-white/20'
-                    : showTranslation ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
-                  :disabled="!lyricTranslation"
+                  type="button" role="menuitemcheckbox" class="player-menu-item"
+                  :aria-checked="showTranslation" :disabled="!lyricTranslation"
+                  :title="!lyricTranslation ? '当前歌曲无歌词翻译' : undefined"
                   @click="player.toggleTranslation()"
                 >
-                  <LucideLanguages class="size-5" />
+                  <LucideLanguages class="size-4 shrink-0" />
+                  <span class="flex-1">歌词翻译</span>
+                  <LucideCheck v-if="showTranslation" class="size-4" :class="lyricTranslation ? 'text-blue-400' : 'text-white/40'" />
                 </button>
-              </Tooltip>
-
-              <Tooltip
-                placement="bottom"
-                align="center"
-                :content="!enableAudioContext ? 'AudioContext API 已禁用，请在设置中开启' : '频谱可视化'"
-              >
                 <button
-                  class="size-10 shrink-0 inline-flex items-center justify-center rounded-full transition-colors"
-                  :class="!enableAudioContext
-                    ? 'text-white/20'
-                    : showSpectrum ? 'text-blue-400 cursor-pointer hover:bg-white/10' : 'text-white/60 hover:text-white cursor-pointer hover:bg-white/10'"
-                  :disabled="!enableAudioContext"
+                  type="button" role="menuitemcheckbox" class="player-menu-item"
+                  :aria-checked="showSpectrum" :disabled="!enableAudioContext"
+                  :title="!enableAudioContext ? '请在设置中开启音频可视化' : undefined"
                   @click="player.toggleSpectrum()"
                 >
-                  <LucideAudioLines class="size-5" />
+                  <LucideAudioLines class="size-4 shrink-0" />
+                  <span class="flex-1">频谱可视化</span>
+                  <LucideCheck v-if="showSpectrum" class="size-4" :class="enableAudioContext ? 'text-blue-400' : 'text-white/40'" />
                 </button>
-              </Tooltip>
-            </div>
+              </div>
+            </Transition>
           </div>
         </div>
 
@@ -556,68 +612,128 @@ function onHeaderTouchEnd() {
         />
       </div>
 
-      <div
-        v-if="coverMenu"
-        ref="coverMenuRef"
-        role="menu"
-        aria-label="封面设置"
-        class="fixed z-30 w-[216px] rounded-xl border border-white/20 bg-gray-900/95 p-1.5 text-white shadow-xl backdrop-blur-md"
-        :style="{ left: `${coverMenu.x}px`, top: `${coverMenu.y}px` }"
-        @contextmenu.prevent
-      >
-        <div class="px-3 py-1.5 text-xs text-white/50">
-          封面形状
+      <Transition name="player-menu">
+        <div
+          v-if="coverMenu"
+          ref="coverMenuRef"
+          role="menu"
+          aria-label="封面设置"
+          class="player-popup-menu fixed z-30 origin-top-left"
+          :style="{ left: `${coverMenu.x}px`, top: `${coverMenu.y}px` }"
+          @contextmenu.prevent
+        >
+          <div class="px-3 py-1.5 text-xs text-white/50">
+            封面形状
+          </div>
+          <button
+            type="button"
+            role="menuitemradio"
+            :aria-checked="fullscreenCoverShape === 'square'"
+            class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
+            @click="player.setFullscreenCoverShape('square'); closeCoverMenu()"
+          >
+            方形
+            <LucideCheck v-if="fullscreenCoverShape === 'square'" class="size-4" />
+          </button>
+          <button
+            type="button"
+            role="menuitemradio"
+            :aria-checked="isRoundCover"
+            class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
+            @click="player.setFullscreenCoverShape('circle'); closeCoverMenu()"
+          >
+            圆形
+            <LucideCheck v-if="isRoundCover" class="size-4" />
+          </button>
+          <div class="my-1 border-t border-white/15" />
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            :aria-checked="fullscreenCoverRotation"
+            :disabled="!isRoundCover"
+            class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent"
+            @click="fullscreenCoverRotation = !fullscreenCoverRotation; closeCoverMenu()"
+          >
+            播放中封面旋转
+            <LucideCheck v-if="fullscreenCoverRotation" class="size-4" />
+          </button>
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            :aria-checked="fullscreenCoverBorder"
+            :disabled="!isRoundCover"
+            class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent"
+            @click="fullscreenCoverBorder = !fullscreenCoverBorder; closeCoverMenu()"
+          >
+            封面边框
+            <LucideCheck v-if="fullscreenCoverBorder" class="size-4" />
+          </button>
         </div>
-        <button
-          type="button"
-          role="menuitemradio"
-          :aria-checked="fullscreenCoverShape === 'square'"
-          class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
-          @click="player.setFullscreenCoverShape('square'); closeCoverMenu()"
-        >
-          方形
-          <LucideCheck v-if="fullscreenCoverShape === 'square'" class="size-4" />
-        </button>
-        <button
-          type="button"
-          role="menuitemradio"
-          :aria-checked="isRoundCover"
-          class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
-          @click="player.setFullscreenCoverShape('circle'); closeCoverMenu()"
-        >
-          圆形
-          <LucideCheck v-if="isRoundCover" class="size-4" />
-        </button>
-        <div class="my-1 border-t border-white/15" />
-        <button
-          type="button"
-          role="menuitemcheckbox"
-          :aria-checked="fullscreenCoverRotation"
-          :disabled="!isRoundCover"
-          class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent"
-          @click="fullscreenCoverRotation = !fullscreenCoverRotation; closeCoverMenu()"
-        >
-          播放中封面旋转
-          <LucideCheck v-if="fullscreenCoverRotation" class="size-4" />
-        </button>
-        <button
-          type="button"
-          role="menuitemcheckbox"
-          :aria-checked="fullscreenCoverBorder"
-          :disabled="!isRoundCover"
-          class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent"
-          @click="fullscreenCoverBorder = !fullscreenCoverBorder; closeCoverMenu()"
-        >
-          封面边框
-          <LucideCheck v-if="fullscreenCoverBorder" class="size-4" />
-        </button>
-      </div>
+      </Transition>
     </div>
   </Transition>
   <PlayerSleepTimer v-model="showSleepTimer" />
 </template>
 
 <style scoped>
+.player-popup-menu {
+  width: 216px;
+  max-width: calc(100vw - 16px);
+  border-radius: 12px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  background: rgb(17 24 39 / 95%);
+  padding: 6px;
+  color: white;
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%);
+  backdrop-filter: blur(12px);
+}
+
+.player-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.player-menu-item:hover,
+.player-menu-item:focus-visible {
+  background: rgb(255 255 255 / 10%);
+  outline: none;
+}
+
+.player-menu-item:disabled {
+  color: rgb(255 255 255 / 40%);
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.player-menu-enter-active {
+  transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.player-menu-leave-active {
+  transition: opacity 120ms ease, transform 120ms ease;
+  pointer-events: none;
+}
+
+.player-menu-enter-from,
+.player-menu-leave-to {
+  opacity: 0;
+  transform: translateY(-4px) scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-menu-enter-active,
+  .player-menu-leave-active {
+    transition: opacity 0.01ms;
+  }
+}
+
 .background-mask {
   background: rgba(0, 0, 0, 0.25);
 }

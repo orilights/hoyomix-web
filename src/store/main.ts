@@ -1,3 +1,4 @@
+import type { MapSongsSort } from '@/api/music'
 import type { AlbumListItemInfo, AppConfigResponse, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
 import { defineStore } from 'pinia'
 import { addFavoriteApi, addPlaylistFavoriteApi, getAllFavoritesApi, getFavoritePlaylistsApi, removeFavoriteApi, removePlaylistFavoriteApi } from '@/api/music'
@@ -10,6 +11,7 @@ export const useMainStore = defineStore('main', {
     backgroundUrl: '',
     showSearch: false,
     albumLayoutMap: {} as Record<string, 'grid' | 'list'>,
+    regionSongsSort: 'region' as MapSongsSort,
     // 随机播放列表
     randomPlaylistMode: 'random' as 'random' | 'album',
     randomPlaylistLimit: 20,
@@ -131,6 +133,6 @@ export const useMainStore = defineStore('main', {
     },
   },
   persist: {
-    pick: ['albumLayoutMap', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistMinDuration', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistExcludeInstrumental', 'randomPlaylistAlbums', 'randomPlaylist'],
+    pick: ['albumLayoutMap', 'regionSongsSort', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistMinDuration', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistExcludeInstrumental', 'randomPlaylistAlbums', 'randomPlaylist'],
   },
 })

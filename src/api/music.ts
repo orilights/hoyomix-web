@@ -42,19 +42,22 @@ export function getMapTreeApi(game: string, withSongCounts = false) {
   return fetchJson<MapTreeNode[]>(`${apiBase}/maps?${query}`)
 }
 
+export type MapSongsSort = 'region' | 'album_asc' | 'album_desc'
+
 export interface MapSongsParams {
   game: string
   includeChildren: boolean
   page: number
+  sort: MapSongsSort
 }
 
 export function getMapSongsApi(id: number, params: MapSongsParams) {
-  const query = new URLSearchParams({ game: params.game, includeChildren: String(params.includeChildren), page: String(params.page), limit: '50' })
+  const query = new URLSearchParams({ game: params.game, includeChildren: String(params.includeChildren), page: String(params.page), limit: '50', sort: params.sort })
   return fetchJson<MapSongsResponse>(`${apiBase}/maps/${id}/songs?${query}`)
 }
 
-export function getMapPlaybackApi(id: number, game: string, includeChildren: boolean) {
-  const query = new URLSearchParams({ game, includeChildren: String(includeChildren) })
+export function getMapPlaybackApi(id: number, game: string, includeChildren: boolean, sort: MapSongsSort) {
+  const query = new URLSearchParams({ game, includeChildren: String(includeChildren), sort })
   return fetchJson<{ songs: PlaylistSongItem[] }>(`${apiBase}/maps/${id}/songs/playback?${query}`)
 }
 

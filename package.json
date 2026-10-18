@@ -1,7 +1,7 @@
 {
   "name": "hoyomix-web",
   "type": "module",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -28,7 +28,10 @@
     "vue-echarts": "^8.1.0",
     "vue-router": "^5.2.0",
     "vue-sonner": "^2.0.9",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "workbox-core": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.3.0",
@@ -38,6 +41,7 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
     "eslint": "^10.8.1",
+    "rolldown": "1.2.3",
     "sass": "^1.102.0",
     "typescript": "^6.0.3",
     "unocss": "^66.9.2",
