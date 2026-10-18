@@ -55,10 +55,7 @@ const playbackBusy = computed(() => playbackQuery.isPending.value)
 usePageSeo({ title: computed(() => selection.value ? `${selection.value.node.name} - 地区` : '地区'), description: '按地区查找游戏音乐', path: '/map' })
 registerSongList({ songIds: computed(() => songs.value.map(song => song.songId)) })
 onMounted(() => store.setBackground())
-watch(() => route.query.sort, (value) => {
-  if (value !== undefined)
-    void router.replace({ query: { ...route.query, sort: undefined } })
-}, { immediate: true })
+
 watch(isDesktop, (value) => {
   if (value)
     showRegions.value = false
@@ -90,8 +87,6 @@ function setSort(value: MapSongsSort) {
   if (value === sort.value)
     return
   store.regionSongsSort = value
-  if (page.value !== 1)
-    void router.replace({ query: { ...route.query, page: undefined } })
 }
 
 function setChildren(value: boolean) {
