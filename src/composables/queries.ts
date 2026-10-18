@@ -1,4 +1,4 @@
-import type { MapSongsParams, PlaylistsQueryParams, RandomPlaylistParams } from '@/api/music'
+import type { MapSongsParams, MapSongsSort, PlaylistsQueryParams, RandomPlaylistParams } from '@/api/music'
 import type { ContributionRankingPeriod } from '@/types/core'
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
@@ -318,7 +318,7 @@ export function useMapSongsQuery(id: Ref<number | null>, params: Ref<MapSongsPar
 
 export function useMapPlaybackQuery() {
   return useMutation({
-    mutationFn: ({ id, game, includeChildren }: { id: number, game: string, includeChildren: boolean }) => getMapPlaybackApi(id, game, includeChildren),
+    mutationFn: ({ id, game, includeChildren, sort }: { id: number, game: string, includeChildren: boolean, sort: MapSongsSort }) => getMapPlaybackApi(id, game, includeChildren, sort),
   })
 }
 

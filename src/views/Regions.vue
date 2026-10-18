@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { MapSongsSort } from '@/api/music'
 import type { PlaylistSongItem } from '@/types/core'
 import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
@@ -24,12 +25,20 @@ const page = computed(() => {
   return Number.isInteger(value) && value > 0 && value <= 100000 ? value : 1
 })
 const includeChildren = computed(() => route.query.children !== 'false')
+const sortOptions: { value: MapSongsSort, label: string }[] = [
+  { value: 'region', label: '地区顺序' },
+  { value: 'album_asc', label: '专辑发布时间升序' },
+  { value: 'album_desc', label: '专辑发布时间降序' },
+]
+const sort = computed<MapSongsSort>(() => sortOptions.find(option => option.value === store.regionSongsSort)?.value ?? 'region')
+const sortLabel = computed(() => sortOptions.find(option => option.value === sort.value)!.label)
+const sortMenu = computed(() => sortOptions.map(option => ({ label: option.label, onClick: () => setSort(option.value) })))
 const treeQuery = useMapTreeQuery(game, supported, true)
 const tree = computed(() => treeQuery.data.value ?? [])
 const index = computed(() => buildRegionIndex(tree.value))
 const selection = computed(() => regionId.value === null ? undefined : index.value.get(regionId.value))
 const validId = computed(() => supported.value && selection.value ? regionId.value : null)
-const params = computed(() => ({ game: game.value, includeChildren: includeChildren.value, page: page.value }))
+const params = computed(() => ({ game: game.value, includeChildren: includeChildren.value, page: page.value, sort: sort.value }))
 const songsQuery = useMapSongsQuery(validId, params)
 const songs = computed(() => songsQuery.data.value?.items ?? [])
 const songsById = computed(() => new Map(songs.value.map(song => [song.songId, song])))
@@ -46,6 +55,10 @@ const playbackBusy = computed(() => playbackQuery.isPending.value)
 usePageSeo({ title: computed(() => selection.value ? `${selection.value.node.name} - 地区` : '地区'), description: '按地区查找游戏音乐', path: '/map' })
 registerSongList({ songIds: computed(() => songs.value.map(song => song.songId)) })
 onMounted(() => store.setBackground())
+watch(() => route.query.sort, (value) => {
+  if (value !== undefined)
+    void router.replace({ query: { ...route.query, sort: undefined } })
+}, { immediate: true })
 watch(isDesktop, (value) => {
   if (value)
     showRegions.value = false
@@ -73,6 +86,14 @@ function selectRegion(id: number) {
   void router.push({ name: 'Regions', query: { game: game.value, region: String(id), children: String(includeChildren.value) } })
 }
 
+function setSort(value: MapSongsSort) {
+  if (value === sort.value)
+    return
+  store.regionSongsSort = value
+  if (page.value !== 1)
+    void router.replace({ query: { ...route.query, page: undefined } })
+}
+
 function setChildren(value: boolean) {
   void router.push({ query: { ...route.query, children: String(value), page: undefined } })
 }
@@ -82,7 +103,7 @@ function setPage(value: number) {
 }
 
 const loadPlaybackSongs = computed(() => {
-  const scope = validId.value === null ? null : { id: validId.value, game: game.value, includeChildren: includeChildren.value }
+  const scope = validId.value === null ? null : { id: validId.value, game: game.value, includeChildren: includeChildren.value, sort: sort.value }
   return async (): Promise<PlaylistSongItem[]> => scope ? (await playbackQuery.mutateAsync(scope)).songs : []
 })
 
@@ -150,7 +171,15 @@ async function playAll() {
               {{ selection.node.name }}
             </h2>
             <span v-if="songsQuery.isSuccess.value" class="text-sm text-gray-500 dark:text-gray-400">{{ total }} 首歌曲</span>
-            <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 ml-auto cursor-pointer">
+            <Dropdown :options="sortMenu" alignment="right" class="ml-auto">
+              <AppButton :aria-label="`歌曲排序：${sortLabel}`">
+                <LucideMapPinned v-if="sort === 'region'" class="size-4" />
+                <LucideClockArrowUp v-else-if="sort === 'album_asc'" class="size-4" />
+                <LucideClockArrowDown v-else class="size-4" />
+                {{ sortLabel }}<LucideChevronDown class="size-3.5" />
+              </AppButton>
+            </Dropdown>
+            <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 cursor-pointer">
               <input type="checkbox" class="accent-blue-500" :checked="includeChildren" @change="setChildren(($event.target as HTMLInputElement).checked)">包含子地区
             </label>
             <AppButton variant="primary" :disabled="!songs.length || songsQuery.isFetching.value || playbackBusy" @click="playAll">
