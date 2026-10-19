@@ -34,9 +34,32 @@ import {
   removeAlbumFavoriteApi,
   updatePlaylistSongsApi,
 } from '@/api/music'
+import { getUserNameAvailabilityApi } from '@/api/user'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { NotFoundError } from '@/utils/fetch'
+
+function userNameAvailabilityOptions(name: string) {
+  return {
+    queryKey: ['userNameAvailability', name] as const,
+    queryFn: () => getUserNameAvailabilityApi(name),
+    staleTime: 0,
+    retry: false,
+    refetchOnWindowFocus: false,
+  }
+}
+
+export function useUserNameAvailabilityQuery(name: Ref<string | null>) {
+  const client = useQueryClient()
+  const query = useQuery(computed(() => ({
+    ...userNameAvailabilityOptions(name.value ?? ''),
+    enabled: name.value !== null,
+  })))
+  return {
+    ...query,
+    checkName: (value: string) => client.fetchQuery(userNameAvailabilityOptions(value)),
+  }
+}
 
 export function useAlbumFavoritesQuery() {
   const auth = useAuthStore()
