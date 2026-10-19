@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { useUserNameValidation } from '@/composables/useUserNameValidation'
 import { authClient } from '@/utils/auth-client'
+import { getAuthErrorMessage } from '@/utils/auth-error'
 
 const router = useRouter()
 const route = useRoute()
@@ -21,33 +23,23 @@ const registerName = ref('')
 const registerEmail = ref('')
 const registerPassword = ref('')
 const registerConfirm = ref('')
+const registerNameId = useId()
+const registerNameEnabled = computed(() => visible.value && tab.value === 'register' && !registerSuccess.value)
+const {
+  message: registerNameMessage,
+  error: registerNameError,
+  checking: registerNameChecking,
+  confirmAvailable: confirmRegisterName,
+  setServerError: setRegisterNameError,
+} = useUserNameValidation(registerName, registerNameEnabled)
 
 const forgotEmail = ref('')
 
 const errorMsg = ref('')
-
-function getErrorMessage(error: { status?: number, message?: string, code?: string } | null): string {
-  if (!error)
-    return '操作失败，请稍后重试'
-  const codeMessages: Record<string, string> = {
-    INVALID_EMAIL_OR_PASSWORD: '邮箱或密码错误',
-    USER_ALREADY_EXISTS: '该邮箱已被注册',
-    EMAIL_NOT_VERIFIED: '邮箱尚未验证，请先查收验证邮件',
-    USER_NOT_FOUND: '用户不存在',
-    TOO_MANY_REQUESTS: '请求过于频繁，请稍后重试',
-  }
-  if (error.code && codeMessages[error.code])
-    return codeMessages[error.code]
-  const statusMessages: Record<number, string> = {
-    401: '邮箱或密码错误',
-    403: '邮箱尚未验证，请先查收验证邮件',
-    409: '该邮箱已被注册',
-    429: '请求过于频繁，请稍后重试',
-  }
-  if (error.status && statusMessages[error.status])
-    return statusMessages[error.status]
-  return error.message ?? '操作失败，请稍后重试'
-}
+let formRevision = 0
+watch([visible, tab], () => {
+  formRevision++
+}, { flush: 'sync' })
 
 function resetForms() {
   loginEmail.value = ''
@@ -82,7 +74,7 @@ async function handleLogin() {
   })
   loading.value = false
   if (error) {
-    errorMsg.value = getErrorMessage(error)
+    errorMsg.value = getAuthErrorMessage(error)
     return
   }
   close()
@@ -94,24 +86,43 @@ async function handleLogin() {
 }
 
 async function handleRegister() {
+  if (loading.value)
+    return
   errorMsg.value = ''
   if (registerPassword.value !== registerConfirm.value) {
     errorMsg.value = '两次输入的密码不一致'
     return
   }
   loading.value = true
-  const { error } = await authClient.signUp.email({
-    name: registerName.value,
-    email: registerEmail.value,
-    password: registerPassword.value,
-    callbackURL: `${window.location.origin}${router.resolve({ name: 'EmailVerified' }).href}`,
-  })
-  loading.value = false
-  if (error) {
-    errorMsg.value = getErrorMessage(error)
-    return
+  const submittedName = registerName.value
+  const revision = formRevision
+  try {
+    if (!await confirmRegisterName())
+      return
+    const { error } = await authClient.signUp.email({
+      name: submittedName,
+      email: registerEmail.value,
+      password: registerPassword.value,
+      callbackURL: `${window.location.origin}${router.resolve({ name: 'EmailVerified' }).href}`,
+    })
+    if (revision !== formRevision || !registerNameEnabled.value || registerName.value !== submittedName)
+      return
+    if (error) {
+      if (error.code === 'USERNAME_TAKEN' || error.code === 'INVALID_USERNAME')
+        setRegisterNameError(getAuthErrorMessage(error))
+      else
+        errorMsg.value = getAuthErrorMessage(error)
+      return
+    }
+    registerSuccess.value = true
   }
-  registerSuccess.value = true
+  catch {
+    if (revision === formRevision && registerNameEnabled.value)
+      errorMsg.value = '注册失败，请检查网络后重试'
+  }
+  finally {
+    loading.value = false
+  }
 }
 
 async function handleForgot() {
@@ -123,7 +134,7 @@ async function handleForgot() {
   })
   loading.value = false
   if (error) {
-    errorMsg.value = getErrorMessage(error)
+    errorMsg.value = getAuthErrorMessage(error)
     return
   }
   forgotSuccess.value = true
@@ -259,20 +270,28 @@ function handleGitHub() {
 
         <form v-else-if="tab === 'register'" class="space-y-3" @submit.prevent="handleRegister">
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">用户名</label>
+            <label :for="registerNameId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">用户名</label>
             <input
+              :id="registerNameId"
               v-model="registerName"
               type="text"
               required
-              autocomplete="name"
+              :disabled="loading"
+              autocomplete="username"
+              :aria-invalid="!!registerNameError"
+              :aria-describedby="`${registerNameId}-hint`"
               placeholder="请输入用户名"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
+            <p :id="`${registerNameId}-hint`" class="mt-1 text-xs" :class="registerNameError ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'" aria-live="polite" :aria-busy="registerNameChecking">
+              {{ registerNameMessage }}
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮箱</label>
             <input
               v-model="registerEmail"
+              :disabled="loading"
               type="email"
               required
               autocomplete="email"
@@ -284,6 +303,7 @@ function handleGitHub() {
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">密码</label>
             <input
               v-model="registerPassword"
+              :disabled="loading"
               type="password"
               required
               autocomplete="new-password"
@@ -295,6 +315,7 @@ function handleGitHub() {
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">确认密码</label>
             <input
               v-model="registerConfirm"
+              :disabled="loading"
               type="password"
               required
               autocomplete="new-password"

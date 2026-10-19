@@ -1,7 +1,7 @@
 {
   "name": "hoyomix-web",
   "type": "module",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -17,7 +17,7 @@
     "@tanstack/vue-query": "^5.101.4",
     "@unhead/vue": "^3.3.2",
     "@vueuse/core": "^14.4.0",
-    "better-auth": "^1.6.26",
+    "better-auth": "1.7.11",
     "echarts": "^6.1.0",
     "markdown-it": "^15.0.2",
     "overlayscrollbars": "^2.16.0",
