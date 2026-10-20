@@ -16,7 +16,7 @@ const nextOption = computed(() => options[(options.findIndex(option => option.va
 <template>
   <Tooltip v-if="compact" :content="currentLabel" placement="bottom" align="center">
     <AppButton icon-only shape="pill" :aria-label="currentLabel" @click="theme.setMode(nextOption.value)">
-      <LucideMonitor v-if="theme.mode === 'system'" class="size-4.5" />
+      <LucideSunMoon v-if="theme.mode === 'system'" class="size-4.5" />
       <LucideSun v-else-if="theme.mode === 'light'" class="size-4.5" />
       <LucideMoon v-else class="size-4.5" />
     </AppButton>
