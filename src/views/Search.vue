@@ -25,14 +25,6 @@ const { data, isFetching, isError, error, refetch } = useSearchPageQuery(queryKe
 const isTyping = computed(() => keyword.value.trim() !== queryKeyword.value || composing.value)
 const results = computed(() => isTyping.value ? [] : data.value?.results ?? [])
 const pagination = computed(() => data.value?.pagination)
-const pages = computed(() => {
-  const total = pagination.value?.totalPages ?? 0
-  if (total <= 7)
-    return Array.from({ length: total }, (_, index) => index + 1)
-  return [...new Set([1, page.value - 1, page.value, page.value + 1, total])]
-    .filter(value => value >= 1 && value <= total)
-    .sort((a, b) => a - b)
-})
 
 watch(() => route.query, () => {
   clearTimeout(inputTimer)
@@ -165,19 +157,14 @@ onBeforeUnmount(() => clearTimeout(inputTimer))
       </div>
     </section>
 
-    <nav v-if="!isTyping && !isError && pagination && pagination.totalPages > 1" class="flex flex-wrap justify-center items-center gap-1 mt-5" aria-label="搜索分页">
-      <AppButton icon-only size="sm" variant="ghost" aria-label="上一页" :disabled="page <= 1 || isFetching" @click="setPage(page - 1)">
-        <LucideChevronLeft class="size-4" />
-      </AppButton>
-      <template v-for="(value, index) in pages" :key="value">
-        <span v-if="index > 0 && value - pages[index - 1]! > 1" class="text-gray-400 px-1">…</span>
-        <AppButton size="sm" :variant="value === page ? 'primary' : 'ghost'" :aria-label="`第 ${value} 页`" :aria-current="value === page ? 'page' : undefined" :disabled="isFetching" @click="setPage(value)">
-          {{ value }}
-        </AppButton>
-      </template>
-      <AppButton icon-only size="sm" variant="ghost" aria-label="下一页" :disabled="page >= pagination.totalPages || isFetching" @click="setPage(page + 1)">
-        <LucideChevronRight class="size-4" />
-      </AppButton>
-    </nav>
+    <Pagination
+      v-if="!isTyping && !isError && pagination"
+      :model-value="page"
+      :total-pages="pagination.totalPages"
+      :disabled="isFetching"
+      aria-label="搜索分页"
+      class="justify-center mt-5"
+      @update:model-value="setPage"
+    />
   </div>
 </template>
