@@ -408,7 +408,7 @@ function refreshSongInfo() {
 
               <div class="mt-4">
                 <AsyncFade>
-                  <div v-if="isSongLoading" class="flex items-center gap-2 py-2 text-gray-400">
+                  <div v-if="isSongLoading" class="flex items-center justify-center gap-2 py-2 text-gray-400">
                     <LucideLoader2 class="size-4 animate-spin" />
                     加载中...
                   </div>

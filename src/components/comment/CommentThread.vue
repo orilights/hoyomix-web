@@ -249,7 +249,7 @@ onBeforeUnmount(() => {
             重试
           </AppButton>
         </div>
-        <div v-if="repliesQuery.isFetching.value" class="py-3 flex items-center gap-2 text-xs text-gray-400">
+        <div v-if="repliesQuery.isFetching.value" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400">
           <LucideLoader2 class="size-4 animate-spin" />
           加载回复中
         </div>

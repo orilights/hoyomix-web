@@ -149,7 +149,7 @@ watch(() => auth.user?.id, () => {
                 <LucidePlus class="size-4" />
               </AppButton>
             </div>
-            <p v-if="group.loading" role="status" class="px-3 py-2 text-xs text-gray-400">
+            <p v-if="group.loading" role="status" class="px-3 py-2 text-center text-xs text-gray-400">
               加载中…
             </p>
             <div v-else-if="group.error" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">

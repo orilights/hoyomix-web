@@ -51,6 +51,7 @@ declare module 'vue' {
     LucideAArrowDown: typeof import('@lucide/vue')['AArrowDown']
     LucideAArrowUp: typeof import('@lucide/vue')['AArrowUp']
     LucideArrowDownWideNarrow: typeof import('@lucide/vue')['ArrowDownWideNarrow']
+    LucideArrowRight: typeof import('@lucide/vue')['ArrowRight']
     LucideArrowUp: typeof import('@lucide/vue')['ArrowUp']
     LucideArrowUpNarrowWide: typeof import('@lucide/vue')['ArrowUpNarrowWide']
     LucideAudioLines: typeof import('@lucide/vue')['AudioLines']

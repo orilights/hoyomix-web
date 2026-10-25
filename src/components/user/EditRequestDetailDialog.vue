@@ -58,7 +58,7 @@ async function cancel() {
 <template>
   <AppDialog v-model="visible" title="编辑申请详情" size="md">
     <div class="p-4 sm:p-6 max-h-[65vh] overflow-y-auto overscroll-contain space-y-4 text-sm break-words [overflow-wrap:anywhere]">
-      <p v-if="isPending" role="status">
+      <p v-if="isPending" class="text-center" role="status">
         加载中...
       </p>
       <div v-else-if="isError">

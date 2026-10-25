@@ -27,7 +27,7 @@ watch(() => [props.id, props.type], () => {
     <h2 class="font-semibold mb-3">
       贡献信息
     </h2>
-    <div v-if="isLoading" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400" role="status">
+    <div v-if="isLoading" class="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400" role="status">
       <LucideLoader2 class="size-4 animate-spin" />
       加载中...
     </div>
