@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { RankingPeriod } from '@/api/music'
-import type { PlaylistSongItem } from '@/types/core'
 import { useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
-import { getRankingApi } from '@/api/music'
+import { useRankingQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
 import { useMainStore } from '@/store/main'
@@ -28,7 +27,7 @@ const periods: { key: RankingPeriod, label: string }[] = [
 
 const params = useUrlSearchParams('history', { removeFalsyValues: true })
 const tab = computed<RankingPeriod>({
-  get: () => (params.tab as RankingPeriod) || '1d',
+  get: () => periods.find(p => p.key === params.tab)?.key ?? '1d',
   set: (val) => { params.tab = val },
 })
 const selectedDate = computed<string>({
@@ -36,53 +35,44 @@ const selectedDate = computed<string>({
   set: (val) => { params.date = val },
 })
 const rankingQueryDate = computed(() => tab.value === 'all' ? '' : selectedDate.value)
-const songs = ref<PlaylistSongItem[]>([])
+const productId = computed<number | undefined>({
+  get: () => typeof params.productId === 'string' && /^\d+$/.test(params.productId)
+    && Number.isSafeInteger(Number(params.productId)) && Number(params.productId) > 0
+    ? Number(params.productId)
+    : undefined,
+  set: (val) => { params.productId = val === undefined ? '' : String(val) },
+})
+const productOptions = computed(() => {
+  const songCounts = new Map<string, number>()
+  for (const album of store.albumList) {
+    songCounts.set(album.productName, (songCounts.get(album.productName) ?? 0) + album.songCount)
+  }
+  return [
+    { productId: undefined, name: '全部游戏' },
+    ...[...store.productList].sort((a, b) => (songCounts.get(b.name) ?? 0) - (songCounts.get(a.name) ?? 0)),
+  ]
+})
+const { data, isPending, isFetching, isError, refetch } = useRankingQuery(tab, rankingQueryDate, productId)
+const songs = computed(() => isError.value ? [] : data.value?.songs ?? [])
+const canPlay = computed(() => !isFetching.value && !isPending.value && !isError.value && songs.value.length > 0)
 
 registerSongList({ songIds: () => songs.value.map(s => s.songId) })
 
-const rankingDate = ref<string | undefined>()
 const displayDate = computed({
-  get: () => selectedDate.value || rankingDate.value?.slice(0, 10) || '',
+  get: () => selectedDate.value || data.value?.date?.slice(0, 10) || '',
   set: (val: string) => { selectedDate.value = val },
 })
-const isLoading = ref(false)
-let requestId = 0
-
-watch([tab, rankingQueryDate], () => {
-  fetchRanking()
-})
-
-async function fetchRanking() {
-  const currentRequest = ++requestId
-  isLoading.value = true
-  try {
-    const res = await getRankingApi(tab.value, rankingQueryDate.value || undefined)
-    if (currentRequest !== requestId)
-      return
-    songs.value = res.songs
-    rankingDate.value = res.date
-  }
-  catch (e: any) {
-    if (currentRequest !== requestId)
-      return
-    toast.error(e.message ?? '加载失败')
-    songs.value = []
-    rankingDate.value = undefined
-  }
-  finally {
-    if (currentRequest === requestId)
-      isLoading.value = false
-  }
-}
 
 function playAll() {
-  if (!songs.value.length)
+  if (!canPlay.value)
     return
   player.replacePlaylist(songs.value, 0)
   toast.success('已替换播放列表')
 }
 
 function addAllToPlaylist() {
+  if (!canPlay.value)
+    return
   let addCount = 0
   for (const song of songs.value) {
     const { isNew } = player.addToPlaylist(song)
@@ -94,7 +84,6 @@ function addAllToPlaylist() {
 
 onMounted(() => {
   store.setBackground()
-  fetchRanking()
 })
 </script>
 
@@ -127,14 +116,14 @@ onMounted(() => {
       <div class="flex gap-2">
         <AppButton
           variant="primary"
-          :disabled="!songs.length"
+          :disabled="!canPlay"
           @click="playAll"
         >
           <LucidePlay class="size-4" fill="currentColor" />
           播放全部
         </AppButton>
         <AppButton
-          :disabled="!songs.length"
+          :disabled="!canPlay"
           @click="addAllToPlaylist"
         >
           <LucideListMusic class="size-4" />
@@ -143,10 +132,30 @@ onMounted(() => {
       </div>
     </div>
 
+    <div class="flex flex-wrap gap-2 mb-4" role="group" aria-label="游戏筛选">
+      <AppButton
+        v-for="product in productOptions"
+        :key="product.productId ?? 'all'"
+        :variant="productId === product.productId ? 'primary' : 'secondary'"
+        shape="pill"
+        :aria-pressed="productId === product.productId"
+        @click="productId = product.productId"
+      >
+        {{ product.name }}
+      </AppButton>
+    </div>
+
     <AsyncFade>
-      <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
+      <div v-if="isPending || isFetching" class="flex items-center justify-center py-20 text-gray-400" role="status">
         <LucideLoader2 class="size-6 animate-spin mr-2" />
         加载中...
+      </div>
+
+      <div v-else-if="isError" class="flex flex-col items-center gap-3 py-20 text-gray-500 dark:text-gray-400" role="alert">
+        <p>热榜加载失败</p>
+        <AppButton @click="refetch()">
+          重试
+        </AppButton>
       </div>
 
       <SongList

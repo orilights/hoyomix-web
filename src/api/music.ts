@@ -269,14 +269,16 @@ export function removePlaylistFavoriteApi(id: string) {
 export type RankingPeriod = '1d' | '7d' | '30d' | '365d' | 'all'
 
 export interface RankingResponse {
-  date?: string
+  date: string | null
   songs: PlaylistSongItem[]
 }
 
-export function getRankingApi(period: RankingPeriod, date?: string) {
+export function getRankingApi(period: RankingPeriod, date?: string, productId?: number) {
   const params = new URLSearchParams({ period })
-  if (date)
+  if (date && period !== 'all')
     params.set('date', date)
+  if (productId !== undefined)
+    params.set('productId', String(productId))
   return fetchJson<RankingResponse>(`${apiBase}/ranking?${params}`)
 }
 

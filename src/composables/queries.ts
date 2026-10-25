@@ -1,4 +1,4 @@
-import type { MapSongsParams, MapSongsSort, PlaylistsQueryParams, RandomPlaylistParams } from '@/api/music'
+import type { MapSongsParams, MapSongsSort, PlaylistsQueryParams, RandomPlaylistParams, RankingPeriod } from '@/api/music'
 import type { ContributionRankingPeriod } from '@/types/core'
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
@@ -29,6 +29,7 @@ import {
   getPlaylistDetailApi,
   getPublicPlaylistsApi,
   getRandomPlaylistApi,
+  getRankingApi,
   getSearchApi,
   getSearchPageApi,
   getSongInfoApi,
@@ -369,4 +370,17 @@ export function useContributionRankingQuery(period: Ref<ContributionRankingPerio
     queryFn: () => getContributionRankingApi(period.value),
     staleTime: 60_000,
   })
+}
+
+export function useRankingQuery(period: Ref<RankingPeriod>, date: Ref<string>, productId: Ref<number | undefined>) {
+  return useQuery(computed(() => {
+    const currentPeriod = period.value
+    const currentDate = currentPeriod === 'all' ? undefined : date.value || undefined
+    const currentProductId = productId.value
+    return {
+      queryKey: ['ranking', currentPeriod, currentDate, currentProductId],
+      queryFn: () => getRankingApi(currentPeriod, currentDate, currentProductId),
+      staleTime: 60_000,
+    }
+  }))
 }
