@@ -415,7 +415,7 @@ function onHeaderTouchEnd() {
 
           <div
             v-show="!isImmersive || immersiveControlsVisible"
-            class="col-start-2 min-w-0 text-center text-white/60 text-sm text-nowrap truncate cursor-pointer"
+            class="col-start-2 min-w-0 text-center text-white/60 text-sm whitespace-nowrap truncate cursor-pointer"
             @click="toAlbum"
           >
             {{ currentSong.albumName }}

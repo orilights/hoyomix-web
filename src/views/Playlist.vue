@@ -629,7 +629,7 @@ async function deletePlaylist() {
         <Transition name="action-bar">
           <div
             v-if="selectedIds.size > 0"
-            class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3 text-nowrap"
+            class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3 whitespace-nowrap"
           >
             <span class="text-sm text-white/70">已选 {{ selectedIds.size }} 首</span>
             <div class="w-px h-4 bg-white/20 dark:bg-[var(--theme-surface)]/20" />

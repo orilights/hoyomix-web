@@ -9,7 +9,7 @@ export default function imageCacheWorker(): Plugin {
     const result = await build({
       input: entry,
       platform: 'browser',
-      transform: { define: { 'process.env.NODE_ENV': JSON.stringify('production') } },
+      transform: { target: 'chrome109', define: { 'process.env.NODE_ENV': JSON.stringify('production') } },
       output: { format: 'iife', minify: true },
       write: false,
     })

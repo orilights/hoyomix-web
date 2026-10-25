@@ -99,6 +99,8 @@ html,
   --theme-text: #111827;
   --theme-surface: #1f2937;
   --theme-overlay: #111827;
+  --theme-surface-rgb: 31 41 55;
+  --theme-overlay-rgb: 17 24 39;
   --theme-scrollbar: rgb(0 0 0 / 0.25);
   --theme-scrollbar-hover: rgb(0 0 0 / 0.4);
   --theme-scrollbar-active: rgb(0 0 0 / 0.5);

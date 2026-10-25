@@ -9,6 +9,8 @@ import buildInfo from './plugins/buildInfo.ts'
 import imageCacheWorker from './plugins/imageCacheWorker.ts'
 import injectHead from './plugins/injectHead.ts'
 
+const browserTargets = ['chrome109', 'edge109', 'firefox114', 'safari16.4', 'ios16.4']
+
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
@@ -20,6 +22,9 @@ export default defineConfig({
   },
   base: '/',
   build: {
+    target: browserTargets,
+    cssTarget: browserTargets,
+    cssMinify: 'lightningcss',
     cssCodeSplit: false,
     rolldownOptions: {
       output: {

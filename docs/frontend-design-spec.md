@@ -209,6 +209,8 @@ Toaster（全局提示）
 
 ## 13. 工程化与构建
 
+- **浏览器兼容**：Chromium 内核最低支持 Chrome / Edge 109；其他构建目标保持 Firefox 114、Safari / iOS 16.4。Vite 的 JS、CSS 和独立图片缓存 Worker 均显式设置目标。UnoCSS 通过 `plugins/unoBrowserCompat.ts` 为 OKLCH 调色板、主题透明背景和 Oklab 渐变生成 `@supports` 兼容分支；现代浏览器保留原有颜色与插值方式，旧内核使用 RGB 及普通渐变。主题透明背景同时维护 `--theme-surface-rgb` / `--theme-overlay-rgb` 通道变量。禁止换行使用 `whitespace-nowrap`；新增运行时 API 仍需检查目标浏览器支持情况，构建转换不会自动补齐 API。兼容验证使用真实 Chromium 109 的生产构建，并对照现代浏览器检查亮暗主题、悬浮提示、主按钮、筛选条与遮罩；不能用修改 UA 代替旧内核测试。
+
 - **图片缓存**：入口注册 `/image-cache-sw.js`，由 `plugins/imageCacheWorker.ts` 将 `service-worker/image-cache-sw.js` 及 Workbox 依赖独立打包（开发环境也提供相同脚本），不依赖外部脚本 CDN，不预缓存页面或接管导航。使用 Workbox 路由及 `CacheFirst` 策略，缓存 `VITE_RESOURCE_BASE` 下 `/cover/ncm/`、`/cover/qq/` 的专辑封面（所有现有尺寸），以及 `https://icdn.amarea.cn/gi-assets/img/` 目录下请求过的所有文件（含子目录，不限制扩展名或 Content-Type）。沿用 `hoyomix-images-v1`，两类资源共用 Cache Storage。容量插件负责后台写入，数据总上限为 100 × 1024 × 1024 字节，超过时按写入顺序淘汰旧资源；不缓存失败响应、空文件或单个超过上限的文件。大小索引在每次 Worker 启动后首次写入或统计时分批扫描一次，此后增量维护；只有写入、统计和清理进入串行队列，图片读取不等待该队列。跨域请求使用 CORS 读取实际数据大小，无法读取时回退到原始请求并跳过缓存；缓存访问失败也回退到原始请求。
 - **缓存管理**：`utils/image-cache.ts` 通过 MessageChannel 与 Service Worker 通信；`composables/useImageCache.ts` 在每次打开设置页时读取一次用量，不定时刷新。设置的「缓存」区块展示图片数据大小、数量，支持手动刷新和清理；清理使此前未完成的下载失效，避免清理后旧请求重新写入。仅清理本站图片缓存，浏览器存储元数据及 HTTP 缓存不计入用量。不支持 Service Worker 的环境显示提示；生产环境需 HTTPS，开发用 localhost。
 

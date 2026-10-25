@@ -90,6 +90,9 @@ importers:
       eslint:
         specifier: ^10.8.1
         version: 10.8.1(jiti@2.7.0)
+      lightningcss:
+        specifier: ^1.33.0
+        version: 1.33.0
       rolldown:
         specifier: 1.2.3
         version: 1.2.3
