@@ -48,8 +48,10 @@ const productOptions = computed(() => {
     songCounts.set(album.productName, (songCounts.get(album.productName) ?? 0) + album.songCount)
   }
   return [
-    { productId: undefined, name: '全部游戏' },
-    ...[...store.productList].sort((a, b) => (songCounts.get(b.name) ?? 0) - (songCounts.get(a.name) ?? 0)),
+    { value: undefined, label: '全部' },
+    ...[...store.productList]
+      .sort((a, b) => (songCounts.get(b.name) ?? 0) - (songCounts.get(a.name) ?? 0))
+      .map(product => ({ value: product.productId, label: product.name })),
   ]
 })
 const { data, isPending, isFetching, isError, refetch } = useRankingQuery(tab, rankingQueryDate, productId)
@@ -132,18 +134,13 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="flex flex-wrap gap-2 mb-4" role="group" aria-label="游戏筛选">
-      <AppButton
-        v-for="product in productOptions"
-        :key="product.productId ?? 'all'"
-        :variant="productId === product.productId ? 'primary' : 'secondary'"
-        shape="pill"
-        :aria-pressed="productId === product.productId"
-        @click="productId = product.productId"
-      >
-        {{ product.name }}
-      </AppButton>
-    </div>
+    <FilterChips
+      v-model="productId"
+      :options="productOptions"
+      class="mb-4"
+      role="group"
+      aria-label="游戏筛选"
+    />
 
     <AsyncFade>
       <div v-if="isPending || isFetching" class="flex items-center justify-center py-20 text-gray-400" role="status">

@@ -5,6 +5,7 @@ import { useAlbumInfoQuery, useCommentThreadsQuery } from '@/composables/queries
 import { scrollPageToElement } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
+import { vPageEnter } from '@/directives/page-enter'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -210,7 +211,7 @@ function addAlbumToPlaylist() {
     </div>
 
     <div v-else-if="albumInfo" class="album-page detail-page">
-      <div class="detail-header">
+      <div v-page-enter="0" class="detail-header">
         <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
           <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px')" />
         </div>
@@ -265,7 +266,7 @@ function addAlbumToPlaylist() {
 
       <div class="detail-content">
         <div v-show="activeTab === 'songs' || activeTab === 'comments'" class="detail-desktop-visible min-w-0">
-          <div v-show="activeTab === 'songs'" ref="songSection" class="detail-desktop-visible">
+          <div v-show="activeTab === 'songs'" ref="songSection" v-page-enter="120" class="detail-desktop-visible">
             <nav
               v-if="showDiscName"
               class="mb-3 w-fit max-w-full"
@@ -288,13 +289,13 @@ function addAlbumToPlaylist() {
             <SongList :songs="songListItems" :groups="songGroups" />
           </div>
 
-          <div v-show="activeTab === 'comments'" ref="commentSection" class="detail-comments detail-desktop-visible">
+          <div v-show="activeTab === 'comments'" ref="commentSection" v-page-enter="route.query.commentId ? false : 240" class="detail-comments detail-desktop-visible">
             <CommentSection :post-id="`hoyomix:album:${albumInfo.id}`" />
           </div>
         </div>
 
         <div v-show="activeTab === 'artists' || activeTab === 'info'" class="detail-sidebar detail-sidebar-stack detail-desktop-visible min-w-0">
-          <div v-show="activeTab === 'info'" class="detail-desktop-visible">
+          <div v-show="activeTab === 'info'" v-page-enter="120" class="detail-desktop-visible">
             <div v-if="albumInfo.description" class="album-description text-sm bg-black/5 dark:bg-white/5 rounded-xl p-4">
               <p
                 id="album-description-content"
@@ -321,11 +322,11 @@ function addAlbumToPlaylist() {
             </div>
           </div>
 
-          <div v-show="activeTab === 'artists'" class="detail-desktop-visible">
+          <div v-show="activeTab === 'artists'" v-page-enter="240" class="detail-desktop-visible">
             <ArtistListByType :id="albumInfo.id" type="album" />
           </div>
 
-          <div v-show="activeTab === 'info'" class="detail-desktop-visible">
+          <div v-show="activeTab === 'info'" v-page-enter="360" class="detail-desktop-visible">
             <ContributionCard :id="albumInfo.id" type="album" />
           </div>
         </div>

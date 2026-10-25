@@ -31,9 +31,34 @@ watch(() => player.sleepTimer.status, (status) => {
 useEventListener(document, 'visibilitychange', () => player.checkSleepTimer())
 useEventListener(window, ['focus', 'pageshow'], () => player.checkSleepTimer())
 
-const { data: albumListData, isError: isAlbumListError, error: albumListError } = useAlbumListQuery()
+const {
+  data: albumListData,
+  isError: isAlbumListError,
+  error: albumListError,
+  isFetching: isAlbumListFetching,
+  refetch: refetchAlbumList,
+} = useAlbumListQuery()
 
-const { data: appConfigData } = useAppConfigQuery()
+const {
+  data: appConfigData,
+  isError: isAppConfigError,
+  isFetching: isAppConfigFetching,
+  refetch: refetchAppConfig,
+} = useAppConfigQuery()
+
+// 已有可用数据时，后台刷新不遮挡页面；首次加载须等待两项基础数据都就绪。
+const initialDataReady = computed(() => albumListData.value !== undefined && appConfigData.value !== undefined)
+const initialDataError = computed(() => (albumListData.value === undefined && isAlbumListError.value)
+  || (appConfigData.value === undefined && isAppConfigError.value))
+const canRetryInitialData = computed(() => (albumListData.value === undefined && !isAlbumListFetching.value)
+  || (appConfigData.value === undefined && !isAppConfigFetching.value))
+
+function retryInitialData() {
+  if (albumListData.value === undefined && !isAlbumListFetching.value)
+    void refetchAlbumList()
+  if (appConfigData.value === undefined && !isAppConfigFetching.value)
+    void refetchAppConfig()
+}
 
 // 登录、退出或切换账号时，统一清理身份相关缓存，再加载当前账号的收藏。
 watch(() => auth.user?.id ?? null, (userId, previousUserId) => {
@@ -75,7 +100,7 @@ watch(appConfigData, (data) => {
 }, { immediate: true })
 
 watch(isAlbumListError, (val) => {
-  if (val)
+  if (val && albumListData.value !== undefined)
     toast.error(`专辑列表加载失败：${albumListError.value?.message ?? '未知错误'}`)
 })
 
@@ -147,7 +172,21 @@ onUnmounted(() => {
     @os-scroll="onPageScroll"
     @os-destroyed="onPageScrollDestroyed"
   >
-    <div class="px-4 md:px-16 xl:px-8 pt-6 pb-7">
+    <div v-if="!initialDataReady" class="app-bootstrap-state flex items-center justify-center px-4 py-6 text-center">
+      <div v-if="initialDataError" role="alert">
+        <p class="text-sm text-red-500">
+          加载失败，请稍后重试
+        </p>
+        <AppButton class="mt-3" size="sm" :disabled="!canRetryInitialData" @click="retryInitialData">
+          重试
+        </AppButton>
+      </div>
+      <div v-else class="flex items-center justify-center gap-2 text-gray-400" role="status">
+        <LucideLoader2 class="size-5 animate-spin" />
+        加载中...
+      </div>
+    </div>
+    <div v-else class="px-4 md:px-16 xl:px-8 pt-6 pb-7">
       <router-view v-slot="{ Component }">
         <!-- enter 时新页面已插入 DOM 且仍透明，滚动应在淡入开始前恢复。 -->
         <Transition name="page-fade" mode="out-in" appear @enter="completePageRender">
@@ -165,6 +204,11 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.app-bootstrap-state {
+  min-height: calc(100vh - 128px);
+  min-height: calc(100dvh - 128px);
+}
+
 .page-scroll :deep([data-overlayscrollbars-viewport]) {
   overscroll-behavior: contain;
 }

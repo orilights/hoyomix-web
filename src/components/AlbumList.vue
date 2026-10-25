@@ -3,6 +3,7 @@ import type { AlbumListItemInfo } from '@/types/core'
 import { useElementSize } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { getAlbumInfoApi } from '@/api/music'
+import { vRevealCover } from '@/directives/reveal-cover'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
@@ -140,7 +141,7 @@ async function playAlbum(albumId: number) {
           v-for="album_info in sortedAlbumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
           :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
         >
-          <div class="group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
+          <div v-reveal-cover class="cover-reveal group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
             <div class="rounded-2xl overflow-hidden relative">
               <CoverImage :src="getCoverUrl(album_info.platforms, '256px')" />
               <button
