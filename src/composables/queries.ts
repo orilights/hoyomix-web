@@ -30,6 +30,7 @@ import {
   getPublicPlaylistsApi,
   getRandomPlaylistApi,
   getSearchApi,
+  getSearchPageApi,
   getSongInfoApi,
   removeAlbumFavoriteApi,
   updatePlaylistSongsApi,
@@ -245,6 +246,15 @@ export function useSearchQuery(
   return useQuery({
     queryKey: computed(() => ['search', keyword.value, type.value]),
     queryFn: () => getSearchApi(keyword.value, type.value, 10),
+    enabled: computed(() => !!keyword.value.trim()),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useSearchPageQuery(keyword: Ref<string>, type: Ref<SearchType | undefined>, page: Ref<number>) {
+  return useQuery({
+    queryKey: computed(() => ['searchPage', keyword.value, type.value, page.value, 20]),
+    queryFn: () => getSearchPageApi(keyword.value, type.value, page.value, 20),
     enabled: computed(() => !!keyword.value.trim()),
     staleTime: 1000 * 30,
   })

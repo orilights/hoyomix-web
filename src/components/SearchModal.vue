@@ -1,22 +1,17 @@
 <script setup lang="ts">
 import type { SearchResultItem, SearchType } from '@/types/search'
-import { LucideDisc } from '@lucide/vue'
 import { refDebounced, useResizeObserver } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useSearchQuery } from '@/composables/queries'
-import { useMainStore } from '@/store/main'
-import { getCoverUrl, getProductIconUrl, sanitizeHighlight } from '@/utils'
+import { searchQuery, searchResultRoute, searchTypeOptions } from '@/utils/search'
 
 const visible = defineModel<boolean>({ required: true })
 const router = useRouter()
-const store = useMainStore()
-const { albumList } = storeToRefs(store)
 
 const keyword = ref('')
 const searchType = ref<SearchType | undefined>(undefined)
 
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
-const itemRefs = ref<HTMLElement[]>([])
 const contentRef = useTemplateRef<HTMLElement>('contentRef')
 const contentHeight = ref<number | null>(null)
 
@@ -24,20 +19,6 @@ useResizeObserver(contentRef, (entries) => {
   contentHeight.value = entries[0].contentRect.height
 })
 const activeIndex = ref(-1)
-
-function setItemRef(el: HTMLElement | null, index: number) {
-  if (el)
-    itemRefs.value[index] = el
-}
-
-const typeOptions: { label: string, value: SearchType | undefined }[] = [
-  { label: '全部', value: undefined },
-  { label: '歌曲', value: 'song' },
-  { label: '专辑', value: 'album' },
-  { label: '专辑系列', value: 'series' },
-  { label: '游戏', value: 'product' },
-  { label: '艺术家', value: 'artist' },
-]
 
 const debouncedKeyword = refDebounced(keyword, 300)
 
@@ -63,7 +44,6 @@ watch(searchType, () => {
 
 watch(results, () => {
   activeIndex.value = -1
-  itemRefs.value = []
 })
 
 watch(visible, (val) => {
@@ -76,7 +56,6 @@ watch(visible, (val) => {
     keyword.value = ''
     searchType.value = undefined
     activeIndex.value = -1
-    itemRefs.value = []
   }
 })
 
@@ -97,11 +76,13 @@ function onOverlayClick(e: MouseEvent) {
 }
 
 function onKeydown(e: KeyboardEvent) {
+  if (!visible.value || e.isComposing || e.keyCode === 229)
+    return
   if (e.key === 'Escape') {
     close()
     return
   }
-  if (!visible.value)
+  if (e.target !== inputRef.value)
     return
 
   if (e.key === 'ArrowDown') {
@@ -112,7 +93,7 @@ function onKeydown(e: KeyboardEvent) {
       return
     activeIndex.value = Math.min(activeIndex.value + 1, results.value.length - 1)
     nextTick(() => {
-      itemRefs.value[activeIndex.value]?.scrollIntoView({ block: 'nearest' })
+      contentRef.value?.querySelectorAll('[data-search-result]')[activeIndex.value]?.scrollIntoView({ block: 'nearest' })
     })
   }
   else if (e.key === 'ArrowUp') {
@@ -122,7 +103,7 @@ function onKeydown(e: KeyboardEvent) {
       return
     activeIndex.value = Math.max(activeIndex.value - 1, 0)
     nextTick(() => {
-      itemRefs.value[activeIndex.value]?.scrollIntoView({ block: 'nearest' })
+      contentRef.value?.querySelectorAll('[data-search-result]')[activeIndex.value]?.scrollIntoView({ block: 'nearest' })
     })
   }
   else if (e.key === 'Enter') {
@@ -134,63 +115,15 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-function getTypeLabel(type: SearchType) {
-  switch (type) {
-    case 'song': return '歌曲'
-    case 'album': return '专辑'
-    case 'product': return '游戏'
-    case 'artist': return '艺术家'
-    case 'series': return '专辑系列'
-  }
-}
-
-function getItemImageUrl(item: SearchResultItem): string | undefined {
-  if (item.type === 'song') {
-    const album = albumList.value.find(a => a.id === item.albumId)
-    return album ? getCoverUrl(album.platforms, '96px') : undefined
-  }
-  if (item.type === 'album') {
-    const album = albumList.value.find(a => a.id === item.id)
-    return album ? getCoverUrl(album.platforms, '96px') : undefined
-  }
-  if (item.type === 'product') {
-    return getProductIconUrl(item.name as string, '48px')
-  }
-  return undefined
-}
-
-function getHighlight(item: SearchResultItem, field: string) {
-  if (item.matches[field])
-    return sanitizeHighlight(item.matches[field])
-  return undefined
-}
-
-function getSubtitle(item: SearchResultItem) {
-  switch (item.type) {
-    case 'song': return [item.albumName, item.productName].filter(Boolean).join(' · ')
-    case 'album': return [item.productName, item.publishDate].filter(Boolean).join(' · ')
-    default: return ''
-  }
-}
-
 function toResult(item: SearchResultItem) {
-  switch (item.type) {
-    case 'song':
-      router.push({ name: 'MusicInfo', params: { albumId: item.albumId, musicId: item.id } })
-      break
-    case 'album':
-      router.push({ name: 'AlbumInfo', params: { id: item.id } })
-      break
-    case 'product':
-      router.push({ name: 'ProductInfo', params: { name: item.name } })
-      break
-    case 'artist':
-      router.push({ name: 'ArtistInfo', params: { name: item.name } })
-      break
-    case 'series':
-      router.push({ name: 'AlbumSeries', params: { seriesName: item.name } })
-  }
+  void router.push(searchResultRoute(item))
   close()
+}
+
+function viewMore() {
+  const query = searchQuery(keyword.value, searchType.value)
+  close()
+  void router.push({ name: 'Search', query })
 }
 
 onMounted(() => {
@@ -226,7 +159,7 @@ onUnmounted(() => {
 
           <FilterChips
             v-model="searchType"
-            :options="typeOptions"
+            :options="searchTypeOptions"
             scroll
             class="px-4 py-2 border-b border-gray-200 dark:border-gray-700"
             aria-label="搜索类型"
@@ -236,7 +169,7 @@ onUnmounted(() => {
             class="overflow-hidden transition-[height] duration-300 ease-in-out"
             :style="contentHeight !== null ? { height: `${contentHeight}px` } : {}"
           >
-            <div ref="contentRef" class="max-h-[60vh] overflow-y-auto">
+            <div ref="contentRef" class="search-results overflow-y-auto">
               <AsyncFade>
                 <div v-if="showLoading && results.length === 0" class="flex items-center justify-center py-12 text-gray-400">
                   <LucideLoader2 class="size-5 animate-spin mr-2" />
@@ -248,72 +181,14 @@ onUnmounted(() => {
                 </div>
 
                 <div v-else-if="results.length > 0" class="py-2">
-                  <button
+                  <SearchResultRow
                     v-for="(item, index) in results"
                     :key="`${item.type}-${item.id}`"
-                    :ref="(el) => setItemRef(el as HTMLElement, index)"
-                    class="w-full flex items-start gap-3 px-4 py-3 transition-colors cursor-pointer text-left"
-                    :class="activeIndex === index ? 'bg-blue-500/10' : 'hover:bg-black/5 hover:dark:bg-white/5'"
-                    @click="toResult(item)"
+                    :item="item"
+                    :active="activeIndex === index"
+                    @select="toResult"
                     @mouseenter="activeIndex = index"
-                  >
-                    <div class="shrink-0 mt-0.5">
-                      <LazyImg
-                        v-if="getItemImageUrl(item)"
-                        class="size-10"
-                        :class="item.type === 'product' ? 'rounded-full' : 'rounded-lg'"
-                        :src="getItemImageUrl(item)"
-                      />
-                      <div v-else class="size-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        <LucideUser v-if="item.type === 'artist'" class="size-5 text-gray-400" />
-                        <LucideDisc v-if="item.type === 'series'" class="size-5 text-gray-400" />
-                      </div>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded shrink-0">
-                          {{ getTypeLabel(item.type) }}
-                        </span>
-                        <span
-                          class="search-highlight truncate font-medium"
-                          v-html="getHighlight(item, 'name') || item.name"
-                        />
-                      </div>
-                      <div v-if="getSubtitle(item)" class="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                        {{ getSubtitle(item) }}
-                      </div>
-                      <div
-                        v-if="getHighlight(item, 'description')"
-                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
-                        v-html="getHighlight(item, 'description')"
-                      />
-                      <div
-                        v-if="getHighlight(item, 'descriptionFull')"
-                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
-                        v-html="getHighlight(item, 'descriptionFull')"
-                      />
-                      <div
-                        v-if="getHighlight(item, 'lyrics')"
-                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
-                        v-html="getHighlight(item, 'lyrics')"
-                      />
-                      <div
-                        v-if="getHighlight(item, 'alias')"
-                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
-                        v-html="getHighlight(item, 'alias')"
-                      />
-                      <div
-                        v-if="getHighlight(item, 'mapNames')"
-                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
-                        v-html="getHighlight(item, 'mapNames')"
-                      />
-                      <div
-                        v-if="getHighlight(item, 'videoNames')"
-                        class="search-highlight text-xs text-gray-400 truncate mt-0.5"
-                        v-html="getHighlight(item, 'videoNames')"
-                      />
-                    </div>
-                  </button>
+                  />
                 </div>
 
                 <div v-else-if="!keyword.trim()" class="py-12 text-center text-gray-400">
@@ -322,6 +197,11 @@ onUnmounted(() => {
               </AsyncFade>
             </div>
           </div>
+          <div v-if="results.length > 0" class="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+            <AppButton variant="ghost" class="w-full" @click="viewMore">
+              查看更多
+            </AppButton>
+          </div>
         </div>
       </div>
     </Transition>
@@ -329,6 +209,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.search-results {
+  max-height: min(60vh, calc(80vh - 160px));
+}
+
 .search-fade-enter-active,
 .search-fade-leave-active {
   transition: opacity 0.2s ease;
@@ -337,10 +221,5 @@ onUnmounted(() => {
 .search-fade-enter-from,
 .search-fade-leave-to {
   opacity: 0;
-}
-
-.search-highlight :deep(em) {
-  color: #ef4444;
-  font-style: normal;
 }
 </style>

@@ -1,7 +1,7 @@
 import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
 import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
 
-import type { SearchResponse } from '@/types/search'
+import type { SearchPageResponse, SearchResponse, SearchType } from '@/types/search'
 
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
@@ -117,6 +117,13 @@ export function getSearchApi(q: string, type?: string, limit?: number) {
   if (limit)
     params.set('limit', String(limit))
   return fetchJson<SearchResponse>(`${apiBase}/search?${params}`)
+}
+
+export function getSearchPageApi(q: string, type: SearchType | undefined, page: number, limit = 20) {
+  const params = new URLSearchParams({ q, page: String(page), limit: String(limit) })
+  if (type)
+    params.set('type', type)
+  return fetchJson<SearchPageResponse>(`${apiBase}/search?${params}`)
 }
 
 export function getAlbumsByTagApi(tagType: string, tagName: string) {

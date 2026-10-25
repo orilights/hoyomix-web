@@ -171,6 +171,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SearchModal: typeof import('./components/SearchModal.vue')['default']
+    SearchResultRow: typeof import('./components/search/SearchResultRow.vue')['default']
     SegmentSwitch: typeof import('./components/common/SegmentSwitch.vue')['default']
     SelectPlaylistDialog: typeof import('./components/playlist/SelectPlaylistDialog.vue')['default']
     SongInfoEditDialog: typeof import('./components/SongInfoEditDialog.vue')['default']
