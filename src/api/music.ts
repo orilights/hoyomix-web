@@ -1,7 +1,7 @@
 import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
 import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
 
-import type { SearchResponse } from '@/types/search'
+import type { SearchPageResponse, SearchResponse, SearchType } from '@/types/search'
 
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
@@ -117,6 +117,13 @@ export function getSearchApi(q: string, type?: string, limit?: number) {
   if (limit)
     params.set('limit', String(limit))
   return fetchJson<SearchResponse>(`${apiBase}/search?${params}`)
+}
+
+export function getSearchPageApi(q: string, type: SearchType | undefined, page: number, limit = 20) {
+  const params = new URLSearchParams({ q, page: String(page), limit: String(limit) })
+  if (type)
+    params.set('type', type)
+  return fetchJson<SearchPageResponse>(`${apiBase}/search?${params}`)
 }
 
 export function getAlbumsByTagApi(tagType: string, tagName: string) {
@@ -262,14 +269,16 @@ export function removePlaylistFavoriteApi(id: string) {
 export type RankingPeriod = '1d' | '7d' | '30d' | '365d' | 'all'
 
 export interface RankingResponse {
-  date?: string
+  date: string | null
   songs: PlaylistSongItem[]
 }
 
-export function getRankingApi(period: RankingPeriod, date?: string) {
+export function getRankingApi(period: RankingPeriod, date?: string, productId?: number) {
   const params = new URLSearchParams({ period })
-  if (date)
+  if (date && period !== 'all')
     params.set('date', date)
+  if (productId !== undefined)
+    params.set('productId', String(productId))
   return fetchJson<RankingResponse>(`${apiBase}/ranking?${params}`)
 }
 

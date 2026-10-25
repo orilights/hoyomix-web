@@ -1,5 +1,6 @@
 import { defineConfig, presetWind3 } from 'unocss'
-import { theme } from './uno-theme'
+import { browserCompat, toRgbChannels } from './plugins/unoBrowserCompat.ts'
+import { theme } from './uno-theme.ts'
 
 export default defineConfig({
   presets: [
@@ -25,7 +26,7 @@ export default defineConfig({
       'background-image': 'linear-gradient(var(--un-gradient))',
     }],
   ],
-  postprocess: (utility) => {
+  postprocess: [(utility) => {
     // Keep the previous inherited duration for nested transition utilities.
     if (utility.entries.some(([property]) => property === '--un-duration'))
       return
@@ -33,7 +34,7 @@ export default defineConfig({
       if (entry[0] === 'transition-duration')
         entry[1] = `var(--un-duration, ${entry[1]})`
     }
-  },
+  }, browserCompat],
   preflights: [
     {
       getCSS: () => `:root {
@@ -41,6 +42,14 @@ export default defineConfig({
         --colors-gray-600: ${theme.colors.gray[600]};
         --colors-blue-500: ${theme.colors.blue[500]};
         --colors-blue-600: ${theme.colors.blue[600]};
+      }
+      @supports not (color: oklch(0% 0 0)) {
+        :root {
+          --colors-gray-400: rgb(${toRgbChannels(theme.colors.gray[400])});
+          --colors-gray-600: rgb(${toRgbChannels(theme.colors.gray[600])});
+          --colors-blue-500: rgb(${toRgbChannels(theme.colors.blue[500])});
+          --colors-blue-600: rgb(${toRgbChannels(theme.colors.blue[600])});
+        }
       }
       *, ::before, ::after, ::backdrop { --un-ring-color: currentColor; }`,
     },

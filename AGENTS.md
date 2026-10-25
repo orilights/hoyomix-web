@@ -9,6 +9,11 @@
 - 图标:@lucide/vue;图表:ECharts 6 + vue-echarts;认证:better-auth;提示:vue-sonner;工具:@vueuse/core
 - 代码规范:@antfu/eslint-config(无分号、单引号、2 空格缩进)
 
+## 浏览器兼容
+- Chromium 内核最低支持 Chrome / Edge 109；其他构建目标为 Firefox 114、Safari / iOS 16.4，JS、CSS 与独立 Worker 均需保持对应兼容目标。
+- 新增 CSS 或浏览器 API 时检查基线支持情况；无法构建转换的能力需提供兼容写法或能力检测。UnoCSS 颜色与渐变兼容分支见 `plugins/unoBrowserCompat.ts`，保留现代浏览器原有视觉效果；构建转换不会自动补齐运行时 API。
+- 兼容性验证使用真实旧内核，不能仅修改 UA；完整约定见 `docs/frontend-design-spec.md` 的「工程化与构建」。
+
 ## 常用命令
 - `pnpm dev` — 启动开发服务器
 - `pnpm build` — 类型检查 + 构建(`vue-tsc -b && vite build`)

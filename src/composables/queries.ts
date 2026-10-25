@@ -1,4 +1,4 @@
-import type { MapSongsParams, MapSongsSort, PlaylistsQueryParams, RandomPlaylistParams } from '@/api/music'
+import type { MapSongsParams, MapSongsSort, PlaylistsQueryParams, RandomPlaylistParams, RankingPeriod } from '@/api/music'
 import type { ContributionRankingPeriod } from '@/types/core'
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
@@ -29,7 +29,9 @@ import {
   getPlaylistDetailApi,
   getPublicPlaylistsApi,
   getRandomPlaylistApi,
+  getRankingApi,
   getSearchApi,
+  getSearchPageApi,
   getSongInfoApi,
   removeAlbumFavoriteApi,
   updatePlaylistSongsApi,
@@ -250,6 +252,15 @@ export function useSearchQuery(
   })
 }
 
+export function useSearchPageQuery(keyword: Ref<string>, type: Ref<SearchType | undefined>, page: Ref<number>) {
+  return useQuery({
+    queryKey: computed(() => ['searchPage', keyword.value, type.value, page.value, 20]),
+    queryFn: () => getSearchPageApi(keyword.value, type.value, page.value, 20),
+    enabled: computed(() => !!keyword.value.trim()),
+    staleTime: 1000 * 30,
+  })
+}
+
 export function useTagAlbumsQuery(tagType: string, tagName: Ref<string | null>, enabled?: Ref<boolean>) {
   return useQuery({
     queryKey: computed(() => ['tagAlbums', tagType, tagName.value]),
@@ -359,4 +370,17 @@ export function useContributionRankingQuery(period: Ref<ContributionRankingPerio
     queryFn: () => getContributionRankingApi(period.value),
     staleTime: 60_000,
   })
+}
+
+export function useRankingQuery(period: Ref<RankingPeriod>, date: Ref<string>, productId: Ref<number | undefined>) {
+  return useQuery(computed(() => {
+    const currentPeriod = period.value
+    const currentDate = currentPeriod === 'all' ? undefined : date.value || undefined
+    const currentProductId = productId.value
+    return {
+      queryKey: ['ranking', currentPeriod, currentDate, currentProductId],
+      queryFn: () => getRankingApi(currentPeriod, currentDate, currentProductId),
+      staleTime: 60_000,
+    }
+  }))
 }

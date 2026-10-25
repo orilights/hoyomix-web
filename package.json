@@ -1,7 +1,7 @@
 {
   "name": "hoyomix-web",
   "type": "module",
-  "version": "0.10.3",
+  "version": "0.11.0",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -41,6 +41,7 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
     "eslint": "^10.8.1",
+    "lightningcss": "^1.33.0",
     "rolldown": "1.2.3",
     "sass": "^1.102.0",
     "typescript": "^6.0.3",

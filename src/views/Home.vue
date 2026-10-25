@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { usePageSeo } from '@/composables/usePageSeo'
 import { appDescription } from '@/constants'
+import { vPageEnter } from '@/directives/page-enter'
 import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl } from '@/utils'
 
@@ -72,7 +73,7 @@ onMounted(() => {
 
 <template>
   <div class="overflow-hidden">
-    <div>
+    <div v-page-enter="0" class="home-enter-block">
       <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="font-bold text-2xl">
           最新专辑
@@ -120,7 +121,7 @@ onMounted(() => {
       </OverlayScrollbarsComponent>
     </div>
 
-    <div class="mt-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+    <div v-page-enter="120" class="home-enter-block mt-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
       <RouterLink
         :to="{ name: 'Playlists' }"
         class="flex items-center gap-2 md:gap-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 hover:dark:bg-white/10 transition-colors rounded-xl p-3"
@@ -225,7 +226,7 @@ onMounted(() => {
       </RouterLink>
     </div>
 
-    <div class="mt-3">
+    <div v-page-enter="240" class="home-enter-block mt-3">
       <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="font-bold text-2xl">
           收录游戏
@@ -251,7 +252,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="mt-3">
+    <div v-page-enter="360" class="home-enter-block mt-3">
       <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="font-bold text-2xl">
           收录数据

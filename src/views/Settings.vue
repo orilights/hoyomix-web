@@ -239,7 +239,7 @@ onMounted(() => {
                 </div>
               </button>
             </div>
-            <div v-else class="flex items-center py-4 text-gray-400">
+            <div v-else class="flex items-center justify-center py-4 text-gray-400">
               <LucideLoader2 class="size-5 animate-spin mr-2" />
               正在加载音频源配置…
             </div>
@@ -582,7 +582,7 @@ onMounted(() => {
         </h2>
         <div class="min-w-0">
           <AsyncFade>
-            <div v-if="isChangelogLoading" class="flex items-center py-4 text-gray-400">
+            <div v-if="isChangelogLoading" class="flex items-center justify-center py-4 text-gray-400">
               <LucideLoader2 class="size-5 animate-spin mr-2" />
               加载中...
             </div>

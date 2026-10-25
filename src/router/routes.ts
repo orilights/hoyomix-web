@@ -9,6 +9,12 @@ declare module 'vue-router' {
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/search',
+    name: 'Search',
+    meta: { showScrollToTop: true },
+    component: () => import('@/views/Search.vue'),
+  },
+  {
     path: '/map',
     name: 'Regions',
     meta: { showScrollToTop: true },

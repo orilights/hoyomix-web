@@ -48,14 +48,6 @@ const repliesQuery = useCommentRepliesQuery(threadId, postId, page, userId, expa
 const firstReplyNumber = computed(() => expanded.value
   ? (replyPagination.value.page - 1) * replyPagination.value.pageSize + 1
   : 1)
-const paginationPages = computed(() => {
-  const total = replyPagination.value.totalPages
-  if (total <= 7)
-    return Array.from({ length: total }, (_, index) => index + 1)
-  return [...new Set([1, page.value - 1, page.value, page.value + 1, total])]
-    .filter(value => value >= 1 && value <= total)
-    .sort((a, b) => a - b)
-})
 const visibleReplyNumbers = computed(() => new Map(
   (expanded.value ? replies.value : props.thread.replies)
     .map((comment, index) => [comment.id, firstReplyNumber.value + index] as const),
@@ -249,31 +241,21 @@ onBeforeUnmount(() => {
             重试
           </AppButton>
         </div>
-        <div v-if="repliesQuery.isFetching.value" class="py-3 flex items-center gap-2 text-xs text-gray-400">
+        <div v-if="repliesQuery.isFetching.value" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400">
           <LucideLoader2 class="size-4 animate-spin" />
           加载回复中
         </div>
-        <nav v-if="!repliesQuery.isError.value && replyPagination.totalPages > 1" class="flex items-center gap-1 py-3" aria-label="回复分页">
-          <AppButton icon-only size="xs" variant="ghost" aria-label="上一页回复" :disabled="page <= 1 || repliesQuery.isFetching.value" @click="goToReplyPage(page - 1)">
-            <LucideChevronLeft class="size-4" />
-          </AppButton>
-          <template v-for="(pageNumber, index) in paginationPages" :key="pageNumber">
-            <span v-if="index > 0 && pageNumber - paginationPages[index - 1]! > 1" class="px-1 text-xs text-gray-400">…</span>
-            <AppButton
-              size="xs"
-              :variant="pageNumber === page ? 'primary' : 'ghost'"
-              :aria-label="`第 ${pageNumber} 页回复`"
-              :aria-current="pageNumber === page ? 'page' : undefined"
-              :disabled="repliesQuery.isFetching.value"
-              @click="goToReplyPage(pageNumber)"
-            >
-              {{ pageNumber }}
-            </AppButton>
-          </template>
-          <AppButton icon-only size="xs" variant="ghost" aria-label="下一页回复" :disabled="page >= replyPagination.totalPages || repliesQuery.isFetching.value" @click="goToReplyPage(page + 1)">
-            <LucideChevronRight class="size-4" />
-          </AppButton>
-        </nav>
+        <Pagination
+          v-if="!repliesQuery.isError.value"
+          :model-value="page"
+          :total-pages="replyPagination.totalPages"
+          :disabled="repliesQuery.isFetching.value"
+          size="xs"
+          noun="回复"
+          aria-label="回复分页"
+          class="py-3"
+          @update:model-value="goToReplyPage"
+        />
       </div>
       <div v-else>
         <CommentItem v-for="(comment, index) in thread.replies" :key="comment.id" :comment="comment" :depth="1" :reply-number="index + 1" :reply-to-number="replyNumberOf(comment.replyTo)" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">

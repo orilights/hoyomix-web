@@ -15,3 +15,12 @@ export interface SearchResponse {
   processingTimeMs: number
   results: SearchResultItem[]
 }
+
+export interface SearchPageResponse extends SearchResponse {
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+  }
+}

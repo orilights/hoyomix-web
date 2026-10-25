@@ -7,6 +7,7 @@ import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updat
 import { useCommentThreadsQuery, usePlaylistDetailQuery, useSavePlaylistOrderQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
+import { vPageEnter } from '@/directives/page-enter'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -444,7 +445,7 @@ async function deletePlaylist() {
     </div>
 
     <div v-else-if="playlist" class="playlist-page detail-page">
-      <div class="detail-header">
+      <div v-page-enter="0" class="detail-header">
         <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
           <CoverImage
             v-if="coverUrl"
@@ -547,7 +548,7 @@ async function deletePlaylist() {
 
       <div class="detail-content" :class="{ 'detail-content-single': sorting }">
         <div v-show="sorting || activeTab === 'songs' || activeTab === 'comments'" class="detail-desktop-visible min-w-0">
-          <div v-show="sorting || activeTab === 'songs'" class="detail-desktop-visible" :class="{ 'pb-24': sorting }">
+          <div v-show="sorting || activeTab === 'songs'" v-page-enter="120" class="detail-desktop-visible" :class="{ 'pb-24': sorting }">
             <SongList
               v-model:songs="displayedSongs"
               v-model:selected-ids="selectedIds"
@@ -574,11 +575,11 @@ async function deletePlaylist() {
               </template>
             </SongList>
           </div>
-          <div v-if="playlist.isPublic && !sorting" v-show="activeTab === 'comments'" ref="commentSection" class="detail-comments detail-desktop-visible">
+          <div v-if="playlist.isPublic && !sorting" v-show="activeTab === 'comments'" ref="commentSection" v-page-enter="route.query.commentId ? false : 240" class="detail-comments detail-desktop-visible">
             <CommentSection :post-id="`hoyomix:playlist:${playlist.id}`" />
           </div>
         </div>
-        <aside v-if="!sorting" v-show="activeTab === 'info'" class="detail-sidebar detail-desktop-visible min-w-0 p-4 bg-black/5 dark:bg-white/5 rounded-xl">
+        <aside v-if="!sorting" v-show="activeTab === 'info'" v-page-enter="120" class="detail-sidebar detail-desktop-visible min-w-0 p-4 bg-black/5 dark:bg-white/5 rounded-xl">
           <div v-if="playlist.description" class="text-sm">
             <p
               id="playlist-description-content"
@@ -629,7 +630,7 @@ async function deletePlaylist() {
         <Transition name="action-bar">
           <div
             v-if="selectedIds.size > 0"
-            class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3 text-nowrap"
+            class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3 whitespace-nowrap"
           >
             <span class="text-sm text-white/70">已选 {{ selectedIds.size }} 首</span>
             <div class="w-px h-4 bg-white/20 dark:bg-[var(--theme-surface)]/20" />

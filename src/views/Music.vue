@@ -5,6 +5,7 @@ import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useCommentThreadsQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { vPageEnter } from '@/directives/page-enter'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -297,7 +298,7 @@ function refreshSongInfo() {
     </div>
 
     <div v-else-if="albumInfo && musicInfo" class="music-page detail-page">
-      <div class="detail-header">
+      <div v-page-enter="0" class="detail-header">
         <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
           <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px')" />
         </div>
@@ -356,7 +357,7 @@ function refreshSongInfo() {
       <div class="detail-content">
         <div v-show="activeTab === 'info' || activeTab === 'comments'" class="detail-desktop-visible min-w-0">
           <div v-show="activeTab === 'info'" class="detail-desktop-visible">
-            <section>
+            <section v-page-enter="120">
               <dl class="detail-facts text-sm p-4 bg-black/5 dark:bg-white/5 rounded-xl">
                 <template v-if="songInfo?.descriptionFull">
                   <dt class="text-gray-500 dark:text-gray-400">
@@ -408,7 +409,7 @@ function refreshSongInfo() {
 
               <div class="mt-4">
                 <AsyncFade>
-                  <div v-if="isSongLoading" class="flex items-center gap-2 py-2 text-gray-400">
+                  <div v-if="isSongLoading" class="flex items-center justify-center gap-2 py-2 text-gray-400">
                     <LucideLoader2 class="size-4 animate-spin" />
                     加载中...
                   </div>
@@ -422,7 +423,7 @@ function refreshSongInfo() {
               </div>
             </section>
 
-            <section class="mt-4">
+            <section v-page-enter="240" class="mt-4">
               <MusicLyrics
                 :lyric-provider="lyricProvider"
                 :lyric-song-id="lyricSongId"
@@ -431,15 +432,15 @@ function refreshSongInfo() {
               />
             </section>
           </div>
-          <div v-show="activeTab === 'comments'" ref="commentSection" class="detail-comments detail-desktop-visible">
+          <div v-show="activeTab === 'comments'" ref="commentSection" v-page-enter="route.query.commentId ? false : 360" class="detail-comments detail-desktop-visible">
             <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
           </div>
         </div>
         <div v-show="activeTab === 'artists' || activeTab === 'contributions'" class="detail-sidebar detail-sidebar-stack detail-desktop-visible min-w-0">
-          <div v-show="activeTab === 'artists'" class="detail-desktop-visible">
+          <div v-show="activeTab === 'artists'" v-page-enter="120" class="detail-desktop-visible">
             <ArtistListByType :id="musicId" type="song" />
           </div>
-          <div v-show="activeTab === 'contributions'" class="detail-desktop-visible">
+          <div v-show="activeTab === 'contributions'" v-page-enter="240" class="detail-desktop-visible">
             <ContributionCard :id="musicId" type="song" />
           </div>
         </div>

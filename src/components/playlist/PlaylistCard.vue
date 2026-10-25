@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
+import { vRevealCover } from '@/directives/reveal-cover'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { getCoverUrl, getPublishDate } from '@/utils'
@@ -32,7 +33,7 @@ const coverUrl = computed(() =>
 
 <template>
   <RouterLink :to="{ name: 'PlaylistDetail', params: { id: playlist.id } }" :title="playlist.name">
-    <div class="group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
+    <div v-reveal-cover class="cover-reveal group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
       <div class="rounded-2xl overflow-hidden relative">
         <CoverImage v-if="coverUrl" :src="coverUrl" />
         <div v-else class="aspect-square flex items-center justify-center bg-gray-200 dark:bg-gray-700">
