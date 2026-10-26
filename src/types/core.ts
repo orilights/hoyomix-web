@@ -79,6 +79,12 @@ export interface SongInfoChange {
   descriptionFull?: string
 }
 
+/** 歌曲制作人员关联的增量变更 */
+export interface SongCreditsChange {
+  add?: { role: string, name: string }[]
+  remove?: { role: string, name: string }[]
+}
+
 /** 提交编辑申请响应（普通用户待审核 ｜ 管理员直接生效） */
 export type EditRequestResponse
   = | { directApproved: true, requestId: number, contributionId: number }

@@ -235,6 +235,7 @@ const productCode = computed(() => getProductCode(albumInfo.value?.productName ?
 const showEditRegionDialog = ref(false)
 const showEditVideoDialog = ref(false)
 const showEditInfoDialog = ref(false)
+const showEditCreditsDialog = ref(false)
 const showMyRequestsDialog = ref(false)
 const requestPage = ref(1)
 const { pendingRequest } = usePendingSongEditRequest(musicId)
@@ -248,6 +249,7 @@ function openMyRequests() {
 watch(() => [musicId.value, auth.user?.id], () => {
   showMyRequestsDialog.value = false
   showEditInfoDialog.value = false
+  showEditCreditsDialog.value = false
   showEditRegionDialog.value = false
   showEditVideoDialog.value = false
   requestPage.value = 1
@@ -269,6 +271,12 @@ function openEditRegion() {
   showEditRegionDialog.value = true
 }
 
+function openEditCredits() {
+  if (!auth.requireLogin())
+    return
+  showEditCreditsDialog.value = true
+}
+
 function openEditVideo() {
   if (!auth.requireLogin())
     return
@@ -276,6 +284,8 @@ function openEditVideo() {
 }
 
 function refreshSongInfo() {
+  queryClient.invalidateQueries({ queryKey: ['creditInfo'] })
+  queryClient.invalidateQueries({ queryKey: ['artistInfo'] })
   queryClient.invalidateQueries({ queryKey: ['editRequests'] })
   queryClient.invalidateQueries({ queryKey: ['editRequestDetail'] })
   queryClient.invalidateQueries({ queryKey: ['songInfo', musicId.value] })
@@ -338,6 +348,7 @@ function refreshSongInfo() {
             @add-to-playlist="addSongToUserPlaylist"
             @my-requests="openMyRequests"
             @edit-info="openEditInfo"
+            @edit-credits="openEditCredits"
             @edit-region="openEditRegion"
             @edit-video="openEditVideo"
             @show-comments="scrollToComments"
@@ -472,6 +483,12 @@ function refreshSongInfo() {
         :song-id="musicId"
         :game="productCode"
         :maps="songInfo?.maps ?? []"
+        @success="refreshSongInfo"
+      />
+
+      <SongCreditsEditDialog
+        v-model="showEditCreditsDialog"
+        :song-id="musicId"
         @success="refreshSongInfo"
       />
 

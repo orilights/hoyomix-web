@@ -149,7 +149,7 @@ function handleGitHub() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" hide-header-border>
+  <AppDialog v-model="visible" :close-on-click-overlay="false" hide-header-border>
     <template #title>
       {{ registerSuccess ? '注册成功' : forgotSuccess ? '邮件已发送' : tab === 'login' ? '登录' : tab === 'register' ? '注册账号' : '重置密码' }}
     </template>

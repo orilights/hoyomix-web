@@ -175,6 +175,7 @@ declare module 'vue' {
     SearchResultRow: typeof import('./components/search/SearchResultRow.vue')['default']
     SegmentSwitch: typeof import('./components/common/SegmentSwitch.vue')['default']
     SelectPlaylistDialog: typeof import('./components/playlist/SelectPlaylistDialog.vue')['default']
+    SongCreditsEditDialog: typeof import('./components/SongCreditsEditDialog.vue')['default']
     SongInfoEditDialog: typeof import('./components/SongInfoEditDialog.vue')['default']
     SongList: typeof import('./components/SongList.vue')['default']
     SongListPlaybackDialog: typeof import('./components/SongListPlaybackDialog.vue')['default']

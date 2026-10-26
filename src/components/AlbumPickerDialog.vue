@@ -47,7 +47,7 @@ function confirm() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" :title="title ?? '选择专辑'" size="md">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" :title="title ?? '选择专辑'" size="md">
     <div class="px-6 pt-3 pb-2">
       <input
         v-model="searchQuery"

@@ -209,7 +209,7 @@ async function submit() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" size="md">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" size="md">
     <template #title>
       修改地区关联
     </template>

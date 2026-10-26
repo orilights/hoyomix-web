@@ -220,7 +220,7 @@ async function playAll() {
       </section>
     </div>
 
-    <AppDialog v-model="showRegions" title="选择地区" size="md">
+    <AppDialog v-model="showRegions" :close-on-click-overlay="false" title="选择地区" size="md">
       <OverlayScrollbarsComponent class="max-h-[65dvh]" :options="{ overflow: { x: 'hidden', y: 'scroll' }, scrollbars: { theme: 'os-theme-custom', autoHide: 'leave' } }" defer>
         <div class="p-4">
           <div v-if="treeQuery.isPending.value" class="py-8 text-center text-gray-400">

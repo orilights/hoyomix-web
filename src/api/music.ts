@@ -1,4 +1,4 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongCreditsChange, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
 import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
 
 import type { SearchPageResponse, SearchResponse, SearchType } from '@/types/search'
@@ -82,6 +82,14 @@ export function submitSongInfoEditApi(songId: number, changes: SongInfoChange) {
     resourceType: 'song',
     resourceId: songId,
     changes,
+  })
+}
+
+export function submitSongCreditsEditApi(songId: number, credits: SongCreditsChange) {
+  return fetchJsonMutation<EditRequestResponse>(`${apiBase}/edit-requests`, 'POST', {
+    resourceType: 'song',
+    resourceId: songId,
+    changes: { credits },
   })
 }
 
