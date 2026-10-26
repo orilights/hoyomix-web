@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RankingPeriod } from '@/api/music'
+import type { RankingPeriod } from '@/types/core'
 import { useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useRankingQuery } from '@/composables/queries'

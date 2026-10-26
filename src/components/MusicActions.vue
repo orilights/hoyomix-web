@@ -36,6 +36,7 @@ const emit = defineEmits<{
   addToPlaylist: []
   editInfo: []
   editCredits: []
+  editSongTags: []
   editRegion: []
   editVideo: []
   myRequests: []
@@ -88,6 +89,7 @@ const infoEditOptions = computed<DropdownOption[]>(() => {
   options.push({ label: '我的申请', onClick: () => emit('myRequests') })
   options.push({ label: '歌曲信息', onClick: () => emit('editInfo') })
   options.push({ label: '制作人员', onClick: () => emit('editCredits') })
+  options.push({ label: '歌曲标签', onClick: () => emit('editSongTags') })
   if (props.canEditRegion) {
     options.push({ label: '地区关联', onClick: () => emit('editRegion') })
   }

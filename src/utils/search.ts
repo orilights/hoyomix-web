@@ -15,7 +15,11 @@ export function parseSearchType(value: unknown): SearchType | undefined {
 }
 
 export function searchQuery(keyword: string, type?: SearchType, page = 1): LocationQueryRaw {
-  return { q: keyword.trim() || undefined, type, page: keyword.trim() && page > 1 ? String(page) : undefined }
+  return {
+    q: keyword.trim() || undefined,
+    type,
+    page: keyword.trim() && page > 1 ? String(page) : undefined,
+  }
 }
 
 export function searchResultRoute(item: SearchResultItem): RouteLocationRaw {

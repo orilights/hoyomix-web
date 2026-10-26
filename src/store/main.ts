@@ -1,5 +1,5 @@
-import type { MapSongsSort } from '@/api/music'
-import type { AlbumListItemInfo, AppConfigResponse, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
+import type { AlbumListItemInfo, AppConfigResponse, MapSongsSort, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
+
 import { defineStore } from 'pinia'
 import { addFavoriteApi, addPlaylistFavoriteApi, getAllFavoritesApi, getFavoritePlaylistsApi, removeFavoriteApi, removePlaylistFavoriteApi } from '@/api/music'
 import { queryClient } from '@/utils/query-client'

@@ -236,6 +236,7 @@ const showEditRegionDialog = ref(false)
 const showEditVideoDialog = ref(false)
 const showEditInfoDialog = ref(false)
 const showEditCreditsDialog = ref(false)
+const showEditSongTagsDialog = ref(false)
 const showMyRequestsDialog = ref(false)
 const requestPage = ref(1)
 const { pendingRequest } = usePendingSongEditRequest(musicId)
@@ -250,6 +251,7 @@ watch(() => [musicId.value, auth.user?.id], () => {
   showMyRequestsDialog.value = false
   showEditInfoDialog.value = false
   showEditCreditsDialog.value = false
+  showEditSongTagsDialog.value = false
   showEditRegionDialog.value = false
   showEditVideoDialog.value = false
   requestPage.value = 1
@@ -271,6 +273,16 @@ function openEditRegion() {
   showEditRegionDialog.value = true
 }
 
+function openEditSongTags() {
+  if (!auth.requireLogin())
+    return
+  if (isSongLoading.value || isSongError.value || songInfo.value?.id !== musicId.value) {
+    toast.error('歌曲详情尚未加载完成，请稍后重试')
+    return
+  }
+  showEditSongTagsDialog.value = true
+}
+
 function openEditCredits() {
   if (!auth.requireLogin())
     return
@@ -284,6 +296,8 @@ function openEditVideo() {
 }
 
 function refreshSongInfo() {
+  for (const key of ['songTags', 'songTag', 'songTagSongs', 'searchPage', 'search'])
+    queryClient.invalidateQueries({ queryKey: [key] })
   queryClient.invalidateQueries({ queryKey: ['creditInfo'] })
   queryClient.invalidateQueries({ queryKey: ['artistInfo'] })
   queryClient.invalidateQueries({ queryKey: ['editRequests'] })
@@ -349,6 +363,7 @@ function refreshSongInfo() {
             @my-requests="openMyRequests"
             @edit-info="openEditInfo"
             @edit-credits="openEditCredits"
+            @edit-song-tags="openEditSongTags"
             @edit-region="openEditRegion"
             @edit-video="openEditVideo"
             @show-comments="scrollToComments"
@@ -428,7 +443,12 @@ function refreshSongInfo() {
                     加载失败，请刷新重试
                   </p>
                   <div v-else>
-                    <TagList v-if="songInfo?.tags.length || songInfo?.maps?.length" :tags="songInfo.tags" :maps="songInfo.maps" />
+                    <TagList
+                      v-if="songInfo?.tags.length || songInfo?.maps?.length || songInfo?.songTags?.length"
+                      :tags="songInfo.tags"
+                      :song-tags="songInfo.songTags"
+                      :maps="songInfo.maps"
+                    />
                   </div>
                 </AsyncFade>
               </div>
@@ -443,7 +463,12 @@ function refreshSongInfo() {
               />
             </section>
           </div>
-          <div v-show="activeTab === 'comments'" ref="commentSection" v-page-enter="route.query.commentId ? false : 360" class="detail-comments detail-desktop-visible">
+          <div
+            v-show="activeTab === 'comments'"
+            ref="commentSection"
+            v-page-enter="route.query.commentId ? false : 360"
+            class="detail-comments detail-desktop-visible"
+          >
             <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
           </div>
         </div>
@@ -489,6 +514,12 @@ function refreshSongInfo() {
       <SongCreditsEditDialog
         v-model="showEditCreditsDialog"
         :song-id="musicId"
+        @success="refreshSongInfo"
+      />
+      <SongTagEditDialog
+        v-model="showEditSongTagsDialog"
+        :song-id="musicId"
+        :song-tags="songInfo?.songTags ?? []"
         @success="refreshSongInfo"
       />
 

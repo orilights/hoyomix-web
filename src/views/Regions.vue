@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { MapSongsSort } from '@/api/music'
-import type { PlaylistSongItem } from '@/types/core'
+import type { MapSongsSort, PlaylistSongItem } from '@/types/core'
+
 import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import SongListPlaybackDialog from '@/components/SongListPlaybackDialog.vue'

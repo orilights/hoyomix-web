@@ -9,6 +9,7 @@ const route = useRoute()
 const router = useRouter()
 const queryKeyword = computed(() => typeof route.query.q === 'string' ? route.query.q.trim() : '')
 const searchType = computed(() => parseSearchType(route.query.type))
+const hasCriteria = computed(() => !!queryKeyword.value)
 const page = computed(() => {
   const raw = route.query.page
   return typeof raw === 'string' && /^[1-9]\d*$/.test(raw) && Number.isSafeInteger(Number(raw)) ? Number(raw) : 1
@@ -49,7 +50,7 @@ watch([keyword, composing], () => {
 function submitSearch() {
   clearTimeout(inputTimer)
   if (!composing.value)
-    void router.replace({ name: 'Search', query: searchQuery(keyword.value, searchType.value) })
+    void router.replace({ name: 'Search', query: searchQuery(keyword.value, searchType.value, 1) })
 }
 
 function setType(type: SearchType | undefined) {
@@ -66,7 +67,7 @@ function setPage(value: number) {
 }
 
 watch([data, () => route.fullPath], async ([response]) => {
-  if (!queryKeyword.value || !response || response.pagination.page !== page.value)
+  if (!hasCriteria.value || !response || response.pagination.page !== page.value)
     return
   const lastPage = Math.max(1, response.pagination.totalPages)
   if (page.value > lastPage) {
@@ -136,11 +137,16 @@ onBeforeUnmount(() => clearTimeout(inputTimer))
     </form>
     <FilterChips :model-value="searchType" :options="searchTypeOptions" class="my-4" aria-label="搜索类型" @update:model-value="setType" />
 
-    <section ref="resultsSection" :aria-busy="isFetching || isTyping" aria-label="搜索结果" class="rounded-xl bg-black/5 dark:bg-white/5 overflow-hidden">
+    <section
+      ref="resultsSection"
+      :aria-busy="isFetching || isTyping"
+      aria-label="搜索结果"
+      class="rounded-xl bg-black/5 dark:bg-white/5 overflow-hidden"
+    >
       <div v-if="isTyping || (isFetching && !data)" class="flex items-center justify-center py-16 text-gray-400" role="status">
         <LucideLoader2 class="size-5 animate-spin mr-2" />搜索中...
       </div>
-      <div v-else-if="!queryKeyword" class="py-16 text-center text-gray-400">
+      <div v-else-if="!hasCriteria" class="py-16 text-center text-gray-400">
         输入关键词开始搜索
       </div>
       <div v-else-if="isError" class="py-16 text-center text-red-500" role="alert">
@@ -153,7 +159,14 @@ onBeforeUnmount(() => clearTimeout(inputTimer))
         未找到相关结果
       </div>
       <div v-else class="py-2">
-        <SearchResultRow v-for="(item, index) in results" :key="`${item.type}-${item.id}`" :item="item" :active="activeIndex === index" @select="toResult" @mouseenter="activeIndex = index" />
+        <SearchResultRow
+          v-for="(item, index) in results"
+          :key="`${item.type}-${item.id}`"
+          :item="item"
+          :active="activeIndex === index"
+          @select="toResult"
+          @mouseenter="activeIndex = index"
+        />
       </div>
     </section>
 

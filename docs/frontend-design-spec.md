@@ -173,6 +173,7 @@ Toaster（全局提示）
 | 组件 | 说明 |
 | --- | --- |
 | `Dropdown` | 下拉菜单：`alignment`/`position`（up/down/**auto** 翻转）/`dark`；点击外部关闭、`disabled` 项 |
+| `AppSelect` | 自绘单选：`modelValue` 与 `options`，36px 高度，亮暗主题、选中标记、禁用项；菜单 Teleport 至 body 并自适应翻转。支持方向键、Home/End、Enter/Space、Escape、Tab 和文字定位；使用 combobox/listbox 语义 |
 | `Tooltip` | `placement`/`align`/`theme`；支持 touch 切换 |
 | `AppDialog` | 模态（`Teleport to body`）：`size` sm/md/lg/xl，最大宽度分别为 384/448/512/800px，默认 sm；公告使用 xl。`closeOnClickOverlay` 默认 true，含表单或输入控件的对话框必须设为 false；关闭按钮与 `Esc` 仍可关闭，支持 title/footer 插槽 |
 | `SegmentSwitch` | 单选分段切换；底色 `bg-black/5 dark:bg-white/5`，保留暗色描边及激活项 `bg-blue-500/90`；`block` 铺满父容器并等分选项，默认按内容宽度显示 |

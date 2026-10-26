@@ -1,7 +1,8 @@
-import type { MapSongsParams, MapSongsSort, PlaylistsQueryParams, RandomPlaylistParams, RankingPeriod } from '@/api/music'
-import type { ContributionRankingPeriod } from '@/types/core'
+import type { ContributionRankingPeriod, MapSongsParams, MapSongsSort, PlaylistsQueryParams, RandomPlaylistParams, RankingPeriod } from '@/types/core'
+
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
+import type { SongTagSongsParams } from '@/types/song-tag'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
 import { getEmoticonsApi } from '@/api/emoticon'
@@ -36,6 +37,7 @@ import {
   removeAlbumFavoriteApi,
   updatePlaylistSongsApi,
 } from '@/api/music'
+import { getSongLyricLanguagesApi, getSongTagApi, getSongTagsApi, getSongTagSongsApi } from '@/api/song-tags'
 import { getUserNameAvailabilityApi } from '@/api/user'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -383,4 +385,21 @@ export function useRankingQuery(period: Ref<RankingPeriod>, date: Ref<string>, p
       staleTime: 60_000,
     }
   }))
+}
+
+export function useSongTagsQuery(enabled: Ref<boolean> = ref(true)) {
+  return useQuery({ queryKey: ['songTags'], queryFn: getSongTagsApi, enabled })
+}
+export function useSongLyricLanguagesQuery(songId: Ref<number>, enabled: Ref<boolean>) {
+  return useQuery({
+    queryKey: computed(() => ['songLyricLanguages', songId.value]),
+    queryFn: () => getSongLyricLanguagesApi(songId.value),
+    enabled: computed(() => enabled.value && songId.value > 0),
+  })
+}
+export function useSongTagQuery(code: Ref<string>) {
+  return useQuery({ queryKey: computed(() => ['songTag', code.value]), queryFn: () => getSongTagApi(code.value) })
+}
+export function useSongTagSongsQuery(code: Ref<string>, params: Ref<SongTagSongsParams>) {
+  return useQuery({ queryKey: computed(() => ['songTagSongs', code.value, params.value]), queryFn: () => getSongTagSongsApi(code.value, params.value) })
 }
