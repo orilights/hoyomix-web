@@ -15,7 +15,7 @@ const productId = computed(() => store.productList.some(product => product.produ
 const sort = computed(() => route.query.sort === 'album_asc' ? 'album_asc' : 'album_desc')
 const params = computed<SongTagSongsParams>(() => ({ page: page.value, productId: productId.value, sort: sort.value }))
 const tagQuery = useSongTagQuery(code)
-const { data, isPending, isError, refetch } = useSongTagSongsQuery(code, params)
+const { data, isPending, isFetching, isError, refetch } = useSongTagSongsQuery(code, params)
 const products = computed(() => store.productList
   .map((product, index) => ({
     ...product,
@@ -90,6 +90,9 @@ onMounted(() => store.setBackground())
       v-if="data && data.total > 50"
       :model-value="page"
       :total-pages="Math.ceil(data.total / 50)"
+      :disabled="isFetching || tagQuery.isFetching.value"
+      aria-label="标签歌曲分页"
+      class="justify-center mt-5"
       @update:model-value="updateQuery({ page: $event > 1 ? String($event) : undefined })"
     />
   </div>

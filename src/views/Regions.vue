@@ -212,15 +212,14 @@ async function playAll() {
                     </div>
                   </template>
                 </SongList>
-                <div v-if="pageCount > 1 || page > 1" class="flex items-center justify-center gap-3 mt-4">
-                  <AppButton :disabled="page <= 1" @click="setPage(page - 1)">
-                    上一页
-                  </AppButton>
-                  <span class="text-sm text-gray-500 dark:text-gray-400">{{ page }} / {{ pageCount }}</span>
-                  <AppButton :disabled="page >= pageCount" @click="setPage(page + 1)">
-                    下一页
-                  </AppButton>
-                </div>
+                <Pagination
+                  :model-value="page"
+                  :total-pages="pageCount"
+                  :disabled="songsQuery.isFetching.value"
+                  aria-label="地区歌曲分页"
+                  class="justify-center mt-5"
+                  @update:model-value="setPage"
+                />
               </div>
             </AsyncFade>
           </div>
