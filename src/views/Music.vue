@@ -5,12 +5,15 @@ import { toast } from 'vue-sonner'
 import { useAlbumInfoQuery, useCommentThreadsQuery, usePlaylistDetailQuery, useSongInfoQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { asyncFadeHeightKey } from '@/constants/async-fade'
 import { vPageEnter } from '@/directives/page-enter'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { buildPlaylistItem, formatDuration, getCoverUrl, getProductCode, getProductIconUrl, selectLyricProvider } from '@/utils'
 import { NotFoundError } from '@/utils/fetch'
+
+provide(asyncFadeHeightKey, true)
 
 const route = useRoute()
 const router = useRouter()
@@ -23,7 +26,7 @@ const { lyricsSource } = storeToRefs(player)
 
 const isPlaylistContext = computed(() => route.name === 'PlaylistMusicInfo')
 const detailPlaylistId = computed(() => (isPlaylistContext.value ? (route.params.playlistId as string) : null))
-const { data: playlistDetail } = usePlaylistDetailQuery(detailPlaylistId)
+const { data: playlistDetail, isLoading: isPlaylistLoading, isError: isPlaylistError, refetch: refetchPlaylist } = usePlaylistDetailQuery(detailPlaylistId)
 
 const musicId = computed(() => Number(route.params.musicId))
 const currentPlaylistSong = computed(() => {
@@ -40,6 +43,7 @@ const albumId = computed(() => {
 
 const { data: albumInfo, isLoading, isError: isAlbumError, error: albumError } = useAlbumInfoQuery(albumId)
 const { data: songInfo, isLoading: isSongLoading, isError: isSongError, error: songError } = useSongInfoQuery(musicId)
+const hasSongTags = computed(() => !!(songInfo.value?.tags.length || songInfo.value?.maps?.length || songInfo.value?.songTags?.length))
 const showDiscName = computed(() => new Set(albumInfo.value?.songs.map(song => song.disc)).size > 1)
 
 const musicInfo = computed<SongListItemInfo | null>(() => {
@@ -235,6 +239,8 @@ const productCode = computed(() => getProductCode(albumInfo.value?.productName ?
 const showEditRegionDialog = ref(false)
 const showEditVideoDialog = ref(false)
 const showEditInfoDialog = ref(false)
+const showEditCreditsDialog = ref(false)
+const showEditSongTagsDialog = ref(false)
 const showMyRequestsDialog = ref(false)
 const requestPage = ref(1)
 const { pendingRequest } = usePendingSongEditRequest(musicId)
@@ -248,6 +254,8 @@ function openMyRequests() {
 watch(() => [musicId.value, auth.user?.id], () => {
   showMyRequestsDialog.value = false
   showEditInfoDialog.value = false
+  showEditCreditsDialog.value = false
+  showEditSongTagsDialog.value = false
   showEditRegionDialog.value = false
   showEditVideoDialog.value = false
   requestPage.value = 1
@@ -269,6 +277,22 @@ function openEditRegion() {
   showEditRegionDialog.value = true
 }
 
+function openEditSongTags() {
+  if (!auth.requireLogin())
+    return
+  if (isSongLoading.value || isSongError.value || songInfo.value?.id !== musicId.value) {
+    toast.error('歌曲详情尚未加载完成，请稍后重试')
+    return
+  }
+  showEditSongTagsDialog.value = true
+}
+
+function openEditCredits() {
+  if (!auth.requireLogin())
+    return
+  showEditCreditsDialog.value = true
+}
+
 function openEditVideo() {
   if (!auth.requireLogin())
     return
@@ -276,6 +300,10 @@ function openEditVideo() {
 }
 
 function refreshSongInfo() {
+  for (const key of ['songTags', 'songTag', 'songTagSongs', 'searchPage', 'search'])
+    queryClient.invalidateQueries({ queryKey: [key] })
+  queryClient.invalidateQueries({ queryKey: ['creditInfo'] })
+  queryClient.invalidateQueries({ queryKey: ['artistInfo'] })
   queryClient.invalidateQueries({ queryKey: ['editRequests'] })
   queryClient.invalidateQueries({ queryKey: ['editRequestDetail'] })
   queryClient.invalidateQueries({ queryKey: ['songInfo', musicId.value] })
@@ -287,10 +315,14 @@ function refreshSongInfo() {
 </script>
 
 <template>
-  <AsyncFade>
-    <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
-      <LucideLoader2 class="size-6 animate-spin mr-2" />
-      加载中...
+  <AsyncFade :animate-height="false">
+    <PageLoading v-if="isLoading || isPlaylistLoading" />
+
+    <div v-else-if="isPlaylistError" class="py-20 text-center text-red-400" role="alert">
+      歌单加载失败
+      <AppButton class="ml-2" @click="refetchPlaylist()">
+        重试
+      </AppButton>
     </div>
 
     <div v-else-if="isAlbumError" class="flex items-center justify-center py-20 text-red-400">
@@ -338,6 +370,8 @@ function refreshSongInfo() {
             @add-to-playlist="addSongToUserPlaylist"
             @my-requests="openMyRequests"
             @edit-info="openEditInfo"
+            @edit-credits="openEditCredits"
+            @edit-song-tags="openEditSongTags"
             @edit-region="openEditRegion"
             @edit-video="openEditVideo"
             @show-comments="scrollToComments"
@@ -407,20 +441,24 @@ function refreshSongInfo() {
                 </template>
               </dl>
 
-              <div class="mt-4">
-                <AsyncFade>
-                  <div v-if="isSongLoading" class="flex items-center justify-center gap-2 py-2 text-gray-400">
-                    <LucideLoader2 class="size-4 animate-spin" />
-                    加载中...
-                  </div>
-                  <p v-else-if="isSongError" class="py-2 text-sm text-red-400">
-                    加载失败，请刷新重试
-                  </p>
-                  <div v-else>
-                    <TagList v-if="songInfo?.tags.length || songInfo?.maps?.length" :tags="songInfo.tags" :maps="songInfo.maps" />
-                  </div>
-                </AsyncFade>
-              </div>
+              <!-- 间距放进动画元素，避免空标签块在恢复 overflow 后发生外边距折叠。 -->
+              <AsyncFade>
+                <div v-if="isSongLoading" role="status" class="flex items-center justify-center gap-2 pt-6 pb-2 text-gray-400">
+                  <LucideLoader2 class="size-4 animate-spin" />
+                  加载中...
+                </div>
+                <p v-else-if="isSongError" class="pt-6 pb-2 text-sm text-red-400">
+                  加载失败，请刷新重试
+                </p>
+                <div v-else :class="{ 'pt-4': hasSongTags }">
+                  <TagList
+                    v-if="songInfo && hasSongTags"
+                    :tags="songInfo.tags"
+                    :song-tags="songInfo.songTags"
+                    :maps="songInfo.maps"
+                  />
+                </div>
+              </AsyncFade>
             </section>
 
             <section v-page-enter="240" class="mt-4">
@@ -432,7 +470,12 @@ function refreshSongInfo() {
               />
             </section>
           </div>
-          <div v-show="activeTab === 'comments'" ref="commentSection" v-page-enter="route.query.commentId ? false : 360" class="detail-comments detail-desktop-visible">
+          <div
+            v-show="activeTab === 'comments'"
+            ref="commentSection"
+            v-page-enter="route.query.commentId ? false : 360"
+            class="detail-comments detail-desktop-visible"
+          >
             <CommentSection :post-id="`hoyomix:song:${musicInfo.id}`" />
           </div>
         </div>
@@ -472,6 +515,18 @@ function refreshSongInfo() {
         :song-id="musicId"
         :game="productCode"
         :maps="songInfo?.maps ?? []"
+        @success="refreshSongInfo"
+      />
+
+      <SongCreditsEditDialog
+        v-model="showEditCreditsDialog"
+        :song-id="musicId"
+        @success="refreshSongInfo"
+      />
+      <SongTagEditDialog
+        v-model="showEditSongTagsDialog"
+        :song-id="musicId"
+        :song-tags="songInfo?.songTags ?? []"
         @success="refreshSongInfo"
       />
 

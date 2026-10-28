@@ -310,7 +310,11 @@ onMounted(() => {
 
       <div class="mt-4 xl:mt-0">
         <AsyncFade>
-          <div>
+          <div v-if="isLoading" class="flex items-center justify-center gap-2 py-16 text-gray-400" role="status">
+            <LucideLoader2 class="size-5 animate-spin" />
+            加载中...
+          </div>
+          <div v-else>
             <div v-if="randomPlaylist.length" class="mb-4 flex items-center gap-2 flex-wrap">
               <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">共 {{ randomPlaylist.length }} 首</span>
               <AppButton

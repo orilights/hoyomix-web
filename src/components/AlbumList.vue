@@ -17,6 +17,7 @@ const props = withDefaults(defineProps<{
   defaultLayout?: LayoutMode
   showLayoutToggle?: boolean
   persistKey?: string
+  revealKey?: string
 }>(), {
   displayByYear: false,
   defaultLayout: 'grid',
@@ -91,7 +92,7 @@ async function playAlbum(albumId: number) {
 </script>
 
 <template>
-  <div ref="homeContainer" class="relative">
+  <div ref="homeContainer">
     <div v-if="showLayoutToggle || $slots.toolbar" class="flex items-center gap-2 mb-2">
       <div class="flex-1 min-w-0">
         <slot name="toolbar" />
@@ -126,75 +127,82 @@ async function playAlbum(albumId: number) {
         </Tooltip>
       </div>
     </div>
-    <div v-for="year in years" :key="year">
-      <div v-if="year" class="font-bold text-4xl pt-4 pb-2 pl-4">
-        {{ year }}
+    <AsyncFade>
+      <div v-if="!albumsList.length && $slots.empty" key="empty">
+        <slot name="empty" />
       </div>
-      <div
-        v-if="layout === 'grid'"
-        class="grid justify-center"
-        :style="{
-          gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
-        }"
-      >
-        <RouterLink
-          v-for="album_info in sortedAlbumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
-          :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
-        >
-          <div v-reveal-cover class="cover-reveal group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
-            <div class="rounded-2xl overflow-hidden relative">
-              <CoverImage :src="getCoverUrl(album_info.platforms, '256px')" />
-              <button
-                class="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-2 bg-black/40 hover:bg-black/60"
-                title="播放专辑"
-                @click.prevent="playAlbum(album_info.id)"
-              >
-                <LucidePlay class="size-6 fill-white" />
-              </button>
-            </div>
-            <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
-              {{ album_info.name }}
-            </div>
-            <div>
-              <span class="text-xs text-gray-500 dark:text-gray-400">{{ album_info.publishDate }}</span>
-              ·
-              <span class="text-xs text-gray-500 dark:text-gray-400">{{ album_info.songCount }}</span>
-            </div>
+      <div v-else key="albums">
+        <div v-for="year in years" :key="`${revealKey ?? ''}:${year}`">
+          <div v-if="year" class="font-bold text-4xl pt-4 pb-2 pl-4">
+            {{ year }}
           </div>
-        </RouterLink>
-      </div>
-      <div v-else class="flex flex-col">
-        <RouterLink
-          v-for="album_info in sortedAlbumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
-          :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
-        >
-          <div class="group flex items-center gap-2 md:gap-3 p-2 md:px-4 rounded-xl hover:bg-gray-500/20 transition-colors">
-            <div class="shrink-0 size-14 md:size-20 rounded-lg overflow-hidden">
-              <CoverImage :src="getCoverUrl(album_info.platforms, '128px')" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="text-sm md:text-base font-medium truncate">
-                {{ album_info.name }}
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 truncate mt-2">
-                {{ album_info.publishDate }} · {{ album_info.songCount }}
-              </div>
-            </div>
-            <AppButton
-              icon-only
-              size="xs"
-              variant="ghost"
-              class="shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-all hidden md:inline-flex hover:scale-105 active:scale-95"
-              aria-label="播放专辑"
-              title="播放专辑"
-              @click.prevent="playAlbum(album_info.id)"
+          <div
+            v-if="layout === 'grid'"
+            class="grid justify-center"
+            :style="{
+              gridTemplateColumns: `repeat(${gridColumns}, minmax(0px, 1fr))`,
+            }"
+          >
+            <RouterLink
+              v-for="album_info in sortedAlbumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
+              :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
             >
-              <LucidePlay class="size-6" fill="currentColor" />
-            </AppButton>
+              <div v-reveal-cover class="cover-reveal group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
+                <div class="rounded-2xl overflow-hidden relative">
+                  <CoverImage :src="getCoverUrl(album_info.platforms, '256px')" />
+                  <button
+                    class="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-2 bg-black/40 hover:bg-black/60"
+                    title="播放专辑"
+                    @click.prevent="playAlbum(album_info.id)"
+                  >
+                    <LucidePlay class="size-6 fill-white" />
+                  </button>
+                </div>
+                <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
+                  {{ album_info.name }}
+                </div>
+                <div>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">{{ album_info.publishDate }}</span>
+                  ·
+                  <span class="text-xs text-gray-500 dark:text-gray-400">{{ album_info.songCount }}</span>
+                </div>
+              </div>
+            </RouterLink>
           </div>
-        </RouterLink>
+          <div v-else class="flex flex-col">
+            <RouterLink
+              v-for="album_info in sortedAlbumsList.filter(i => year === 0 || getAlbumYear(i) === year)" :key="album_info.id"
+              :to="{ name: 'AlbumInfo', params: { id: album_info.id } }" :title="album_info.name"
+            >
+              <div class="group flex items-center gap-2 md:gap-3 p-2 md:px-4 rounded-xl hover:bg-gray-500/20 transition-colors">
+                <div class="shrink-0 size-14 md:size-20 rounded-lg overflow-hidden">
+                  <CoverImage :src="getCoverUrl(album_info.platforms, '128px')" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm md:text-base font-medium truncate">
+                    {{ album_info.name }}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 truncate mt-2">
+                    {{ album_info.publishDate }} · {{ album_info.songCount }}
+                  </div>
+                </div>
+                <AppButton
+                  icon-only
+                  size="xs"
+                  variant="ghost"
+                  class="shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-all hidden md:inline-flex hover:scale-105 active:scale-95"
+                  aria-label="播放专辑"
+                  title="播放专辑"
+                  @click.prevent="playAlbum(album_info.id)"
+                >
+                  <LucidePlay class="size-6" fill="currentColor" />
+                </AppButton>
+              </div>
+            </RouterLink>
+          </div>
+        </div>
       </div>
-    </div>
+    </AsyncFade>
   </div>
 </template>
 

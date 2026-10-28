@@ -149,7 +149,7 @@ function handleGitHub() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" hide-header-border>
+  <AppDialog v-model="visible" :close-on-click-overlay="false" hide-header-border>
     <template #title>
       {{ registerSuccess ? '注册成功' : forgotSuccess ? '邮件已发送' : tab === 'login' ? '登录' : tab === 'register' ? '注册账号' : '重置密码' }}
     </template>
@@ -283,9 +283,11 @@ function handleGitHub() {
               placeholder="请输入用户名"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
-            <p :id="`${registerNameId}-hint`" class="mt-1 text-xs" :class="registerNameError ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'" aria-live="polite" :aria-busy="registerNameChecking">
-              {{ registerNameMessage }}
-            </p>
+            <AsyncFade>
+              <p :id="`${registerNameId}-hint`" :key="registerNameMessage" class="mt-1 text-xs" :class="registerNameError ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'" aria-live="polite" :aria-busy="registerNameChecking">
+                {{ registerNameMessage }}
+              </p>
+            </AsyncFade>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮箱</label>

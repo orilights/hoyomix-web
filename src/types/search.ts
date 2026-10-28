@@ -1,3 +1,5 @@
+import type { SongTag } from './song-tag'
+
 export type SearchType = 'song' | 'album' | 'product' | 'artist' | 'series'
 
 export interface SearchResultItem {
@@ -5,6 +7,7 @@ export interface SearchResultItem {
   id: number | string
   name: string
   matches: Record<string, string>
+  songTags?: SongTag[]
   albumId?: number
   albumName?: string
   productName?: string

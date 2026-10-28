@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
-import { Disc3, House, ListMusic, MapPin, Shuffle, TrendingUp, Trophy } from '@lucide/vue'
+import { Disc3, House, ListMusic, MapPin, Shuffle, Tags, TrendingUp, Trophy } from '@lucide/vue'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { appTitle } from '@/constants'
 import { useAuthStore } from '@/store/auth'
@@ -23,6 +23,7 @@ const navigation = [
   { name: 'Playlists', label: '歌单广场', icon: ListMusic },
   { name: 'Random', label: '随机播放', icon: Shuffle },
   { name: 'Regions', label: '地区', icon: MapPin },
+  { name: 'SongTags', label: '标签', icon: Tags },
   { name: 'Ranking', label: '热榜', icon: TrendingUp },
   { name: 'ContributionRanking', label: '贡献榜', icon: Trophy },
 ]
@@ -53,6 +54,8 @@ function coverUrl(playlist: PlaylistListItem) {
 }
 
 function isNavigationActive(name: string) {
+  if (name === 'SongTags' && route.name === 'SongTagDetail')
+    return true
   return route.name === name && (name !== 'Playlists' || !['mine', 'favorites'].includes(String(route.query.tab)))
 }
 
@@ -149,42 +152,56 @@ watch(() => auth.user?.id, () => {
                 <LucidePlus class="size-4" />
               </AppButton>
             </div>
-            <p v-if="group.loading" role="status" class="px-3 py-2 text-center text-xs text-gray-400">
-              加载中…
-            </p>
-            <div v-else-if="group.error" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-              加载失败
-              <AppButton size="sm" variant="ghost" :aria-label="`重新加载${group.title}`" @click="group.retry()">
-                重试
-              </AppButton>
-            </div>
-            <p v-else-if="!group.items.length" class="px-3 py-2 text-xs text-gray-400">
-              暂无歌单
-            </p>
-            <RouterLink
-              v-for="playlist in group.items" :key="playlist.id"
-              :to="{ name: 'PlaylistDetail', params: { id: playlist.id } }"
-              :title="playlist.name"
-              class="sidebar-link"
-              :class="{ 'is-active': isPlaylistActive(playlist.id) }"
-              :aria-current="isPlaylistActive(playlist.id) ? 'page' : undefined"
-            >
-              <span class="size-8 shrink-0 rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 flex items-center justify-center">
-                <CoverImage v-if="coverUrl(playlist)" :key="coverUrl(playlist)" :src="coverUrl(playlist)" />
-                <LucideMusic v-else class="size-4 text-gray-400" />
-              </span>
-              <span class="truncate">{{ playlist.name }}</span>
-            </RouterLink>
+            <AsyncFade>
+              <p v-if="group.loading" role="status" class="px-3 py-2 text-center text-xs text-gray-400">
+                加载中…
+              </p>
+              <div v-else-if="group.error" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+                加载失败
+                <AppButton size="sm" variant="ghost" :aria-label="`重新加载${group.title}`" @click="group.retry()">
+                  重试
+                </AppButton>
+              </div>
+              <p v-else-if="!group.items.length" class="px-3 py-2 text-xs text-gray-400">
+                暂无歌单
+              </p>
+              <div v-else>
+                <RouterLink
+                  v-for="playlist in group.items" :key="playlist.id"
+                  :to="{ name: 'PlaylistDetail', params: { id: playlist.id } }"
+                  :title="playlist.name"
+                  class="sidebar-link"
+                  :class="{ 'is-active': isPlaylistActive(playlist.id) }"
+                  :aria-current="isPlaylistActive(playlist.id) ? 'page' : undefined"
+                >
+                  <span class="size-8 shrink-0 rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 flex items-center justify-center">
+                    <CoverImage v-if="coverUrl(playlist)" :key="coverUrl(playlist)" :src="coverUrl(playlist)" />
+                    <LucideMusic v-else class="size-4 text-gray-400" />
+                  </span>
+                  <span class="truncate">{{ playlist.name }}</span>
+                </RouterLink>
+              </div>
+            </AsyncFade>
           </nav>
         </template>
       </div>
     </OverlayScrollbarsComponent>
 
     <nav aria-label="应用" class="shrink-0 border-t border-gray-200/60 dark:border-gray-700/60 p-3 grid grid-cols-2 gap-1">
-      <RouterLink :to="{ name: 'Settings' }" class="sidebar-link" :class="{ 'is-active': route.name === 'Settings' }" :aria-current="route.name === 'Settings' ? 'page' : undefined">
+      <RouterLink
+        :to="{ name: 'Settings' }"
+        class="sidebar-link"
+        :class="{ 'is-active': route.name === 'Settings' }"
+        :aria-current="route.name === 'Settings' ? 'page' : undefined"
+      >
         <LucideSlidersHorizontal class="size-4 shrink-0" />设置
       </RouterLink>
-      <RouterLink :to="{ name: 'Feedback' }" class="sidebar-link" :class="{ 'is-active': route.name === 'Feedback' }" :aria-current="route.name === 'Feedback' ? 'page' : undefined">
+      <RouterLink
+        :to="{ name: 'Feedback' }"
+        class="sidebar-link"
+        :class="{ 'is-active': route.name === 'Feedback' }"
+        :aria-current="route.name === 'Feedback' ? 'page' : undefined"
+      >
         <LucideMessageSquare class="size-4 shrink-0" />反馈
       </RouterLink>
     </nav>

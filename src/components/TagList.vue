@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { SongMapInfo, TagInfo } from '@/types/core'
+import type { SongTag } from '@/types/song-tag'
 import type { VideoTagData } from '@/types/tag'
 import { formatDuration } from '@/utils'
 
 defineProps<{
   tags: TagInfo[]
+  songTags?: SongTag[]
   maps?: SongMapInfo[]
   albumId?: number
 }>()
@@ -37,11 +39,21 @@ function goSourceLink(url: string) {
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-x-2 gap-y-1">
+  <div class="flex flex-wrap gap-x-2 gap-y-1 text-sm">
+    <RouterLink
+      v-for="tag in songTags"
+      :key="`song-tag-${tag.id}`"
+      :to="{ name: 'SongTagDetail', params: { code: tag.code } }"
+      class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl inline-flex items-center gap-1 hover:bg-black/10 hover:dark:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-colors"
+    >
+      <LucideTag class="size-3.5 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+      {{ tag.name }}<span v-if="!tag.enabled" class="text-gray-400">已停用</span>
+    </RouterLink>
+
     <div
       v-for="(map, mi) in maps"
       :key="`map-${mi}`"
-      class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl flex flex-wrap items-center gap-1 text-sm"
+      class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl flex flex-wrap items-center gap-1"
     >
       <LucideMapPin class="size-3.5 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
       <template v-for="(segment, si) in map.path" :key="si">

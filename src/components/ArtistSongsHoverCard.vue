@@ -204,39 +204,41 @@ onBeforeUnmount(() => {
           </RouterLink>
         </div>
 
-        <div v-if="isLoading" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-          加载中...
-        </div>
-        <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-          加载失败
-          <button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
-            重试
-          </button>
-        </div>
-        <div v-else-if="!songs.length" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-          暂无歌曲
-        </div>
-        <OverlayScrollbarsComponent
-          v-else
-          class="max-h-[min(20rem,calc(100dvh-72px))]"
-          :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
-        >
-          <RouterLink
-            v-for="song in songs"
-            :key="song.id"
-            :to="{ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.id } }"
-            class="block rounded-lg px-2 py-1.5 hover:bg-black/5 hover:dark:bg-white/5 transition-colors"
-            :title="song.name"
-            @click="closeCard"
+        <AsyncFade>
+          <div v-if="isLoading" role="status" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
+            加载中...
+          </div>
+          <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
+            加载失败
+            <button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
+              重试
+            </button>
+          </div>
+          <div v-else-if="!songs.length" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
+            暂无歌曲
+          </div>
+          <OverlayScrollbarsComponent
+            v-else
+            class="max-h-[min(20rem,calc(100dvh-72px))]"
+            :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
           >
-            <div class="truncate">
-              {{ song.name }}
-            </div>
-            <div v-if="contextType === 'product'" class="truncate text-xs text-gray-500 dark:text-gray-400">
-              {{ song.albumName }}
-            </div>
-          </RouterLink>
-        </OverlayScrollbarsComponent>
+            <RouterLink
+              v-for="song in songs"
+              :key="song.id"
+              :to="{ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.id } }"
+              class="block rounded-lg px-2 py-1.5 hover:bg-black/5 hover:dark:bg-white/5 transition-colors"
+              :title="song.name"
+              @click="closeCard"
+            >
+              <div class="truncate">
+                {{ song.name }}
+              </div>
+              <div v-if="contextType === 'product'" class="truncate text-xs text-gray-500 dark:text-gray-400">
+                {{ song.albumName }}
+              </div>
+            </RouterLink>
+          </OverlayScrollbarsComponent>
+        </AsyncFade>
       </div>
     </Transition>
   </Teleport>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RankingPeriod } from '@/api/music'
+import type { RankingPeriod } from '@/types/core'
 import { useUrlSearchParams } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useRankingQuery } from '@/composables/queries'
@@ -143,10 +143,7 @@ onMounted(() => {
     />
 
     <AsyncFade>
-      <div v-if="isPending || isFetching" class="flex items-center justify-center py-20 text-gray-400" role="status">
-        <LucideLoader2 class="size-6 animate-spin mr-2" />
-        加载中...
-      </div>
+      <PageLoading v-if="isPending || isFetching" />
 
       <div v-else-if="isError" class="flex flex-col items-center gap-3 py-20 text-gray-500 dark:text-gray-400" role="alert">
         <p>热榜加载失败</p>

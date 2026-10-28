@@ -54,7 +54,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" title="修改密码">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" title="修改密码">
     <form class="px-6 py-5 space-y-3" @submit.prevent="handleSubmit">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">当前密码</label>

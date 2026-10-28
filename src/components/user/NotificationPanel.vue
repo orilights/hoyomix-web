@@ -26,6 +26,7 @@ const router = useRouter()
 const player = usePlayerStore()
 
 const loading = ref(false)
+const loadError = ref(false)
 const notifications = ref<Notification[]>([])
 const total = ref(0)
 const unreadCount = ref(0)
@@ -40,6 +41,7 @@ async function fetchNotifications(reset = false) {
     notifications.value = []
   }
   loading.value = true
+  loadError.value = false
   try {
     const res = await getNotificationsApi(page.value, 20)
     if (page.value === 1) {
@@ -53,6 +55,7 @@ async function fetchNotifications(reset = false) {
     emit('unreadCountChange', res.unreadCount)
   }
   catch (e) {
+    loadError.value = true
     // 加载更多失败时回滚页码，便于重试
     if (!reset)
       page.value--
@@ -292,56 +295,64 @@ onMounted(() => fetchNotifications(true))
     </div>
 
     <div class="overflow-y-auto max-h-72 overscroll-contain">
-      <div v-if="loading && notifications.length === 0" class="py-10 text-center text-sm text-gray-400">
-        加载中...
-      </div>
-      <div v-else-if="notifications.length === 0" class="py-10 text-center text-sm text-gray-400">
-        暂无通知
-      </div>
-      <template v-else>
-        <div
-          v-for="n in notifications"
-          :key="n.id"
-          class="group flex items-start gap-2.5 px-3 py-3 hover:bg-gray-50 hover:dark:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-700 last:border-0"
-          :class="{ 'cursor-pointer': !n.isRead || isCommentNotification(n), 'opacity-60': navigatingId === n.id }"
-          :role="isCommentNotification(n) ? 'button' : undefined"
-          :tabindex="isCommentNotification(n) ? 0 : undefined"
-          @click="openNotification(n)"
-          @keydown.enter.self="openNotification(n)"
-        >
-          <div class="mt-1.5 size-1.5 rounded-full shrink-0 transition-colors" :class="n.isRead ? 'bg-gray-200 dark:bg-gray-700' : 'bg-blue-500'" />
-          <div class="flex-1 min-w-0">
-            <p class="text-sm leading-snug" :class="n.isRead ? 'text-gray-500 dark:text-gray-400' : 'font-medium text-gray-900 dark:text-gray-100'">
-              {{ n.title }}
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
-              {{ n.content }}
-            </p>
-            <p class="text-[11px] text-gray-300 mt-1 flex items-center gap-1.5">
-              <span v-if="notificationTypeLabel(n)" class="rounded bg-blue-50 dark:bg-blue-500/15 px-1.5 py-0.5 text-blue-500">{{ notificationTypeLabel(n) }}</span>
-              <span>{{ formatRelativeTime(n.createdAt) }}</span>
-            </p>
-          </div>
-          <AppButton
-            icon-only
-            size="xs"
-            variant="ghost"
-            class="opacity-0 group-hover:opacity-100 transition-all shrink-0 mt-0.5"
-            aria-label="删除通知"
-            @click.stop="removeNotification(n.id)"
-          >
-            <LucideX class="size-3 text-gray-400" />
+      <AsyncFade>
+        <div v-if="loading && notifications.length === 0" role="status" class="py-10 text-center text-sm text-gray-400">
+          加载中...
+        </div>
+        <div v-else-if="loadError && notifications.length === 0" class="py-10 text-center text-sm text-gray-400" role="alert">
+          通知加载失败
+          <AppButton size="sm" variant="ghost" @click="fetchNotifications(true)">
+            重试
           </AppButton>
         </div>
-        <button
-          v-if="hasMore"
-          class="w-full py-2.5 text-xs text-gray-400 hover:text-gray-600 hover:dark:text-gray-400 hover:bg-gray-50 hover:dark:bg-gray-800 transition-colors cursor-pointer"
-          :disabled="loading"
-          @click.stop="loadMore"
-        >
-          {{ loading ? '加载中...' : '加载更多' }}
-        </button>
-      </template>
+        <div v-else-if="notifications.length === 0" class="py-10 text-center text-sm text-gray-400">
+          暂无通知
+        </div>
+        <div v-else>
+          <div
+            v-for="n in notifications"
+            :key="n.id"
+            class="group flex items-start gap-2.5 px-3 py-3 hover:bg-gray-50 hover:dark:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-700 last:border-0"
+            :class="{ 'cursor-pointer': !n.isRead || isCommentNotification(n), 'opacity-60': navigatingId === n.id }"
+            :role="isCommentNotification(n) ? 'button' : undefined"
+            :tabindex="isCommentNotification(n) ? 0 : undefined"
+            @click="openNotification(n)"
+            @keydown.enter.self="openNotification(n)"
+          >
+            <div class="mt-1.5 size-1.5 rounded-full shrink-0 transition-colors" :class="n.isRead ? 'bg-gray-200 dark:bg-gray-700' : 'bg-blue-500'" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm leading-snug" :class="n.isRead ? 'text-gray-500 dark:text-gray-400' : 'font-medium text-gray-900 dark:text-gray-100'">
+                {{ n.title }}
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
+                {{ n.content }}
+              </p>
+              <p class="text-[11px] text-gray-300 mt-1 flex items-center gap-1.5">
+                <span v-if="notificationTypeLabel(n)" class="rounded bg-blue-50 dark:bg-blue-500/15 px-1.5 py-0.5 text-blue-500">{{ notificationTypeLabel(n) }}</span>
+                <span>{{ formatRelativeTime(n.createdAt) }}</span>
+              </p>
+            </div>
+            <AppButton
+              icon-only
+              size="xs"
+              variant="ghost"
+              class="opacity-0 group-hover:opacity-100 transition-all shrink-0 mt-0.5"
+              aria-label="删除通知"
+              @click.stop="removeNotification(n.id)"
+            >
+              <LucideX class="size-3 text-gray-400" />
+            </AppButton>
+          </div>
+          <button
+            v-if="hasMore"
+            class="w-full py-2.5 text-xs text-gray-400 hover:text-gray-600 hover:dark:text-gray-400 hover:bg-gray-50 hover:dark:bg-gray-800 transition-colors cursor-pointer"
+            :disabled="loading"
+            @click.stop="loadMore"
+          >
+            {{ loading ? '加载中...' : '加载更多' }}
+          </button>
+        </div>
+      </AsyncFade>
     </div>
   </div>
 </template>

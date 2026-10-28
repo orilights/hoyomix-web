@@ -1,4 +1,5 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsResponse, MapTreeNode, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsParams, MapSongsResponse, MapSongsSort, MapTreeNode, PlaylistCreateData, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, PlaylistsQueryParams, RandomPlaylistParams, RankingPeriod, RankingResponse, SongCreditsChange, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+
 import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
 
 import type { SearchPageResponse, SearchResponse, SearchType } from '@/types/search'
@@ -42,15 +43,6 @@ export function getMapTreeApi(game: string, withSongCounts = false) {
   return fetchJson<MapTreeNode[]>(`${apiBase}/maps?${query}`)
 }
 
-export type MapSongsSort = 'region' | 'album_asc' | 'album_desc'
-
-export interface MapSongsParams {
-  game: string
-  includeChildren: boolean
-  page: number
-  sort: MapSongsSort
-}
-
 export function getMapSongsApi(id: number, params: MapSongsParams) {
   const query = new URLSearchParams({ game: params.game, includeChildren: String(params.includeChildren), page: String(params.page), limit: '50', sort: params.sort })
   return fetchJson<MapSongsResponse>(`${apiBase}/maps/${id}/songs?${query}`)
@@ -82,6 +74,14 @@ export function submitSongInfoEditApi(songId: number, changes: SongInfoChange) {
     resourceType: 'song',
     resourceId: songId,
     changes,
+  })
+}
+
+export function submitSongCreditsEditApi(songId: number, credits: SongCreditsChange) {
+  return fetchJsonMutation<EditRequestResponse>(`${apiBase}/edit-requests`, 'POST', {
+    resourceType: 'song',
+    resourceId: songId,
+    changes: { credits },
   })
 }
 
@@ -130,21 +130,6 @@ export function getAlbumsByTagApi(tagType: string, tagName: string) {
   return fetchJson<AlbumListItemInfo[]>(`${apiBase}/tags/${tagType}/${encodeURIComponent(tagName)}/albums`)
 }
 
-export interface PlaylistCreateData {
-  name: string
-  description?: string
-  coverAlbumId?: number | null
-  isPublic?: boolean
-}
-
-export interface PlaylistsQueryParams {
-  page?: number
-  limit?: number
-  name?: string
-  userId?: string
-  sort?: 'asc' | 'desc'
-}
-
 export function getPublicPlaylistsApi(params?: PlaylistsQueryParams) {
   const query = new URLSearchParams()
   if (params?.page)
@@ -191,17 +176,6 @@ export function getPlaylistReviewApi(id: string) {
 
 export function cancelPlaylistReviewApi(id: string) {
   return fetchJsonMutation<void>(`${apiBase}/playlists/${id}/review`, 'DELETE')
-}
-
-export interface RandomPlaylistParams {
-  minDuration?: number
-  limit?: number
-  products?: string[]
-  albums?: number[]
-  excludeAlbums?: number[]
-  excludeInstrumental?: boolean
-  dateFrom?: string
-  dateTo?: string
 }
 
 export function getRandomPlaylistApi(params?: RandomPlaylistParams) {
@@ -264,13 +238,6 @@ export function addPlaylistFavoriteApi(id: string) {
 
 export function removePlaylistFavoriteApi(id: string) {
   return fetchJsonMutation<{ ok: boolean }>(`${apiBase}/playlists/${id}/favorite`, 'DELETE')
-}
-
-export type RankingPeriod = '1d' | '7d' | '30d' | '365d' | 'all'
-
-export interface RankingResponse {
-  date: string | null
-  songs: PlaylistSongItem[]
 }
 
 export function getRankingApi(period: RankingPeriod, date?: string, productId?: number) {

@@ -78,7 +78,7 @@ defineExpose({ play })
 </script>
 
 <template>
-  <AppDialog v-model="visible" title="选择播放方式" size="md">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" title="选择播放方式" size="md">
     <div class="p-5 space-y-3">
       <button
         class="w-full text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:dark:bg-blue-500/15 transition-colors cursor-pointer"

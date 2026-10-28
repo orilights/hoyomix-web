@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { dialogStack, removeDialog } from '@/utils/dialog-stack'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   title?: string
   size?: 'sm' | 'md' | 'lg' | 'xl'
   hideHeaderBorder?: boolean
+  closeOnClickOverlay?: boolean
 }>(), {
   size: 'sm',
   hideHeaderBorder: false,
+  closeOnClickOverlay: true,
 })
 
 const visible = defineModel<boolean>({ required: true })
@@ -54,7 +56,7 @@ function onOverlayMousedown(e: MouseEvent) {
 }
 
 function onOverlayClick(e: MouseEvent) {
-  if (e.target === e.currentTarget && mousedownOnOverlay.value)
+  if (props.closeOnClickOverlay && e.target === e.currentTarget && mousedownOnOverlay.value)
     close()
 }
 

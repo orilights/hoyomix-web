@@ -68,7 +68,7 @@ watch(isLyricsError, (val) => {
       <div v-if="!lyricProvider" class="text-gray-400 text-sm text-center py-4">
         暂无数据
       </div>
-      <div v-else-if="isLyricsLoading" class="flex items-center justify-center py-4 text-gray-400">
+      <div v-else-if="isLyricsLoading" role="status" class="flex items-center justify-center py-4 text-gray-400">
         <LucideLoader2 class="size-4 animate-spin mr-1" />
         加载中...
       </div>

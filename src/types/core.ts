@@ -1,3 +1,5 @@
+import type { SongTag } from './song-tag'
+
 export type ContributionRankingPeriod = '30d' | '365d' | 'all'
 
 export interface ContributionRankingResponse {
@@ -44,6 +46,7 @@ export interface MapSongsResponse {
 }
 
 export interface SongInfo {
+  songTags: SongTag[]
   id: number
   descriptionFull: string
   tags: TagInfo[]
@@ -77,6 +80,12 @@ export interface SongInfoChange {
   name?: string
   description?: string
   descriptionFull?: string
+}
+
+/** 歌曲制作人员关联的增量变更 */
+export interface SongCreditsChange {
+  add?: { role: string, name: string }[]
+  remove?: { role: string, name: string }[]
 }
 
 /** 提交编辑申请响应（普通用户待审核 ｜ 管理员直接生效） */
@@ -234,4 +243,52 @@ export interface PlaylistListResponse {
   page: number
   limit: number
   items: PlaylistListItem[]
+}
+
+export type MapSongsSort = 'region' | 'album_asc' | 'album_desc'
+
+export interface MapSongsParams {
+  game: string
+  includeChildren: boolean
+  page: number
+  sort: MapSongsSort
+}
+
+export interface PlaylistCreateData {
+  name: string
+  description?: string
+  coverAlbumId?: number | null
+  isPublic?: boolean
+}
+
+export interface PlaylistsQueryParams {
+  page?: number
+  limit?: number
+  name?: string
+  userId?: string
+  sort?: 'asc' | 'desc'
+}
+
+export interface RandomPlaylistParams {
+  minDuration?: number
+  limit?: number
+  products?: string[]
+  albums?: number[]
+  excludeAlbums?: number[]
+  excludeInstrumental?: boolean
+  dateFrom?: string
+  dateTo?: string
+}
+
+export type RankingPeriod = '1d' | '7d' | '30d' | '365d' | 'all'
+
+export interface RankingResponse {
+  date: string | null
+  songs: PlaylistSongItem[]
+}
+
+export interface SongLyricLanguages {
+  songId: number
+  type: '纯音乐' | '存在歌词' | '无法判断' | '平台判断不一致'
+  languages: string[]
 }

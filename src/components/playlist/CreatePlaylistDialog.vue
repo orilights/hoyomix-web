@@ -190,7 +190,7 @@ async function submit() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" size="md">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" size="md">
     <template #title>
       {{ isEdit ? '编辑歌单' : '新建歌单' }}
     </template>

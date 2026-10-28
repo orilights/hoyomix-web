@@ -188,66 +188,68 @@ onBeforeUnmount(() => {
           </RouterLink>
         </div>
 
-        <div v-if="isLoading" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-          加载中...
-        </div>
-        <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-          加载失败
-          <button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
-            重试
-          </button>
-        </div>
-        <div v-else-if="!sortedAlbums.length" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-          暂无系列专辑
-        </div>
-        <div v-else ref="albumList">
-          <OverlayScrollbarsComponent
-            ref="scrollbar"
-            class="max-h-[min(20rem,calc(100dvh-72px))]"
-            :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
-            @os-initialized="scrollToCurrentAlbum"
-          >
-            <template v-for="album in sortedAlbums" :key="album.id">
-              <div
-                v-if="album.id === currentAlbumId"
-                data-current-album
-                class="flex items-center gap-2 rounded-lg p-2 bg-black/5 dark:bg-white/5"
-                aria-current="page"
-              >
-                <div class="size-10 shrink-0 rounded-md overflow-hidden">
-                  <CoverImage :src="getCoverUrl(album.platforms, '96px')" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="truncate font-medium">
-                    {{ album.name }}
+        <AsyncFade>
+          <div v-if="isLoading" role="status" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
+            加载中...
+          </div>
+          <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
+            加载失败
+            <button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
+              重试
+            </button>
+          </div>
+          <div v-else-if="!sortedAlbums.length" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
+            暂无系列专辑
+          </div>
+          <div v-else ref="albumList">
+            <OverlayScrollbarsComponent
+              ref="scrollbar"
+              class="max-h-[min(20rem,calc(100dvh-72px))]"
+              :options="{ scrollbars: { theme: 'os-theme-custom', autoHide: 'leave', clickScroll: true } }"
+              @os-initialized="scrollToCurrentAlbum"
+            >
+              <template v-for="album in sortedAlbums" :key="album.id">
+                <div
+                  v-if="album.id === currentAlbumId"
+                  data-current-album
+                  class="flex items-center gap-2 rounded-lg p-2 bg-black/5 dark:bg-white/5"
+                  aria-current="page"
+                >
+                  <div class="size-10 shrink-0 rounded-md overflow-hidden">
+                    <CoverImage :src="getCoverUrl(album.platforms, '96px')" />
                   </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ album.publishDate }}
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate font-medium">
+                      {{ album.name }}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ album.publishDate }}
+                    </div>
                   </div>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">当前</span>
                 </div>
-                <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">当前</span>
-              </div>
-              <RouterLink
-                v-else
-                :to="{ name: 'AlbumInfo', params: { id: album.id } }"
-                class="flex items-center gap-2 rounded-lg p-2 hover:bg-black/5 hover:dark:bg-white/5 transition-colors"
-                @click="closeCard"
-              >
-                <div class="size-10 shrink-0 rounded-md overflow-hidden">
-                  <CoverImage :src="getCoverUrl(album.platforms, '96px')" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="truncate font-medium">
-                    {{ album.name }}
+                <RouterLink
+                  v-else
+                  :to="{ name: 'AlbumInfo', params: { id: album.id } }"
+                  class="flex items-center gap-2 rounded-lg p-2 hover:bg-black/5 hover:dark:bg-white/5 transition-colors"
+                  @click="closeCard"
+                >
+                  <div class="size-10 shrink-0 rounded-md overflow-hidden">
+                    <CoverImage :src="getCoverUrl(album.platforms, '96px')" />
                   </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ album.publishDate }}
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate font-medium">
+                      {{ album.name }}
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ album.publishDate }}
+                    </div>
                   </div>
-                </div>
-              </RouterLink>
-            </template>
-          </OverlayScrollbarsComponent>
-        </div>
+                </RouterLink>
+              </template>
+            </OverlayScrollbarsComponent>
+          </div>
+        </AsyncFade>
       </div>
     </Transition>
   </Teleport>

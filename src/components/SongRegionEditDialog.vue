@@ -209,7 +209,7 @@ async function submit() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" size="md">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" size="md">
     <template #title>
       修改地区关联
     </template>
@@ -297,56 +297,58 @@ async function submit() {
           class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
         <div class="mt-2">
-          <div v-if="loading && game" class="flex items-center justify-center py-8 text-gray-400">
-            <LucideLoader2 class="size-5 animate-spin mr-2" />
-            加载中...
-          </div>
-          <div v-else-if="loadError || !game" class="flex items-center justify-center py-8 text-gray-400 text-sm">
-            地图数据加载失败
-          </div>
-          <div v-else-if="!tree.length" class="flex items-center justify-center py-8 text-gray-400 text-sm">
-            该作品暂不支持地区标签
-          </div>
-          <div v-else class="border border-gray-100 dark:border-gray-700 rounded-lg max-h-56 overflow-y-auto py-1">
-            <div
-              v-for="vn in visibleNodes"
-              :key="vn.node.id"
-              class="flex items-center gap-1 px-2 py-1 hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer"
-              :style="{ paddingLeft: `${8 + vn.depth * 16}px` }"
-            >
-              <button
-                v-if="vn.node.children.length"
-                type="button"
-                class="size-4 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:dark:text-gray-400 shrink-0 cursor-pointer"
-                @click.stop="toggleExpand(vn.node.id)"
+          <AsyncFade>
+            <div v-if="loading && game" role="status" class="flex items-center justify-center py-8 text-gray-400">
+              <LucideLoader2 class="size-5 animate-spin mr-2" />
+              加载中...
+            </div>
+            <div v-else-if="loadError || !game" class="flex items-center justify-center py-8 text-gray-400 text-sm">
+              地图数据加载失败
+            </div>
+            <div v-else-if="!tree.length" class="flex items-center justify-center py-8 text-gray-400 text-sm">
+              该作品暂不支持地区标签
+            </div>
+            <div v-else class="border border-gray-100 dark:border-gray-700 rounded-lg max-h-56 overflow-y-auto py-1">
+              <div
+                v-for="vn in visibleNodes"
+                :key="vn.node.id"
+                class="flex items-center gap-1 px-2 py-1 hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer"
+                :style="{ paddingLeft: `${8 + vn.depth * 16}px` }"
               >
-                <LucideChevronRight
-                  class="size-3.5 transition-transform"
-                  :class="{ 'rotate-90': expandedIds.has(vn.node.id) }"
-                />
-              </button>
-              <span v-else class="size-4 shrink-0" />
-
-              <button
-                type="button"
-                class="flex-1 flex items-center gap-2 text-left text-sm cursor-pointer"
-                @click="toggleNode(vn.node.id)"
-              >
-                <span
-                  class="size-4 rounded border flex items-center justify-center shrink-0"
-                  :class="selectedIds.includes(vn.node.id) ? 'bg-blue-500 border-blue-500' : 'bg-white dark:bg-[var(--theme-surface)] border-gray-300 dark:border-gray-700'"
+                <button
+                  v-if="vn.node.children.length"
+                  type="button"
+                  class="size-4 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:dark:text-gray-400 shrink-0 cursor-pointer"
+                  @click.stop="toggleExpand(vn.node.id)"
                 >
-                  <LucideCheck v-if="selectedIds.includes(vn.node.id)" class="size-3 text-white" />
-                </span>
-                <span class="truncate" :class="selectedIds.includes(vn.node.id) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'">
-                  {{ vn.node.name }}
-                </span>
-              </button>
+                  <LucideChevronRight
+                    class="size-3.5 transition-transform"
+                    :class="{ 'rotate-90': expandedIds.has(vn.node.id) }"
+                  />
+                </button>
+                <span v-else class="size-4 shrink-0" />
+
+                <button
+                  type="button"
+                  class="flex-1 flex items-center gap-2 text-left text-sm cursor-pointer"
+                  @click="toggleNode(vn.node.id)"
+                >
+                  <span
+                    class="size-4 rounded border flex items-center justify-center shrink-0"
+                    :class="selectedIds.includes(vn.node.id) ? 'bg-blue-500 border-blue-500' : 'bg-white dark:bg-[var(--theme-surface)] border-gray-300 dark:border-gray-700'"
+                  >
+                    <LucideCheck v-if="selectedIds.includes(vn.node.id)" class="size-3 text-white" />
+                  </span>
+                  <span class="truncate" :class="selectedIds.includes(vn.node.id) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'">
+                    {{ vn.node.name }}
+                  </span>
+                </button>
+              </div>
+              <div v-if="!visibleNodes.length" class="px-3 py-6 text-center text-xs text-gray-400">
+                未找到匹配地区
+              </div>
             </div>
-            <div v-if="!visibleNodes.length" class="px-3 py-6 text-center text-xs text-gray-400">
-              未找到匹配地区
-            </div>
-          </div>
+          </AsyncFade>
         </div>
       </div>
     </div>

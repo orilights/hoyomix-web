@@ -154,44 +154,54 @@ function onChanged() {
       @created="onCreated"
     />
 
-    <div v-if="threadsQuery.isError.value" class="py-10 text-center text-sm text-red-400">
-      评论加载失败，请稍后重试
-      <AppButton size="sm" variant="ghost" class="ml-2" @click="threadsQuery.refetch">
-        重试
-      </AppButton>
-    </div>
-    <div v-else-if="threadsQuery.isPending.value && !threads.length" class="py-10 flex items-center justify-center gap-2 text-sm text-gray-400">
-      <LucideLoader2 class="size-5 animate-spin" />
-      加载评论中
-    </div>
-    <div v-else-if="!threads.length" class="py-10 text-center text-sm text-gray-400">
-      还没有评论，来留下第一条吧
-    </div>
-    <div v-else class="mt-4">
-      <CommentThread
-        v-for="thread in threads"
-        :key="thread.threadId"
-        v-model:reply-content="content"
-        :thread="thread"
-        :post-id="postId"
-        :reply-target="replyTarget"
-        :force-expanded="forceExpanded.has(thread.threadId)"
-        :new-reply-id="replyJump.get(thread.threadId) ?? null"
-        :target-comment-id="notificationTarget?.threadId === thread.threadId ? notificationTarget.commentId : null"
-        :target-reply-page="notificationTarget?.threadId === thread.threadId ? notificationTarget.replyPage : null"
-        @reply="replyTo"
-        @cancel-reply="replyTarget = null"
-        @created="onCreated"
-        @changed="onChanged"
-        @located="onLocated"
-      />
-      <div v-if="threadsQuery.isFetching.value" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400">
-        <LucideLoader2 class="size-4 animate-spin" />
-        加载中
+    <AsyncFade>
+      <div v-if="threadsQuery.isError.value && !threads.length" class="py-10 text-center text-sm text-red-400" role="alert">
+        评论加载失败，请稍后重试
+        <AppButton size="sm" variant="ghost" class="ml-2" @click="threadsQuery.refetch">
+          重试
+        </AppButton>
       </div>
-      <AppButton v-if="page < pagination.totalPages" class="mt-3" size="sm" variant="ghost" @click="loadMoreThreads">
-        加载更多评论
-      </AppButton>
-    </div>
+      <div v-else-if="threadsQuery.isPending.value && !threads.length" role="status" class="py-10 flex items-center justify-center gap-2 text-sm text-gray-400">
+        <LucideLoader2 class="size-5 animate-spin" />
+        加载评论中
+      </div>
+      <div v-else-if="!threads.length" class="py-10 text-center text-sm text-gray-400">
+        还没有评论，来留下第一条吧
+      </div>
+      <div v-else class="mt-4">
+        <CommentThread
+          v-for="thread in threads"
+          :key="thread.threadId"
+          v-model:reply-content="content"
+          :thread="thread"
+          :post-id="postId"
+          :reply-target="replyTarget"
+          :force-expanded="forceExpanded.has(thread.threadId)"
+          :new-reply-id="replyJump.get(thread.threadId) ?? null"
+          :target-comment-id="notificationTarget?.threadId === thread.threadId ? notificationTarget.commentId : null"
+          :target-reply-page="notificationTarget?.threadId === thread.threadId ? notificationTarget.replyPage : null"
+          @reply="replyTo"
+          @cancel-reply="replyTarget = null"
+          @created="onCreated"
+          @changed="onChanged"
+          @located="onLocated"
+        />
+        <AsyncFade>
+          <div v-if="threadsQuery.isFetching.value" role="status" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400">
+            <LucideLoader2 class="size-4 animate-spin" />
+            加载中
+          </div>
+          <div v-else-if="threadsQuery.isError.value" class="py-3 text-xs text-red-400" role="alert">
+            评论加载失败
+            <AppButton size="sm" variant="ghost" @click="threadsQuery.refetch()">
+              重试
+            </AppButton>
+          </div>
+          <AppButton v-else-if="page < pagination.totalPages" class="mt-3" size="sm" variant="ghost" @click="loadMoreThreads">
+            加载更多评论
+          </AppButton>
+        </AsyncFade>
+      </div>
+    </AsyncFade>
   </section>
 </template>

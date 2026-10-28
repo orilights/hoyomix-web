@@ -57,13 +57,14 @@ watch(() => [props.params, auth.user?.id], () => {
           </li>
         </ul>
         <div v-if="data.total" class="flex flex-wrap items-center justify-center gap-3 text-sm">
-          <AppButton size="sm" :disabled="page <= 1 || isFetching" @click="emit('page', page - 1)">
-            上一页
-          </AppButton>
-          <span>{{ page }} / {{ pages }} · 共 {{ data.total }} 条</span>
-          <AppButton size="sm" :disabled="page >= pages || isFetching" @click="emit('page', page + 1)">
-            下一页
-          </AppButton>
+          <Pagination
+            :model-value="page"
+            :total-pages="pages"
+            :disabled="isFetching"
+            aria-label="编辑申请分页"
+            @update:model-value="emit('page', $event)"
+          />
+          <span class="text-gray-500 dark:text-gray-400">共 {{ data.total }} 条</span>
         </div>
       </div>
     </AsyncFade>

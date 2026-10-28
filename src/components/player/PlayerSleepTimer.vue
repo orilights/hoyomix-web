@@ -34,7 +34,7 @@ watch(visible, (value) => {
 </script>
 
 <template>
-  <AppDialog v-model="visible" title="定时播放">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" title="定时播放">
     <div class="p-6 space-y-5 max-h-[calc(100dvh-8rem)] overflow-y-auto text-gray-900 dark:text-gray-100" @keydown="onContentKeydown">
       <div v-if="active" class="rounded-xl bg-black/5 dark:bg-white/5 p-4 text-center">
         <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
