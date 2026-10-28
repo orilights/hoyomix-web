@@ -186,7 +186,7 @@ onUnmounted(() => {
         加载中...
       </div>
     </div>
-    <div v-else class="px-4 md:px-16 xl:px-8 pt-6 pb-7">
+    <div v-else class="app-page-content relative px-4 md:px-16 xl:px-8 pt-6 pb-7">
       <router-view v-slot="{ Component }">
         <!-- enter 时新页面已插入 DOM 且仍透明，滚动应在淡入开始前恢复。 -->
         <Transition name="page-fade" mode="out-in" appear @enter="completePageRender">
@@ -204,7 +204,8 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.app-bootstrap-state {
+.app-bootstrap-state,
+.app-page-content {
   min-height: calc(100vh - 128px);
   min-height: calc(100dvh - 128px);
 }

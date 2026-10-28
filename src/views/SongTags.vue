@@ -13,9 +13,7 @@ onMounted(() => useMainStore().setBackground())
 <template>
   <div class="max-w-4xl mx-auto space-y-6">
     <PageHeader title="标签" />
-    <div v-if="isPending" class="py-16 text-center text-gray-400">
-      加载中...
-    </div>
+    <PageLoading v-if="isPending" />
     <div v-else-if="isError" class="py-16 text-center space-y-3">
       <p class="text-red-400">
         标签加载失败

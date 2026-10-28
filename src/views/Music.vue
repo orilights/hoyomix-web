@@ -312,10 +312,7 @@ function refreshSongInfo() {
 
 <template>
   <AsyncFade>
-    <div v-if="isLoading" class="flex items-center justify-center py-20 text-gray-400">
-      <LucideLoader2 class="size-6 animate-spin mr-2" />
-      加载中...
-    </div>
+    <PageLoading v-if="isLoading" />
 
     <div v-else-if="isAlbumError" class="flex items-center justify-center py-20 text-red-400">
       加载失败，请刷新重试

@@ -291,9 +291,6 @@ const durationChartOption = computed<EChartsOption>(() => ({
       </div>
     </div>
 
-    <div v-if="!albumList.length" class="flex items-center justify-center py-20 text-gray-400">
-      <LucideLoader2 class="size-6 animate-spin mr-2" />
-      加载中...
-    </div>
+    <PageLoading v-if="!albumList.length" />
   </div>
 </template>

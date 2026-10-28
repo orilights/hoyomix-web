@@ -154,6 +154,7 @@ declare module 'vue' {
     NotificationPanel: typeof import('./components/user/NotificationPanel.vue')['default']
     OverlayScrollbarsComponent: typeof import('overlayscrollbars-vue')['OverlayScrollbarsComponent']
     PageHeader: typeof import('./components/common/PageHeader.vue')['default']
+    PageLoading: typeof import('./components/common/PageLoading.vue')['default']
     Pagination: typeof import('./components/common/Pagination.vue')['default']
     PendingEditRequestNotice: typeof import('./components/user/PendingEditRequestNotice.vue')['default']
     PlayerBar: typeof import('./components/player/PlayerBar.vue')['default']

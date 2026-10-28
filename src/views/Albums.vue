@@ -58,10 +58,7 @@ onMounted(() => {
           登录
         </AppButton>
       </template>
-      <div v-else-if="auth.isPending || isPending || albumsQuery.isPending.value" class="flex items-center justify-center gap-2">
-        <LucideLoader2 class="size-5 animate-spin" />
-        加载中...
-      </div>
+      <PageLoading v-else-if="auth.isPending || isPending || albumsQuery.isPending.value" />
       <template v-else-if="isError || albumsQuery.isError.value">
         <p class="mb-3">
           收藏专辑加载失败

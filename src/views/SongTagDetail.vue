@@ -74,9 +74,7 @@ onMounted(() => store.setBackground())
       </div>
       <span v-if="data" class="text-sm text-gray-400">{{ data.total }} 首歌曲</span>
     </div>
-    <div v-if="isPending || tagQuery.isPending.value" class="text-center py-16 text-gray-400">
-      加载中...
-    </div>
+    <PageLoading v-if="isPending || tagQuery.isPending.value" />
     <div v-else-if="isError || tagQuery.isError.value" class="text-center py-16 space-y-3">
       <p class="text-red-400">
         {{ tagQuery.error.value instanceof NotFoundError ? '标签不存在' : '标签或歌曲加载失败' }}
