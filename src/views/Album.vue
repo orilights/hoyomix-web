@@ -5,6 +5,7 @@ import { useAlbumInfoQuery, useCommentThreadsQuery } from '@/composables/queries
 import { scrollPageToElement } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
+import { asyncFadeHeightKey } from '@/constants/async-fade'
 import { vPageEnter } from '@/directives/page-enter'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
@@ -18,6 +19,8 @@ import {
   goNeteaseClient,
 } from '@/utils'
 import { NotFoundError } from '@/utils/fetch'
+
+provide(asyncFadeHeightKey, true)
 
 const route = useRoute()
 const router = useRouter()
@@ -200,7 +203,7 @@ function addAlbumToPlaylist() {
 </script>
 
 <template>
-  <AsyncFade>
+  <AsyncFade :animate-height="false">
     <PageLoading v-if="isLoading" />
 
     <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">

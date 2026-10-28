@@ -8,6 +8,8 @@
 <style scoped>
 /* 与启动状态一样，在页头和播放条之间的主内容可视区域居中。 */
 .page-loading {
+  /* 页面上的 space-y 等间距工具类不应改变可视区域的居中位置。 */
+  margin: 0 !important;
   height: calc(100vh - 128px);
   height: calc(100dvh - 128px);
 }

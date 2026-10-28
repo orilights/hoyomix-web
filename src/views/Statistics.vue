@@ -216,12 +216,16 @@ const durationChartOption = computed<EChartsOption>(() => ({
         </div>
         <div class="w-full h-[200px] md:h-[250px]">
           <Suspense>
-            <VChart class="w-full h-full" :option="albumCountChartOption" autoresize />
+            <AsyncFade>
+              <VChart class="w-full h-full" :option="albumCountChartOption" autoresize />
+            </AsyncFade>
             <template #fallback>
-              <div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                <LucideLoader2 class="size-5 animate-spin mr-2" />
-                加载中...
-              </div>
+              <AsyncFade>
+                <div role="status" class="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                  <LucideLoader2 class="size-5 animate-spin mr-2" />
+                  加载中...
+                </div>
+              </AsyncFade>
             </template>
           </Suspense>
         </div>
@@ -232,12 +236,16 @@ const durationChartOption = computed<EChartsOption>(() => ({
         </div>
         <div class="w-full h-[200px] md:h-[250px]">
           <Suspense>
-            <VChart class="w-full h-full" :option="durationChartOption" autoresize />
+            <AsyncFade>
+              <VChart class="w-full h-full" :option="durationChartOption" autoresize />
+            </AsyncFade>
             <template #fallback>
-              <div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                <LucideLoader2 class="size-5 animate-spin mr-2" />
-                加载中...
-              </div>
+              <AsyncFade>
+                <div role="status" class="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                  <LucideLoader2 class="size-5 animate-spin mr-2" />
+                  加载中...
+                </div>
+              </AsyncFade>
             </template>
           </Suspense>
         </div>
@@ -291,6 +299,8 @@ const durationChartOption = computed<EChartsOption>(() => ({
       </div>
     </div>
 
-    <PageLoading v-if="!albumList.length" />
+    <p v-if="!albumList.length" class="py-12 text-center text-gray-400">
+      暂无专辑数据
+    </p>
   </div>
 </template>

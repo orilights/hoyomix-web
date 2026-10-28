@@ -28,6 +28,7 @@ import {
   getMyEditRequestsApi,
   getMyPlaylistsApi,
   getPlaylistDetailApi,
+  getPlaylistReviewApi,
   getPublicPlaylistsApi,
   getRandomPlaylistApi,
   getRankingApi,
@@ -279,12 +280,12 @@ export function usePublicPlaylistsQuery(params: Ref<PlaylistsQueryParams>) {
   })
 }
 
-export function useMyPlaylistsQuery() {
+export function useMyPlaylistsQuery(enabled: Ref<boolean> = ref(true)) {
   const auth = useAuthStore()
   return useQuery({
     queryKey: computed(() => ['myPlaylists', auth.user?.id ?? null]),
     queryFn: () => getMyPlaylistsApi(),
-    enabled: computed(() => auth.isLoggedIn),
+    enabled: computed(() => auth.isLoggedIn && enabled.value),
     staleTime: 0,
   })
 }
@@ -305,6 +306,15 @@ export function usePlaylistDetailQuery(id: Ref<string | null>) {
     queryFn: () => getPlaylistDetailApi(id.value!),
     enabled: computed(() => !!id.value),
     refetchOnMount: 'always',
+  })
+}
+
+export function usePlaylistReviewQuery(id: Ref<string>, enabled: Ref<boolean>) {
+  return useQuery({
+    queryKey: computed(() => ['playlistReview', id.value]),
+    queryFn: () => getPlaylistReviewApi(id.value),
+    enabled,
+    staleTime: 1000 * 60 * 5,
   })
 }
 

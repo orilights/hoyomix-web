@@ -1,16 +1,22 @@
 <script setup lang="ts">
+import { asyncFadeHeightKey } from '@/constants/async-fade'
+
+const props = withDefaults(defineProps<{ animateHeight?: boolean }>(), { animateHeight: undefined })
+const inheritedAnimateHeight = inject(asyncFadeHeightKey, false)
+const animateHeight = computed(() => props.animateHeight ?? inheritedAnimateHeight)
+
 let previousHeight: number | undefined
 const cleanups = new Map<Element, () => void>()
 
 function beforeLeave(element: Element) {
-  previousHeight = element.getBoundingClientRect().height
+  previousHeight = animateHeight.value ? element.getBoundingClientRect().height : undefined
   cleanups.get(element)?.()
 }
 
 function enter(element: Element) {
   const fromHeight = previousHeight
   previousHeight = undefined
-  if (!(element instanceof HTMLElement) || fromHeight === undefined
+  if (!animateHeight.value || !(element instanceof HTMLElement) || fromHeight === undefined
     || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return
   }

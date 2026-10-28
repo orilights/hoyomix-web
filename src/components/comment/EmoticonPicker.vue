@@ -160,43 +160,45 @@ onBeforeUnmount(() => {
           </AppButton>
         </div>
         <div class="min-h-0 overflow-y-auto overscroll-contain p-2" style="height: 240px">
-          <div v-if="isError" class="flex h-full flex-col items-center justify-center gap-2 text-sm text-gray-400">
-            <span>表情加载失败</span>
-            <AppButton size="sm" variant="ghost" :disabled="isFetching" @click="refetch()">
-              重试
-            </AppButton>
-          </div>
-          <div v-else-if="isPending" class="flex h-full items-center justify-center gap-2 text-sm text-gray-400">
-            <LucideLoader2 class="size-4 animate-spin" />加载表情…
-          </div>
-          <div v-else-if="!visibleItems.length" class="flex h-full items-center justify-center text-sm text-gray-400">
-            {{ isRecent ? '暂无最近使用的表情' : '暂无可用表情' }}
-          </div>
-          <div v-else class="flex flex-wrap content-start gap-1">
-            <button
-              v-for="item in visibleItems"
-              :key="item.id"
-              type="button"
-              :title="item.type === 'image' ? undefined : item.name"
-              :aria-label="item.name"
-              :aria-describedby="previewItem?.id === item.id ? previewId : undefined"
-              class="flex items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
-              :class="item.type === 'image' ? 'h-12' : item.type === 'kaomoji' ? 'min-h-9 max-w-full px-2 py-1 text-sm whitespace-pre-wrap break-words' : 'size-9 text-2xl'"
-              :style="item.type === 'image' ? { width: 'calc((100% - 20px) / 6)' } : undefined"
-              @mousedown.prevent
-              @pointerenter="showPreview(item, $event)"
-              @pointerleave="closePreview"
-              @focus="showPreview(item, $event)"
-              @blur="closePreview"
-              @click="select(item)"
-            >
-              <EmoticonImage v-if="item.type === 'image' && !failedImages.has(item.value)" :src="item.value" :alt="item.name" :enabled="isOpen" class="size-10 max-w-full object-contain" @error="failedImages = new Set([...failedImages, item.value])" />
-              <span v-else-if="item.type === 'image'" class="text-xs text-gray-400">{{ item.name }}</span>
-              <template v-else>
-                {{ item.value }}
-              </template>
-            </button>
-          </div>
+          <AsyncFade>
+            <div v-if="isError" class="flex h-full flex-col items-center justify-center gap-2 text-sm text-gray-400">
+              <span>表情加载失败</span>
+              <AppButton size="sm" variant="ghost" :disabled="isFetching" @click="refetch()">
+                重试
+              </AppButton>
+            </div>
+            <div v-else-if="isPending" role="status" class="flex h-full items-center justify-center gap-2 text-sm text-gray-400">
+              <LucideLoader2 class="size-4 animate-spin" />加载表情…
+            </div>
+            <div v-else-if="!visibleItems.length" class="flex h-full items-center justify-center text-sm text-gray-400">
+              {{ isRecent ? '暂无最近使用的表情' : '暂无可用表情' }}
+            </div>
+            <div v-else class="flex flex-wrap content-start gap-1">
+              <button
+                v-for="item in visibleItems"
+                :key="item.id"
+                type="button"
+                :title="item.type === 'image' ? undefined : item.name"
+                :aria-label="item.name"
+                :aria-describedby="previewItem?.id === item.id ? previewId : undefined"
+                class="flex items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
+                :class="item.type === 'image' ? 'h-12' : item.type === 'kaomoji' ? 'min-h-9 max-w-full px-2 py-1 text-sm whitespace-pre-wrap break-words' : 'size-9 text-2xl'"
+                :style="item.type === 'image' ? { width: 'calc((100% - 20px) / 6)' } : undefined"
+                @mousedown.prevent
+                @pointerenter="showPreview(item, $event)"
+                @pointerleave="closePreview"
+                @focus="showPreview(item, $event)"
+                @blur="closePreview"
+                @click="select(item)"
+              >
+                <EmoticonImage v-if="item.type === 'image' && !failedImages.has(item.value)" :src="item.value" :alt="item.name" :enabled="isOpen" class="size-10 max-w-full object-contain" @error="failedImages = new Set([...failedImages, item.value])" />
+                <span v-else-if="item.type === 'image'" class="text-xs text-gray-400">{{ item.name }}</span>
+                <template v-else>
+                  {{ item.value }}
+                </template>
+              </button>
+            </div>
+          </AsyncFade>
         </div>
         <div class="flex shrink-0 gap-1 overflow-x-auto overscroll-contain border-t border-black/5 dark:border-white/5 bg-black/2 dark:bg-white/3 p-1.5" aria-label="表情分组">
           <button

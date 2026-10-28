@@ -74,16 +74,18 @@ onMounted(() => store.setBackground())
       </div>
       <span v-if="data" class="text-sm text-gray-400">{{ data.total }} 首歌曲</span>
     </div>
-    <PageLoading v-if="isPending || tagQuery.isPending.value" />
-    <div v-else-if="isError || tagQuery.isError.value" class="text-center py-16 space-y-3">
-      <p class="text-red-400">
-        {{ tagQuery.error.value instanceof NotFoundError ? '标签不存在' : '标签或歌曲加载失败' }}
-      </p>
-      <AppButton v-if="!(tagQuery.error.value instanceof NotFoundError)" @click="refetch(); tagQuery.refetch()">
-        重试
-      </AppButton>
-    </div>
-    <SongList v-else :songs="data?.items ?? []" show-cover show-album />
+    <AsyncFade>
+      <PageLoading v-if="isPending || tagQuery.isPending.value" />
+      <div v-else-if="isError || tagQuery.isError.value" class="text-center py-16 space-y-3">
+        <p class="text-red-400">
+          {{ tagQuery.error.value instanceof NotFoundError ? '标签不存在' : '标签或歌曲加载失败' }}
+        </p>
+        <AppButton v-if="!(tagQuery.error.value instanceof NotFoundError)" @click="refetch(); tagQuery.refetch()">
+          重试
+        </AppButton>
+      </div>
+      <SongList v-else :songs="data?.items ?? []" show-cover show-album />
+    </AsyncFade>
     <Pagination
       v-if="data && data.total > 50"
       :model-value="page"

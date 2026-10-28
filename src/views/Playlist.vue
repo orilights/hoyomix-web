@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import type { PlaylistSongItem } from '@/types/core'
-import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useQueryClient } from '@tanstack/vue-query'
 import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
-import { cancelPlaylistReviewApi, deletePlaylistApi, getPlaylistReviewApi, updatePlaylistSongsApi } from '@/api/music'
-import { useCommentThreadsQuery, usePlaylistDetailQuery, useSavePlaylistOrderQuery } from '@/composables/queries'
+import { cancelPlaylistReviewApi, deletePlaylistApi, updatePlaylistSongsApi } from '@/api/music'
+import { useCommentThreadsQuery, usePlaylistDetailQuery, usePlaylistReviewQuery, useSavePlaylistOrderQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
+import { asyncFadeHeightKey } from '@/constants/async-fade'
 import { vPageEnter } from '@/directives/page-enter'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl, getPublishDate } from '@/utils'
 import { NotFoundError } from '@/utils/fetch'
+
+provide(asyncFadeHeightKey, true)
 
 const route = useRoute()
 const router = useRouter()
@@ -71,12 +74,10 @@ const isOwner = computed(() =>
 
 const reviewStatus = computed(() => playlist.value?.reviewStatus)
 
-const { data: reviewDetail } = useQuery({
-  queryKey: computed(() => ['playlistReview', playlistId.value]),
-  queryFn: () => getPlaylistReviewApi(playlistId.value),
-  enabled: computed(() => isOwner.value && reviewStatus.value === 'rejected'),
-  staleTime: 1000 * 60 * 5,
-})
+const { data: reviewDetail, isLoading: isReviewLoading, isError: isReviewError, refetch: refetchReview } = usePlaylistReviewQuery(
+  playlistId,
+  computed(() => isOwner.value && reviewStatus.value === 'rejected'),
+)
 
 const coverAlbum = computed(() =>
   playlist.value?.coverAlbumId
@@ -434,7 +435,7 @@ async function deletePlaylist() {
 </script>
 
 <template>
-  <AsyncFade>
+  <AsyncFade :animate-height="false">
     <PageLoading v-if="isLoading" />
 
     <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
@@ -499,12 +500,20 @@ async function deletePlaylist() {
               <LucideCircleCheck class="size-3" />
               审核已通过
             </span>
-            <span
-              v-if="reviewStatus === 'rejected' && reviewDetail?.reason"
-              class="text-xs text-gray-500 dark:text-gray-400"
-            >
-              原因：{{ reviewDetail.reason }}
-            </span>
+            <AsyncFade>
+              <span v-if="reviewStatus === 'rejected' && isReviewLoading" class="text-xs text-gray-400" role="status">
+                加载中...
+              </span>
+              <span v-else-if="reviewStatus === 'rejected' && isReviewError" class="text-xs text-gray-400" role="alert">
+                审核原因加载失败
+                <button type="button" class="ml-1 text-blue-500 cursor-pointer" @click="refetchReview()">
+                  重试
+                </button>
+              </span>
+              <span v-else-if="reviewStatus === 'rejected' && reviewDetail?.reason" class="text-xs text-gray-500 dark:text-gray-400">
+                原因：{{ reviewDetail.reason }}
+              </span>
+            </AsyncFade>
             <button
               v-if="reviewStatus === 'pending'"
               class="text-xs text-gray-400 hover:text-red-500 transition-colors cursor-pointer"

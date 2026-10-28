@@ -22,7 +22,7 @@ const activeIndex = ref(-1)
 
 const debouncedKeyword = refDebounced(keyword, 300)
 
-const { data: searchData, isFetching, isError, error } = useSearchQuery(debouncedKeyword, searchType)
+const { data: searchData, isFetching, isError, error, refetch } = useSearchQuery(debouncedKeyword, searchType)
 
 const results = computed<SearchResultItem[]>(() => searchData.value?.results ?? [])
 const isTyping = computed(() => keyword.value.trim() !== debouncedKeyword.value.trim())
@@ -170,10 +170,17 @@ onUnmounted(() => {
             :style="contentHeight !== null ? { height: `${contentHeight}px` } : {}"
           >
             <div ref="contentRef" class="search-results overflow-y-auto">
-              <AsyncFade>
-                <div v-if="showLoading && results.length === 0" class="flex items-center justify-center py-12 text-gray-400">
+              <AsyncFade :animate-height="false">
+                <div v-if="showLoading && results.length === 0" role="status" class="flex items-center justify-center py-12 text-gray-400">
                   <LucideLoader2 class="size-5 animate-spin mr-2" />
                   搜索中...
+                </div>
+
+                <div v-else-if="isError && !showLoading" class="py-12 text-center text-gray-400" role="alert">
+                  搜索失败
+                  <AppButton class="ml-2" size="sm" variant="ghost" @click="refetch()">
+                    重试
+                  </AppButton>
                 </div>
 
                 <div v-else-if="hasSearched && !showLoading && results.length === 0" class="py-12 text-center text-gray-400">

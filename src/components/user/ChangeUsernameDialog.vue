@@ -95,9 +95,11 @@ async function handleSubmit() {
           placeholder="请输入新的用户名"
           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
         >
-        <p v-if="nameMessage" :id="`${nameId}-hint`" class="mt-1 text-xs" :class="nameError ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'" aria-live="polite" :aria-busy="checking">
-          {{ nameMessage }}
-        </p>
+        <AsyncFade>
+          <p v-if="nameMessage" :id="`${nameId}-hint`" :key="nameMessage" class="mt-1 text-xs" :class="nameError ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'" aria-live="polite" :aria-busy="checking">
+            {{ nameMessage }}
+          </p>
+        </AsyncFade>
       </div>
       <p v-if="errorMsg" class="text-sm text-red-500">
         {{ errorMsg }}

@@ -44,32 +44,36 @@ onMounted(() => {
   <div>
     <PageHeader title="全部专辑" subtitle="已收录的所有专辑" />
 
-    <AlbumList :albums-list="showFavorites && !canShowFavorites ? [] : visibleAlbums" display-by-year persist-key="albums">
+    <AlbumList :albums-list="showFavorites && !canShowFavorites ? [] : visibleAlbums" :reveal-key="filter" display-by-year persist-key="albums">
       <template #toolbar>
         <SegmentSwitch v-model="filter" :options="filterOptions" aria-label="专辑筛选" />
       </template>
+      <template #empty>
+        <div v-if="showFavorites && (!canShowFavorites || !visibleAlbums.length)" class="text-center py-12 text-gray-500 dark:text-gray-400">
+          <AsyncFade>
+            <div v-if="!auth.isLoggedIn && !auth.isPending">
+              <p class="mb-3">
+                请先登录以查看收藏专辑
+              </p>
+              <AppButton @click="auth.openAuthDialog()">
+                登录
+              </AppButton>
+            </div>
+            <PageLoading v-else-if="auth.isPending || isPending || albumsQuery.isPending.value" />
+            <div v-else-if="isError || albumsQuery.isError.value">
+              <p class="mb-3">
+                收藏专辑加载失败
+              </p>
+              <AppButton @click="retry">
+                重试
+              </AppButton>
+            </div>
+            <p v-else-if="!visibleAlbums.length">
+              暂无收藏专辑
+            </p>
+          </AsyncFade>
+        </div>
+      </template>
     </AlbumList>
-    <div v-if="showFavorites && (!canShowFavorites || !visibleAlbums.length)" class="text-center py-12 text-gray-500 dark:text-gray-400">
-      <template v-if="!auth.isLoggedIn && !auth.isPending">
-        <p class="mb-3">
-          请先登录以查看收藏专辑
-        </p>
-        <AppButton @click="auth.openAuthDialog()">
-          登录
-        </AppButton>
-      </template>
-      <PageLoading v-else-if="auth.isPending || isPending || albumsQuery.isPending.value" />
-      <template v-else-if="isError || albumsQuery.isError.value">
-        <p class="mb-3">
-          收藏专辑加载失败
-        </p>
-        <AppButton @click="retry">
-          重试
-        </AppButton>
-      </template>
-      <p v-else-if="!visibleAlbums.length">
-        暂无收藏专辑
-      </p>
-    </div>
   </div>
 </template>

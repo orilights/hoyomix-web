@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
 import { toast } from 'vue-sonner'
-import { getMyPlaylistsApi, getPlaylistDetailApi, updatePlaylistSongsApi } from '@/api/music'
+import { getPlaylistDetailApi, updatePlaylistSongsApi } from '@/api/music'
+import { useMyPlaylistsQuery } from '@/composables/queries'
 import { useMainStore } from '@/store/main'
 import { getCoverUrl } from '@/utils'
 
@@ -19,24 +20,8 @@ const visible = defineModel<boolean>({ required: true })
 const store = useMainStore()
 const { albumList } = storeToRefs(store)
 
-const playlists = ref<PlaylistListItem[]>([])
-const loading = ref(false)
+const { data: playlists, isPending: loading, isError, refetch } = useMyPlaylistsQuery(visible)
 const submitting = ref(false)
-
-watch(visible, async (v) => {
-  if (!v)
-    return
-  loading.value = true
-  try {
-    playlists.value = await getMyPlaylistsApi()
-  }
-  catch (error) {
-    toast.error(`获取歌单列表失败：${error instanceof Error ? error.message : '未知错误'}`)
-  }
-  finally {
-    loading.value = false
-  }
-})
 
 function getCover(playlist: PlaylistListItem) {
   if (!playlist.coverAlbumId)
@@ -79,35 +64,46 @@ async function select(playlist: PlaylistListItem) {
     </template>
 
     <div class="max-h-80 overflow-y-auto">
-      <div v-if="loading" class="flex items-center justify-center py-10">
-        <LucideLoader2 class="size-6 text-gray-400 animate-spin" />
-      </div>
-      <div v-else-if="playlists.length === 0" class="py-10 text-center text-sm text-gray-400">
-        暂无歌单
-      </div>
-      <button
-        v-for="pl in playlists"
-        :key="pl.id"
-        class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer transition-colors disabled:opacity-50"
-        :disabled="submitting"
-        @click="select(pl)"
-      >
-        <div class="size-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
-          <LazyImg v-if="getCover(pl)" class="size-full rounded-lg" :src="getCover(pl)" />
-          <div v-else class="size-full flex items-center justify-center">
-            <LucideMusic class="size-5 text-gray-300" />
-          </div>
+      <AsyncFade>
+        <div v-if="loading" class="flex items-center justify-center gap-2 py-10 text-gray-400" role="status">
+          <LucideLoader2 class="size-6 text-gray-400 animate-spin" />
+          加载中...
         </div>
-        <div class="text-left min-w-0">
-          <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-            {{ pl.name }}
-          </p>
-          <p class="text-xs text-gray-400">
-            {{ pl.songCount }} 首歌曲
-          </p>
+        <div v-else-if="isError" class="py-10 text-center text-sm text-gray-400" role="alert">
+          歌单加载失败
+          <AppButton size="sm" variant="ghost" @click="refetch()">
+            重试
+          </AppButton>
         </div>
-        <LucideChevronRight class="size-4 text-gray-300 ml-auto shrink-0" />
-      </button>
+        <div v-else-if="!playlists?.length" class="py-10 text-center text-sm text-gray-400">
+          暂无歌单
+        </div>
+        <div v-else>
+          <button
+            v-for="pl in playlists"
+            :key="pl.id"
+            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 hover:dark:bg-gray-800 cursor-pointer transition-colors disabled:opacity-50"
+            :disabled="submitting"
+            @click="select(pl)"
+          >
+            <div class="size-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
+              <LazyImg v-if="getCover(pl)" class="size-full rounded-lg" :src="getCover(pl)" />
+              <div v-else class="size-full flex items-center justify-center">
+                <LucideMusic class="size-5 text-gray-300" />
+              </div>
+            </div>
+            <div class="text-left min-w-0">
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {{ pl.name }}
+              </p>
+              <p class="text-xs text-gray-400">
+                {{ pl.songCount }} 首歌曲
+              </p>
+            </div>
+            <LucideChevronRight class="size-4 text-gray-300 ml-auto shrink-0" />
+          </button>
+        </div>
+      </AsyncFade>
     </div>
 
     <template #footer>

@@ -138,100 +138,117 @@ async function playAll() {
           <h2 class="text-sm font-medium px-1 mb-3">
             地区目录
           </h2>
-          <div v-if="treeQuery.isPending.value" class="flex items-center justify-center gap-2 py-8 text-sm text-gray-400">
-            <LucideLoaderCircle class="size-4 animate-spin" />加载中...
-          </div>
-          <div v-else-if="treeQuery.isError.value" class="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
-            <p>地区加载失败</p><AppButton size="sm" class="mt-3" @click="treeQuery.refetch()">
-              重试
-            </AppButton>
-          </div>
-          <OverlayScrollbarsComponent v-else class="-mr-3 max-h-[calc(100dvh-300px)]" :options="{ overflow: { x: 'hidden', y: 'scroll' }, scrollbars: { theme: 'os-theme-custom', autoHide: 'leave' } }" defer>
-            <RegionTree v-model:keyword="keyword" v-model:expanded="expanded" class="pr-3" :tree="tree" :selected-id="regionId" @select="selectRegion" />
-          </OverlayScrollbarsComponent>
+          <AsyncFade animate-height>
+            <div v-if="treeQuery.isPending.value" role="status" class="flex items-center justify-center gap-2 py-8 text-sm text-gray-400">
+              <LucideLoaderCircle class="size-4 animate-spin" />加载中...
+            </div>
+            <div v-else-if="treeQuery.isError.value" class="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
+              <p>地区加载失败</p><AppButton size="sm" class="mt-3" @click="treeQuery.refetch()">
+                重试
+              </AppButton>
+            </div>
+            <OverlayScrollbarsComponent v-else class="-mr-3 max-h-[calc(100dvh-300px)]" :options="{ overflow: { x: 'hidden', y: 'scroll' }, scrollbars: { theme: 'os-theme-custom', autoHide: 'leave' } }" defer>
+              <RegionTree v-model:keyword="keyword" v-model:expanded="expanded" class="pr-3" :tree="tree" :selected-id="regionId" @select="selectRegion" />
+            </OverlayScrollbarsComponent>
+          </AsyncFade>
         </div>
       </aside>
       <section class="min-w-0" aria-label="地区歌曲">
-        <template v-if="selection">
-          <nav class="flex flex-wrap items-center gap-1 text-sm text-gray-500 dark:text-gray-400 mb-3" aria-label="地区路径">
-            <template v-for="(part, i) in selection.path" :key="part.id">
-              <LucideChevronRight v-if="i" class="size-3 shrink-0" />
-              <button type="button" class="rounded hover:text-blue-500 transition-colors cursor-pointer" :aria-current="part.id === regionId ? 'location' : undefined" @click="selectRegion(part.id)">
-                {{ part.name }}
-              </button>
-            </template>
-          </nav>
-          <div class="flex flex-wrap items-center gap-3 mb-4">
-            <h2 class="text-xl font-bold">
-              {{ selection.node.name }}
-            </h2>
-            <span v-if="songsQuery.isSuccess.value" class="text-sm text-gray-500 dark:text-gray-400">{{ total }} 首歌曲</span>
-            <Dropdown :options="sortMenu" alignment="right" class="ml-auto">
-              <AppButton :aria-label="`歌曲排序：${sortLabel}`">
-                <LucideMapPinned v-if="sort === 'region'" class="size-4" />
-                <LucideClockArrowUp v-else-if="sort === 'album_asc'" class="size-4" />
-                <LucideClockArrowDown v-else class="size-4" />
-                {{ sortLabel }}<LucideChevronDown class="size-3.5" />
-              </AppButton>
-            </Dropdown>
-            <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 cursor-pointer">
-              <input type="checkbox" class="accent-blue-500" :checked="includeChildren" @change="setChildren(($event.target as HTMLInputElement).checked)">包含子地区
-            </label>
-            <AppButton variant="primary" :disabled="!songs.length || songsQuery.isFetching.value || playbackBusy" @click="playAll">
-              <LucidePlay class="size-4" fill="currentColor" />播放全部
-            </AppButton>
+        <AsyncFade>
+          <div v-if="treeQuery.isPending.value" class="flex items-center justify-center gap-2 py-16 text-gray-400" role="status">
+            <LucideLoader2 class="size-5 animate-spin" />加载中...
           </div>
-          <div v-if="songsQuery.isPending.value" class="flex items-center justify-center gap-2 py-12 text-gray-400">
-            <LucideLoaderCircle class="size-5 animate-spin" />加载中...
-          </div>
-          <div v-else-if="songsQuery.isError.value" class="py-12 text-center text-gray-500 dark:text-gray-400">
-            <p>歌曲加载失败</p><AppButton class="mt-3" @click="songsQuery.refetch()">
+          <div v-else-if="treeQuery.isError.value" class="py-16 text-center text-gray-400" role="alert">
+            地区加载失败
+            <AppButton class="ml-2" @click="treeQuery.refetch()">
               重试
             </AppButton>
           </div>
-          <template v-else>
-            <SongList :songs="songs" show-cover show-album :load-playback-songs="loadPlaybackSongs" empty-text="该地区暂无关联歌曲">
-              <template #song-description="{ song }">
-                <div v-if="songsById.get(song.songId)?.matchedRegions.length" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  <p v-for="match in songsById.get(song.songId)?.matchedRegions" :key="match.id" class="mt-1 whitespace-normal break-words">
-                    {{ match.path.join(' / ') }}<span v-if="match.note"> · {{ match.note }}</span>
-                  </p>
-                </div>
+          <div v-else-if="selection">
+            <nav class="flex flex-wrap items-center gap-1 text-sm text-gray-500 dark:text-gray-400 mb-3" aria-label="地区路径">
+              <template v-for="(part, i) in selection.path" :key="part.id">
+                <LucideChevronRight v-if="i" class="size-3 shrink-0" />
+                <button type="button" class="rounded hover:text-blue-500 transition-colors cursor-pointer" :aria-current="part.id === regionId ? 'location' : undefined" @click="selectRegion(part.id)">
+                  {{ part.name }}
+                </button>
               </template>
-            </SongList>
-            <div v-if="pageCount > 1 || page > 1" class="flex items-center justify-center gap-3 mt-4">
-              <AppButton :disabled="page <= 1" @click="setPage(page - 1)">
-                上一页
-              </AppButton>
-              <span class="text-sm text-gray-500 dark:text-gray-400">{{ page }} / {{ pageCount }}</span>
-              <AppButton :disabled="page >= pageCount" @click="setPage(page + 1)">
-                下一页
+            </nav>
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+              <h2 class="text-xl font-bold">
+                {{ selection.node.name }}
+              </h2>
+              <span v-if="songsQuery.isSuccess.value" class="text-sm text-gray-500 dark:text-gray-400">{{ total }} 首歌曲</span>
+              <Dropdown :options="sortMenu" alignment="right" class="ml-auto">
+                <AppButton :aria-label="`歌曲排序：${sortLabel}`">
+                  <LucideMapPinned v-if="sort === 'region'" class="size-4" />
+                  <LucideClockArrowUp v-else-if="sort === 'album_asc'" class="size-4" />
+                  <LucideClockArrowDown v-else class="size-4" />
+                  {{ sortLabel }}<LucideChevronDown class="size-3.5" />
+                </AppButton>
+              </Dropdown>
+              <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 cursor-pointer">
+                <input type="checkbox" class="accent-blue-500" :checked="includeChildren" @change="setChildren(($event.target as HTMLInputElement).checked)">包含子地区
+              </label>
+              <AppButton variant="primary" :disabled="!songs.length || songsQuery.isFetching.value || playbackBusy" @click="playAll">
+                <LucidePlay class="size-4" fill="currentColor" />播放全部
               </AppButton>
             </div>
-          </template>
-        </template>
-        <div v-else class="py-16 text-center text-gray-500 dark:text-gray-400">
-          <LucideMapPin class="size-8 mx-auto mb-3 text-gray-400" />
-          <p>{{ route.query.region && !treeQuery.isPending.value && !treeQuery.isError.value ? '该地区不可用' : '选择一个地区' }}</p>
-          <AppButton v-if="!isDesktop" class="mt-4" @click="showRegions = true">
-            选择地区
-          </AppButton>
-        </div>
+            <AsyncFade>
+              <div v-if="songsQuery.isPending.value" role="status" class="flex items-center justify-center gap-2 py-12 text-gray-400">
+                <LucideLoaderCircle class="size-5 animate-spin" />加载中...
+              </div>
+              <div v-else-if="songsQuery.isError.value" class="py-12 text-center text-gray-500 dark:text-gray-400">
+                <p>歌曲加载失败</p><AppButton class="mt-3" @click="songsQuery.refetch()">
+                  重试
+                </AppButton>
+              </div>
+              <div v-else>
+                <SongList :songs="songs" show-cover show-album :load-playback-songs="loadPlaybackSongs" empty-text="该地区暂无关联歌曲">
+                  <template #song-description="{ song }">
+                    <div v-if="songsById.get(song.songId)?.matchedRegions.length" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      <p v-for="match in songsById.get(song.songId)?.matchedRegions" :key="match.id" class="mt-1 whitespace-normal break-words">
+                        {{ match.path.join(' / ') }}<span v-if="match.note"> · {{ match.note }}</span>
+                      </p>
+                    </div>
+                  </template>
+                </SongList>
+                <div v-if="pageCount > 1 || page > 1" class="flex items-center justify-center gap-3 mt-4">
+                  <AppButton :disabled="page <= 1" @click="setPage(page - 1)">
+                    上一页
+                  </AppButton>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">{{ page }} / {{ pageCount }}</span>
+                  <AppButton :disabled="page >= pageCount" @click="setPage(page + 1)">
+                    下一页
+                  </AppButton>
+                </div>
+              </div>
+            </AsyncFade>
+          </div>
+          <div v-else class="py-16 text-center text-gray-500 dark:text-gray-400">
+            <LucideMapPin class="size-8 mx-auto mb-3 text-gray-400" />
+            <p>{{ route.query.region && !treeQuery.isPending.value && !treeQuery.isError.value ? '该地区不可用' : '选择一个地区' }}</p>
+            <AppButton v-if="!isDesktop" class="mt-4" @click="showRegions = true">
+              选择地区
+            </AppButton>
+          </div>
+        </AsyncFade>
       </section>
     </div>
 
     <AppDialog v-model="showRegions" :close-on-click-overlay="false" title="选择地区" size="md">
       <OverlayScrollbarsComponent class="max-h-[65dvh]" :options="{ overflow: { x: 'hidden', y: 'scroll' }, scrollbars: { theme: 'os-theme-custom', autoHide: 'leave' } }" defer>
         <div class="p-4">
-          <div v-if="treeQuery.isPending.value" class="py-8 text-center text-gray-400">
-            加载中...
-          </div>
-          <div v-else-if="treeQuery.isError.value" class="text-center py-6 text-gray-500 dark:text-gray-400">
-            <p>地区加载失败</p><AppButton class="mt-3" @click="treeQuery.refetch()">
-              重试
-            </AppButton>
-          </div>
-          <RegionTree v-else v-model:keyword="keyword" v-model:expanded="expanded" :tree="tree" :selected-id="regionId" @select="selectRegion" />
+          <AsyncFade>
+            <div v-if="treeQuery.isPending.value" role="status" class="py-8 text-center text-gray-400">
+              加载中...
+            </div>
+            <div v-else-if="treeQuery.isError.value" class="text-center py-6 text-gray-500 dark:text-gray-400">
+              <p>地区加载失败</p><AppButton class="mt-3" @click="treeQuery.refetch()">
+                重试
+              </AppButton>
+            </div>
+            <RegionTree v-else v-model:keyword="keyword" v-model:expanded="expanded" :tree="tree" :selected-id="regionId" @select="selectRegion" />
+          </AsyncFade>
         </div>
       </OverlayScrollbarsComponent>
     </AppDialog>

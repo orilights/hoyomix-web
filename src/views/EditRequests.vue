@@ -32,24 +32,26 @@ function setPage(value: number) {
 <template>
   <div class="py-4">
     <PageHeader title="我的编辑申请" subtitle="数据库编辑申请提交历史记录" />
-    <div v-if="auth.isPending" class="flex items-center justify-center py-8 text-gray-400" role="status">
-      <LucideLoader2 class="size-6 animate-spin mr-2" />加载中...
-    </div>
-    <div v-else-if="!auth.isLoggedIn" class="py-12 text-center">
-      <p class="text-gray-500 dark:text-gray-400 mb-4">
-        登录后查看自己的编辑申请记录
-      </p>
-      <AppButton variant="primary" @click="auth.openAuthDialog()">
-        登录
-      </AppButton>
-    </div>
-    <template v-else>
-      <div class="flex flex-wrap gap-2 my-4" aria-label="申请状态筛选">
-        <AppButton v-for="option in options" :key="option.value" size="sm" :variant="(status ?? '') === option.value ? 'primary' : 'secondary'" :aria-pressed="(status ?? '') === option.value" @click="setStatus(option.value)">
-          {{ option.label }}
+    <AsyncFade>
+      <div v-if="auth.isPending" class="flex items-center justify-center py-8 text-gray-400" role="status">
+        <LucideLoader2 class="size-6 animate-spin mr-2" />加载中...
+      </div>
+      <div v-else-if="!auth.isLoggedIn" class="py-12 text-center">
+        <p class="text-gray-500 dark:text-gray-400 mb-4">
+          登录后查看自己的编辑申请记录
+        </p>
+        <AppButton variant="primary" @click="auth.openAuthDialog()">
+          登录
         </AppButton>
       </div>
-      <EditRequestList :params="params" show-resource @page="setPage" />
-    </template>
+      <div v-else>
+        <div class="flex flex-wrap gap-2 my-4" aria-label="申请状态筛选">
+          <AppButton v-for="option in options" :key="option.value" size="sm" :variant="(status ?? '') === option.value ? 'primary' : 'secondary'" :aria-pressed="(status ?? '') === option.value" @click="setStatus(option.value)">
+            {{ option.label }}
+          </AppButton>
+        </div>
+        <EditRequestList :params="params" show-resource @page="setPage" />
+      </div>
+    </AsyncFade>
   </div>
 </template>

@@ -186,63 +186,67 @@ onMounted(() => {
                 重新测试延迟
               </AppButton>
             </div>
-            <div v-if="mediaSource.isLoaded" class="flex flex-wrap gap-2">
-              <button
-                class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
-                :class="mediaSource.selectedSource === 'auto'
-                  ? 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-blue-500'
-                  : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-800'"
-                @click="mediaSource.selectSource('auto')"
-              >
-                <div class="flex items-center justify-between gap-2">
-                  <span class="font-bold">自动选择</span>
-                </div>
-                <div class="text-sm mt-1 text-gray-500 dark:text-gray-400">
-                  <template v-if="mediaSource.isTestingLatency">
-                    <LucideLoader2 class="size-4 inline animate-spin mr-1" />
-                    延迟检测中…
-                  </template>
-                  <template v-else-if="mediaSource.autoPreferredNode">
-                    {{ mediaSource.autoPreferredNode }}（{{ formatLatency(mediaSource.latencyResults[mediaSource.autoPreferredNode]) }}）
-                  </template>
-                  <template v-else>
-                    暂无可用节点
-                  </template>
-                </div>
-              </button>
+            <AsyncFade>
+              <div v-if="mediaSource.isLoaded" class="flex flex-wrap gap-2">
+                <button
+                  class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
+                  :class="mediaSource.selectedSource === 'auto'
+                    ? 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-blue-500'
+                    : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-800'"
+                  @click="mediaSource.selectSource('auto')"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="font-bold">自动选择</span>
+                  </div>
+                  <div class="text-sm mt-1 text-gray-500 dark:text-gray-400">
+                    <AsyncFade>
+                      <div v-if="mediaSource.isTestingLatency">
+                        <LucideLoader2 class="size-4 inline animate-spin mr-1" />
+                        延迟检测中…
+                      </div>
+                      <div v-else-if="mediaSource.autoPreferredNode">
+                        {{ mediaSource.autoPreferredNode }}（{{ formatLatency(mediaSource.latencyResults[mediaSource.autoPreferredNode]) }}）
+                      </div>
+                      <div v-else>
+                        暂无可用节点
+                      </div>
+                    </AsyncFade>
+                  </div>
+                </button>
 
-              <button
-                v-for="source in mediaSource.sources"
-                :key="source.name"
-                class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
-                :class="mediaSource.selectedSource === source.name
-                  ? 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-blue-500'
-                  : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-800'"
-                @click="mediaSource.selectSource(source.name)"
-              >
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="font-bold truncate">{{ source.name }}</span>
-                    <span
-                      class="text-xs px-1.5 py-0.5 rounded shrink-0"
-                      :class="regionBadgeClass(source.region)"
-                    >
-                      {{ regionLabel(source.region) }}
+                <button
+                  v-for="source in mediaSource.sources"
+                  :key="source.name"
+                  class="w-64 text-left px-4 py-3 rounded-xl border transition-colors cursor-pointer"
+                  :class="mediaSource.selectedSource === source.name
+                    ? 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-blue-500'
+                    : 'bg-white dark:bg-[var(--theme-surface)] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 hover:dark:bg-gray-800'"
+                  @click="mediaSource.selectSource(source.name)"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="font-bold truncate">{{ source.name }}</span>
+                      <span
+                        class="text-xs px-1.5 py-0.5 rounded shrink-0"
+                        :class="regionBadgeClass(source.region)"
+                      >
+                        {{ regionLabel(source.region) }}
+                      </span>
+                    </div>
+                    <span class="text-sm shrink-0">
+                      {{ formatLatency(mediaSource.latencyResults[source.name]) }}
                     </span>
                   </div>
-                  <span class="text-sm shrink-0">
-                    {{ formatLatency(mediaSource.latencyResults[source.name]) }}
-                  </span>
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                  支持音质：{{ qualityText(source.supportedQualities) }}
-                </div>
-              </button>
-            </div>
-            <div v-else class="flex items-center justify-center py-4 text-gray-400">
-              <LucideLoader2 class="size-5 animate-spin mr-2" />
-              正在加载音频源配置…
-            </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                    支持音质：{{ qualityText(source.supportedQualities) }}
+                  </div>
+                </button>
+              </div>
+              <div v-else role="status" class="flex items-center justify-center py-4 text-gray-400">
+                <LucideLoader2 class="size-5 animate-spin mr-2" />
+                正在加载音频源配置…
+              </div>
+            </AsyncFade>
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
               自动模式将根据延迟选择音频源，也可手动指定优先使用的音频源
             </div>
@@ -582,7 +586,7 @@ onMounted(() => {
         </h2>
         <div class="min-w-0">
           <AsyncFade>
-            <div v-if="isChangelogLoading" class="flex items-center justify-center py-4 text-gray-400">
+            <div v-if="isChangelogLoading" role="status" class="flex items-center justify-center py-4 text-gray-400">
               <LucideLoader2 class="size-5 animate-spin mr-2" />
               加载中...
             </div>

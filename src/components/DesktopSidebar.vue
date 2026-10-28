@@ -152,32 +152,36 @@ watch(() => auth.user?.id, () => {
                 <LucidePlus class="size-4" />
               </AppButton>
             </div>
-            <p v-if="group.loading" role="status" class="px-3 py-2 text-center text-xs text-gray-400">
-              加载中…
-            </p>
-            <div v-else-if="group.error" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-              加载失败
-              <AppButton size="sm" variant="ghost" :aria-label="`重新加载${group.title}`" @click="group.retry()">
-                重试
-              </AppButton>
-            </div>
-            <p v-else-if="!group.items.length" class="px-3 py-2 text-xs text-gray-400">
-              暂无歌单
-            </p>
-            <RouterLink
-              v-for="playlist in group.items" :key="playlist.id"
-              :to="{ name: 'PlaylistDetail', params: { id: playlist.id } }"
-              :title="playlist.name"
-              class="sidebar-link"
-              :class="{ 'is-active': isPlaylistActive(playlist.id) }"
-              :aria-current="isPlaylistActive(playlist.id) ? 'page' : undefined"
-            >
-              <span class="size-8 shrink-0 rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 flex items-center justify-center">
-                <CoverImage v-if="coverUrl(playlist)" :key="coverUrl(playlist)" :src="coverUrl(playlist)" />
-                <LucideMusic v-else class="size-4 text-gray-400" />
-              </span>
-              <span class="truncate">{{ playlist.name }}</span>
-            </RouterLink>
+            <AsyncFade>
+              <p v-if="group.loading" role="status" class="px-3 py-2 text-center text-xs text-gray-400">
+                加载中…
+              </p>
+              <div v-else-if="group.error" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+                加载失败
+                <AppButton size="sm" variant="ghost" :aria-label="`重新加载${group.title}`" @click="group.retry()">
+                  重试
+                </AppButton>
+              </div>
+              <p v-else-if="!group.items.length" class="px-3 py-2 text-xs text-gray-400">
+                暂无歌单
+              </p>
+              <div v-else>
+                <RouterLink
+                  v-for="playlist in group.items" :key="playlist.id"
+                  :to="{ name: 'PlaylistDetail', params: { id: playlist.id } }"
+                  :title="playlist.name"
+                  class="sidebar-link"
+                  :class="{ 'is-active': isPlaylistActive(playlist.id) }"
+                  :aria-current="isPlaylistActive(playlist.id) ? 'page' : undefined"
+                >
+                  <span class="size-8 shrink-0 rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 flex items-center justify-center">
+                    <CoverImage v-if="coverUrl(playlist)" :key="coverUrl(playlist)" :src="coverUrl(playlist)" />
+                    <LucideMusic v-else class="size-4 text-gray-400" />
+                  </span>
+                  <span class="truncate">{{ playlist.name }}</span>
+                </RouterLink>
+              </div>
+            </AsyncFade>
           </nav>
         </template>
       </div>

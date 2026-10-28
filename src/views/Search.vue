@@ -143,31 +143,33 @@ onBeforeUnmount(() => clearTimeout(inputTimer))
       aria-label="搜索结果"
       class="rounded-xl bg-black/5 dark:bg-white/5 overflow-hidden"
     >
-      <div v-if="isTyping || (isFetching && !data)" class="flex items-center justify-center py-16 text-gray-400" role="status">
-        <LucideLoader2 class="size-5 animate-spin mr-2" />搜索中...
-      </div>
-      <div v-else-if="!hasCriteria" class="py-16 text-center text-gray-400">
-        输入关键词开始搜索
-      </div>
-      <div v-else-if="isError" class="py-16 text-center text-red-500" role="alert">
-        <p>搜索失败：{{ error?.message ?? '未知错误' }}</p>
-        <AppButton variant="ghost" size="sm" class="mt-3" @click="refetch()">
-          重试
-        </AppButton>
-      </div>
-      <div v-else-if="!results.length" class="py-16 text-center text-gray-400">
-        未找到相关结果
-      </div>
-      <div v-else class="py-2">
-        <SearchResultRow
-          v-for="(item, index) in results"
-          :key="`${item.type}-${item.id}`"
-          :item="item"
-          :active="activeIndex === index"
-          @select="toResult"
-          @mouseenter="activeIndex = index"
-        />
-      </div>
+      <AsyncFade>
+        <div v-if="isTyping || (isFetching && !data)" class="flex items-center justify-center py-16 text-gray-400" role="status">
+          <LucideLoader2 class="size-5 animate-spin mr-2" />搜索中...
+        </div>
+        <div v-else-if="!hasCriteria" class="py-16 text-center text-gray-400">
+          输入关键词开始搜索
+        </div>
+        <div v-else-if="isError" class="py-16 text-center text-red-500" role="alert">
+          <p>搜索失败：{{ error?.message ?? '未知错误' }}</p>
+          <AppButton variant="ghost" size="sm" class="mt-3" @click="refetch()">
+            重试
+          </AppButton>
+        </div>
+        <div v-else-if="!results.length" class="py-16 text-center text-gray-400">
+          未找到相关结果
+        </div>
+        <div v-else class="py-2">
+          <SearchResultRow
+            v-for="(item, index) in results"
+            :key="`${item.type}-${item.id}`"
+            :item="item"
+            :active="activeIndex === index"
+            @select="toResult"
+            @mouseenter="activeIndex = index"
+          />
+        </div>
+      </AsyncFade>
     </section>
 
     <Pagination

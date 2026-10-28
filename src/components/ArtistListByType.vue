@@ -77,7 +77,7 @@ const displayGroups = computed(() => {
 
 <template>
   <AsyncFade>
-    <div v-if="isLoading" class="flex items-center justify-center py-8 text-gray-400">
+    <div v-if="isLoading" role="status" class="flex items-center justify-center py-8 text-gray-400">
       <LucideLoader2 class="size-6 animate-spin mr-2" />
       加载中...
     </div>

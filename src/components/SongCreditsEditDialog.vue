@@ -142,75 +142,79 @@ async function submit() {
   <AppDialog v-model="visible" :close-on-click-overlay="false" title="修改制作人员" size="xl">
     <div class="p-4 sm:p-5 space-y-3 max-h-[65vh] overflow-y-auto overscroll-contain">
       <PendingEditRequestNotice :pending-request="pendingRequest" :checking="checking" :check-error="checkError" @retry="retryCheck()" />
-      <div v-if="isPending" class="flex items-center justify-center gap-2 py-8 text-gray-400">
-        <LucideLoader2 class="size-5 animate-spin" />
-        加载中...
-      </div>
-      <div v-else-if="isError" class="text-center py-8 space-y-2">
-        <p class="text-sm text-red-400">
-          制作人员加载失败
-        </p>
-        <AppButton @click="refetch()">
-          重试
-        </AppButton>
-      </div>
-      <fieldset v-else :disabled="submitting || selecting || blocked" class="min-w-0 space-y-2">
-        <p v-if="!roles.length" class="text-sm text-gray-400">
-          暂无制作人员，请先添加角色
-        </p>
-        <section v-for="role in roles" :key="role" class="px-3 py-2 rounded-lg bg-black/5 dark:bg-white/5 space-y-1.5">
-          <div class="flex items-center justify-between gap-2">
-            <h3 class="font-medium text-sm break-words">
-              {{ role }}
-            </h3>
-            <button type="button" :aria-label="`为${role}添加人员`" class="shrink-0 text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 hover:dark:text-blue-300 cursor-pointer rounded px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 disabled:opacity-50 disabled:cursor-not-allowed" @click="activeRole = role; keyword = ''">
-              添加人员
-            </button>
-          </div>
-          <div class="flex flex-wrap gap-1.5">
-            <span v-for="credit in draft.filter(item => item.role === role)" :key="credit.name" class="inline-flex items-center gap-1 rounded-md bg-white/60 dark:bg-white/10 pl-2 pr-1 py-0.5 text-xs max-w-full">
-              <span class="break-words min-w-0">{{ credit.name }}</span>
-              <button type="button" :aria-label="`移除${role}：${credit.name}`" class="shrink-0 cursor-pointer rounded p-0.5 text-gray-500 hover:text-red-500" @click="removeArtist(credit)">
-                <LucideX class="size-3.5" />
+      <AsyncFade>
+        <div v-if="isPending" role="status" class="flex items-center justify-center gap-2 py-8 text-gray-400">
+          <LucideLoader2 class="size-5 animate-spin" />
+          加载中...
+        </div>
+        <div v-else-if="isError" class="text-center py-8 space-y-2">
+          <p class="text-sm text-red-400">
+            制作人员加载失败
+          </p>
+          <AppButton @click="refetch()">
+            重试
+          </AppButton>
+        </div>
+        <fieldset v-else :disabled="submitting || selecting || blocked" class="min-w-0 space-y-2">
+          <p v-if="!roles.length" class="text-sm text-gray-400">
+            暂无制作人员，请先添加角色
+          </p>
+          <section v-for="role in roles" :key="role" class="px-3 py-2 rounded-lg bg-black/5 dark:bg-white/5 space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="font-medium text-sm break-words">
+                {{ role }}
+              </h3>
+              <button type="button" :aria-label="`为${role}添加人员`" class="shrink-0 text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 hover:dark:text-blue-300 cursor-pointer rounded px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 disabled:opacity-50 disabled:cursor-not-allowed" @click="activeRole = role; keyword = ''">
+                添加人员
               </button>
-            </span>
-            <span v-if="!draft.some(item => item.role === role)" class="text-xs text-gray-400">暂无人员</span>
-          </div>
-          <div v-if="activeRole === role" class="space-y-2">
-            <input v-model="keyword" type="search" :aria-label="`搜索${role}人员`" placeholder="搜索已有艺术家" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <div aria-live="polite" class="text-sm">
-              <p v-if="selecting" class="text-gray-400 py-2">
-                正在添加...
-              </p>
-              <p v-else-if="searching || keyword.trim() !== debouncedKeyword.trim()" class="text-gray-400 py-2">
-                搜索中...
-              </p>
-              <div v-else-if="searchError && searchKeyword" class="flex items-center gap-2">
-                <span class="text-red-400">搜索失败</span>
-                <AppButton @click="retrySearch()">
-                  重试
-                </AppButton>
-              </div>
-              <div v-else-if="searchKeyword" class="max-h-44 overflow-y-auto space-y-1">
-                <button v-for="artist in results" :key="artist.id" type="button" :disabled="contains(draft, { role, name: artist.name })" class="w-full flex items-center justify-between gap-2 text-left px-3 py-2 rounded-lg hover:bg-black/5 hover:dark:bg-white/5 disabled:opacity-50 cursor-pointer" @click="selectArtist(artist.name)">
-                  <span class="break-words min-w-0">{{ artist.name }}</span>
-                  <span v-if="contains(draft, { role, name: artist.name })" class="shrink-0 text-xs text-gray-400">已添加</span>
-                  <LucidePlus v-else class="size-4 shrink-0" />
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <span v-for="credit in draft.filter(item => item.role === role)" :key="credit.name" class="inline-flex items-center gap-1 rounded-md bg-white/60 dark:bg-white/10 pl-2 pr-1 py-0.5 text-xs max-w-full">
+                <span class="break-words min-w-0">{{ credit.name }}</span>
+                <button type="button" :aria-label="`移除${role}：${credit.name}`" class="shrink-0 cursor-pointer rounded p-0.5 text-gray-500 hover:text-red-500" @click="removeArtist(credit)">
+                  <LucideX class="size-3.5" />
                 </button>
-                <p v-if="!results.length" class="text-gray-400 py-2">
-                  未找到匹配的艺术家
-                </p>
+              </span>
+              <span v-if="!draft.some(item => item.role === role)" class="text-xs text-gray-400">暂无人员</span>
+            </div>
+            <div v-if="activeRole === role" class="space-y-2">
+              <input v-model="keyword" type="search" :aria-label="`搜索${role}人员`" placeholder="搜索已有艺术家" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <div aria-live="polite" class="text-sm">
+                <AsyncFade>
+                  <p v-if="selecting" class="text-gray-400 py-2">
+                    正在添加...
+                  </p>
+                  <p v-else-if="searching || keyword.trim() !== debouncedKeyword.trim()" role="status" class="text-gray-400 py-2">
+                    搜索中...
+                  </p>
+                  <div v-else-if="searchError && searchKeyword" class="flex items-center gap-2">
+                    <span class="text-red-400">搜索失败</span>
+                    <AppButton @click="retrySearch()">
+                      重试
+                    </AppButton>
+                  </div>
+                  <div v-else-if="searchKeyword" class="max-h-44 overflow-y-auto space-y-1">
+                    <button v-for="artist in results" :key="artist.id" type="button" :disabled="contains(draft, { role, name: artist.name })" class="w-full flex items-center justify-between gap-2 text-left px-3 py-2 rounded-lg hover:bg-black/5 hover:dark:bg-white/5 disabled:opacity-50 cursor-pointer" @click="selectArtist(artist.name)">
+                      <span class="break-words min-w-0">{{ artist.name }}</span>
+                      <span v-if="contains(draft, { role, name: artist.name })" class="shrink-0 text-xs text-gray-400">已添加</span>
+                      <LucidePlus v-else class="size-4 shrink-0" />
+                    </button>
+                    <p v-if="!results.length" class="text-gray-400 py-2">
+                      未找到匹配的艺术家
+                    </p>
+                  </div>
+                </AsyncFade>
               </div>
             </div>
-          </div>
-        </section>
-        <form class="flex gap-2" @submit.prevent="addRole">
-          <input v-model="roleInput" type="text" aria-label="角色名称" placeholder="输入角色名称" class="min-w-0 flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-          <AppButton type="submit" :disabled="!roleInput.trim()">
-            添加角色
-          </AppButton>
-        </form>
-      </fieldset>
+          </section>
+          <form class="flex gap-2" @submit.prevent="addRole">
+            <input v-model="roleInput" type="text" aria-label="角色名称" placeholder="输入角色名称" class="min-w-0 flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <AppButton type="submit" :disabled="!roleInput.trim()">
+              添加角色
+            </AppButton>
+          </form>
+        </fieldset>
+      </AsyncFade>
     </div>
     <template #footer>
       <div class="px-4 sm:px-5 py-3 flex justify-end gap-2">

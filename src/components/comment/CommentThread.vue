@@ -221,41 +221,48 @@ onBeforeUnmount(() => {
 
     <div v-if="thread.replyCount" class="ml-6 md:ml-12 pl-3">
       <div v-if="expanded">
-        <CommentItem v-for="(comment, index) in replies" :key="comment.id" :comment="comment" :depth="1" :reply-number="firstReplyNumber + index" :reply-to-number="replyNumberOf(comment.replyTo)" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">
-          <template v-if="replyTarget?.id === comment.id" #reply-composer>
-            <CommentInput
-              :model-value="replyContent"
-              :post-id="postId"
-              :reply-to="comment"
-              :reply-to-number="replyNumberOf(comment.id)"
-              class="mt-3"
-              @update:model-value="emit('update:replyContent', $event)"
-              @cancel-reply="emit('cancelReply')"
-              @created="emit('created', $event)"
+        <AsyncFade>
+          <div v-if="repliesQuery.isPending.value" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400" role="status">
+            <LucideLoader2 class="size-4 animate-spin" />加载中...
+          </div>
+          <div v-else-if="repliesQuery.isError.value" class="py-3 text-xs text-red-500" role="alert">
+            回复加载失败
+            <AppButton size="xs" variant="ghost" @click="repliesQuery.refetch()">
+              重试
+            </AppButton>
+          </div>
+          <div v-else :key="repliesQuery.data.value?.pagination.page ?? page">
+            <CommentItem v-for="(comment, index) in replies" :key="comment.id" :comment="comment" :depth="1" :reply-number="firstReplyNumber + index" :reply-to-number="replyNumberOf(comment.replyTo)" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">
+              <template v-if="replyTarget?.id === comment.id" #reply-composer>
+                <CommentInput
+                  :model-value="replyContent"
+                  :post-id="postId"
+                  :reply-to="comment"
+                  :reply-to-number="replyNumberOf(comment.id)"
+                  class="mt-3"
+                  @update:model-value="emit('update:replyContent', $event)"
+                  @cancel-reply="emit('cancelReply')"
+                  @created="emit('created', $event)"
+                />
+              </template>
+            </CommentItem>
+            <div v-if="repliesQuery.isFetching.value" role="status" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400">
+              <LucideLoader2 class="size-4 animate-spin" />
+              加载回复中
+            </div>
+            <Pagination
+              v-if="!repliesQuery.isError.value"
+              :model-value="page"
+              :total-pages="replyPagination.totalPages"
+              :disabled="repliesQuery.isFetching.value"
+              size="xs"
+              noun="回复"
+              aria-label="回复分页"
+              class="py-3"
+              @update:model-value="goToReplyPage"
             />
-          </template>
-        </CommentItem>
-        <div v-if="repliesQuery.isError.value" class="py-3 text-xs text-red-500">
-          回复加载失败
-          <AppButton size="xs" variant="ghost" @click="repliesQuery.refetch">
-            重试
-          </AppButton>
-        </div>
-        <div v-if="repliesQuery.isFetching.value" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400">
-          <LucideLoader2 class="size-4 animate-spin" />
-          加载回复中
-        </div>
-        <Pagination
-          v-if="!repliesQuery.isError.value"
-          :model-value="page"
-          :total-pages="replyPagination.totalPages"
-          :disabled="repliesQuery.isFetching.value"
-          size="xs"
-          noun="回复"
-          aria-label="回复分页"
-          class="py-3"
-          @update:model-value="goToReplyPage"
-        />
+          </div>
+        </AsyncFade>
       </div>
       <div v-else>
         <CommentItem v-for="(comment, index) in thread.replies" :key="comment.id" :comment="comment" :depth="1" :reply-number="index + 1" :reply-to-number="replyNumberOf(comment.replyTo)" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">

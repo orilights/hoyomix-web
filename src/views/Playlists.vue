@@ -75,6 +75,7 @@ const publicItems = ref<PlaylistListItem[]>([])
 const publicPage = ref(1)
 const publicTotal = ref(0)
 const publicLoading = ref(false)
+const publicError = ref(false)
 const publicFinished = ref(false)
 const sentinel = useTemplateRef('sentinel')
 
@@ -82,6 +83,7 @@ async function loadPublic() {
   if (publicLoading.value || publicFinished.value)
     return
   publicLoading.value = true
+  publicError.value = false
   try {
     const res = await getPublicPlaylistsApi({ page: publicPage.value, limit: 20, sort: 'desc' })
     publicItems.value.push(...res.items)
@@ -92,6 +94,7 @@ async function loadPublic() {
       publicPage.value++
   }
   catch (error) {
+    publicError.value = true
     toast.error(`加载歌单失败：${error instanceof Error ? error.message : '未知错误'}`)
   }
   finally {
@@ -102,7 +105,7 @@ async function loadPublic() {
 useIntersectionObserver(
   sentinel,
   ([entry]) => {
-    if (entry.isIntersecting && tab.value === 'public')
+    if (entry.isIntersecting && tab.value === 'public' && !publicError.value)
       loadPublic()
   },
 )
@@ -191,8 +194,12 @@ onMounted(() => {
 
     <div v-if="tab === 'public'">
       <AsyncFade>
-        <div v-if="publicItems.length === 0 && publicLoading" class="flex justify-center py-16">
-          <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
+        <PageLoading v-if="publicItems.length === 0 && publicLoading" />
+        <div v-else-if="publicItems.length === 0 && publicError" class="text-center py-16 text-gray-400" role="alert">
+          歌单加载失败
+          <AppButton class="ml-2" @click="loadPublic()">
+            重试
+          </AppButton>
         </div>
         <div v-else-if="publicItems.length === 0 && !publicLoading" class="text-center py-16 text-gray-400">
           暂无公开歌单
@@ -207,19 +214,25 @@ onMounted(() => {
         </div>
       </AsyncFade>
       <div ref="sentinel" class="h-10 flex items-center justify-center mt-4">
-        <LucideLoader2 v-if="publicLoading && publicItems.length > 0" class="size-5 text-gray-300 animate-spin" />
-        <span v-else-if="publicFinished && publicItems.length > 0" class="text-xs text-gray-300">已加载全部</span>
+        <AsyncFade>
+          <span v-if="publicLoading && publicItems.length > 0" class="flex items-center gap-2 text-xs text-gray-400" role="status">
+            <LucideLoader2 class="size-5 animate-spin" />加载中...
+          </span>
+          <AppButton v-else-if="publicError && publicItems.length > 0" size="sm" variant="ghost" @click="loadPublic()">
+            加载失败，重试
+          </AppButton>
+          <span v-else-if="publicFinished && publicItems.length > 0" class="text-xs text-gray-300">已加载全部</span>
+        </AsyncFade>
       </div>
     </div>
 
     <div v-else-if="tab === 'favorites'">
       <AsyncFade>
-        <div v-if="!isLoggedIn" class="text-center py-16 text-gray-400">
+        <PageLoading v-if="auth.isPending" />
+        <div v-else-if="!isLoggedIn" class="text-center py-16 text-gray-400">
           请先登录以查看收藏歌单
         </div>
-        <div v-else-if="isFavLoading" class="flex justify-center py-16">
-          <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
-        </div>
+        <PageLoading v-else-if="isFavLoading" />
         <div v-else-if="isFavError" class="flex items-center justify-center py-16 text-red-400">
           加载失败，请刷新重试
         </div>
@@ -242,12 +255,11 @@ onMounted(() => {
 
     <div v-else>
       <AsyncFade>
-        <div v-if="!isLoggedIn" class="text-center py-16 text-gray-400">
+        <PageLoading v-if="auth.isPending" />
+        <div v-else-if="!isLoggedIn" class="text-center py-16 text-gray-400">
           请先登录以查看你的歌单
         </div>
-        <div v-else-if="isMyLoading" class="flex justify-center py-16">
-          <LucideLoader2 class="size-8 text-gray-300 animate-spin" />
-        </div>
+        <PageLoading v-else-if="isMyLoading" />
         <div v-else-if="isMyError" class="flex items-center justify-center py-16 text-red-400">
           加载失败，请刷新重试
         </div>
