@@ -1,3 +1,4 @@
+import type { SongAnalysis } from './song-analysis'
 import type { SongTag } from './song-tag'
 
 export type ContributionRankingPeriod = '30d' | '365d' | 'all'
@@ -46,6 +47,7 @@ export interface MapSongsResponse {
 }
 
 export interface SongInfo {
+  aiAnalysis?: SongAnalysis | null
   songTags: SongTag[]
   id: number
   descriptionFull: string

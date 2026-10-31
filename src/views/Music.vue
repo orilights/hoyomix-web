@@ -464,6 +464,12 @@ function refreshSongInfo() {
               </AsyncFade>
             </section>
 
+            <AsyncFade>
+              <div v-if="songInfo?.aiAnalysis" :key="musicId" v-page-enter="180" class="pt-4">
+                <SongAnalysisCard :song-id="musicId" :analysis="songInfo.aiAnalysis" />
+              </div>
+            </AsyncFade>
+
             <section v-page-enter="240" class="mt-4">
               <MusicLyrics
                 :lyric-provider="lyricProvider"
