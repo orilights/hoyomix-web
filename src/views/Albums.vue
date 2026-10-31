@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAlbumFavoritesQuery, useAlbumListQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 
@@ -15,7 +16,11 @@ const filter = computed({
     void router.push({ query: { ...route.query, filter: value === 'favorites' ? 'favorites' : undefined } })
   },
 })
-const filterOptions = [{ key: 'all', label: '全部' }, { key: 'favorites', label: '已收藏' }]
+const filterOptions = [{ key: 'all', get label() {
+  return t('search.all')
+} }, { key: 'favorites', get label() {
+  return t('Albums.saved')
+} }]
 const { isPending, isError, refetch } = useAlbumFavoritesQuery()
 const albumsQuery = useAlbumListQuery()
 const visibleAlbums = computed(() => filter.value === 'favorites'
@@ -30,8 +35,8 @@ function retry() {
 }
 
 usePageSeo({
-  title: '全部专辑',
-  description: '已收录的所有专辑',
+  title: () => t('DesktopSidebar.all_albums'),
+  description: () => t('Albums.all_albums_in_the_collection'),
   path: '/albums',
 })
 
@@ -42,34 +47,34 @@ onMounted(() => {
 
 <template>
   <div>
-    <PageHeader title="全部专辑" subtitle="已收录的所有专辑" />
+    <PageHeader :title="t('DesktopSidebar.all_albums')" :subtitle="t('Albums.all_albums_in_the_collection')" />
 
     <AlbumList :albums-list="showFavorites && !canShowFavorites ? [] : visibleAlbums" :reveal-key="filter" display-by-year persist-key="albums">
       <template #toolbar>
-        <SegmentSwitch v-model="filter" :options="filterOptions" aria-label="专辑筛选" />
+        <SegmentSwitch v-model="filter" :options="filterOptions" :aria-label="t('Albums.album_filters')" />
       </template>
       <template #empty>
         <div v-if="showFavorites && (!canShowFavorites || !visibleAlbums.length)" class="text-center py-12 text-gray-500 dark:text-gray-400">
           <AsyncFade>
             <div v-if="!auth.isLoggedIn && !auth.isPending">
               <p class="mb-3">
-                请先登录以查看收藏专辑
+                {{ t('Albums.sign_in_to_view_saved_albums') }}
               </p>
               <AppButton @click="auth.openAuthDialog()">
-                登录
+                {{ t('DesktopSidebar.sign_in') }}
               </AppButton>
             </div>
             <PageLoading v-else-if="auth.isPending || isPending || albumsQuery.isPending.value" />
             <div v-else-if="isError || albumsQuery.isError.value">
               <p class="mb-3">
-                收藏专辑加载失败
+                {{ t('Albums.failed_to_load_saved_albums') }}
               </p>
               <AppButton @click="retry">
-                重试
+                {{ t('App.retry') }}
               </AppButton>
             </div>
             <p v-else-if="!visibleAlbums.length">
-              暂无收藏专辑
+              {{ t('Albums.no_saved_albums') }}
             </p>
           </AsyncFade>
         </div>

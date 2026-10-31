@@ -4,6 +4,7 @@ import { toast } from 'vue-sonner'
 import { useRandomPlaylistQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -14,8 +15,8 @@ const player = usePlayerStore()
 const auth = useAuthStore()
 
 usePageSeo({
-  title: '随机播放',
-  description: '随机生成播放列表',
+  title: () => t('DesktopSidebar.shuffle'),
+  description: () => t('Home.generate_a_random_queue'),
   path: '/random',
 })
 
@@ -86,7 +87,7 @@ async function generate() {
 
     if (randomPlaylistMode.value === 'album') {
       if (!randomPlaylistAlbums.value.length) {
-        toast.warning('请先选择专辑')
+        toast.warning(t('Random.select_albums_first'))
         return
       }
       randomPlaylist.value = await generatePlaylist({
@@ -108,7 +109,7 @@ async function generate() {
     }
   }
   catch (e: any) {
-    toast.error(e.message ?? '生成失败')
+    toast.error(e.message ?? t('Random.failed_to_generate_queue'))
   }
 }
 
@@ -116,7 +117,7 @@ function playAll() {
   if (!playlistItems.value.length)
     return
   player.replacePlaylist(playlistItems.value, 0)
-  toast.success('已替换播放列表')
+  toast.success(t('AlbumList.queue_replaced'))
 }
 
 function addAll() {
@@ -124,7 +125,7 @@ function addAll() {
     return
   for (const item of playlistItems.value)
     player.addToPlaylist(item)
-  toast.success('已全部添加至播放列表')
+  toast.success(t('Random.all_songs_added_to_queue'))
 }
 
 function saveAsPlaylist() {
@@ -146,23 +147,23 @@ onMounted(() => {
 
 <template>
   <div>
-    <PageHeader title="随机播放" subtitle="随机生成播放列表" />
+    <PageHeader :title="t('DesktopSidebar.shuffle')" :subtitle="t('Home.generate_a_random_queue')" />
 
     <div class="xl:grid xl:grid-cols-[320px_1fr] gap-6">
       <div>
         <SegmentSwitch
           v-model="randomPlaylistMode"
-          :options="[{ key: 'random', label: '随机模式' }, { key: 'album', label: '指定专辑' }]"
+          :options="[{ key: 'random', label: t('Random.random') }, { key: 'album', label: t('Random.selected_albums') }]"
           block
           role="group"
-          aria-label="生成模式"
+          :aria-label="t('Random.generation_mode')"
         />
 
         <div class="bg-black/5 dark:bg-white/5 rounded-2xl p-4 space-y-4 mt-4">
           <div>
             <label for="random-playlist-limit" class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <span>歌曲数量</span>
-              <span class="text-blue-500 dark:text-blue-400 tabular-nums">{{ randomPlaylistLimit }} 首</span>
+              <span>{{ t('Album.song_count') }}</span>
+              <span class="text-blue-500 dark:text-blue-400 tabular-nums">{{ t('Random.song', { p0: randomPlaylistLimit }, Number(randomPlaylistLimit)) }}</span>
             </label>
             <input
               id="random-playlist-limit"
@@ -171,20 +172,18 @@ onMounted(() => {
               min="10"
               max="200"
               step="5"
-              :aria-valuetext="`${randomPlaylistLimit} 首歌曲`"
+              :aria-valuetext="t('Random.song_alternate', { p0: randomPlaylistLimit }, Number(randomPlaylistLimit))"
               class="w-full accent-blue-500 cursor-pointer"
             >
             <div class="flex justify-between mt-1 text-xs text-gray-400">
-              <span>10 首</span>
-              <span>200 首</span>
+              <span>{{ t('Random.10_songs') }}</span>
+              <span>{{ t('Random.200_songs') }}</span>
             </div>
           </div>
 
           <template v-if="randomPlaylistMode === 'random'">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                游戏范围
-                <span v-if="!randomPlaylistProducts.length" class="text-gray-400 font-normal ml-1">（全部）</span>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('Random.games') }}<span v-if="!randomPlaylistProducts.length" class="text-gray-400 font-normal ml-1">{{ t('Random.all') }}</span>
               </label>
               <div class="flex flex-wrap gap-2">
                 <button
@@ -202,11 +201,11 @@ onMounted(() => {
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">发布日期范围</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('Random.release_date_range') }}</label>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div class="min-w-0">
                   <div class="text-xs text-gray-400 mb-1">
-                    起始
+                    {{ t('Random.from') }}
                   </div>
                   <input
                     v-model="randomPlaylistDateFrom"
@@ -216,7 +215,7 @@ onMounted(() => {
                 </div>
                 <div class="min-w-0">
                   <div class="text-xs text-gray-400 mb-1">
-                    截止
+                    {{ t('Random.to') }}
                   </div>
                   <input
                     v-model="randomPlaylistDateTo"
@@ -228,7 +227,7 @@ onMounted(() => {
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">排除专辑</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('Random.exclude_albums') }}</label>
               <AppButton
                 variant="outline"
                 class="w-full !justify-start text-left"
@@ -236,7 +235,7 @@ onMounted(() => {
               >
                 <LucideListX class="size-4 text-gray-400 shrink-0" />
                 <span class="flex-1 text-gray-600 dark:text-gray-400">
-                  {{ randomPlaylistExcludeAlbums.length ? `已排除 ${randomPlaylistExcludeAlbums.length} 张` : '点击选择要排除的专辑' }}
+                  {{ randomPlaylistExcludeAlbums.length ? t('Random.album_excluded', { p0: randomPlaylistExcludeAlbums.length }, Number(randomPlaylistExcludeAlbums.length)) : t('Random.choose_albums_to_exclude') }}
                 </span>
                 <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
               </AppButton>
@@ -248,13 +247,13 @@ onMounted(() => {
                 type="checkbox"
                 class="size-4 rounded border-gray-300 dark:border-gray-700 text-blue-500 focus:ring-blue-400 accent-blue-500 cursor-pointer"
               >
-              <span class="text-sm text-gray-700 dark:text-gray-300">排除伴奏</span>
+              <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('Random.exclude_backing_tracks') }}</span>
             </label>
 
             <div>
               <label for="random-playlist-min-duration" class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <span>最短时长</span>
-                <span class="text-blue-500 dark:text-blue-400 tabular-nums">{{ randomPlaylistMinDuration === 0 ? '无限制' : `${randomPlaylistMinDuration} 秒` }}</span>
+                <span>{{ t('Random.minimum_duration') }}</span>
+                <span class="text-blue-500 dark:text-blue-400 tabular-nums">{{ randomPlaylistMinDuration === 0 ? t('Random.no_limit') : t('Random.second', { p0: randomPlaylistMinDuration }, Number(randomPlaylistMinDuration)) }}</span>
               </label>
               <input
                 id="random-playlist-min-duration"
@@ -263,22 +262,22 @@ onMounted(() => {
                 min="0"
                 max="120"
                 step="10"
-                :aria-valuetext="randomPlaylistMinDuration === 0 ? '无限制' : `${randomPlaylistMinDuration} 秒`"
+                :aria-valuetext="randomPlaylistMinDuration === 0 ? t('Random.no_limit') : t('Random.second', { p0: randomPlaylistMinDuration }, Number(randomPlaylistMinDuration))"
                 class="w-full accent-blue-500 cursor-pointer"
               >
               <div class="flex justify-between mt-1 text-xs text-gray-400">
-                <span>无限制</span>
-                <span>120 秒</span>
+                <span>{{ t('Random.no_limit') }}</span>
+                <span>{{ t('Random.120_seconds') }}</span>
               </div>
               <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                排除时长小于所选秒数的歌曲
+                {{ t('Random.exclude_songs_shorter_than_the_selected_duration') }}
               </p>
             </div>
           </template>
 
           <template v-else>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">指定专辑</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('Random.selected_albums') }}</label>
               <AppButton
                 variant="outline"
                 class="w-full !justify-start text-left"
@@ -287,7 +286,7 @@ onMounted(() => {
               >
                 <LucideDisc class="size-4 text-gray-400 shrink-0" />
                 <span class="flex-1" :class="randomPlaylistAlbums.length ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400'">
-                  {{ randomPlaylistAlbums.length ? `已选 ${randomPlaylistAlbums.length} 张` : '点击选择专辑（必选）' }}
+                  {{ randomPlaylistAlbums.length ? t('AlbumPickerDialog.album_selected', { p0: randomPlaylistAlbums.length }, Number(randomPlaylistAlbums.length)) : t('Random.choose_albums_required') }}
                 </span>
                 <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
               </AppButton>
@@ -303,7 +302,7 @@ onMounted(() => {
           >
             <LucideLoader2 v-if="isLoading" class="size-4 animate-spin" />
             <LucideShuffle v-else class="size-4" />
-            {{ isLoading ? '生成中...' : '生成随机播放列表' }}
+            {{ isLoading ? t('Random.generating') : t('Random.generate_random_queue') }}
           </AppButton>
         </div>
       </div>
@@ -311,51 +310,46 @@ onMounted(() => {
       <div class="mt-4 xl:mt-0">
         <AsyncFade>
           <div v-if="isLoading" class="flex items-center justify-center gap-2 py-16 text-gray-400" role="status">
-            <LucideLoader2 class="size-5 animate-spin" />
-            加载中...
+            <LucideLoader2 class="size-5 animate-spin" />{{ t('App.loading') }}
           </div>
           <div v-else>
             <div v-if="randomPlaylist.length" class="mb-4 flex items-center gap-2 flex-wrap">
-              <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">共 {{ randomPlaylist.length }} 首</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">{{ t('Random.song_in_total', { p0: randomPlaylist.length }, Number(randomPlaylist.length)) }}</span>
               <AppButton
                 variant="primary"
                 @click="playAll"
               >
-                <LucidePlay class="size-3.5" />
-                播放全部
+                <LucidePlay class="size-3.5" />{{ t('AlbumActions.play_all') }}
               </AppButton>
               <AppButton
                 variant="outline"
                 @click="addAll"
               >
-                <LucidePlus class="size-3.5" />
-                添加到播放列表
+                <LucidePlus class="size-3.5" />{{ t('Random.add_to_queue') }}
               </AppButton>
               <AppButton
                 variant="outline"
                 @click="saveAsPlaylist"
               >
-                <LucideListPlus class="size-3.5" />
-                新建歌单
+                <LucideListPlus class="size-3.5" />{{ t('DesktopSidebar.new_playlist') }}
               </AppButton>
               <AppButton
                 variant="outline"
                 @click="addToPlaylist"
               >
-                <LucideFolderPlus class="size-3.5" />
-                添加到歌单
+                <LucideFolderPlus class="size-3.5" />{{ t('Random.add_to_playlist') }}
               </AppButton>
             </div>
             <SongList
               :songs="randomPlaylist"
               show-cover
               show-album
-              empty-text="点击生成按钮获取随机播放列表"
+              :empty-text="t('Random.generate_a_random_queue_to_get_started')"
             >
               <template #empty>
                 <div class="flex flex-col items-center justify-center h-44 gap-3">
                   <LucideShuffle class="size-10 opacity-30" />
-                  <div>点击生成按钮获取随机播放列表</div>
+                  <div>{{ t('Random.generate_a_random_queue_to_get_started') }}</div>
                 </div>
               </template>
             </SongList>
@@ -367,13 +361,13 @@ onMounted(() => {
     <AlbumPickerDialog
       v-model="showExcludeAlbumsDialog"
       :selected-ids="randomPlaylistExcludeAlbums"
-      title="选择排除专辑"
+      :title="t('Random.choose_albums_to_exclude_alternate')"
       @update:selected-ids="(ids: number[]) => (randomPlaylistExcludeAlbums = ids)"
     />
     <AlbumPickerDialog
       v-model="showAlbumsDialog"
       :selected-ids="randomPlaylistAlbums"
-      title="选择专辑"
+      :title="t('AlbumPickerDialog.select_albums')"
       @update:selected-ids="(ids: number[]) => (randomPlaylistAlbums = ids)"
     />
     <CreatePlaylistDialog

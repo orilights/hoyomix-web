@@ -1,7 +1,7 @@
 import type { ContributionRankingPeriod, MapSongsParams, MapSongsSort, PlaylistsQueryParams, RandomPlaylistParams, RankingPeriod } from '@/types/core'
-
 import type { EditRequestParams } from '@/types/edit-request'
 import type { SearchType } from '@/types/search'
+
 import type { SongTagSongsParams } from '@/types/song-tag'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { getCommentRepliesApi, getCommentThreadsApi } from '@/api/comment'
@@ -40,6 +40,7 @@ import {
 } from '@/api/music'
 import { getSongLyricLanguagesApi, getSongTagApi, getSongTagsApi, getSongTagSongsApi } from '@/api/song-tags'
 import { getUserNameAvailabilityApi } from '@/api/user'
+import { LocalizedError } from '@/i18n/error'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { NotFoundError } from '@/utils/fetch'
@@ -90,7 +91,7 @@ export function useAlbumFavoriteMutation() {
       const revision = store.favoritesRevision
       await client.cancelQueries({ queryKey: ['albumFavorites', userId] })
       if (revision !== store.favoritesRevision || userId !== auth.user?.id)
-        throw new Error('登录状态已变化，请重试')
+        throw new LocalizedError('queries.your_signin_status_changed_please_try_again')
       const wasFavorited = store.favoriteAlbumIds.includes(albumId)
       store.pendingAlbumFavorites.push(albumId)
       store.favoriteAlbumIds = store.favoriteAlbumIds.filter(id => id !== albumId)

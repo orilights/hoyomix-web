@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration } from '@/utils'
 
@@ -9,8 +10,9 @@ const { currentTime, duration, bufferedEnd } = storeToRefs(player)
 <template>
   <div class="flex flex-col items-center gap-1">
     <div class="flex items-center gap-4">
-      <Tooltip content="上一首" placement="top" align="center">
+      <Tooltip :content="t('MusicActions.previous_song')" placement="top" align="center">
         <button
+          :aria-label="t('MusicActions.previous_song')"
           class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1"
           @click="player.playPrev()"
         >
@@ -20,8 +22,9 @@ const { currentTime, duration, bufferedEnd } = storeToRefs(player)
 
       <PlayerPlayBtn />
 
-      <Tooltip content="下一首" placement="top" align="center">
+      <Tooltip :content="t('MusicActions.next_song')" placement="top" align="center">
         <button
+          :aria-label="t('MusicActions.next_song')"
           class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1"
           @click="player.playNext()"
         >

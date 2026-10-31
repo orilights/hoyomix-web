@@ -7,6 +7,7 @@ import { usePageSeo } from '@/composables/usePageSeo'
 import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
 import { asyncFadeHeightKey } from '@/constants/async-fade'
 import { vPageEnter } from '@/directives/page-enter'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -81,20 +82,24 @@ watch(isAlbumError, (val) => {
   if (albumError.value instanceof NotFoundError)
     router.replace({ path: '/404', query: { errorMessage: albumError.value?.message } })
   else
-    toast.error(`歌曲信息加载失败：${albumError.value?.message ?? '未知错误'}`)
+    toast.error(t('Music.failed_to_load_song_details', { p0: albumError.value?.message ?? t('App.unknown_error') }))
 })
 
 // 专辑加载成功但歌曲不存在于该专辑中，跳转 404 页面
 watch([() => !!albumInfo.value, musicInfo], ([hasAlbum, song]) => {
   if (hasAlbum && !song) {
-    router.replace({ path: '/404', query: { errorMessage: '歌曲不存在' } })
+    router.replace({ path: '/404', query: { get errorMessage() {
+      return t('Music.song_not_found')
+    } } })
   }
 })
 
 // 歌单加载成功但歌曲不存在于该歌单中，跳转 404 页面
 watch([() => !!playlistDetail.value, musicInfo], ([hasPlaylist, song]) => {
   if (isPlaylistContext.value && hasPlaylist && !song) {
-    router.replace({ path: '/404', query: { errorMessage: '歌曲不存在' } })
+    router.replace({ path: '/404', query: { get errorMessage() {
+      return t('Music.song_not_found')
+    } } })
   }
 })
 
@@ -110,7 +115,7 @@ function handlePlay() {
     const song = buildPlaylistItem(musicInfo.value, albumInfo.value!)
     const wasCurrent = player.currentSong?.songId === song.songId
     player.insertNextAndPlay(song)
-    toast.success(wasCurrent ? '已重新播放当前歌曲' : '已插入下一首并播放')
+    toast.success(wasCurrent ? t('SongListPlaybackDialog.current_song_restarted') : t('SongListPlaybackDialog.playing_next'))
   }
 }
 
@@ -188,7 +193,7 @@ usePageSeo({
       return null
     const parts = [song.description]
     if (album)
-      parts.push(`收录于专辑《${album.name}》`)
+      parts.push(t('Music.from_the_album', { p0: album.name }))
     return parts.filter(Boolean).join('，') || null
   }),
   path: musicPagePath,
@@ -265,7 +270,7 @@ function openEditInfo() {
   if (!auth.requireLogin())
     return
   if (isSongLoading.value || isSongError.value || songInfo.value?.id !== musicId.value) {
-    toast.error('歌曲详情尚未加载完成，请稍后重试')
+    toast.error(t('Music.song_details_are_still_loading_please_try_again_shortly'))
     return
   }
   showEditInfoDialog.value = true
@@ -281,7 +286,7 @@ function openEditSongTags() {
   if (!auth.requireLogin())
     return
   if (isSongLoading.value || isSongError.value || songInfo.value?.id !== musicId.value) {
-    toast.error('歌曲详情尚未加载完成，请稍后重试')
+    toast.error(t('Music.song_details_are_still_loading_please_try_again_shortly'))
     return
   }
   showEditSongTagsDialog.value = true
@@ -319,14 +324,13 @@ function refreshSongInfo() {
     <PageLoading v-if="isLoading || isPlaylistLoading" />
 
     <div v-else-if="isPlaylistError" class="py-20 text-center text-red-400" role="alert">
-      歌单加载失败
-      <AppButton class="ml-2" @click="refetchPlaylist()">
-        重试
+      {{ t('Music.failed_to_load_playlist') }}<AppButton class="ml-2" @click="refetchPlaylist()">
+        {{ t('App.retry') }}
       </AppButton>
     </div>
 
     <div v-else-if="isAlbumError" class="flex items-center justify-center py-20 text-red-400">
-      加载失败，请刷新重试
+      {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
     </div>
 
     <div v-else-if="albumInfo && musicInfo" class="music-page detail-page">
@@ -349,7 +353,7 @@ function refreshSongInfo() {
               <LazyImg class="size-5 rounded-full" :src="getProductIconUrl(albumInfo.productName, '48px')" />
               <span class="ml-2">{{ albumInfo.productName }}</span>
             </RouterLink>
-            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" aria-label="时长">
+            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" :aria-label="t('SongList.duration')">
               <LucideClock class="size-4 shrink-0" aria-hidden="true" />
               {{ formatDuration(musicInfo.duration) }}
             </span>
@@ -382,9 +386,9 @@ function refreshSongInfo() {
       <div class="detail-tabs">
         <SegmentSwitch
           v-model="activeTab"
-          :options="[{ key: 'info', label: '资料' }, { key: 'artists', label: '制作人员' }, { key: 'contributions', label: '贡献信息' }, { key: 'comments', label: `评论 ${commentCount}` }]"
+          :options="[{ key: 'info', label: t('Music.details') }, { key: 'artists', label: t('MusicActions.credits') }, { key: 'contributions', label: t('Music.contributions') }, { key: 'comments', label: t('AlbumActions.comments', { p0: commentCount }) }]"
           block
-          aria-label="歌曲内容"
+          :aria-label="t('Music.song_content')"
         />
       </div>
 
@@ -395,7 +399,7 @@ function refreshSongInfo() {
               <dl class="detail-facts text-sm p-4 bg-black/5 dark:bg-white/5 rounded-xl">
                 <template v-if="songInfo?.descriptionFull">
                   <dt class="text-gray-500 dark:text-gray-400">
-                    简介
+                    {{ t('Music.description') }}
                   </dt>
                   <dd class="mb-4 text-sm">
                     <p
@@ -408,7 +412,7 @@ function refreshSongInfo() {
                 </template>
 
                 <dt class="text-gray-500 dark:text-gray-400">
-                  所属专辑
+                  {{ t('Music.album') }}
                 </dt>
                 <dd class="min-w-0 break-words">
                   <RouterLink :to="{ name: 'AlbumInfo', params: { id: albumInfo.id } }" class="text-blue-500 hover:text-blue-600">
@@ -417,7 +421,7 @@ function refreshSongInfo() {
                 </dd>
                 <template v-if="showDiscName && musicInfo.disc">
                   <dt class="text-gray-500 dark:text-gray-400">
-                    分碟
+                    {{ t('Music.disc') }}
                   </dt>
                   <dd class="min-w-0 break-words">
                     {{ musicInfo.disc }}
@@ -425,13 +429,13 @@ function refreshSongInfo() {
                 </template>
                 <template v-if="musicInfo.track">
                   <dt class="text-gray-500 dark:text-gray-400">
-                    序号
+                    {{ t('Music.track_number') }}
                   </dt>
                   <dd>{{ musicInfo.track }}</dd>
                 </template>
                 <template v-if="isPlaylistContext && playlistDetail">
                   <dt class="text-gray-500 dark:text-gray-400">
-                    来自歌单
+                    {{ t('Music.from_playlist') }}
                   </dt>
                   <dd class="min-w-0 break-words">
                     <RouterLink :to="{ name: 'PlaylistDetail', params: { id: playlistDetail.id } }" class="text-blue-500 hover:text-blue-600">
@@ -444,11 +448,10 @@ function refreshSongInfo() {
               <!-- 间距放进动画元素，避免空标签块在恢复 overflow 后发生外边距折叠。 -->
               <AsyncFade>
                 <div v-if="isSongLoading" role="status" class="flex items-center justify-center gap-2 pt-6 pb-2 text-gray-400">
-                  <LucideLoader2 class="size-4 animate-spin" />
-                  加载中...
+                  <LucideLoader2 class="size-4 animate-spin" />{{ t('App.loading') }}
                 </div>
                 <p v-else-if="isSongError" class="pt-6 pb-2 text-sm text-red-400">
-                  加载失败，请刷新重试
+                  {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
                 </p>
                 <div v-else :class="{ 'pt-4': hasSongTags }">
                   <TagList
@@ -495,7 +498,7 @@ function refreshSongInfo() {
         mode="add"
       />
 
-      <AppDialog v-model="showMyRequestsDialog" title="我的申请" size="md">
+      <AppDialog v-model="showMyRequestsDialog" :title="t('MusicActions.my_requests')" size="md">
         <div class="p-4 sm:p-6 max-h-[65vh] overflow-y-auto overscroll-contain">
           <EditRequestList v-if="showMyRequestsDialog" :params="requestParams" @page="requestPage = $event" />
         </div>

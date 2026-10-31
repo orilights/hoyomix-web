@@ -5,6 +5,7 @@ import { toast } from 'vue-sonner'
 import { deletePlaylistApi, getPublicPlaylistsApi } from '@/api/music'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { queryClient } from '@/utils/query-client'
@@ -14,8 +15,8 @@ const auth = useAuthStore()
 const { isLoggedIn } = storeToRefs(auth)
 
 usePageSeo({
-  title: '歌单',
-  description: '发现和管理歌单',
+  title: () => t('Home.playlists'),
+  description: () => t('Home.discover_and_manage_playlists'),
   path: '/playlists',
 })
 
@@ -37,9 +38,15 @@ const gridColumns = computed(() => {
 })
 
 const tabOptions = [
-  { key: 'public', label: '广场' },
-  { key: 'mine', label: '我的' },
-  { key: 'favorites', label: '收藏' },
+  { key: 'public', get label() {
+    return t('Playlists.community')
+  } },
+  { key: 'mine', get label() {
+    return t('Playlists.mine')
+  } },
+  { key: 'favorites', get label() {
+    return t('Playlists.favorites')
+  } },
 ]
 
 watch(isLoggedIn, (v) => {
@@ -95,7 +102,7 @@ async function loadPublic() {
   }
   catch (error) {
     publicError.value = true
-    toast.error(`加载歌单失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('Playlists.failed_to_load_playlists', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     publicLoading.value = false
@@ -127,12 +134,12 @@ const {
 
 watch(isMyError, (v) => {
   if (v && isLoggedIn.value)
-    toast.error(`我的歌单加载失败：${myError.value?.message ?? '未知错误'}`)
+    toast.error(t('Playlists.failed_to_load_your_playlists', { p0: myError.value?.message ?? t('App.unknown_error') }))
 })
 
 watch(isFavError, (v) => {
   if (v && isLoggedIn.value)
-    toast.error(`收藏歌单加载失败：${favError.value?.message ?? '未知错误'}`)
+    toast.error(t('Playlists.failed_to_load_saved_playlists', { p0: favError.value?.message ?? t('App.unknown_error') }))
 })
 
 function requestDeletePlaylist(id: string) {
@@ -150,10 +157,10 @@ async function confirmDeletePlaylist() {
     void queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
     void queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
     void queryClient.invalidateQueries({ queryKey: ['playlists'] })
-    toast.success('删除成功')
+    toast.success(t('Playlists.deleted'))
   }
   catch (error) {
-    toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('Playlist.failed_to_delete', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     deletingPlaylist.value = false
@@ -174,14 +181,13 @@ onMounted(() => {
 
 <template>
   <div ref="homeContainer">
-    <PageHeader title="歌单" subtitle="发现和管理歌单">
+    <PageHeader :title="t('Home.playlists')" :subtitle="t('Home.discover_and_manage_playlists')">
       <template #extra>
         <AppButton
           variant="primary"
           @click="openCreate"
         >
-          <LucidePlus class="size-4" />
-          新建歌单
+          <LucidePlus class="size-4" />{{ t('DesktopSidebar.new_playlist') }}
         </AppButton>
       </template>
     </PageHeader>
@@ -196,13 +202,12 @@ onMounted(() => {
       <AsyncFade>
         <PageLoading v-if="publicItems.length === 0 && publicLoading" />
         <div v-else-if="publicItems.length === 0 && publicError" class="text-center py-16 text-gray-400" role="alert">
-          歌单加载失败
-          <AppButton class="ml-2" @click="loadPublic()">
-            重试
+          {{ t('Music.failed_to_load_playlist') }}<AppButton class="ml-2" @click="loadPublic()">
+            {{ t('App.retry') }}
           </AppButton>
         </div>
         <div v-else-if="publicItems.length === 0 && !publicLoading" class="text-center py-16 text-gray-400">
-          暂无公开歌单
+          {{ t('Playlists.no_public_playlists') }}
         </div>
         <div
           v-else class="grid justify-center"
@@ -216,12 +221,11 @@ onMounted(() => {
       <div ref="sentinel" class="h-10 flex items-center justify-center mt-4">
         <AsyncFade>
           <span v-if="publicLoading && publicItems.length > 0" class="flex items-center gap-2 text-xs text-gray-400" role="status">
-            <LucideLoader2 class="size-5 animate-spin" />加载中...
-          </span>
+            <LucideLoader2 class="size-5 animate-spin" />{{ t('App.loading') }}</span>
           <AppButton v-else-if="publicError && publicItems.length > 0" size="sm" variant="ghost" @click="loadPublic()">
-            加载失败，重试
+            {{ t('Playlists.unable_to_load_retry') }}
           </AppButton>
-          <span v-else-if="publicFinished && publicItems.length > 0" class="text-xs text-gray-300">已加载全部</span>
+          <span v-else-if="publicFinished && publicItems.length > 0" class="text-xs text-gray-300">{{ t('Playlists.all_items_loaded') }}</span>
         </AsyncFade>
       </div>
     </div>
@@ -230,16 +234,16 @@ onMounted(() => {
       <AsyncFade>
         <PageLoading v-if="auth.isPending" />
         <div v-else-if="!isLoggedIn" class="text-center py-16 text-gray-400">
-          请先登录以查看收藏歌单
+          {{ t('Playlists.sign_in_to_view_saved_playlists') }}
         </div>
         <PageLoading v-else-if="isFavLoading" />
         <div v-else-if="isFavError" class="flex items-center justify-center py-16 text-red-400">
-          加载失败，请刷新重试
+          {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
         </div>
         <div v-else-if="favoritePlaylists?.length === 0" class="text-center py-16">
           <LucideHeart class="size-12 text-gray-200 mx-auto mb-3" />
           <p class="text-sm text-gray-400">
-            暂无收藏歌单
+            {{ t('Playlists.no_saved_playlists') }}
           </p>
         </div>
         <div
@@ -257,16 +261,16 @@ onMounted(() => {
       <AsyncFade>
         <PageLoading v-if="auth.isPending" />
         <div v-else-if="!isLoggedIn" class="text-center py-16 text-gray-400">
-          请先登录以查看你的歌单
+          {{ t('Playlists.sign_in_to_view_your_playlists') }}
         </div>
         <PageLoading v-else-if="isMyLoading" />
         <div v-else-if="isMyError" class="flex items-center justify-center py-16 text-red-400">
-          加载失败，请刷新重试
+          {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
         </div>
         <div v-else-if="myPlaylists?.length === 0" class="text-center py-16">
           <LucideMusic class="size-12 text-gray-200 mx-auto mb-3" />
           <p class="text-sm text-gray-400">
-            还没有歌单，快去创建一个吧
+            {{ t('Playlists.no_playlists_yet_create_one_to_get_started') }}
           </p>
         </div>
         <div
@@ -286,21 +290,21 @@ onMounted(() => {
       </AsyncFade>
     </div>
 
-    <AppDialog v-model="showDeleteDialog" title="删除歌单">
+    <AppDialog v-model="showDeleteDialog" :title="t('Playlist.delete_playlist')">
       <div class="px-6 py-5 text-sm text-gray-600 dark:text-gray-400">
-        <p>确定要删除歌单「{{ deleteTargetPlaylist?.name ?? '这个歌单' }}」吗？</p>
+        <p>{{ t('Playlist.delete_the_playlist', { p0: deleteTargetPlaylist?.name ?? t('Playlists.this_playlist') }) }}</p>
         <p class="mt-2 text-red-500">
-          删除后无法恢复
+          {{ t('Playlist.this_cannot_be_undone') }}
         </p>
       </div>
       <template #footer>
         <div class="px-6 py-3 flex justify-end gap-2">
           <AppButton variant="outline" :disabled="deletingPlaylist" @click="showDeleteDialog = false">
-            取消
+            {{ t('AlbumPickerDialog.cancel') }}
           </AppButton>
           <AppButton variant="danger" :disabled="deletingPlaylist" @click="confirmDeletePlaylist">
             <LucideLoader2 v-if="deletingPlaylist" class="size-4 animate-spin" />
-            {{ deletingPlaylist ? '删除中...' : '确认删除' }}
+            {{ deletingPlaylist ? t('Playlist.deleting') : t('Playlist.confirm_deletion') }}
           </AppButton>
         </div>
       </template>

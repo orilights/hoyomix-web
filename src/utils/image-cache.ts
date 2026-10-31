@@ -1,4 +1,5 @@
 import { resourceBase } from '@/constants'
+import { LocalizedError } from '@/i18n/error'
 
 export interface ImageCacheStats {
   bytes: number
@@ -11,7 +12,7 @@ let registration: Promise<ServiceWorkerRegistration> | undefined
 
 export function registerImageCache() {
   if (!imageCacheSupported)
-    return Promise.reject(new Error('当前浏览器或访问环境不支持图片缓存，请使用 HTTPS 或 localhost'))
+    return Promise.reject(new LocalizedError('image_cache.image_caching_is_unavailable_use_https_or_localhost'))
   registration ??= navigator.serviceWorker.register(
     `${import.meta.env.BASE_URL}image-cache-sw.js?resourceBase=${encodeURIComponent(new URL(resourceBase, window.location.href).href)}`,
     { scope: import.meta.env.BASE_URL, updateViaCache: 'none' },
@@ -26,7 +27,7 @@ export async function requestImageCache(action: 'stats' | 'clear'): Promise<Imag
   const registered = await registerImageCache()
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
-    const timeout = window.setTimeout(() => finish(new Error('图片缓存响应超时，请稍后重试')), 10000)
+    const timeout = window.setTimeout(() => finish(new LocalizedError('image_cache.image_cache_request_timed_out_please_try_again_later')), 10000)
     const worker = registered.installing ?? registered.waiting ?? registered.active
     function finish(error?: Error, stats?: ImageCacheStats) {
       window.clearTimeout(timeout)
@@ -42,7 +43,7 @@ export async function requestImageCache(action: 'stats' | 'clear'): Promise<Imag
       if (data.ok)
         finish(undefined, { bytes: data.bytes, count: data.count, maxBytes: data.maxBytes })
       else
-        finish(new Error(data.error))
+        finish(new LocalizedError('image_cache.storage_unavailable'))
     }
     function send() {
       if (worker?.state === 'activated') {
@@ -51,7 +52,7 @@ export async function requestImageCache(action: 'stats' | 'clear'): Promise<Imag
       }
     }
     if (!worker) {
-      finish(new Error('图片缓存尚未就绪，请稍后重试'))
+      finish(new LocalizedError('image_cache.image_cache_is_not_ready_please_try_again_later'))
     }
     else {
       worker.addEventListener('statechange', send)

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { useLocalizedText } from '@/composables/useLocalizedText'
+import { t } from '@/i18n'
 import { authClient } from '@/utils/auth-client'
 
 const visible = defineModel<boolean>({ required: true })
@@ -8,7 +10,7 @@ const loading = ref(false)
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
-const errorMsg = ref('')
+const errorMsg = useLocalizedText()
 
 function resetForm() {
   currentPassword.value = ''
@@ -30,7 +32,7 @@ watch(visible, (val) => {
 async function handleSubmit() {
   errorMsg.value = ''
   if (newPassword.value !== confirmPassword.value) {
-    errorMsg.value = '两次输入的新密码不一致'
+    errorMsg.value = () => t('ChangePasswordDialog.new_passwords_do_not_match')
     return
   }
   loading.value = true
@@ -42,50 +44,54 @@ async function handleSubmit() {
   loading.value = false
   if (error) {
     const statusMessages: Record<number, string> = {
-      400: '当前密码错误',
-      401: '当前密码错误',
+      get 400() {
+        return t('ChangePasswordDialog.incorrect_current_password')
+      },
+      get 401() {
+        return t('ChangePasswordDialog.incorrect_current_password')
+      },
     }
-    errorMsg.value = (error.status && statusMessages[error.status]) || error.message || '修改密码失败'
+    errorMsg.value = () => error.message || (error.status && statusMessages[error.status]) || t('ChangePasswordDialog.failed_to_change_password')
     return
   }
-  toast.success('密码修改成功，其他设备已退出登录')
+  toast.success(t('ChangePasswordDialog.password_changed_other_devices_have_been_signed_out'))
   close()
 }
 </script>
 
 <template>
-  <AppDialog v-model="visible" :close-on-click-overlay="false" title="修改密码">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" :title="t('Settings.change_password')">
     <form class="px-6 py-5 space-y-3" @submit.prevent="handleSubmit">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">当前密码</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('ChangePasswordDialog.current_password') }}</label>
         <input
           v-model="currentPassword"
           type="password"
           required
           autocomplete="current-password"
-          placeholder="请输入当前密码"
+          :placeholder="t('ChangePasswordDialog.enter_your_current_password')"
           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
         >
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">新密码</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('ResetPassword.new_password') }}</label>
         <input
           v-model="newPassword"
           type="password"
           required
           autocomplete="new-password"
-          placeholder="至少 8 位"
+          :placeholder="t('ResetPassword.at_least_8_characters')"
           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
         >
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">确认新密码</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('ResetPassword.confirm_new_password') }}</label>
         <input
           v-model="confirmPassword"
           type="password"
           required
           autocomplete="new-password"
-          placeholder="再次输入新密码"
+          :placeholder="t('ResetPassword.enter_your_new_password_again')"
           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
         >
       </div>
@@ -99,10 +105,8 @@ async function handleSubmit() {
         :disabled="loading"
       >
         <span v-if="loading" class="flex items-center justify-center gap-2">
-          <LucideLoader2 class="size-4 animate-spin" />
-          提交中...
-        </span>
-        <span v-else>确认修改</span>
+          <LucideLoader2 class="size-4 animate-spin" />{{ t('SongCreditsEditDialog.submitting') }}</span>
+        <span v-else>{{ t('ChangePasswordDialog.confirm_changes') }}</span>
       </AppButton>
     </form>
   </AppDialog>

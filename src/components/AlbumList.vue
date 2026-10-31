@@ -4,10 +4,12 @@ import { useElementSize } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { getAlbumInfoApi } from '@/api/music'
 import { vRevealCover } from '@/directives/reveal-cover'
+import { formatNumber, t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { buildPlaylistFromAlbum } from '@/utils/player-utils'
+import { getPublishDate } from '@/utils/time'
 
 type LayoutMode = 'grid' | 'list'
 
@@ -83,10 +85,10 @@ async function playAlbum(albumId: number) {
   try {
     const album = await getAlbumInfoApi(albumId)
     player.replacePlaylist(buildPlaylistFromAlbum(album), 0)
-    toast.success('已替换播放列表')
+    toast.success(t('AlbumList.queue_replaced'))
   }
   catch (error) {
-    toast.error(`获取专辑信息失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('AlbumList.failed_to_get_album_details', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
 }
 </script>
@@ -98,7 +100,7 @@ async function playAlbum(albumId: number) {
         <slot name="toolbar" />
       </div>
       <div v-if="showLayoutToggle" class="flex gap-1 shrink-0">
-        <Tooltip :content="sortOrder === 'desc' ? '发布日期：降序' : '发布日期：升序'" placement="top" align="center">
+        <Tooltip :content="sortOrder === 'desc' ? t('AlbumList.release_date_newest_first') : t('AlbumList.release_date_oldest_first')" placement="top" align="center">
           <button
             class="p-1.5 rounded-lg transition-colors cursor-pointer text-gray-400 hover:bg-gray-500/15"
             @click="sortOrder = sortOrder === 'desc' ? 'asc' : 'desc'"
@@ -107,7 +109,7 @@ async function playAlbum(albumId: number) {
             <LucideArrowUpNarrowWide v-else class="w-4 h-4" />
           </button>
         </Tooltip>
-        <Tooltip content="网格布局" placement="top" align="center">
+        <Tooltip :content="t('AlbumList.grid_view')" placement="top" align="center">
           <button
             class="p-1.5 rounded-lg transition-colors cursor-pointer"
             :class="layout === 'grid' ? 'bg-gray-500/30 text-foreground' : 'text-gray-400 hover:bg-gray-500/15'"
@@ -116,7 +118,7 @@ async function playAlbum(albumId: number) {
             <LucideLayoutGrid class="w-4 h-4" />
           </button>
         </Tooltip>
-        <Tooltip content="列表布局" placement="top" align="center">
+        <Tooltip :content="t('AlbumList.list_view')" placement="top" align="center">
           <button
             class="p-1.5 rounded-lg transition-colors cursor-pointer"
             :class="layout === 'list' ? 'bg-gray-500/30 text-foreground' : 'text-gray-400 hover:bg-gray-500/15'"
@@ -152,7 +154,7 @@ async function playAlbum(albumId: number) {
                   <CoverImage :src="getCoverUrl(album_info.platforms, '256px')" />
                   <button
                     class="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-2 bg-black/40 hover:bg-black/60"
-                    title="播放专辑"
+                    :title="t('AlbumList.play_album')"
                     @click.prevent="playAlbum(album_info.id)"
                   >
                     <LucidePlay class="size-6 fill-white" />
@@ -162,9 +164,9 @@ async function playAlbum(albumId: number) {
                   {{ album_info.name }}
                 </div>
                 <div>
-                  <span class="text-xs text-gray-500 dark:text-gray-400">{{ album_info.publishDate }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">{{ getPublishDate(album_info.publishDate) }}</span>
                   ·
-                  <span class="text-xs text-gray-500 dark:text-gray-400">{{ album_info.songCount }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatNumber(album_info.songCount) }}</span>
                 </div>
               </div>
             </RouterLink>
@@ -183,7 +185,7 @@ async function playAlbum(albumId: number) {
                     {{ album_info.name }}
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400 truncate mt-2">
-                    {{ album_info.publishDate }} · {{ album_info.songCount }}
+                    {{ getPublishDate(album_info.publishDate) }} · {{ formatNumber(album_info.songCount) }}
                   </div>
                 </div>
                 <AppButton
@@ -191,8 +193,8 @@ async function playAlbum(albumId: number) {
                   size="xs"
                   variant="ghost"
                   class="shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-all hidden md:inline-flex hover:scale-105 active:scale-95"
-                  aria-label="播放专辑"
-                  title="播放专辑"
+                  :aria-label="t('AlbumList.play_album')"
+                  :title="t('AlbumList.play_album')"
                   @click.prevent="playAlbum(album_info.id)"
                 >
                   <LucidePlay class="size-6" fill="currentColor" />

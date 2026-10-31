@@ -1,4 +1,5 @@
 import type { PlaylistSongItem } from './core'
+import { t } from '@/i18n'
 
 export interface SongTagGroup {
   id: number
@@ -10,7 +11,7 @@ export function groupSongTags(tags: SongTag[]) {
   const groups = new Map<number, { value: number, label: string, sortOrder: number, tags: SongTag[] }>()
   for (const tag of tags) {
     const id = tag.groupId ?? 0
-    const group = groups.get(id) ?? { value: id, label: tag.group?.name ?? '未分组', sortOrder: tag.group?.sortOrder ?? 0, tags: [] }
+    const group = groups.get(id) ?? { value: id, label: tag.group?.name ?? t('song_tag.ungrouped'), sortOrder: tag.group?.sortOrder ?? 0, tags: [] }
     group.tags.push(tag)
     groups.set(id, group)
   }

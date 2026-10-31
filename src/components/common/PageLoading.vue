@@ -1,7 +1,10 @@
+<script setup lang="ts">
+import { t } from '@/i18n'
+</script>
+
 <template>
   <div class="page-loading absolute top-0 left-0 right-0 flex items-center justify-center gap-2 px-4 text-center text-gray-400 pointer-events-none" role="status">
-    <LucideLoader2 class="size-5 animate-spin" />
-    加载中...
+    <LucideLoader2 class="size-5 animate-spin" />{{ t('App.loading') }}
   </div>
 </template>
 

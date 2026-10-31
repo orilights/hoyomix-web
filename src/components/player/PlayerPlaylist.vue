@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
@@ -50,7 +51,7 @@ function removeSong(index: number) {
 function clearAll() {
   player.clearPlaylist()
   showPlaylist.value = false
-  toast.success('已清空播放列表')
+  toast.success(t('PlayerPlaylist.queue_cleared'))
 }
 </script>
 
@@ -71,33 +72,31 @@ function clearAll() {
       >
         <div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
           <div class="text-white font-bold">
-            播放列表
-            <span class="text-white/50 text-sm font-normal ml-2">{{ playlist.length }} 首</span>
+            {{ t('PlayerBar.queue') }}<span class="text-white/50 text-sm font-normal ml-2">{{ t('Random.song', { p0: playlist.length }, Number(playlist.length)) }}</span>
           </div>
           <div class="flex items-center gap-2">
             <Dropdown
               position="down"
               :options="[
-                { label: '保存为新歌单', onClick: saveAsNew },
-                { label: '覆盖已有歌单', onClick: overwriteExisting },
+                { label: t('PlayerPlaylist.save_as_a_new_playlist'), onClick: saveAsNew },
+                { label: t('PlayerPlaylist.replace_an_existing_playlist'), onClick: overwriteExisting },
               ]"
             >
               <AppButton variant="dark" size="sm">
-                <LucideListPlus class="size-4" />
-                保存
+                <LucideListPlus class="size-4" />{{ t('CommentItem.save') }}
               </AppButton>
             </Dropdown>
             <AppButton
               variant="dark" size="sm"
               @click="clearAll"
             >
-              清空
+              {{ t('AlbumPickerDialog.clear') }}
             </AppButton>
             <AppButton
               icon-only
               size="sm"
               variant="dark"
-              aria-label="关闭播放列表"
+              :aria-label="t('PlayerPlaylist.close_queue')"
               @click="showPlaylist = false"
             >
               <LucideX class="size-5" />
@@ -149,7 +148,7 @@ function clearAll() {
                   size="xs"
                   variant="dark"
                   class="text-white/30 hover:text-red-400 ml-2 md:opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                  aria-label="移除歌曲"
+                  :aria-label="t('PlayerPlaylist.remove_song')"
                   @click.stop="removeSong(index)"
                 >
                   <LucideX class="size-4" />
@@ -159,7 +158,7 @@ function clearAll() {
           </draggable>
 
           <div v-if="playlist.length === 0" class="text-white/30 text-center mt-16">
-            播放列表为空
+            {{ t('PlayerPlaylist.the_queue_is_empty') }}
           </div>
         </OverlayScrollbarsComponent>
       </div>

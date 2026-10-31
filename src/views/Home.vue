@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { usePageSeo } from '@/composables/usePageSeo'
-import { appDescription } from '@/constants'
+import { getAppDescription } from '@/constants'
 import { vPageEnter } from '@/directives/page-enter'
+import { formatNumber, t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl } from '@/utils'
+import { getPublishDate } from '@/utils/time'
 
 const store = useMainStore()
 const { albumList, productList } = storeToRefs(store)
 
 usePageSeo({
-  title: '首页',
-  description: appDescription,
+  title: () => t('DesktopSidebar.home'),
+  description: getAppDescription,
   path: '/',
 })
 
@@ -76,14 +78,13 @@ onMounted(() => {
     <div v-page-enter="0" class="home-enter-block">
       <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="font-bold text-2xl">
-          最新专辑
+          {{ t('Home.latest_albums') }}
         </h2>
         <RouterLink
           :to="{ name: 'Albums' }"
           class="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 transition-colors"
         >
-          查看全部
-          <LucideChevronRight class="size-4" />
+          {{ t('AlbumSeriesHoverCard.view_all') }}<LucideChevronRight class="size-4" />
         </RouterLink>
       </div>
 
@@ -113,7 +114,7 @@ onMounted(() => {
                 {{ album.name }}
               </div>
               <div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">{{ album.publishDate }}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ getPublishDate(album.publishDate) }}</span>
               </div>
             </div>
           </RouterLink>
@@ -131,10 +132,10 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900 dark:text-gray-100">
-            歌单
+            {{ t('Home.playlists') }}
           </div>
           <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            发现和管理歌单
+            {{ t('Home.discover_and_manage_playlists') }}
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -148,10 +149,10 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900 dark:text-gray-100">
-            随机播放
+            {{ t('DesktopSidebar.shuffle') }}
           </div>
           <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            随机生成播放列表
+            {{ t('Home.generate_a_random_queue') }}
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -165,10 +166,10 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900 dark:text-gray-100">
-            地区
+            {{ t('DesktopSidebar.regions') }}
           </div>
           <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            根据地区检索歌曲
+            {{ t('Home.find_songs_by_region') }}
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -182,10 +183,10 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900 dark:text-gray-100">
-            标签
+            {{ t('DesktopSidebar.tags') }}
           </div>
           <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            按标签查找歌曲
+            {{ t('Home.find_songs_by_tag') }}
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -199,10 +200,10 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900 dark:text-gray-100">
-            热榜
+            {{ t('DesktopSidebar.charts') }}
           </div>
           <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            看看大家都在听什么
+            {{ t('Home.see_what_everyone_is_listening_to') }}
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -216,10 +217,10 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900 dark:text-gray-100">
-            贡献榜
+            {{ t('DesktopSidebar.contributors') }}
           </div>
           <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            数据库贡献榜单
+            {{ t('ContributionRanking.database_contributors') }}
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -233,10 +234,10 @@ onMounted(() => {
         </div>
         <div class="flex-1 min-w-0">
           <div class="font-semibold text-gray-900 dark:text-gray-100">
-            反馈
+            {{ t('DesktopSidebar.feedback') }}
           </div>
           <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            问题与建议
+            {{ t('Home.issues_and_suggestions') }}
           </div>
         </div>
         <LucideChevronRight class="size-5 text-gray-400 shrink-0" />
@@ -246,7 +247,7 @@ onMounted(() => {
     <div v-page-enter="240" class="home-enter-block mt-3">
       <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="font-bold text-2xl">
-          收录游戏
+          {{ t('Home.games_in_the_collection') }}
         </h2>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3">
@@ -262,7 +263,7 @@ onMounted(() => {
               {{ product.name }}
             </div>
             <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              专辑 {{ product.songCount?.albumCount }} · 歌曲 {{ product.songCount?.songCount }}
+              {{ t('Home.albums_songs', { p0: product.songCount?.albumCount, p1: product.songCount?.songCount }) }}
             </div>
           </div>
         </RouterLink>
@@ -272,37 +273,36 @@ onMounted(() => {
     <div v-page-enter="360" class="home-enter-block mt-3">
       <div class="flex items-center justify-between mb-3 px-1">
         <h2 class="font-bold text-2xl">
-          收录数据
+          {{ t('Home.collection_statistics') }}
         </h2>
         <RouterLink
           :to="{ name: 'Statistics' }"
           class="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 transition-colors"
         >
-          查看统计
-          <LucideChevronRight class="size-4" />
+          {{ t('Home.view_statistics') }}<LucideChevronRight class="size-4" />
         </RouterLink>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-3 mt-2">
         <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
-            专辑总数
+            {{ t('Home.total_albums') }}
           </div>
           <div class="text-2xl md:text-3xl font-bold mt-1">
-            {{ totalAlbums }}
+            {{ formatNumber(totalAlbums) }}
           </div>
         </div>
         <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
-            歌曲总数
+            {{ t('Home.total_songs') }}
           </div>
           <div class="text-2xl md:text-3xl font-bold mt-1">
-            {{ totalSongs }}
+            {{ formatNumber(totalSongs) }}
           </div>
         </div>
         <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
-            歌曲总时长
+            {{ t('Home.total_listening_time') }}
           </div>
           <div class="text-2xl md:text-3xl font-bold mt-1">
             {{ formatDuration(totalDuration) }}
@@ -310,10 +310,10 @@ onMounted(() => {
         </div>
         <div class="bg-black/5 dark:bg-white/5 rounded-xl p-4">
           <div class="text-sm text-gray-500 dark:text-gray-400">
-            覆盖游戏
+            {{ t('Home.games_covered') }}
           </div>
           <div class="text-2xl md:text-3xl font-bold mt-1">
-            {{ totalProducts }}
+            {{ formatNumber(totalProducts) }}
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePageSeo } from '@/composables/usePageSeo'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 
@@ -7,8 +8,8 @@ const auth = useAuthStore()
 const store = useMainStore()
 
 usePageSeo({
-  title: '邮箱验证成功',
-  description: '邮箱验证成功',
+  title: () => t('EmailVerified.email_verified'),
+  description: () => t('EmailVerified.email_verified'),
   noindex: true,
 })
 
@@ -25,16 +26,16 @@ onMounted(() => {
           <LucideMailCheck class="size-8 text-green-600 dark:text-green-400" />
         </div>
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          邮箱验证成功
+          {{ t('EmailVerified.email_verified') }}
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
-          恭喜！邮箱验证已完成，点击下方按钮即可登录！
+          {{ t('EmailVerified.your_email_has_been_verified_you_can_now_sign') }}
         </p>
         <AppButton
           variant="primary" size="lg" class="mt-2"
           @click="auth.openAuthDialog()"
         >
-          立即登录
+          {{ t('EmailVerified.sign_in_now') }}
         </AppButton>
       </div>
     </div>

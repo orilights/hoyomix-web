@@ -1,5 +1,6 @@
 import { toast } from 'vue-sonner'
 import { useMyEditRequestsQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 
 export function usePendingSongEditRequest(songId: Ref<number>, visible?: Ref<boolean>) {
@@ -27,11 +28,11 @@ export function usePendingSongEditRequest(songId: Ref<number>, visible?: Ref<boo
     if (songId.value !== currentSongId || auth.user?.id !== userId || (visible && !visible.value))
       return false
     if (result.isError) {
-      toast.error('申请状态加载失败，请重试')
+      toast.error(t('usePendingSongEditRequest.failed_to_load_request_status_please_try_again'))
       return false
     }
     if (result.data?.total) {
-      toast.error('当前存在审核中的申请，请先查看或取消申请')
+      toast.error(t('usePendingSongEditRequest.a_request_is_pending_review_view_or_cancel_it'))
       return false
     }
     return true

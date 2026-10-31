@@ -3,7 +3,9 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-vue'
 import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/vue'
 import { useId } from 'vue'
 import { useTagAlbumsQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { getCoverUrl } from '@/utils'
+import { getPublishDate } from '@/utils/time'
 
 const props = defineProps<{
   seriesName: string
@@ -156,8 +158,7 @@ onBeforeUnmount(() => {
         @keydown.down.stop.prevent="focusCard"
         @click="onTriggerClick($event, navigate)"
       >
-        {{ seriesName }} 系列专辑
-      </a>
+        {{ t('AlbumSeriesHoverCard.album_series', { p0: seriesName }) }}</a>
     </RouterLink>
   </span>
 
@@ -169,7 +170,7 @@ onBeforeUnmount(() => {
         ref="card"
         tabindex="-1"
         role="dialog"
-        :aria-label="`${seriesName} 系列专辑`"
+        :aria-label="t('AlbumSeriesHoverCard.album_series', { p0: seriesName })"
         class="z-1000 w-80 max-w-[calc(100vw-16px)] overflow-hidden rounded-xl bg-white/95 dark:bg-[var(--theme-surface)]/95 backdrop-blur-xl border border-white/70 dark:border-gray-700/70 shadow-xl p-2 text-sm outline-none"
         :style="floatingStyles"
         @pointerenter="cancelClose"
@@ -178,28 +179,27 @@ onBeforeUnmount(() => {
         @focusout="scheduleClose"
       >
         <div class="flex items-center gap-2 px-2 py-1.5">
-          <span class="font-medium flex-1 min-w-0 truncate">{{ seriesName }} 系列专辑</span>
+          <span class="font-medium flex-1 min-w-0 truncate">{{ t('AlbumSeriesHoverCard.album_series', { p0: seriesName }) }}</span>
           <RouterLink
             :to="{ name: 'AlbumSeries', params: { seriesName } }"
             class="shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:dark:text-blue-400"
             @click="closeCard"
           >
-            查看全部
+            {{ t('AlbumSeriesHoverCard.view_all') }}
           </RouterLink>
         </div>
 
         <AsyncFade>
           <div v-if="isLoading" role="status" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-            加载中...
+            {{ t('App.loading') }}
           </div>
           <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-            加载失败
-            <button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
-              重试
+            {{ t('AlbumSeriesHoverCard.unable_to_load') }}<button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
+              {{ t('App.retry') }}
             </button>
           </div>
           <div v-else-if="!sortedAlbums.length" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-            暂无系列专辑
+            {{ t('AlbumSeriesHoverCard.no_albums_in_this_series') }}
           </div>
           <div v-else ref="albumList">
             <OverlayScrollbarsComponent
@@ -223,10 +223,10 @@ onBeforeUnmount(() => {
                       {{ album.name }}
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ album.publishDate }}
+                      {{ getPublishDate(album.publishDate) }}
                     </div>
                   </div>
-                  <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">当前</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">{{ t('AlbumSeriesHoverCard.current') }}</span>
                 </div>
                 <RouterLink
                   v-else
@@ -242,7 +242,7 @@ onBeforeUnmount(() => {
                       {{ album.name }}
                     </div>
                     <div class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ album.publishDate }}
+                      {{ getPublishDate(album.publishDate) }}
                     </div>
                   </div>
                 </RouterLink>

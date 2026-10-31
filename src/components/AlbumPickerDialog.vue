@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
+import { getPublishDate } from '@/utils/time'
 
 const props = defineProps<{
   selectedIds: number[]
@@ -47,23 +49,23 @@ function confirm() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" :close-on-click-overlay="false" :title="title ?? '选择专辑'" size="md">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" :title="title ?? t('AlbumPickerDialog.select_albums')" size="md">
     <div class="px-6 pt-3 pb-2">
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="搜索专辑名称或日期..."
+        :placeholder="t('AlbumPickerDialog.search_album_names_or_dates')"
         class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
       >
     </div>
     <div class="px-6 pb-2 flex items-center justify-between text-sm">
-      <span class="text-gray-500 dark:text-gray-400">已选 {{ localSelected.length }} 张</span>
+      <span class="text-gray-500 dark:text-gray-400">{{ t('AlbumPickerDialog.album_selected', { p0: localSelected.length }, Number(localSelected.length)) }}</span>
       <AppButton
         variant="ghost"
         size="sm"
         @click="localSelected = []"
       >
-        清空
+        {{ t('AlbumPickerDialog.clear') }}
       </AppButton>
     </div>
     <div class="h-72 overflow-y-auto px-3 pb-2">
@@ -84,12 +86,12 @@ function confirm() {
             {{ album.name }}
           </div>
           <div class="text-xs text-gray-400 mt-0.5">
-            {{ album.publishDate }}
+            {{ getPublishDate(album.publishDate) }}
           </div>
         </div>
       </button>
       <div v-if="!filteredAlbums.length" class="py-8 text-center text-sm text-gray-400">
-        无匹配专辑
+        {{ t('AlbumPickerDialog.no_matching_albums') }}
       </div>
     </div>
     <template #footer>
@@ -98,13 +100,13 @@ function confirm() {
           variant="outline"
           @click="visible = false"
         >
-          取消
+          {{ t('AlbumPickerDialog.cancel') }}
         </AppButton>
         <AppButton
           variant="primary"
           @click="confirm"
         >
-          确定
+          {{ t('AlbumPickerDialog.confirm') }}
         </AppButton>
       </div>
     </template>

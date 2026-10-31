@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EditRequestItem } from '@/types/edit-request'
+import { t } from '@/i18n'
 
 defineProps<{ pendingRequest: EditRequestItem | null, checking: boolean, checkError: boolean }>()
 const emit = defineEmits<{ retry: [] }>()
@@ -10,22 +11,20 @@ const selectedId = ref<number | null>(null)
   <div class="px-3 py-2 rounded-lg bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300 text-xs leading-relaxed" role="status">
     <AsyncFade>
       <div v-if="checking">
-        正在检查审核中申请...
+        {{ t('PendingEditRequestNotice.checking_pending_requests') }}
       </div>
       <div v-else-if="checkError">
-        申请状态加载失败，暂时无法提交。
-        <AppButton size="xs" variant="ghost" @click="emit('retry')">
-          重试
+        {{ t('PendingEditRequestNotice.unable_to_load_request_status_submission_is_temporarily_unavailable') }}<AppButton size="xs" variant="ghost" @click="emit('retry')">
+          {{ t('App.retry') }}
         </AppButton>
       </div>
       <div v-else-if="pendingRequest">
-        当前存在审核中的申请，暂时无法再次提交。
-        <AppButton size="xs" variant="ghost" @click="selectedId = pendingRequest.id">
-          查看详情
+        {{ t('PendingEditRequestNotice.a_request_is_pending_review_another_request_cannot_be') }}<AppButton size="xs" variant="ghost" @click="selectedId = pendingRequest.id">
+          {{ t('ContributionCard.view_details') }}
         </AppButton>
       </div>
       <div v-else>
-        信息修改需审核后生效，同一资源最多同时存在一条待审核申请
+        {{ t('SongVideoEditDialog.changes_take_effect_after_review_only_one_pending_request') }}
       </div>
     </AsyncFade>
   </div>

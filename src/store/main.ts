@@ -1,7 +1,8 @@
 import type { AlbumListItemInfo, AppConfigResponse, MapSongsSort, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
-
 import { defineStore } from 'pinia'
 import { addFavoriteApi, addPlaylistFavoriteApi, getAllFavoritesApi, getFavoritePlaylistsApi, removeFavoriteApi, removePlaylistFavoriteApi } from '@/api/music'
+
+import { LocalizedError } from '@/i18n/error'
 import { queryClient } from '@/utils/query-client'
 
 export const useMainStore = defineStore('main', {
@@ -77,7 +78,7 @@ export const useMainStore = defineStore('main', {
       }
       catch {
         this.favoriteSongIds = this.favoriteSongIds.filter(id => id !== songId)
-        throw new Error('收藏失败')
+        throw new LocalizedError('main.failed_to_save_favorite')
       }
     },
     async removeFavoriteSong(songId: number) {
@@ -90,7 +91,7 @@ export const useMainStore = defineStore('main', {
       }
       catch {
         this.favoriteSongIds.push(songId)
-        throw new Error('取消收藏失败')
+        throw new LocalizedError('main.failed_to_remove_favorite')
       }
     },
     async fetchFavoritePlaylists() {
@@ -115,7 +116,7 @@ export const useMainStore = defineStore('main', {
       }
       catch {
         this.favoritePlaylistIds = this.favoritePlaylistIds.filter(pid => pid !== id)
-        throw new Error('收藏失败')
+        throw new LocalizedError('main.failed_to_save_favorite')
       }
     },
     async removeFavoritePlaylist(id: string) {
@@ -128,7 +129,7 @@ export const useMainStore = defineStore('main', {
       }
       catch {
         this.favoritePlaylistIds.push(id)
-        throw new Error('取消收藏失败')
+        throw new LocalizedError('main.failed_to_remove_favorite')
       }
     },
   },

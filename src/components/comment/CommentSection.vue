@@ -2,6 +2,7 @@
 import type { Comment, CommentThread } from '@/types/comment'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useCommentThreadsQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { rememberCommentRoute } from '@/utils/comment-route'
 
@@ -142,9 +143,9 @@ function onChanged() {
   <section class="bg-black/5 dark:bg-white/5 rounded-xl p-4 md:p-6">
     <div class="flex items-center justify-between gap-3 mb-4">
       <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-        {{ title ?? '评论' }}
+        {{ title ?? t('CommentSection.comments') }}
       </h2>
-      <span v-if="commentCount" class="text-sm text-gray-400">{{ commentCount }} 条</span>
+      <span v-if="commentCount" class="text-sm text-gray-400">{{ t('CommentSection.comment', { p0: commentCount }, Number(commentCount)) }}</span>
     </div>
 
     <CommentInput
@@ -156,17 +157,15 @@ function onChanged() {
 
     <AsyncFade>
       <div v-if="threadsQuery.isError.value && !threads.length" class="py-10 text-center text-sm text-red-400" role="alert">
-        评论加载失败，请稍后重试
-        <AppButton size="sm" variant="ghost" class="ml-2" @click="threadsQuery.refetch">
-          重试
+        {{ t('CommentSection.failed_to_load_comments_please_try_again_later') }}<AppButton size="sm" variant="ghost" class="ml-2" @click="threadsQuery.refetch">
+          {{ t('App.retry') }}
         </AppButton>
       </div>
       <div v-else-if="threadsQuery.isPending.value && !threads.length" role="status" class="py-10 flex items-center justify-center gap-2 text-sm text-gray-400">
-        <LucideLoader2 class="size-5 animate-spin" />
-        加载评论中
+        <LucideLoader2 class="size-5 animate-spin" />{{ t('CommentSection.loading_comments') }}
       </div>
       <div v-else-if="!threads.length" class="py-10 text-center text-sm text-gray-400">
-        还没有评论，来留下第一条吧
+        {{ t('CommentSection.no_comments_yet_be_the_first_to_share_your') }}
       </div>
       <div v-else class="mt-4">
         <CommentThread
@@ -188,17 +187,15 @@ function onChanged() {
         />
         <AsyncFade>
           <div v-if="threadsQuery.isFetching.value" role="status" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400">
-            <LucideLoader2 class="size-4 animate-spin" />
-            加载中
+            <LucideLoader2 class="size-4 animate-spin" />{{ t('CommentSection.loading') }}
           </div>
           <div v-else-if="threadsQuery.isError.value" class="py-3 text-xs text-red-400" role="alert">
-            评论加载失败
-            <AppButton size="sm" variant="ghost" @click="threadsQuery.refetch()">
-              重试
+            {{ t('CommentSection.failed_to_load_comments') }}<AppButton size="sm" variant="ghost" @click="threadsQuery.refetch()">
+              {{ t('App.retry') }}
             </AppButton>
           </div>
           <AppButton v-else-if="page < pagination.totalPages" class="mt-3" size="sm" variant="ghost" @click="loadMoreThreads">
-            加载更多评论
+            {{ t('CommentSection.load_more_comments') }}
           </AppButton>
         </AsyncFade>
       </div>

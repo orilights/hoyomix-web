@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { PlaylistSongItem } from '@/types/core'
+
 import type { SongListPlayBehavior } from '@/types/player'
 import { toast } from 'vue-sonner'
+import { t } from '@/i18n'
+import { LocalizedError } from '@/i18n/error'
 import { usePlayerStore } from '@/store/player'
 
 interface PlaybackRequest {
@@ -48,19 +51,19 @@ async function run(behavior: Exclude<SongListPlayBehavior, 'ask'>, request: Play
       const songs = await request.loadSongs()
       const index = songs.findIndex(song => song.songId === request.songId)
       if (index === -1)
-        throw new Error('所选歌曲不在当前列表中')
+        throw new LocalizedError('SongListPlaybackDialog.the_selected_song_is_no_longer_in_this_list')
       await player.replacePlaylist([...songs], index)
-      toast.success('已替换播放列表并播放')
+      toast.success(t('SongListPlaybackDialog.queue_replaced_and_playback_started'))
     }
     else {
       const song = await request.loadSong()
       const wasCurrent = player.currentSong?.songId === song.songId
       await player.insertNextAndPlay(song)
-      toast.success(wasCurrent ? '已重新播放当前歌曲' : '已插入下一首并播放')
+      toast.success(wasCurrent ? t('SongListPlaybackDialog.current_song_restarted') : t('SongListPlaybackDialog.playing_next'))
     }
   }
   catch (error) {
-    toast.error(`播放失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('SongListPlaybackDialog.playback_failed', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     if (loadingToast !== null)
@@ -78,24 +81,22 @@ defineExpose({ play })
 </script>
 
 <template>
-  <AppDialog v-model="visible" :close-on-click-overlay="false" title="选择播放方式" size="md">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" :title="t('SongListPlaybackDialog.choose_playback_action')" size="md">
     <div class="p-5 space-y-3">
       <button
         class="w-full text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:dark:bg-blue-500/15 transition-colors cursor-pointer"
         @click="choose('replace')"
       >
-        <span class="block font-medium">替换播放列表并播放</span>
+        <span class="block font-medium">{{ t('SongListPlaybackDialog.replace_queue_and_play') }}</span>
       </button>
       <button
         class="w-full text-left p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:dark:bg-blue-500/15 transition-colors cursor-pointer"
         @click="choose('insert-next')"
       >
-        <span class="block font-medium">插入到下一首并播放</span>
+        <span class="block font-medium">{{ t('MusicActions.play_next') }}</span>
       </button>
       <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-        <input v-model="rememberChoice" type="checkbox" class="accent-blue-500">
-        记住选择，下次不再询问
-      </label>
+        <input v-model="rememberChoice" type="checkbox" class="accent-blue-500">{{ t('SongListPlaybackDialog.remember_my_choice') }}</label>
     </div>
   </AppDialog>
 </template>

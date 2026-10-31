@@ -1,54 +1,81 @@
 <script setup lang="ts">
 import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
-import { formatDate } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
 import { useImageCache } from '@/composables/useImageCache'
 import { usePageScroll } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
-import { appDescription, appGithubRepoUrl, appVersion, audioQualityOptions, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { appGithubRepoUrl, appVersion, audioQualityOptions, getAppDescription, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
+import { useLanguageStore } from '@/store/language'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
 import { usePlayerStore } from '@/store/player'
+import { formatDateTime } from '@/utils/time'
 
 const store = useMainStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
+const language = useLanguageStore()
+const languageOptions = computed(() => [
+  { value: 'auto', label: t('language.follow_browser') },
+  { value: 'zh-CN', label: '简体中文' },
+  { value: 'zh-TW', label: '繁體中文' },
+  { value: 'en', label: 'English' },
+])
 const { supported: imageCacheSupported, bytes: imageCacheBytes, count: imageCacheCount, busy: imageCacheBusy, error: imageCacheError, update: updateImageCache } = useImageCache()
-const imageCacheSize = computed(() => imageCacheBytes.value === null ? '正在读取…' : `${(imageCacheBytes.value / 1024 / 1024).toFixed(2)} MB`)
+const imageCacheSize = computed(() => imageCacheBytes.value === null ? t('Settings.reading') : `${(imageCacheBytes.value / 1024 / 1024).toFixed(2)} MB`)
 
 async function clearImageCache() {
   if (await updateImageCache('clear'))
-    toast.success('图片缓存已清理')
+    toast.success(t('Settings.image_cache_cleared'))
   else
-    toast.error(imageCacheError.value || '图片缓存清理失败，请稍后重试')
+    toast.error(imageCacheError.value || t('Settings.failed_to_clear_image_cache_please_try_again_later'))
 }
 const { quality, enableAudioContext, enableMediaSession, lyricsSource, songListPlayBehavior, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 const songListPlayOptions: { value: SongListPlayBehavior, label: string }[] = [
-  { value: 'ask', label: '询问我' },
-  { value: 'replace', label: '替换播放列表并播放' },
-  { value: 'insert-next', label: '插入到下一首并播放' },
+  { value: 'ask', get label() {
+    return t('Settings.ask_me')
+  } },
+  { value: 'replace', get label() {
+    return t('SongListPlaybackDialog.replace_queue_and_play')
+  } },
+  { value: 'insert-next', get label() {
+    return t('MusicActions.play_next')
+  } },
 ]
 const lyricsSourceOptions = [
-  { value: 'ncm', label: '网易云音乐' },
-  { value: 'qq', label: 'QQ 音乐' },
+  { value: 'ncm', get label() {
+    return t('Settings.netease_cloud_music')
+  } },
+  { value: 'qq', get label() {
+    return t('Settings.qq_music')
+  } },
 ]
 const mobileLayoutOptions = [
-  { value: 'lyrics', label: '全屏歌词' },
-  { value: 'cover', label: '封面与歌词' },
+  { value: 'lyrics', get label() {
+    return t('Settings.full_lyrics')
+  } },
+  { value: 'cover', get label() {
+    return t('Settings.cover_and_lyrics')
+  } },
 ]
 const coverShapeOptions = [
-  { value: 'square', label: '方形' },
-  { value: 'circle', label: '圆形' },
+  { value: 'square', get label() {
+    return t('Settings.square')
+  } },
+  { value: 'circle', get label() {
+    return t('Settings.circle')
+  } },
 ]
 
 usePageSeo({
-  title: '设置',
-  description: '用户设置',
+  title: () => t('DesktopSidebar.settings'),
+  description: () => t('Settings.user_settings'),
   path: '/settings',
   noindex: true,
 })
@@ -86,21 +113,21 @@ function getInitial(): string {
 
 async function logout() {
   await auth.logout()
-  toast.success('已退出登录')
+  toast.success(t('Settings.signed_out'))
 }
 
-const buildTime = formatDate(new Date(window.__BUILD_TIME__), 'YYYY-MM-DD HH:mm:ss')
+const buildTime = computed(() => formatDateTime(window.__BUILD_TIME__))
 
 const activeSection = ref('settings-appearance')
 const { scrollY } = usePageScroll()
 const settingsSections = computed(() => [
-  { id: 'settings-appearance', label: '外观' },
-  { id: 'settings-audio', label: '媒体源' },
-  { id: 'settings-player', label: '播放器' },
-  { id: 'settings-account', label: '账号' },
-  { id: 'settings-cache', label: '缓存' },
-  { id: 'settings-about', label: '关于' },
-  { id: 'settings-changelog', label: '更新日志' },
+  { id: 'settings-appearance', label: t('Settings.appearance') },
+  { id: 'settings-audio', label: t('Settings.media_sources') },
+  { id: 'settings-player', label: t('Settings.player') },
+  { id: 'settings-account', label: t('Settings.account') },
+  { id: 'settings-cache', label: t('Settings.cache') },
+  { id: 'settings-about', label: t('Settings.about') },
+  { id: 'settings-changelog', label: t('Settings.changelog') },
 ])
 
 function updateActiveSection() {
@@ -119,7 +146,7 @@ const changelog = computed(() => changelogData.value?.['hoyomix.changelog'] ?? '
 
 watch(isChangelogError, (val) => {
   if (val)
-    toast.error(`更新日志加载失败：${changelogError.value?.message ?? '未知错误'}`)
+    toast.error(t('Settings.failed_to_load_changelog', { p0: changelogError.value?.message ?? t('App.unknown_error') }))
 })
 
 function openGithubRepo() {
@@ -134,9 +161,9 @@ onMounted(() => {
 
 <template>
   <div>
-    <PageHeader title="设置" subtitle="一些也许有用的设置" />
+    <PageHeader :title="t('DesktopSidebar.settings')" :subtitle="t('Settings.a_few_settings_you_may_find_useful')" />
 
-    <nav aria-label="设置分类" class="sticky top-4 z-[9] w-max max-w-full rounded-2xl border border-white/70 dark:border-gray-700/70 bg-white/70 dark:bg-[var(--theme-surface)]/70 p-1.5 backdrop-blur-xl">
+    <nav :aria-label="t('Settings.settings_categories')" class="sticky top-4 z-[9] w-max max-w-full rounded-2xl border border-white/70 dark:border-gray-700/70 bg-white/70 dark:bg-[var(--theme-surface)]/70 p-1.5 backdrop-blur-xl">
       <div class="flex gap-1 overflow-x-auto">
         <RouterLink
           v-for="section in settingsSections"
@@ -155,35 +182,43 @@ onMounted(() => {
     <div class="mt-6">
       <section id="settings-appearance" class="scroll-mt-32 grid gap-4 py-6 border-t border-gray-200 dark:border-gray-700 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-appearance-heading">
         <h2 id="settings-appearance-heading" class="font-bold text-xl">
-          外观
+          {{ t('Settings.appearance') }}
         </h2>
         <div class="min-w-0">
           <div class="font-bold text-lg mb-2">
-            主题模式
+            {{ t('Settings.theme') }}
           </div>
           <ThemeSwitcher />
           <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            跟随系统会根据设备的外观设置自动切换亮色与暗色模式。
+            {{ t('Settings.system_mode_automatically_switches_between_light_and_dark_based') }}
           </p>
+          <div class="mt-6">
+            <label id="language-label" class="mb-2 block text-lg font-bold">{{ t('language.label') }}</label>
+            <AppSelect
+              class="w-full sm:w-64"
+              :model-value="language.preference"
+              :options="languageOptions"
+              aria-labelledby="language-label"
+              @update:model-value="language.setPreference($event)"
+            />
+          </div>
         </div>
       </section>
       <section id="settings-audio" class="scroll-mt-32 grid gap-4 py-6 border-t border-gray-200 dark:border-gray-700 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-audio-heading">
         <h2 id="settings-audio-heading" class="font-bold text-xl">
-          媒体源
+          {{ t('Settings.media_sources') }}
         </h2>
         <div class="min-w-0 space-y-6">
           <div>
             <div class="font-bold text-lg mb-2 flex items-center gap-2">
-              音频源
-              <AppButton
+              {{ t('Settings.audio_source') }}<AppButton
                 variant="outline"
                 size="xs"
                 :disabled="mediaSource.isTestingLatency"
                 @click="mediaSource.testLatency()"
               >
                 <LucideRefreshCw v-if="!mediaSource.isTestingLatency" class="size-3.5" />
-                <LucideLoader2 v-else class="size-3.5 animate-spin" />
-                重新测试延迟
+                <LucideLoader2 v-else class="size-3.5 animate-spin" />{{ t('Settings.test_latency_again') }}
               </AppButton>
             </div>
             <AsyncFade>
@@ -196,19 +231,18 @@ onMounted(() => {
                   @click="mediaSource.selectSource('auto')"
                 >
                   <div class="flex items-center justify-between gap-2">
-                    <span class="font-bold">自动选择</span>
+                    <span class="font-bold">{{ t('Settings.automatic') }}</span>
                   </div>
                   <div class="text-sm mt-1 text-gray-500 dark:text-gray-400">
                     <AsyncFade>
                       <div v-if="mediaSource.isTestingLatency">
-                        <LucideLoader2 class="size-4 inline animate-spin mr-1" />
-                        延迟检测中…
+                        <LucideLoader2 class="size-4 inline animate-spin mr-1" />{{ t('Settings.testing_latency') }}
                       </div>
                       <div v-else-if="mediaSource.autoPreferredNode">
                         {{ mediaSource.autoPreferredNode }}（{{ formatLatency(mediaSource.latencyResults[mediaSource.autoPreferredNode]) }}）
                       </div>
                       <div v-else>
-                        暂无可用节点
+                        {{ t('Settings.no_available_servers') }}
                       </div>
                     </AsyncFade>
                   </div>
@@ -238,47 +272,46 @@ onMounted(() => {
                     </span>
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                    支持音质：{{ qualityText(source.supportedQualities) }}
+                    {{ t('Settings.supported_quality', { p0: qualityText(source.supportedQualities) }) }}
                   </div>
                 </button>
               </div>
               <div v-else role="status" class="flex items-center justify-center py-4 text-gray-400">
-                <LucideLoader2 class="size-5 animate-spin mr-2" />
-                正在加载音频源配置…
+                <LucideLoader2 class="size-5 animate-spin mr-2" />{{ t('Settings.loading_audio_source_configuration') }}
               </div>
             </AsyncFade>
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              自动模式将根据延迟选择音频源，也可手动指定优先使用的音频源
+              {{ t('Settings.automatic_mode_selects_an_audio_source_based_on_latency') }}
             </div>
           </div>
 
           <div>
             <div class="font-bold text-lg mb-2">
-              音频质量
+              {{ t('Settings.audio_quality') }}
             </div>
             <RadioGroup
-              aria-label="音频质量"
+              :aria-label="t('Settings.audio_quality')"
               :options="availableQualityOptions"
               :model-value="quality"
               @update:model-value="player.switchQuality($event as AudioQuality)"
             />
             <div v-if="availableQualityOptions.length === 0" class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              暂无可用音质选项
+              {{ t('Settings.no_audio_quality_options_available') }}
             </div>
           </div>
 
           <div>
             <div class="font-bold text-lg mb-2">
-              歌词源
+              {{ t('Settings.lyrics_source') }}
             </div>
             <RadioGroup
-              aria-label="歌词源"
+              :aria-label="t('Settings.lyrics_source')"
               :options="lyricsSourceOptions"
               :model-value="lyricsSource"
               @update:model-value="player.setLyricsSource($event as LyricsSource)"
             />
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              优先使用所选平台的歌词
+              {{ t('Settings.prefer_lyrics_from_the_selected_platform') }}
             </div>
           </div>
         </div>
@@ -286,15 +319,15 @@ onMounted(() => {
 
       <section id="settings-player" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-player-heading">
         <h2 id="settings-player-heading" class="font-bold text-xl">
-          播放器
+          {{ t('Settings.player') }}
         </h2>
         <div class="min-w-0 space-y-6">
           <div>
             <div class="font-bold text-lg mb-2">
-              歌曲默认播放方式
+              {{ t('Settings.default_song_playback_action') }}
             </div>
             <RadioGroup
-              aria-label="歌曲默认播放方式"
+              :aria-label="t('Settings.default_song_playback_action')"
               :options="songListPlayOptions"
               :model-value="songListPlayBehavior"
               @update:model-value="player.setSongListPlayBehavior($event as SongListPlayBehavior)"
@@ -303,14 +336,14 @@ onMounted(() => {
 
           <div>
             <div class="font-bold text-lg mb-2">
-              沉浸模式
+              {{ t('Settings.immersive_mode') }}
             </div>
             <div class="flex items-center gap-3">
               <button
                 class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
                 :class="immersiveModeEnabled ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                 role="switch"
-                aria-label="启用全屏播放器沉浸模式"
+                :aria-label="t('Settings.enable_immersive_mode_in_the_fullscreen_player')"
                 :aria-checked="immersiveModeEnabled"
                 @click="player.setImmersiveModeEnabled(!immersiveModeEnabled)"
               >
@@ -319,19 +352,19 @@ onMounted(() => {
                   :class="immersiveModeEnabled ? 'translate-x-5' : 'translate-x-0'"
                 />
               </button>
-              <span class="text-sm text-gray-600 dark:text-gray-400">{{ immersiveModeEnabled ? '已启用' : '已禁用' }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ immersiveModeEnabled ? t('Settings.enabled') : t('Settings.disabled') }}</span>
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              在全屏播放器中自动隐藏界面控件
+              {{ t('Settings.automatically_hide_controls_in_the_fullscreen_player') }}
             </div>
           </div>
 
           <div>
             <div class="font-bold text-lg mb-2">
-              播放器布局（移动端）
+              {{ t('Settings.player_layout_mobile') }}
             </div>
             <RadioGroup
-              aria-label="播放器布局（移动端）"
+              :aria-label="t('Settings.player_layout_mobile')"
               :options="mobileLayoutOptions"
               :model-value="mobileFullscreenLayout"
               @update:model-value="player.setMobileFullscreenLayout($event as MobileFullscreenLayout)"
@@ -340,7 +373,7 @@ onMounted(() => {
 
           <section aria-labelledby="fullscreen-cover-heading">
             <h2 id="fullscreen-cover-heading" class="font-bold text-lg mb-2">
-              全屏播放器封面
+              {{ t('Settings.fullscreen_player_cover') }}
             </h2>
             <RadioGroup
               aria-labelledby="fullscreen-cover-heading"
@@ -352,14 +385,14 @@ onMounted(() => {
             <div v-if="fullscreenCoverShape === 'circle'" class="mt-4 space-y-4">
               <div>
                 <div class="font-medium text-sm mb-2">
-                  播放中封面旋转
+                  {{ t('Settings.rotate_cover_during_playback') }}
                 </div>
                 <div class="flex items-center gap-3">
                   <button
                     class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
                     :class="fullscreenCoverRotation ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                     role="switch"
-                    aria-label="播放中封面旋转"
+                    :aria-label="t('Settings.rotate_cover_during_playback')"
                     :aria-checked="fullscreenCoverRotation"
                     @click="fullscreenCoverRotation = !fullscreenCoverRotation"
                   >
@@ -368,20 +401,20 @@ onMounted(() => {
                       :class="fullscreenCoverRotation ? 'translate-x-5' : 'translate-x-0'"
                     />
                   </button>
-                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ fullscreenCoverRotation ? '已启用' : '已禁用' }}</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ fullscreenCoverRotation ? t('Settings.enabled') : t('Settings.disabled') }}</span>
                 </div>
               </div>
 
               <div>
                 <div class="font-medium text-sm mb-2">
-                  封面边框
+                  {{ t('Settings.cover_border') }}
                 </div>
                 <div class="flex items-center gap-3">
                   <button
                     class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
                     :class="fullscreenCoverBorder ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                     role="switch"
-                    aria-label="封面边框"
+                    :aria-label="t('Settings.cover_border')"
                     :aria-checked="fullscreenCoverBorder"
                     @click="fullscreenCoverBorder = !fullscreenCoverBorder"
                   >
@@ -390,7 +423,7 @@ onMounted(() => {
                       :class="fullscreenCoverBorder ? 'translate-x-5' : 'translate-x-0'"
                     />
                   </button>
-                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ fullscreenCoverBorder ? '已启用' : '已禁用' }}</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ fullscreenCoverBorder ? t('Settings.enabled') : t('Settings.disabled') }}</span>
                 </div>
               </div>
             </div>
@@ -413,11 +446,10 @@ onMounted(() => {
                   :class="enableAudioContext ? 'translate-x-5' : 'translate-x-0'"
                 />
               </button>
-              <span class="text-sm text-gray-600 dark:text-gray-400">{{ enableAudioContext ? '已启用' : '已禁用' }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ enableAudioContext ? t('Settings.enabled') : t('Settings.disabled') }}</span>
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              iOS 设备后台播放需禁用该 API <br>
-              禁用后频谱可视化等功能将不可用
+              {{ t('Settings.disable_this_api_for_background_playback_on_ios') }}<br>{{ t('Settings.spectrum_visualization_and_related_features_are_unavailable_when_disabled') }}
             </div>
           </div>
 
@@ -430,7 +462,7 @@ onMounted(() => {
                 class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
                 :class="enableMediaSession ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
                 role="switch"
-                aria-label="启用 Media Session API"
+                :aria-label="t('Settings.enable_media_session_api')"
                 :aria-checked="enableMediaSession"
                 @click="player.setMediaSessionEnabled(!enableMediaSession)"
               >
@@ -439,10 +471,10 @@ onMounted(() => {
                   :class="enableMediaSession ? 'translate-x-5' : 'translate-x-0'"
                 />
               </button>
-              <span class="text-sm text-gray-600 dark:text-gray-400">{{ enableMediaSession ? '已启用' : '已禁用' }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ enableMediaSession ? t('Settings.enabled') : t('Settings.disabled') }}</span>
             </div>
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              向系统媒体控件提供歌曲信息、播放进度和播放控制，支持情况取决于系统与浏览器
+              {{ t('Settings.show_song_details_playback_progress_and_controls_in_system') }}
             </div>
           </div>
 
@@ -452,7 +484,7 @@ onMounted(() => {
 
       <section id="settings-account" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-account-heading">
         <h2 id="settings-account-heading" class="font-bold text-xl">
-          账号
+          {{ t('Settings.account') }}
         </h2>
         <div class="min-w-0">
           <div v-if="isLoggedIn" class="bg-white/60 dark:bg-[var(--theme-surface)]/60 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
@@ -481,18 +513,18 @@ onMounted(() => {
               <AppButton
                 @click="showChangeName = true"
               >
-                修改用户名
+                {{ t('Settings.change_username') }}
               </AppButton>
               <AppButton
                 @click="showChangePassword = true"
               >
-                修改密码
+                {{ t('Settings.change_password') }}
               </AppButton>
               <AppButton
                 variant="danger"
                 @click="logout"
               >
-                退出登录
+                {{ t('Settings.sign_out') }}
               </AppButton>
             </div>
           </div>
@@ -500,7 +532,7 @@ onMounted(() => {
             <AppButton
               @click="auth.openAuthDialog()"
             >
-              登录
+              {{ t('DesktopSidebar.sign_in') }}
             </AppButton>
           </div>
         </div>
@@ -508,24 +540,22 @@ onMounted(() => {
 
       <section id="settings-cache" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-cache-heading">
         <h2 id="settings-cache-heading" class="font-bold text-xl">
-          缓存
+          {{ t('Settings.cache') }}
         </h2>
         <div class="min-w-0 space-y-3">
           <div class="font-bold text-lg">
-            图片缓存
+            {{ t('Settings.image_cache') }}
           </div>
           <template v-if="imageCacheSupported">
             <p aria-live="polite" class="text-sm text-gray-600 dark:text-gray-400">
-              已使用 {{ imageCacheSize }} / 100 MB<span v-if="imageCacheBytes !== null">，共 {{ imageCacheCount }} 张图片</span>
+              {{ t('Settings.100_mb_used', { p0: imageCacheSize }) }}<span v-if="imageCacheBytes !== null">{{ t('Settings.image', { p0: imageCacheCount }, Number(imageCacheCount)) }}</span>
             </p>
             <div class="flex flex-wrap gap-2">
               <AppButton variant="outline" size="sm" :disabled="imageCacheBusy" @click="updateImageCache()">
-                <LucideRefreshCw class="size-4" :class="imageCacheBusy ? 'animate-spin' : ''" />
-                刷新用量
+                <LucideRefreshCw class="size-4" :class="imageCacheBusy ? 'animate-spin' : ''" />{{ t('Settings.refresh_usage') }}
               </AppButton>
               <AppButton variant="outline" size="sm" :disabled="imageCacheBusy || imageCacheBytes === 0" @click="clearImageCache">
-                <LucideTrash2 class="size-4" />
-                清理图片缓存
+                <LucideTrash2 class="size-4" />{{ t('Settings.clear_image_cache') }}
               </AppButton>
             </div>
             <p v-if="imageCacheError" role="alert" class="text-sm text-red-600 dark:text-red-400">
@@ -533,35 +563,35 @@ onMounted(() => {
             </p>
           </template>
           <p v-else class="text-sm text-gray-600 dark:text-gray-400">
-            当前浏览器或访问环境不支持图片缓存
+            {{ t('Settings.image_caching_is_unavailable_in_this_browser_or_environment') }}
           </p>
         </div>
       </section>
 
       <section id="settings-about" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-about-heading">
         <h2 id="settings-about-heading" class="font-bold text-xl">
-          关于
+          {{ t('Settings.about') }}
         </h2>
         <div class="min-w-0 space-y-4">
           <div class="flex gap-4">
             <img
               src="/favicon.png"
-              alt="应用图标"
+              :alt="t('Settings.application_icon')"
               class="size-16 shrink-0"
             >
             <div>
-              {{ appDescription }}
+              {{ getAppDescription() }}
             </div>
           </div>
           <div>
             <div>
-              当前版本：<span>v{{ appVersion }}</span>
-              <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 dark:text-green-400 ml-2">测试版</span>
-              <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 dark:text-red-400 ml-2">构建于 {{ buildTime }}</span>
+              {{ t('Settings.current_version') }}<span>v{{ appVersion }}</span>
+              <span class="border rounded-md px-1 py-0.5 text-sm text-green-700 dark:text-green-400 ml-2">{{ t('Settings.beta') }}</span>
+              <span class="border rounded-md px-1 py-0.5 text-sm text-red-700 dark:text-red-400 ml-2">{{ t('Settings.built_on', { p0: buildTime }) }}</span>
             </div>
             <div class="mt-2 flex gap-2">
               <AppButton @click="$router.push({ name: 'Feedback' })">
-                反馈问题
+                {{ t('Settings.report_an_issue') }}
               </AppButton>
 
               <AppButton @click="openGithubRepo">
@@ -572,9 +602,8 @@ onMounted(() => {
 
             <div class="mt-2 px-4 py-2 bg-red-50 dark:bg-red-500/15 rounded-lg border border-red-500">
               <div class="font-bold text-red-500">
-                须知
-              </div>
-              本网站由爱好者制作，并非 HOYO-MiX 官方网站。 网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司
+                {{ t('Settings.notice') }}
+              </div>{{ t('Settings.this_is_a_fanmade_website_and_is_not_affiliated') }}
             </div>
           </div>
         </div>
@@ -582,16 +611,15 @@ onMounted(() => {
 
       <section id="settings-changelog" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-changelog-heading">
         <h2 id="settings-changelog-heading" class="font-bold text-xl">
-          更新日志
+          {{ t('Settings.changelog') }}
         </h2>
         <div class="min-w-0">
           <AsyncFade>
             <div v-if="isChangelogLoading" role="status" class="flex items-center justify-center py-4 text-gray-400">
-              <LucideLoader2 class="size-5 animate-spin mr-2" />
-              加载中...
+              <LucideLoader2 class="size-5 animate-spin mr-2" />{{ t('App.loading') }}
             </div>
             <div v-else-if="isChangelogError" class="flex items-center justify-center py-4 text-red-400">
-              加载失败，请刷新重试
+              {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
             </div>
             <div v-else class="font-mono whitespace-pre-wrap bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
               {{ changelog }}

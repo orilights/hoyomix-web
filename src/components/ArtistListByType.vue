@@ -3,6 +3,7 @@ import type { Component } from 'vue'
 import type { ArtistTypeInfo } from '@/types/core'
 import { AudioLines, Building2, ListMusic, MicVocal, Music2, PenLine, SlidersHorizontal, UsersRound } from '@lucide/vue'
 import { useCreditInfoQuery } from '@/composables/queries'
+import { formatNumber, t } from '@/i18n'
 
 const props = defineProps<{
   id: number | string
@@ -70,7 +71,7 @@ const displayGroups = computed(() => {
     .map(role => ({ role, artists: mergeArtists([role]) }))
     .filter(entry => entry.artists.length)
   if (otherEntries.length)
-    groups.push({ label: '其他', other: true, entries: otherEntries })
+    groups.push({ label: t('ArtistListByType.other'), other: true, entries: otherEntries })
   return groups
 })
 </script>
@@ -78,12 +79,11 @@ const displayGroups = computed(() => {
 <template>
   <AsyncFade>
     <div v-if="isLoading" role="status" class="flex items-center justify-center py-8 text-gray-400">
-      <LucideLoader2 class="size-6 animate-spin mr-2" />
-      加载中...
+      <LucideLoader2 class="size-6 animate-spin mr-2" />{{ t('App.loading') }}
     </div>
 
     <div v-else-if="isError" class="flex items-center justify-center py-8 text-red-400">
-      加载失败，请刷新重试
+      {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
     </div>
 
     <div v-else class="grid grid-cols-2 gap-2 items-start">
@@ -123,7 +123,7 @@ const displayGroups = computed(() => {
                   :class="!group.other ? 'flex items-center justify-between gap-2 rounded-xl bg-black/5 dark:bg-white/5 px-3 py-2 hover:bg-black/10 hover:dark:bg-white/10 transition-colors' : undefined"
                 >
                   <span class="min-w-0">{{ artist.name }}</span>
-                  <span v-if="artist.songCount != null" class="mx-1 shrink-0 text-xs text-gray-600 dark:text-gray-400 tabular-nums">{{ artist.songCount }}</span>
+                  <span v-if="artist.songCount != null" class="mx-1 shrink-0 text-xs text-gray-600 dark:text-gray-400 tabular-nums">{{ formatNumber(artist.songCount) }}</span>
                 </RouterLink>
               </div>
             </div>

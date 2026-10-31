@@ -3,6 +3,7 @@ import type { AlbumListItemInfo, PlaylistListItem } from '@/types/core'
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { toast } from 'vue-sonner'
 import { createPlaylistApi, updatePlaylistApi, updatePlaylistSongsApi } from '@/api/music'
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { getCoverUrl } from '@/utils'
 import { queryClient } from '@/utils/query-client'
@@ -140,7 +141,7 @@ const willTriggerUpdateInfoReview = computed(() => {
 
 async function submit() {
   if (!name.value.trim()) {
-    toast.error('请输入歌单名称')
+    toast.error(t('CreatePlaylistDialog.enter_a_playlist_name'))
     return
   }
   loading.value = true
@@ -169,11 +170,11 @@ async function submit() {
       }
     }
     if (willTriggerMakePublicReview.value)
-      toast.info('公开申请已提交，审核通过后歌单将自动公开')
+      toast.info(t('CreatePlaylistDialog.public_access_requested_the_playlist_will_become_public_after'))
     else if (willTriggerUpdateInfoReview.value)
-      toast.info('修改已提交审核，通过后将正式生效')
+      toast.info(t('CreatePlaylistDialog.changes_submitted_for_review_and_will_take_effect_after'))
     else
-      toast.success(isEdit.value ? '歌单已更新' : '歌单已创建')
+      toast.success(isEdit.value ? t('CreatePlaylistDialog.playlist_updated') : t('CreatePlaylistDialog.playlist_created'))
     void queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
     void queryClient.invalidateQueries({ queryKey: ['favoritePlaylists'] })
     void queryClient.invalidateQueries({ queryKey: ['playlists'] })
@@ -181,7 +182,7 @@ async function submit() {
     emit('success', playlistId)
   }
   catch (error) {
-    toast.error(isEdit.value ? `更新失败：${error instanceof Error ? error.message : '未知错误'}` : `创建失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(isEdit.value ? t('CreatePlaylistDialog.update_failed', { p0: error instanceof Error ? error.message : t('App.unknown_error') }) : t('CreatePlaylistDialog.creation_failed', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     loading.value = false
@@ -192,16 +193,16 @@ async function submit() {
 <template>
   <AppDialog v-model="visible" :close-on-click-overlay="false" size="md">
     <template #title>
-      {{ isEdit ? '编辑歌单' : '新建歌单' }}
+      {{ isEdit ? t('CreatePlaylistDialog.edit_playlist') : t('DesktopSidebar.new_playlist') }}
     </template>
 
     <div class="p-6 space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">歌单名称 <span class="text-red-500">*</span></label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('CreatePlaylistDialog.playlist_name') }}<span class="text-red-500">*</span></label>
         <input
           v-model="name"
           type="text"
-          placeholder="输入歌单名称"
+          :placeholder="t('CreatePlaylistDialog.enter_playlist_name')"
           maxlength="30"
           class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:dark:bg-gray-800 disabled:cursor-not-allowed"
           :disabled="isFavoritesPlaylist"
@@ -209,10 +210,10 @@ async function submit() {
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述（可选）</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('CreatePlaylistDialog.description_optional') }}</label>
         <textarea
           v-model="description"
-          placeholder="输入歌单描述"
+          :placeholder="t('CreatePlaylistDialog.enter_a_playlist_description')"
           maxlength="500"
           rows="2"
           class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:bg-gray-100 disabled:dark:bg-gray-800 disabled:cursor-not-allowed"
@@ -221,7 +222,7 @@ async function submit() {
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">封面专辑（可选）</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('CreatePlaylistDialog.cover_album_optional') }}</label>
         <div class="flex items-center gap-2">
           <LazyImg v-if="coverPreviewUrl" class="size-10 rounded-lg" :src="coverPreviewUrl" />
           <div v-else class="size-10 rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 flex items-center justify-center">
@@ -232,7 +233,7 @@ async function submit() {
               ref="albumInput"
               v-model="albumSearchText"
               type="text"
-              placeholder="搜索专辑..."
+              :placeholder="t('CreatePlaylistDialog.search_albums')"
               class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               @input="onAlbumInput"
               @focus="showAlbumDropdown = true"
@@ -268,8 +269,8 @@ async function submit() {
       </div>
 
       <div class="flex items-center gap-3">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">公开歌单</label>
-        <Tooltip :content="hasPendingReview ? '已有待审核记录，请等待审核完成' : (isFavoritesPlaylist ? '收藏歌单不支持修改公开状态' : '')" placement="top">
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('CreatePlaylistDialog.public_playlist') }}</label>
+        <Tooltip :content="hasPendingReview ? t('CreatePlaylistDialog.a_review_is_pending_please_wait_for_it_to') : (isFavoritesPlaylist ? t('CreatePlaylistDialog.visibility_cannot_be_changed_for_a_saved_playlist') : '')" placement="top">
           <button
             class="relative w-10 h-5.5 rounded-full transition-colors"
             :class="[
@@ -285,7 +286,7 @@ async function submit() {
             />
           </button>
         </Tooltip>
-        <span class="text-xs text-gray-400">{{ isPublic ? '所有人可见' : '仅自己可见' }}</span>
+        <span class="text-xs text-gray-400">{{ isPublic ? t('CreatePlaylistDialog.visible_to_everyone') : t('Playlist.only_me') }}</span>
       </div>
 
       <div
@@ -293,7 +294,7 @@ async function submit() {
         class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-yellow-50 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 text-sm"
       >
         <LucideInfo class="size-4 mt-0.5 shrink-0" />
-        <span>收藏歌单不支持修改名称、描述与公开状态，仅可修改封面。</span>
+        <span>{{ t('CreatePlaylistDialog.only_the_cover_can_be_changed_for_a_saved') }}</span>
       </div>
 
       <div
@@ -301,7 +302,7 @@ async function submit() {
         class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 text-sm"
       >
         <LucideInfo class="size-4 mt-0.5 shrink-0" />
-        <span>申请公开后需经过审核，审核期间歌单仍为私密状态，审核通过后将自动公开。</span>
+        <span>{{ t('CreatePlaylistDialog.public_access_requires_approval_the_playlist_stays_private_until') }}</span>
       </div>
 
       <div
@@ -309,7 +310,7 @@ async function submit() {
         class="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 text-sm"
       >
         <LucideInfo class="size-4 mt-0.5 shrink-0" />
-        <span>修改公开歌单的名称或描述需经过审核，审核通过后才会正式生效，审核期间显示原内容。</span>
+        <span>{{ t('CreatePlaylistDialog.changes_to_the_name_or_description_of_a_public') }}</span>
       </div>
     </div>
 
@@ -319,14 +320,14 @@ async function submit() {
           variant="ghost"
           @click="visible = false"
         >
-          取消
+          {{ t('AlbumPickerDialog.cancel') }}
         </AppButton>
         <AppButton
           variant="primary"
           :disabled="loading || !name.trim()"
           @click="submit"
         >
-          {{ loading ? '保存中...' : (isEdit ? '保存更改' : '创建歌单') }}
+          {{ loading ? t('Playlist.saving') : (isEdit ? t('CreatePlaylistDialog.save_changes') : t('CreatePlaylistDialog.create_playlist')) }}
         </AppButton>
       </div>
     </template>

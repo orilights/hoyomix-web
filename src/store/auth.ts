@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { toast } from 'vue-sonner'
+import { t } from '@/i18n'
 import { authClient } from '@/utils/auth-client'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -34,7 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
   function requireLogin(): boolean {
     if (isLoggedIn.value)
       return true
-    toast.error('请先登录')
+    toast.error(t('auth.please_sign_in_first'))
     openAuthDialog()
     return false
   }

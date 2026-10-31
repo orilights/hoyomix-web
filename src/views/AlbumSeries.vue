@@ -2,6 +2,7 @@
 import { toast } from 'vue-sonner'
 import { useTagAlbumsQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { getProductIconUrl } from '@/utils'
 
@@ -15,14 +16,14 @@ const productName = computed(() => seriesName.value?.split('-')[0] ?? '')
 const { data: albums, isLoading, isError, error } = useTagAlbumsQuery('series', seriesName)
 
 usePageSeo({
-  title: computed(() => (seriesName.value ? `${seriesName.value} 系列专辑` : null)),
-  description: computed(() => (seriesName.value ? `${seriesName.value} 系列专辑` : null)),
+  title: computed(() => (seriesName.value ? t('AlbumSeriesHoverCard.album_series', { p0: seriesName.value }) : null)),
+  description: computed(() => (seriesName.value ? t('AlbumSeriesHoverCard.album_series', { p0: seriesName.value }) : null)),
   path: computed(() => (seriesName.value ? `/album/series/${seriesName.value}` : null)),
 })
 
 watch(isError, (val) => {
   if (val)
-    toast.error(`系列专辑加载失败：${error.value?.message ?? '未知错误'}`)
+    toast.error(t('AlbumSeries.failed_to_load_album_series', { p0: error.value?.message ?? t('App.unknown_error') }))
 })
 
 onMounted(() => {
@@ -35,7 +36,7 @@ onMounted(() => {
     <PageLoading v-if="isLoading" />
 
     <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
-      加载失败，请刷新重试
+      {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
     </div>
 
     <div v-else class="flex flex-col lg:flex-row gap-4 mt-4">
@@ -43,7 +44,7 @@ onMounted(() => {
         <div class="font-bold text-2xl pb-4 break-words">
           {{ seriesName }}
           <div class="font-normal text-base text-gray-500 dark:text-gray-400">
-            系列专辑
+            {{ t('AlbumSeries.series_albums') }}
           </div>
         </div>
         <RouterLink

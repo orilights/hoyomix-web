@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
 import { useLyricsQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { mergeLyrics } from '@/utils'
 import { NotFoundError } from '@/utils/fetch'
@@ -36,7 +37,7 @@ const visibleLyrics = computed(() => expanded.value ? lyricList.value : lyricLis
 watch(isLyricsError, (val) => {
   if (!val || lyricsError.value instanceof NotFoundError)
     return
-  toast.error(`歌词加载失败：${lyricsError.value?.message ?? '未知错误'}`)
+  toast.error(t('MusicLyrics.failed_to_load_lyrics', { p0: lyricsError.value?.message ?? t('App.unknown_error') }))
 })
 </script>
 
@@ -48,7 +49,7 @@ watch(isLyricsError, (val) => {
           class="p-1 rounded transition-colors cursor-pointer"
           :class="lyricsSource === 'ncm' ? 'bg-red-500/10' : hasNcmPlatform ? '' : 'cursor-not-allowed'"
           :disabled="!hasNcmPlatform"
-          :title="hasNcmPlatform ? '切换至网易云音乐歌词' : '当前歌曲无网易云音乐数据'"
+          :title="hasNcmPlatform ? t('MusicLyrics.use_netease_cloud_music_lyrics') : t('MusicLyrics.no_netease_cloud_music_data_for_this_song')"
           @click="player.setLyricsSource('ncm')"
         >
           <IconNcm class="size-5 text-red-500" />
@@ -57,7 +58,7 @@ watch(isLyricsError, (val) => {
           class="p-1 rounded transition-colors cursor-pointer"
           :class="lyricsSource === 'qq' ? 'bg-[#02B053]/10' : hasQqPlatform ? '' : 'cursor-not-allowed'"
           :disabled="!hasQqPlatform"
-          :title="hasQqPlatform ? '切换至QQ音乐歌词' : '当前歌曲无QQ音乐数据'"
+          :title="hasQqPlatform ? t('MusicLyrics.use_qq_music_lyrics') : t('MusicLyrics.no_qq_music_data_for_this_song')"
           @click="player.setLyricsSource('qq')"
         >
           <IconQQ class="size-5" />
@@ -66,16 +67,15 @@ watch(isLyricsError, (val) => {
     </div>
     <AsyncFade>
       <div v-if="!lyricProvider" class="text-gray-400 text-sm text-center py-4">
-        暂无数据
+        {{ t('MusicLyrics.no_data') }}
       </div>
       <div v-else-if="isLyricsLoading" role="status" class="flex items-center justify-center py-4 text-gray-400">
-        <LucideLoader2 class="size-4 animate-spin mr-1" />
-        加载中...
+        <LucideLoader2 class="size-4 animate-spin mr-1" />{{ t('App.loading') }}
       </div>
       <div v-else>
         <div :id="lyricsId">
           <div v-if="lyricList.length === 0" class="text-gray-400 text-sm text-center py-4">
-            暂无数据
+            {{ t('MusicLyrics.no_data') }}
           </div>
           <div v-for="line, index in visibleLyrics" v-else :key="index" class="my-1">
             <span>{{ line.text }}</span>
@@ -90,7 +90,7 @@ watch(isLyricsError, (val) => {
           :aria-controls="lyricsId"
           @click="expanded = !expanded"
         >
-          {{ expanded ? '收起歌词' : '展开歌词' }}
+          {{ expanded ? t('MusicLyrics.collapse_lyrics') : t('MusicLyrics.expand_lyrics') }}
         </button>
       </div>
     </AsyncFade>

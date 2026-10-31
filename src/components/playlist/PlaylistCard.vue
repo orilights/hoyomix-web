@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
 import { vRevealCover } from '@/directives/reveal-cover'
+import { formatNumber, t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { getCoverUrl, getPublishDate } from '@/utils'
@@ -44,32 +45,32 @@ const coverUrl = computed(() =>
             v-if="showOwner && playlist.userId === user?.id"
             class=" px-1.5 py-0.5 rounded text-xs bg-black/40 text-white"
           >
-            我创建的
+            {{ t('PlaylistCard.created_by_me') }}
           </div>
           <div
             v-if="!playlist.isPublic"
             class=" px-1.5 py-0.5 rounded text-xs bg-black/40 text-white"
           >
-            私密
+            {{ t('PlaylistCard.private') }}
           </div>
           <div
             v-if="showDelete && playlist.reviewStatus === 'pending'"
             class="px-1.5 py-0.5 rounded text-xs bg-yellow-400/80 text-white"
           >
-            审核中
+            {{ t('MusicActions.pending_review') }}
           </div>
           <div
             v-else-if="showDelete && playlist.reviewStatus === 'rejected'"
             class="px-1.5 py-0.5 rounded text-xs bg-red-500/80 text-white"
           >
-            已驳回
+            {{ t('edit_request.rejected') }}
           </div>
         </div>
 
         <button
           v-if="showDelete"
           class="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-2 bg-black/40 hover:bg-red-500"
-          title="删除歌单"
+          :title="t('Playlist.delete_playlist')"
           @click.prevent="emit('delete', playlist.id)"
         >
           <LucideTrash2 class="size-4" />
@@ -81,7 +82,7 @@ const coverUrl = computed(() =>
       <div class="text-xs text-gray-500 dark:text-gray-400">
         <span>{{ getPublishDate(new Date(playlist.createdAt).getTime()) }}</span>
         ·
-        <span>{{ playlist.songCount }}</span>
+        <span>{{ formatNumber(playlist.songCount) }}</span>
       </div>
     </div>
   </RouterLink>

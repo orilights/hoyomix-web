@@ -3,6 +3,7 @@ import type { PlaylistListItem } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { getPlaylistDetailApi, updatePlaylistSongsApi } from '@/api/music'
 import { useMyPlaylistsQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { getCoverUrl } from '@/utils'
 
@@ -44,12 +45,12 @@ async function select(playlist: PlaylistListItem) {
       finalIds = [...existing, ...newIds]
     }
     await updatePlaylistSongsApi(playlist.id, finalIds)
-    toast.success(props.mode === 'overwrite' ? '歌单已更新' : '已添加至歌单')
+    toast.success(props.mode === 'overwrite' ? t('CreatePlaylistDialog.playlist_updated') : t('SelectPlaylistDialog.added_to_playlist'))
     visible.value = false
     emit('success')
   }
   catch (error) {
-    toast.error(`操作失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('SelectPlaylistDialog.action_failed', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     submitting.value = false
@@ -60,23 +61,21 @@ async function select(playlist: PlaylistListItem) {
 <template>
   <AppDialog v-model="visible">
     <template #title>
-      {{ mode === 'overwrite' ? '覆盖歌单' : '添加至歌单' }}
+      {{ mode === 'overwrite' ? t('SelectPlaylistDialog.replace_playlist') : t('AlbumActions.add_to_playlist') }}
     </template>
 
     <div class="max-h-80 overflow-y-auto">
       <AsyncFade>
         <div v-if="loading" class="flex items-center justify-center gap-2 py-10 text-gray-400" role="status">
-          <LucideLoader2 class="size-6 text-gray-400 animate-spin" />
-          加载中...
+          <LucideLoader2 class="size-6 text-gray-400 animate-spin" />{{ t('App.loading') }}
         </div>
         <div v-else-if="isError" class="py-10 text-center text-sm text-gray-400" role="alert">
-          歌单加载失败
-          <AppButton size="sm" variant="ghost" @click="refetch()">
-            重试
+          {{ t('Music.failed_to_load_playlist') }}<AppButton size="sm" variant="ghost" @click="refetch()">
+            {{ t('App.retry') }}
           </AppButton>
         </div>
         <div v-else-if="!playlists?.length" class="py-10 text-center text-sm text-gray-400">
-          暂无歌单
+          {{ t('DesktopSidebar.no_playlists') }}
         </div>
         <div v-else>
           <button
@@ -97,7 +96,7 @@ async function select(playlist: PlaylistListItem) {
                 {{ pl.name }}
               </p>
               <p class="text-xs text-gray-400">
-                {{ pl.songCount }} 首歌曲
+                {{ t('Random.song_alternate', { p0: pl.songCount }, Number(pl.songCount)) }}
               </p>
             </div>
             <LucideChevronRight class="size-4 text-gray-300 ml-auto shrink-0" />
@@ -108,7 +107,7 @@ async function select(playlist: PlaylistListItem) {
 
     <template #footer>
       <p class="px-5 py-3 text-xs text-gray-400 text-center">
-        {{ mode === 'overwrite' ? '选择后将覆盖歌单中的所有歌曲' : `将添加 ${songIds.length} 首歌曲` }}
+        {{ mode === 'overwrite' ? t('SelectPlaylistDialog.selecting_a_playlist_will_replace_all_its_songs') : t('SelectPlaylistDialog.add_song', { p0: songIds.length }, Number(songIds.length)) }}
       </p>
     </template>
   </AppDialog>

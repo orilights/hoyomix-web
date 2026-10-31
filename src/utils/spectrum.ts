@@ -1,3 +1,5 @@
+import { t } from '@/i18n'
+
 export interface SpectrumSettings {
   colorMode: 'custom' | 'cover'
   color: string
@@ -8,10 +10,20 @@ export interface SpectrumSettings {
 }
 
 export const spectrumControls = [
-  { key: 'count', label: '柱条数量', min: 16, max: 128, step: 1, unit: '根' },
-  { key: 'opacity', label: '透明度', min: 0, max: 100, step: 1, unit: '%' },
-  { key: 'gap', label: '柱条间距', min: 0, max: 12, step: 0.5, unit: 'px' },
-  { key: 'height', label: '频谱高度', min: 24, max: 200, step: 4, unit: 'px' },
+  { key: 'count', get label() {
+    return t('spectrum.bar_count')
+  }, min: 16, max: 128, step: 1, get unit() {
+    return t('spectrum.bars')
+  } },
+  { key: 'opacity', get label() {
+    return t('spectrum.opacity')
+  }, min: 0, max: 100, step: 1, unit: '%' },
+  { key: 'gap', get label() {
+    return t('spectrum.bar_spacing')
+  }, min: 0, max: 12, step: 0.5, unit: 'px' },
+  { key: 'height', get label() {
+    return t('spectrum.spectrum_height')
+  }, min: 24, max: 200, step: 4, unit: 'px' },
 ] as const
 
 export function createSpectrumSettings(): SpectrumSettings {

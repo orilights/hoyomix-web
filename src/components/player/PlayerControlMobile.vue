@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { isIOS } from '@/utils'
 
@@ -13,7 +14,7 @@ const { volume, mobileFullscreenLayout } = storeToRefs(player)
       class="shrink-0 text-gray-400 hover:text-white transition-colors cursor-pointer text-sm whitespace-nowrap focus-visible:outline-2 focus-visible:outline-white rounded"
       @click="player.setMobileFullscreenLayout(mobileFullscreenLayout === 'lyrics' ? 'cover' : 'lyrics')"
     >
-      {{ mobileFullscreenLayout === 'lyrics' ? '查看封面' : '查看歌词' }}
+      {{ mobileFullscreenLayout === 'lyrics' ? t('PlayerControlMobile.view_cover') : t('PlayerControlMobile.view_lyrics') }}
     </button>
     <input
       v-if="!isIOS()"

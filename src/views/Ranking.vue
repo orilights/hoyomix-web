@@ -5,6 +5,7 @@ import { toast } from 'vue-sonner'
 import { useRankingQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 
@@ -12,17 +13,27 @@ const player = usePlayerStore()
 const store = useMainStore()
 
 usePageSeo({
-  title: '热榜',
-  description: '热门歌曲榜单',
+  title: () => t('DesktopSidebar.charts'),
+  description: () => t('Ranking.popular_song_charts'),
   path: '/ranking',
 })
 
 const periods: { key: RankingPeriod, label: string }[] = [
-  { key: '1d', label: '日榜' },
-  { key: '7d', label: '周榜' },
-  { key: '30d', label: '月榜' },
-  { key: '365d', label: '年榜' },
-  { key: 'all', label: '总榜' },
+  { key: '1d', get label() {
+    return t('Ranking.daily')
+  } },
+  { key: '7d', get label() {
+    return t('Ranking.weekly')
+  } },
+  { key: '30d', get label() {
+    return t('ContributionRanking.monthly')
+  } },
+  { key: '365d', get label() {
+    return t('ContributionRanking.yearly')
+  } },
+  { key: 'all', get label() {
+    return t('ContributionRanking.all_time')
+  } },
 ]
 
 const params = useUrlSearchParams('history', { removeFalsyValues: true })
@@ -48,7 +59,7 @@ const productOptions = computed(() => {
     songCounts.set(album.productName, (songCounts.get(album.productName) ?? 0) + album.songCount)
   }
   return [
-    { value: undefined, label: '全部' },
+    { value: undefined, label: t('search.all') },
     ...[...store.productList]
       .sort((a, b) => (songCounts.get(b.name) ?? 0) - (songCounts.get(a.name) ?? 0))
       .map(product => ({ value: product.productId, label: product.name })),
@@ -69,7 +80,7 @@ function playAll() {
   if (!canPlay.value)
     return
   player.replacePlaylist(songs.value, 0)
-  toast.success('已替换播放列表')
+  toast.success(t('AlbumList.queue_replaced'))
 }
 
 function addAllToPlaylist() {
@@ -81,7 +92,7 @@ function addAllToPlaylist() {
     if (isNew)
       addCount++
   }
-  toast.success(addCount > 0 ? `已添加 ${addCount} 首至播放列表` : '所有歌曲已在播放列表中')
+  toast.success(addCount > 0 ? t('Playlist.added_song_to_queue', { p0: addCount }, Number(addCount)) : t('Playlist.all_songs_are_already_in_the_queue'))
 }
 
 onMounted(() => {
@@ -91,20 +102,18 @@ onMounted(() => {
 
 <template>
   <div>
-    <PageHeader title="热榜" subtitle="看看大家都在听什么" />
+    <PageHeader :title="t('DesktopSidebar.charts')" :subtitle="t('Home.see_what_everyone_is_listening_to')" />
 
     <div class="flex flex-wrap items-center gap-2 mb-4">
       <SegmentSwitch
         v-model="tab"
         :options="periods"
       />
-      <label v-if="tab !== 'all'" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-        榜单日期
-        <input
-          v-model="displayDate"
-          type="date"
-          class="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
+      <label v-if="tab !== 'all'" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">{{ t('Ranking.chart_date') }}<input
+        v-model="displayDate"
+        type="date"
+        class="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 bg-white/70 dark:bg-[var(--theme-surface)]/70 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      >
       </label>
       <AppButton
         v-if="tab !== 'all' && selectedDate"
@@ -112,7 +121,7 @@ onMounted(() => {
         size="sm"
         @click="selectedDate = ''"
       >
-        返回最新
+        {{ t('Ranking.back_to_latest') }}
       </AppButton>
       <div class="flex-1" />
       <div class="flex gap-2">
@@ -121,15 +130,13 @@ onMounted(() => {
           :disabled="!canPlay"
           @click="playAll"
         >
-          <LucidePlay class="size-4" fill="currentColor" />
-          播放全部
+          <LucidePlay class="size-4" fill="currentColor" />{{ t('AlbumActions.play_all') }}
         </AppButton>
         <AppButton
           :disabled="!canPlay"
           @click="addAllToPlaylist"
         >
-          <LucideListMusic class="size-4" />
-          添加全部
+          <LucideListMusic class="size-4" />{{ t('Ranking.add_all') }}
         </AppButton>
       </div>
     </div>
@@ -139,16 +146,16 @@ onMounted(() => {
       :options="productOptions"
       class="mb-4"
       role="group"
-      aria-label="游戏筛选"
+      :aria-label="t('Ranking.filter_by_game')"
     />
 
     <AsyncFade>
       <PageLoading v-if="isPending || isFetching" />
 
       <div v-else-if="isError" class="flex flex-col items-center gap-3 py-20 text-gray-500 dark:text-gray-400" role="alert">
-        <p>热榜加载失败</p>
+        <p>{{ t('Ranking.failed_to_load_charts') }}</p>
         <AppButton @click="refetch()">
-          重试
+          {{ t('App.retry') }}
         </AppButton>
       </div>
 
@@ -158,7 +165,7 @@ onMounted(() => {
         show-cover
         show-album
         ranked
-        empty-text="暂无数据"
+        :empty-text="t('MusicLyrics.no_data')"
       />
     </AsyncFade>
   </div>

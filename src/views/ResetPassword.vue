@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { useLocalizedText } from '@/composables/useLocalizedText'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { authClient } from '@/utils/auth-client'
@@ -10,8 +12,8 @@ const auth = useAuthStore()
 const store = useMainStore()
 
 usePageSeo({
-  title: '重置密码',
-  description: '重置密码',
+  title: () => t('ResetPassword.reset_password'),
+  description: () => t('ResetPassword.reset_password'),
   noindex: true,
 })
 
@@ -21,31 +23,49 @@ const errorParam = computed(() => (typeof route.query.error === 'string' ? route
 const newPassword = ref('')
 const confirmPassword = ref('')
 const loading = ref(false)
-const errorMsg = ref('')
+const errorMsg = useLocalizedText()
 const success = ref(false)
 
 const isInvalidToken = computed(() => !token.value || !!errorParam.value)
 
 function getErrorMessage(error: { status?: number, message?: string, code?: string } | null): string {
   if (!error)
-    return '重置密码失败，请稍后重试'
+    return t('ResetPassword.failed_to_reset_password_please_try_again_later')
+  if (error.message)
+    return error.message
   const codeMessages: Record<string, string> = {
-    INVALID_TOKEN: '重置链接无效或已过期',
-    TOKEN_EXPIRED: '重置链接已过期，请重新获取',
-    PASSWORD_TOO_SHORT: '密码长度不足',
-    PASSWORD_TOO_LONG: '密码长度过长',
-    TOO_MANY_REQUESTS: '请求过于频繁，请稍后重试',
+    get INVALID_TOKEN() {
+      return t('ResetPassword.the_reset_link_is_invalid_or_has_expired')
+    },
+    get TOKEN_EXPIRED() {
+      return t('ResetPassword.the_reset_link_has_expired_request_a_new_one')
+    },
+    get PASSWORD_TOO_SHORT() {
+      return t('ResetPassword.password_is_too_short')
+    },
+    get PASSWORD_TOO_LONG() {
+      return t('ResetPassword.password_is_too_long')
+    },
+    get TOO_MANY_REQUESTS() {
+      return t('auth_error.too_many_requests_please_try_again_later')
+    },
   }
   if (error.code && codeMessages[error.code])
     return codeMessages[error.code]
   const statusMessages: Record<number, string> = {
-    400: '重置链接无效或已过期',
-    422: '密码不符合要求',
-    429: '请求过于频繁，请稍后重试',
+    get 400() {
+      return t('ResetPassword.the_reset_link_is_invalid_or_has_expired')
+    },
+    get 422() {
+      return t('ResetPassword.password_does_not_meet_the_requirements')
+    },
+    get 429() {
+      return t('auth_error.too_many_requests_please_try_again_later')
+    },
   }
   if (error.status && statusMessages[error.status])
     return statusMessages[error.status]
-  return error.message ?? '重置密码失败，请稍后重试'
+  return error.message ?? t('ResetPassword.failed_to_reset_password_please_try_again_later')
 }
 
 onMounted(() => {
@@ -55,11 +75,11 @@ onMounted(() => {
 async function handleSubmit() {
   errorMsg.value = ''
   if (newPassword.value.length < 8) {
-    errorMsg.value = '密码至少 8 位'
+    errorMsg.value = () => t('ResetPassword.password_must_contain_at_least_8_characters')
     return
   }
   if (newPassword.value !== confirmPassword.value) {
-    errorMsg.value = '两次输入的密码不一致'
+    errorMsg.value = () => t('ResetPassword.passwords_do_not_match')
     return
   }
   loading.value = true
@@ -69,11 +89,11 @@ async function handleSubmit() {
   })
   loading.value = false
   if (error) {
-    errorMsg.value = getErrorMessage(error)
+    errorMsg.value = () => getErrorMessage(error)
     return
   }
   success.value = true
-  toast.success('密码重置成功')
+  toast.success(t('ResetPassword.password_reset_successfully'))
 }
 </script>
 
@@ -85,16 +105,16 @@ async function handleSubmit() {
           <LucideTriangleAlert class="size-8 text-red-500" />
         </div>
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          重置链接无效
+          {{ t('ResetPassword.invalid_reset_link') }}
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
-          重置链接无效或已过期，请重新获取密码重置邮件。
+          {{ t('ResetPassword.the_reset_link_is_invalid_or_has_expired_request') }}
         </p>
         <AppButton
           variant="primary" size="lg" class="mt-2"
           @click="auth.openAuthDialog()"
         >
-          前往登录
+          {{ t('ResetPassword.go_to_sign_in') }}
         </AppButton>
       </div>
 
@@ -103,16 +123,16 @@ async function handleSubmit() {
           <LucideCircleCheck class="size-8 text-green-600 dark:text-green-400" />
         </div>
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          密码重置成功
+          {{ t('ResetPassword.password_reset_successfully') }}
         </h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
-          你的密码已更新，请使用新密码登录。
+          {{ t('ResetPassword.your_password_has_been_updated_sign_in_with_your') }}
         </p>
         <AppButton
           variant="primary" size="lg" class="mt-2"
           @click="auth.openAuthDialog()"
         >
-          立即登录
+          {{ t('EmailVerified.sign_in_now') }}
         </AppButton>
       </div>
 
@@ -122,28 +142,28 @@ async function handleSubmit() {
             <LucideKeyRound class="size-7 text-blue-600 dark:text-blue-400" />
           </div>
           <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            设置新密码
+            {{ t('ResetPassword.set_a_new_password') }}
           </h1>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">新密码</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('ResetPassword.new_password') }}</label>
           <input
             v-model="newPassword"
             type="password"
             required
             autocomplete="new-password"
-            placeholder="至少 8 位"
+            :placeholder="t('ResetPassword.at_least_8_characters')"
             class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
           >
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">确认新密码</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('ResetPassword.confirm_new_password') }}</label>
           <input
             v-model="confirmPassword"
             type="password"
             required
             autocomplete="new-password"
-            placeholder="再次输入新密码"
+            :placeholder="t('ResetPassword.enter_your_new_password_again')"
             class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
           >
         </div>
@@ -157,10 +177,8 @@ async function handleSubmit() {
           :disabled="loading"
         >
           <span v-if="loading" class="flex items-center justify-center gap-2">
-            <LucideLoader2 class="size-4 animate-spin" />
-            提交中...
-          </span>
-          <span v-else>确认重置</span>
+            <LucideLoader2 class="size-4 animate-spin" />{{ t('SongCreditsEditDialog.submitting') }}</span>
+          <span v-else>{{ t('ResetPassword.confirm_reset') }}</span>
         </AppButton>
       </form>
     </div>

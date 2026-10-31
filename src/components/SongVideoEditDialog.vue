@@ -2,6 +2,7 @@
 import type { TagInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { submitSongTagsEditApi } from '@/api/music'
+import { t } from '@/i18n'
 
 const props = defineProps<{
   songId: number
@@ -15,9 +16,15 @@ const emit = defineEmits<{
 const visible = defineModel<boolean>({ required: true })
 
 const sourceOptions = [
-  { value: 'web', label: '官网' },
-  { value: 'mys', label: '米游社' },
-  { value: 'bilibili', label: '哔哩哔哩' },
+  { value: 'web', get label() {
+    return t('SongVideoEditDialog.official_website')
+  } },
+  { value: 'mys', get label() {
+    return t('SongVideoEditDialog.hoyolab_china')
+  } },
+  { value: 'bilibili', get label() {
+    return t('SongVideoEditDialog.bilibili')
+  } },
 ]
 
 interface VideoSourceItem {
@@ -83,9 +90,9 @@ function selectExistingVideo(vTitle: string) {
 }
 
 function addToPending() {
-  const t = title.value.trim()
-  if (!t) {
-    toast.error('请输入视频标题')
+  const videoTitle = title.value.trim()
+  if (!videoTitle) {
+    toast.error(t('SongVideoEditDialog.enter_a_video_title'))
     return
   }
   const validSources: VideoSourceItem[] = sourceRows.value
@@ -101,10 +108,10 @@ function addToPending() {
       }
     })
   if (!validSources.length) {
-    toast.error('请至少填写一个来源（link 与 id 必填）')
+    toast.error(t('SongVideoEditDialog.add_at_least_one_source_link_and_id_are'))
     return
   }
-  pendingVideos.value.push({ title: t, sources: validSources })
+  pendingVideos.value.push({ title: videoTitle, sources: validSources })
   title.value = ''
   sourceRows.value = [emptyRow()]
 }
@@ -149,14 +156,14 @@ async function submit() {
     })
     const res = await submitSongTagsEditApi(props.songId, { add })
     if (res.directApproved)
-      toast.success('视频关联已生效')
+      toast.success(t('SongVideoEditDialog.video_links_updated'))
     else
-      toast.success('申请已提交，等待审核')
+      toast.success(t('SongCreditsEditDialog.request_submitted_for_review'))
     close()
     emit('success')
   }
   catch (error) {
-    toast.error(error instanceof Error ? error.message : '提交失败')
+    toast.error(error instanceof Error ? error.message : t('SongCreditsEditDialog.submission_failed'))
   }
   finally {
     submitting.value = false
@@ -167,17 +174,17 @@ async function submit() {
 <template>
   <AppDialog v-model="visible" :close-on-click-overlay="false" size="md">
     <template #title>
-      修改视频关联
+      {{ t('SongVideoEditDialog.edit_video_links') }}
     </template>
 
     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
       <div class="px-3 py-2 rounded-lg bg-orange-100 text-orange-600 text-xs leading-relaxed">
-        信息修改需审核后生效，同一资源最多同时存在一条待审核申请
+        {{ t('SongVideoEditDialog.changes_take_effect_after_review_only_one_pending_request') }}
       </div>
 
       <div v-if="existingVideos.length">
         <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          当前视频
+          {{ t('SongVideoEditDialog.current_videos') }}
         </p>
         <div class="space-y-1">
           <div v-for="v in existingVideos" :key="v.title" class="px-2 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm">
@@ -189,7 +196,7 @@ async function submit() {
                 class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:dark:text-blue-400 shrink-0 cursor-pointer"
                 @click="selectExistingVideo(v.title)"
               >
-                添加来源
+                {{ t('SongVideoEditDialog.add_source') }}
               </button>
             </div>
             <div v-if="v.sources.length" class="flex flex-wrap gap-1 mt-1 pl-6">
@@ -206,13 +213,12 @@ async function submit() {
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          视频标题 <span class="text-red-500">*</span>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('SongVideoEditDialog.video_title') }}<span class="text-red-500">*</span>
         </label>
         <input
           v-model="title"
           type="text"
-          placeholder="输入视频标题"
+          :placeholder="t('SongVideoEditDialog.enter_video_title')"
           class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
       </div>
@@ -220,15 +226,14 @@ async function submit() {
       <div>
         <div class="flex items-center justify-between mb-1.5">
           <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            来源
+            {{ t('SongVideoEditDialog.source') }}
           </p>
           <button
             type="button"
             class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:dark:text-blue-400 cursor-pointer flex items-center gap-0.5"
             @click="addSourceRow"
           >
-            <LucidePlus class="size-3.5" />
-            添加来源
+            <LucidePlus class="size-3.5" />{{ t('SongVideoEditDialog.add_source') }}
           </button>
         </div>
 
@@ -252,13 +257,13 @@ async function submit() {
                 class="text-xs text-red-500 hover:text-red-600 hover:dark:text-red-400 shrink-0 cursor-pointer"
                 @click="removeSourceRow(i)"
               >
-                删除
+                {{ t('SongVideoEditDialog.delete') }}
               </button>
             </div>
             <input
               v-model="row.link"
               type="text"
-              placeholder="视频链接"
+              :placeholder="t('SongVideoEditDialog.video_url')"
               class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
             <input
@@ -270,13 +275,13 @@ async function submit() {
             <input
               v-model="row.coverUrl"
               type="text"
-              placeholder="封面连接"
+              :placeholder="t('SongVideoEditDialog.cover_url')"
               class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
             <input
               v-model="row.duration"
               type="text"
-              placeholder="时长（秒，可选）"
+              :placeholder="t('SongVideoEditDialog.duration_in_seconds_optional')"
               class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
           </div>
@@ -288,13 +293,12 @@ async function submit() {
         class="w-full"
         @click="addToPending"
       >
-        <LucideListPlus class="size-4" />
-        加入待提交列表
+        <LucideListPlus class="size-4" />{{ t('SongVideoEditDialog.add_to_pending_list') }}
       </AppButton>
 
       <div v-if="pendingVideos.length">
         <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          待提交
+          {{ t('SongVideoEditDialog.pending_submission') }}
         </p>
         <div class="space-y-1">
           <div
@@ -303,13 +307,13 @@ async function submit() {
             class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-sm"
           >
             <span class="truncate flex-1">{{ v.title }}</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">{{ v.sources.length }} 个来源</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">{{ t('SongVideoEditDialog.source_alternate', { p0: v.sources.length }, Number(v.sources.length)) }}</span>
             <button
               type="button"
               class="text-xs text-red-500 hover:text-red-600 hover:dark:text-red-400 shrink-0 cursor-pointer"
               @click="removePending(i)"
             >
-              移除
+              {{ t('SongRegionEditDialog.remove') }}
             </button>
           </div>
         </div>
@@ -322,7 +326,7 @@ async function submit() {
           type="button"
           @click="close"
         >
-          取消
+          {{ t('AlbumPickerDialog.cancel') }}
         </AppButton>
         <AppButton
           type="button"
@@ -331,7 +335,7 @@ async function submit() {
           @click="submit"
         >
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />
-          {{ submitting ? '提交中...' : '提交申请' }}
+          {{ submitting ? t('SongCreditsEditDialog.submitting') : t('SongCreditsEditDialog.submit_request') }}
         </AppButton>
       </div>
     </template>

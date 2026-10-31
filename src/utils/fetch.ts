@@ -1,6 +1,11 @@
+import { t } from '@/i18n'
+import { LocalizedError } from '@/i18n/error'
+
 export class NotFoundError extends Error {
-  constructor(message = '资源不存在') {
+  constructor(message?: string) {
     super(message)
+    if (message === undefined)
+      Object.defineProperty(this, 'message', { configurable: true, get: () => t('fetch.resource_not_found') })
     this.name = 'NotFoundError'
   }
 }
@@ -12,7 +17,7 @@ async function parseUserServiceResponse<T>(res: Response): Promise<T> {
   if (res.status === 404 || body.code === 404)
     throw new NotFoundError(body.message)
   if (!res.ok || body.error !== false || body.code !== 200 || body.data == null)
-    throw new Error(body.message || '用户服务请求失败')
+    throw body.message ? new Error(body.message) : new LocalizedError('fetch.user_service_request_failed')
   return body.data
 }
 
@@ -23,7 +28,8 @@ export async function fetchJson<T>(url: string, credentials = true, format: Resp
   if (!res.ok) {
     if (res.status === 404)
       throw new NotFoundError()
-    throw new Error((await res.json()).error || '未知错误')
+    const message = (await res.json()).error
+    throw message ? new Error(message) : new LocalizedError('App.unknown_error')
   }
   return res.json() as Promise<T>
 }
@@ -37,8 +43,10 @@ export async function fetchJsonMutation<T>(url: string, method: string, body?: u
   })
   if (format === 'user-service')
     return parseUserServiceResponse<T>(res)
-  if (!res.ok)
-    throw new Error((await res.json()).error || '未知错误')
+  if (!res.ok) {
+    const message = (await res.json()).error
+    throw message ? new Error(message) : new LocalizedError('App.unknown_error')
+  }
   if (res.status === 204 || res.headers.get('content-length') === '0')
     return undefined as T
   return res.json() as Promise<T>

@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api/music'
 import { audioQualityOptions } from '@/constants'
+import { t } from '@/i18n'
 import { clearMediaSession, getAvailableQualities, parseSongMediaResponse, selectLyricProvider, selectMediaUrlsWithSource, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 import { queryClient } from '@/utils/query-client'
@@ -185,7 +186,7 @@ export const usePlayerStore = defineStore('player', {
         this.consecutiveErrorCount++
 
         if (this.consecutiveErrorCount >= 2) {
-          toast.error('音频服务暂时不可用，请稍后再试')
+          toast.error(t('player.audio_service_is_temporarily_unavailable_please_try_again_later'))
           this.isPlaying = false
           this.isLoading = false
           player.pause()
@@ -196,13 +197,13 @@ export const usePlayerStore = defineStore('player', {
 
         // 播放出错时尝试下一首
         if (this.playlist.length > 1) {
-          toast.error('播放失败，已切换下一首', { duration: 2000 })
+          toast.error(t('player.playback_failed_skipped_to_the_next_song'), { duration: 2000 })
           this.playNext(false).finally(() => {
             this.isRecoveringFromError = false
           })
         }
         else {
-          toast.error('播放失败')
+          toast.error(t('player.playback_failed'))
           this.isPlaying = false
           this.isLoading = false
           this.isRecoveringFromError = false
@@ -252,7 +253,7 @@ export const usePlayerStore = defineStore('player', {
         this.availableQualities = new Set()
         this.isPlaying = false
         this.isLoading = false
-        toast.error(`歌曲加载失败：${error instanceof Error ? error.message : '未知错误'}`)
+        toast.error(t('player.failed_to_load_song', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
         return
       }
 
@@ -260,7 +261,7 @@ export const usePlayerStore = defineStore('player', {
       if (urls.length === 0) {
         this.isPlaying = false
         this.isLoading = false
-        toast.error('该歌曲暂无可用音频')
+        toast.error(t('player.no_audio_available_for_this_song'))
         return
       }
 
@@ -326,7 +327,7 @@ export const usePlayerStore = defineStore('player', {
             nextIndex = this.currentIndex + 1
           }
           else {
-            toast.info('当前已是最后一首歌曲')
+            toast.info(t('player.this_is_the_last_song'))
             return
           }
       }
@@ -364,7 +365,7 @@ export const usePlayerStore = defineStore('player', {
             prevIndex = this.currentIndex - 1
           }
           else {
-            toast.info('当前已是第一首歌曲')
+            toast.info(t('player.this_is_the_first_song'))
             return
           }
       }
@@ -502,7 +503,7 @@ export const usePlayerStore = defineStore('player', {
 
       const label = audioQualityOptions.find(o => o.value === q)?.label ?? ''
       if (label)
-        toast.success(`已切换至${label}音质`)
+        toast.success(t('player.switched_to_audio_quality', { p0: label }))
 
       if (!this.currentSong || this.currentMediaItems.length === 0)
         return

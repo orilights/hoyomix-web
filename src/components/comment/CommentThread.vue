@@ -3,6 +3,7 @@ import type { Comment, CommentThread as CommentThreadData } from '@/types/commen
 import { toast } from 'vue-sonner'
 import { COMMENT_REPLY_PAGE_SIZE, CommentApiError, getCommentLocationApi } from '@/api/comment'
 import { useCommentRepliesQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 
 const props = withDefaults(defineProps<{
@@ -165,7 +166,7 @@ async function locateReply(id: string) {
     if (request !== locateRequest || props.postId !== currentPostId || props.thread.threadId !== currentThreadId)
       return
     if (location.threadId !== currentThreadId) {
-      toast.error('被回复的评论不存在或不可见')
+      toast.error(t('CommentThread.the_original_comment_does_not_exist_or_is_not'))
       return
     }
     if (focusComment(id))
@@ -183,8 +184,8 @@ async function locateReply(id: string) {
       return
     pendingLocatedId.value = null
     toast.error(error instanceof CommentApiError && error.code === 404
-      ? '被回复的评论不存在或不可见'
-      : '定位评论失败，请稍后重试')
+      ? t('CommentThread.the_original_comment_does_not_exist_or_is_not')
+      : t('CommentThread.unable_to_locate_the_comment_please_try_again_later'))
   }
   finally {
     if (request === locateRequest && !pendingLocatedId.value)
@@ -223,12 +224,11 @@ onBeforeUnmount(() => {
       <div v-if="expanded">
         <AsyncFade>
           <div v-if="repliesQuery.isPending.value" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400" role="status">
-            <LucideLoader2 class="size-4 animate-spin" />加载中...
+            <LucideLoader2 class="size-4 animate-spin" />{{ t('App.loading') }}
           </div>
           <div v-else-if="repliesQuery.isError.value" class="py-3 text-xs text-red-500" role="alert">
-            回复加载失败
-            <AppButton size="xs" variant="ghost" @click="repliesQuery.refetch()">
-              重试
+            {{ t('CommentThread.failed_to_load_replies') }}<AppButton size="xs" variant="ghost" @click="repliesQuery.refetch()">
+              {{ t('App.retry') }}
             </AppButton>
           </div>
           <div v-else :key="repliesQuery.data.value?.pagination.page ?? page">
@@ -247,8 +247,7 @@ onBeforeUnmount(() => {
               </template>
             </CommentItem>
             <div v-if="repliesQuery.isFetching.value" role="status" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400">
-              <LucideLoader2 class="size-4 animate-spin" />
-              加载回复中
+              <LucideLoader2 class="size-4 animate-spin" />{{ t('CommentThread.loading_replies') }}
             </div>
             <Pagination
               v-if="!repliesQuery.isError.value"
@@ -256,8 +255,8 @@ onBeforeUnmount(() => {
               :total-pages="replyPagination.totalPages"
               :disabled="repliesQuery.isFetching.value"
               size="xs"
-              noun="回复"
-              aria-label="回复分页"
+              :noun="t('CommentInput.reply')"
+              :aria-label="t('CommentThread.reply_pages')"
               class="py-3"
               @update:model-value="goToReplyPage"
             />
@@ -280,7 +279,7 @@ onBeforeUnmount(() => {
           </template>
         </CommentItem>
         <AppButton v-if="thread.replyCount > thread.replies.length" size="sm" variant="ghost" @click="expand">
-          查看全部 {{ thread.replyCount }} 条回复
+          {{ t('CommentThread.view_reply', { p0: thread.replyCount }, Number(thread.replyCount)) }}
         </AppButton>
       </div>
     </div>

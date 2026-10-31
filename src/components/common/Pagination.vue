@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { t } from '@/i18n'
+
 const props = withDefaults(defineProps<{
   modelValue: number
   totalPages: number
@@ -6,7 +8,7 @@ const props = withDefaults(defineProps<{
   size?: 'xs' | 'sm'
   ariaLabel?: string
   noun?: string
-}>(), { disabled: false, size: 'sm', ariaLabel: '分页', noun: '' })
+}>(), { disabled: false, size: 'sm', noun: '' })
 
 const emit = defineEmits<{ 'update:modelValue': [page: number] }>()
 type PageItem = number | 'previous-gap' | 'next-gap'
@@ -34,8 +36,8 @@ function select(page: number) {
 </script>
 
 <template>
-  <nav v-if="totalPages > 1" class="flex max-w-full items-center gap-1 overflow-x-auto" :aria-label="ariaLabel">
-    <AppButton icon-only :size="size" variant="ghost" class="shrink-0" :aria-label="`上一页${noun}`" :disabled="disabled || modelValue <= 1" @click="select(modelValue - 1)">
+  <nav v-if="totalPages > 1" class="flex max-w-full items-center gap-1 overflow-x-auto" :aria-label="ariaLabel ?? t('Pagination.pagination')">
+    <AppButton icon-only :size="size" variant="ghost" class="shrink-0" :aria-label="t('Pagination.previous_page', { p0: noun })" :disabled="disabled || modelValue <= 1" @click="select(modelValue - 1)">
       <LucideChevronLeft class="size-4" />
     </AppButton>
     <AppButton
@@ -46,14 +48,14 @@ function select(page: number) {
       :class="size === 'xs' ? 'min-w-5' : 'min-w-7'"
       :variant="item === modelValue ? 'primary' : 'ghost'"
       :aria-current="item === modelValue ? 'page' : undefined"
-      :aria-label="typeof item === 'number' ? `第 ${item} 页${noun}` : `跳转至第 ${jumpTarget(item)} 页${noun}`"
-      :title="typeof item === 'number' ? undefined : `跳转至第 ${jumpTarget(item)} 页${noun}`"
+      :aria-label="typeof item === 'number' ? t('Pagination.page', { p0: item, p1: noun }) : t('Pagination.go_to_page', { p0: jumpTarget(item), p1: noun })"
+      :title="typeof item === 'number' ? undefined : t('Pagination.go_to_page', { p0: jumpTarget(item), p1: noun })"
       :disabled="disabled"
       @click="select(jumpTarget(item))"
     >
       {{ typeof item === 'number' ? item : '…' }}
     </AppButton>
-    <AppButton icon-only :size="size" variant="ghost" class="shrink-0" :aria-label="`下一页${noun}`" :disabled="disabled || modelValue >= totalPages" @click="select(modelValue + 1)">
+    <AppButton icon-only :size="size" variant="ghost" class="shrink-0" :aria-label="t('Pagination.next_page', { p0: noun })" :disabled="disabled || modelValue >= totalPages" @click="select(modelValue + 1)">
       <LucideChevronRight class="size-4" />
     </AppButton>
   </nav>
