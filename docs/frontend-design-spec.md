@@ -136,6 +136,10 @@ notice store 将状态分为 `readKeys`（已读）和 `promptedKeys`（重要�
 
 - 状态：持久化（playlist/currentIndex/playMode/volume/quality/歌词外观）+ 运行时（isPlaying/currentTime/duration/bufferedEnd/loading/歌词/isFullscreen/showPlaylist）。
 - 播放模式：`sequential`/`loop`/`single`/`shuffle`。
+- 随机播放使用 `utils/shuffle.ts` 按 `songId` 管理每轮随机顺序，一轮内自动选曲不重复，跨轮首曲避开上一轮末曲（单曲队列除外）。当前歌曲及手动跳过、尝试播放失败的歌曲均计为已轮到；暂停、seek、切换音质和重载当前歌曲不推进顺序。
+- `shuffleState` 随队列持久化，保存队列成员、剩余随机顺序、最近 200 条播放历史及游标；上一首返回实际历史，返回后下一首先恢复前进历史。主动点播其他歌曲截断前进历史，并从本轮剩余顺序中移除该歌曲。播放模式切换保留状态，期间选中的歌曲也计入进度。
+- 随机模式下播放列表按已播放、当前歌曲、前进历史和剩余随机顺序展示，每首歌曲仅显示一次；随播放进度与新一轮洗牌更新，当前歌曲后紧邻实际下一首。显示“当前为打乱后的播放队列”提示，隐藏保存歌单入口、拖动手柄并禁用排序；点击、删除仍映射到原队列索引，退出随机模式恢复原队列顺序及保存、排序操作。
+- 追加歌曲随机插入剩余顺序；删除歌曲同步移除剩余顺序与历史，删除当前歌曲时按随机顺序续播；拖动排序保留随机进度。替换/清空队列重置随机状态。刷新时校验持久化状态、清理失效 ID，旧版缺失状态自动初始化；桌面/移动端和系统媒体控制共用 Store 的切歌动作。
 - 动作：`playSong`（重置状态 → vue-query 缓存取媒体 → 选 URL → 播放）、`togglePlay`、`replacePlaylist`、`addToPlaylist`（去重）、`removeFrom`/`reorderPlaylist`、`switchQuality`（可播放后 seek 回位）、`reloadCurrentSong`（切源后重载）。
 - **错误恢复**：连续出错 ≥2 次判定服务不可用停止，否则自动切下一首并 toast。
 - **Media Session**：对接系统媒体控制，更新 `playbackState` 与 `setPositionState`。

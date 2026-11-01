@@ -724,6 +724,7 @@
   "PlayerLyrics.decrease_font_size": "缩小字体",
   "PlayerPlayBtn.loading_please_wait": "加载中，请稍后",
   "PlayerPlayBtn.pause": "暂停",
+  "PlayerPlaylist.shuffled_queue_hint": "当前为打乱后的播放队列",
   "PlayerPlaylist.queue_cleared": "已清空播放列表",
   "PlayerPlaylist.save_as_a_new_playlist": "保存为新歌单",
   "PlayerPlaylist.replace_an_existing_playlist": "覆盖已有歌单",

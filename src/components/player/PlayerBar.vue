@@ -71,7 +71,9 @@ const swipeTransition = ref(false)
 const swipeActive = ref(false)
 
 const prevSong = computed(() => {
-  if (playlist.value.length === 0 || playMode.value === 'shuffle' || playMode.value === 'single')
+  if (playMode.value === 'shuffle')
+    return player.shufflePrevSong
+  if (playlist.value.length === 0 || playMode.value === 'single')
     return null
   const idx = playMode.value === 'loop'
     ? (currentIndex.value - 1 + playlist.value.length) % playlist.value.length
@@ -80,7 +82,9 @@ const prevSong = computed(() => {
 })
 
 const nextSong = computed(() => {
-  if (playlist.value.length === 0 || playMode.value === 'shuffle' || playMode.value === 'single')
+  if (playMode.value === 'shuffle')
+    return player.shuffleNextSong
+  if (playlist.value.length === 0 || playMode.value === 'single')
     return null
   const idx = playMode.value === 'loop'
     ? (currentIndex.value + 1) % playlist.value.length
@@ -118,7 +122,7 @@ function onBarTouchMove(e: TouchEvent) {
 }
 
 function onBarTouchEnd() {
-  if (!isHorizontalSwipe.value || Math.abs(swipeOffset.value) < 60) {
+  if (!isHorizontalSwipe.value || Math.abs(swipeOffset.value) < 60 || (swipeOffset.value > 0 && playMode.value === 'shuffle' && !player.hasPrev)) {
     if (swipeOffset.value !== 0) {
       swipeTransition.value = true
       swipeOffset.value = 0

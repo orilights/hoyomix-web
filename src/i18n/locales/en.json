@@ -724,6 +724,7 @@
   "PlayerLyrics.decrease_font_size": "Decrease font size",
   "PlayerPlayBtn.loading_please_wait": "Loading, please wait",
   "PlayerPlayBtn.pause": "Pause",
+  "PlayerPlaylist.shuffled_queue_hint": "This is the shuffled playback queue",
   "PlayerPlaylist.queue_cleared": "Queue cleared",
   "PlayerPlaylist.save_as_a_new_playlist": "Save as a new playlist",
   "PlayerPlaylist.replace_an_existing_playlist": "Replace an existing playlist",

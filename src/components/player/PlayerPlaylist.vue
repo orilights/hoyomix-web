@@ -5,15 +5,28 @@ import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
+import { getShuffleQueueIds } from '@/utils/shuffle'
 
 const player = usePlayerStore()
 const auth = useAuthStore()
-const { playlist, currentIndex, showPlaylist, isFullscreen } = storeToRefs(player)
+const { playlist, currentIndex, showPlaylist, isFullscreen, playMode, shuffleState } = storeToRefs(player)
+const isShuffle = computed(() => playMode.value === 'shuffle')
+const displayedPlaylist = computed(() => {
+  const entries = playlist.value.map((song, index) => ({ song, index, key: `${song.songId}:${index}` }))
+  if (!isShuffle.value)
+    return entries
+  const byId = new Map(entries.map(entry => [entry.song.songId, entry]))
+  const current = entries[currentIndex.value]
+  if (current)
+    byId.set(current.song.songId, current)
+  return getShuffleQueueIds(shuffleState.value, player.currentSong?.songId)
+    .flatMap(id => byId.has(id) ? [byId.get(id)!] : [])
+})
 
 const showCreatePlaylistDialog = ref(false)
 const showSelectPlaylistDialog = ref(false)
 
-const playlistSongIds = computed(() => playlist.value.map(item => item.songId))
+const playlistSongIds = computed(() => displayedPlaylist.value.map(entry => entry.song.songId))
 
 watch(showPlaylist, async (val) => {
   if (val && currentIndex.value >= 0) {
@@ -35,7 +48,7 @@ function overwriteExisting() {
 }
 
 function onDragEnd(evt: { oldIndex: number, newIndex: number }) {
-  if (evt.oldIndex !== evt.newIndex) {
+  if (!isShuffle.value && evt.oldIndex !== evt.newIndex) {
     player.reorderPlaylist(evt.oldIndex, evt.newIndex)
   }
 }
@@ -72,10 +85,11 @@ function clearAll() {
       >
         <div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
           <div class="text-white font-bold">
-            {{ t('PlayerBar.queue') }}<span class="text-white/50 text-sm font-normal ml-2">{{ t('Random.song', { p0: playlist.length }, Number(playlist.length)) }}</span>
+            {{ t('PlayerBar.queue') }}<span class="text-white/50 text-sm font-normal ml-2">{{ t('Random.song', { p0: displayedPlaylist.length }, Number(displayedPlaylist.length)) }}</span>
           </div>
           <div class="flex items-center gap-2">
             <Dropdown
+              v-if="!isShuffle"
               position="down"
               :options="[
                 { label: t('PlayerPlaylist.save_as_a_new_playlist'), onClick: saveAsNew },
@@ -104,43 +118,49 @@ function clearAll() {
           </div>
         </div>
 
+        <p v-if="isShuffle" class="flex items-center gap-2 px-4 py-2 text-xs text-white/50 border-b border-white/10">
+          <LucideShuffle class="size-3.5 shrink-0" />
+          {{ t('PlayerPlaylist.shuffled_queue_hint') }}
+        </p>
+
         <OverlayScrollbarsComponent class="flex-1" :options="{ scrollbars: { theme: 'os-theme-custom-light', autoHide: 'leave', clickScroll: true } }" defer>
           <draggable
-            :model-value="playlist"
-            item-key="songId"
+            :model-value="displayedPlaylist"
+            item-key="key"
             handle=".drag-handle"
+            :disabled="isShuffle"
             :animation="200"
             @end="onDragEnd"
           >
-            <template #item="{ element, index }">
+            <template #item="{ element }">
               <div
-                :data-playlist-index="index"
+                :data-playlist-index="element.index"
                 class="flex items-center px-4 py-2 hover:bg-white/5 transition-colors group mr-1"
-                :class="{ 'bg-white/10': index === currentIndex }"
+                :class="{ 'bg-white/10': element.index === currentIndex }"
               >
-                <div class="drag-handle cursor-grab active:cursor-grabbing text-white/30 hover:text-white/60 mr-2 shrink-0">
+                <div v-if="!isShuffle" class="drag-handle cursor-grab active:cursor-grabbing text-white/30 hover:text-white/60 mr-2 shrink-0">
                   <LucideGripVertical class="size-4" />
                 </div>
 
                 <LazyImg
                   class="size-10 rounded"
-                  :src="getCoverUrl(element.albumPlatforms, '96px')"
+                  :src="getCoverUrl(element.song.albumPlatforms, '96px')"
                 />
 
                 <div
                   class="flex-1 min-w-0 ml-3 cursor-pointer"
-                  @click="playSong(index)"
+                  @click="playSong(element.index)"
                 >
-                  <div class="text-sm truncate" :class="index === currentIndex ? 'text-blue-400' : 'text-white'">
-                    {{ element.songName }}
+                  <div class="text-sm truncate" :class="element.index === currentIndex ? 'text-blue-400' : 'text-white'">
+                    {{ element.song.songName }}
                   </div>
                   <div class="text-xs text-white/40 truncate">
-                    {{ element.albumName }}
+                    {{ element.song.albumName }}
                   </div>
                 </div>
 
                 <div class="text-xs text-white/40 ml-2 shrink-0">
-                  {{ formatDuration(element.duration) }}
+                  {{ formatDuration(element.song.duration) }}
                 </div>
 
                 <AppButton
@@ -149,7 +169,7 @@ function clearAll() {
                   variant="dark"
                   class="text-white/30 hover:text-red-400 ml-2 md:opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                   :aria-label="t('PlayerPlaylist.remove_song')"
-                  @click.stop="removeSong(index)"
+                  @click.stop="removeSong(element.index)"
                 >
                   <LucideX class="size-4" />
                 </AppButton>

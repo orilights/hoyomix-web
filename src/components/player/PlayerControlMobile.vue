@@ -26,7 +26,7 @@ const { volume, mobileFullscreenLayout } = storeToRefs(player)
       class="volume-slider min-w-0"
       @input="player.setVolume(Number(($event.target as HTMLInputElement).value))"
     >
-    <button class="text-gray-400 hover:text-white transition-colors cursor-pointer" @click="player.playPrev()">
+    <button :aria-label="t('MusicActions.previous_song')" :disabled="player.playMode === 'shuffle' && !player.hasPrev" class="text-gray-400 hover:text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" @click="player.playPrev()">
       <LucideSkipBack class="size-6" fill="currentColor" />
     </button>
     <button class="text-gray-400 hover:text-white transition-colors cursor-pointer" @click="player.playNext()">
