@@ -70,6 +70,7 @@ declare module 'vue' {
     LucideClockArrowUp: typeof import('@lucide/vue')['ClockArrowUp']
     LucideCloudAlert: typeof import('@lucide/vue')['CloudAlert']
     LucideDisc: typeof import('@lucide/vue')['Disc']
+    LucideDisc3: typeof import('@lucide/vue')['Disc3']
     LucideEllipsis: typeof import('@lucide/vue')['Ellipsis']
     LucideEyeOff: typeof import('@lucide/vue')['EyeOff']
     LucideFocus: typeof import('@lucide/vue')['Focus']

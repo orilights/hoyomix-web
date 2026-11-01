@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PlayMode } from '@/types/player'
 import { useMediaQuery } from '@vueuse/core'
+import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
 import { audioQualityOptions, getQualityLabel } from '@/constants'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
@@ -12,6 +13,10 @@ const {
   currentSong,
   playlist,
   currentIndex,
+  isPlaying,
+  currentTime,
+  lyricData,
+  lyricsOffset,
   volume,
   playMode,
   quality,
@@ -21,6 +26,19 @@ const {
   showPlaylist,
   availableQualities,
 } = storeToRefs(player)
+
+const { parsedLyrics, hasTimestamp, currentLineIndex } = usePlayerLyrics({
+  lyricData,
+  lyricTranslation: '',
+  currentTime,
+  lyricsOffset,
+})
+const currentLyric = computed(() => {
+  if (!isPlaying.value || !hasTimestamp.value || !currentSong.value)
+    return null
+  const line = parsedLyrics.value[currentLineIndex.value]
+  return line ? { key: `${currentSong.value.songId}:${currentLineIndex.value}`, text: line.text } : null
+})
 
 const showVolumeSlider = ref(false)
 const volumeBeforeMute = ref(0.8)
@@ -210,6 +228,7 @@ onMounted(() => {
           >
             <PlayerBarSongInfo
               :song="currentSong"
+              :lyric="currentLyric"
               :class="{ 'min-w-0 flex-1 md:flex-none md:max-w-[240px] md:w-[240px] xl:flex-1 xl:max-w-none xl:w-auto': !swipeActive }"
             />
 
