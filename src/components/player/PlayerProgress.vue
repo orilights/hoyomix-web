@@ -1,22 +1,19 @@
 <script setup lang="ts">
-import { usePlayerStore } from '@/store/player'
+import { t } from '@/i18n'
 import { formatDuration } from '@/utils'
 
 const props = withDefaults(defineProps<{
   currentTime: number
   duration: number
   bufferedEnd: number
-  thin?: boolean
+  touchFriendly?: boolean
 }>(), {
-  thin: false,
+  touchFriendly: false,
 })
 
 const emit = defineEmits<{
   seek: [time: number]
 }>()
-
-const player = usePlayerStore()
-const { isFullscreen } = storeToRefs(player)
 
 const progressBar = useTemplateRef<HTMLElement>('progressBar')
 const isDragging = ref(false)
@@ -137,18 +134,45 @@ const hoverPercent = computed(() => {
   }
   return -1
 })
+
+function onKeyDown(event: KeyboardEvent) {
+  if (!props.touchFriendly || !hasDuration.value)
+    return
+  const changes: Record<string, number> = {
+    ArrowLeft: props.currentTime - 5,
+    ArrowDown: props.currentTime - 5,
+    ArrowRight: props.currentTime + 5,
+    ArrowUp: props.currentTime + 5,
+    Home: 0,
+    End: props.duration,
+  }
+  const time = changes[event.key]
+  if (time === undefined)
+    return
+  event.preventDefault()
+  event.stopPropagation()
+  emit('seek', Math.max(0, Math.min(props.duration, time)))
+}
 </script>
 
 <template>
   <div
     ref="progressBar"
+    :role="touchFriendly ? 'slider' : undefined"
+    :tabindex="touchFriendly ? 0 : undefined"
+    :aria-label="touchFriendly ? t('PlayerFullscreen.playback_progress') : undefined"
+    :aria-valuemin="touchFriendly ? 0 : undefined"
+    :aria-valuemax="touchFriendly ? (hasDuration ? duration : 0) : undefined"
+    :aria-valuenow="touchFriendly ? Math.floor(currentTime) : undefined"
+    :aria-disabled="touchFriendly && !hasDuration ? true : undefined"
     class="relative select-none cursor-pointer group"
     :class="{
-      'h-1 hover:h-2 transition-[height] thin-hitbox': thin,
-      'h-1.5': !thin,
-      'h-2!': isDragging,
+      'h-1.5': !touchFriendly,
+      'h-11 touch-progress': touchFriendly,
+      'h-2!': isDragging && !touchFriendly,
     }"
     @mousedown="onMouseDown"
+    @keydown="onKeyDown"
     @mouseenter="onMouseEnter"
     @mousemove="onMouseMoveBar"
     @mouseleave="onMouseLeave"
@@ -156,29 +180,23 @@ const hoverPercent = computed(() => {
     @touchstart.passive="onTouchStart"
     @touchmove="onTouchMove"
     @touchend="onTouchEnd"
+    @touchcancel="isDragging = false; dragTime = -1"
   >
     <div
-      class="absolute inset-0 overflow-hidden bg-white/10"
-      :class="{
-        'rounded-full': !thin,
-        'rounded-r-full': thin,
-        'bg-gray-500!': thin && !isFullscreen,
-      }"
+      class="absolute inset-0 overflow-hidden rounded-full bg-white/10"
     >
       <div
-        class="absolute inset-y-0 left-0 bg-white/10 transition-[width] duration-300"
-        :class="thin ? 'rounded-r-full' : 'rounded-full'"
+        class="absolute inset-y-0 left-0 rounded-full bg-white/10 transition-[width] duration-300"
         :style="{ width: `${bufferedPercent}%` }"
       />
       <div
-        class="absolute inset-y-0 left-0 bg-white/80"
-        :class="thin ? 'rounded-r-full' : 'rounded-full'"
+        class="absolute inset-y-0 left-0 rounded-full bg-white/80"
         :style="{ width: `${displayPercent}%` }"
       />
     </div>
 
     <div
-      v-if="hasDuration && (!thin || isDragging)"
+      v-if="hasDuration"
       class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 bg-white rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity z-100"
       :class="{ '!opacity-100': isDragging }"
       :style="{ left: `${displayPercent}%` }"
@@ -195,12 +213,11 @@ const hoverPercent = computed(() => {
 </template>
 
 <style scoped>
-.thin-hitbox::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -12px;
-  bottom: -12px;
+.touch-progress > div:first-child {
+  inset-block: auto;
+  top: 50%;
+  height: 4px;
+  transform: translateY(-50%);
 }
+.touch-progress { touch-action: none; }
 </style>

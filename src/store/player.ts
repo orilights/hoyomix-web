@@ -8,6 +8,7 @@ import { t } from '@/i18n'
 import { clearMediaSession, getAvailableQualities, parseSongMediaResponse, selectLyricProvider, selectMediaUrlsWithSource, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
 import { queryClient } from '@/utils/query-client'
+import { createShuffleState, getShuffleNextId, getShufflePrevId, normalizeShuffleState, recordShuffleSong } from '@/utils/shuffle'
 import { checkSleepTimer, consumeSleepTimerSong, startSleepTimer as createRunningSleepTimer, createSleepTimerState, normalizeSleepTimerPreferences } from '@/utils/sleep-timer'
 import { createSpectrumSettings, normalizeSpectrumSettings } from '@/utils/spectrum'
 import { useMediaSourceStore } from './media-source'
@@ -18,6 +19,7 @@ export const usePlayerStore = defineStore('player', {
     playlist: [] as PlaylistItem[],
     currentIndex: -1,
     playMode: 'sequential' as PlayMode,
+    shuffleState: createShuffleState(),
     songListPlayBehavior: 'ask' as SongListPlayBehavior,
     volume: 0.8,
     quality: 5 as AudioQuality,
@@ -30,7 +32,7 @@ export const usePlayerStore = defineStore('player', {
     lyricsOffset: 0,
     lyricsFontSize: 16,
     lyricsSource: 'ncm' as LyricsSource,
-    mobileFullscreenLayout: 'lyrics' as MobileFullscreenLayout,
+    mobileFullscreenLayout: 'cover' as MobileFullscreenLayout,
     fullscreenCoverShape: 'square' as FullscreenCoverShape,
     fullscreenCoverRotation: true,
     fullscreenCoverBorder: true,
@@ -75,13 +77,21 @@ export const usePlayerStore = defineStore('player', {
     hasPrev: (state) => {
       if (state.playlist.length === 0)
         return false
-      if (state.playMode === 'loop' || state.playMode === 'shuffle')
+      if (state.playMode === 'shuffle')
+        return getShufflePrevId(state.shuffleState) !== undefined
+      if (state.playMode === 'loop')
         return true
       return state.currentIndex > 0
     },
+    shuffleNextSong: state => state.playlist.find(song => song.songId === getShuffleNextId(state.shuffleState)) ?? null,
+    shufflePrevSong: state => state.playlist.find(song => song.songId === getShufflePrevId(state.shuffleState)) ?? null,
   },
 
   actions: {
+    syncShuffleState() {
+      this.shuffleState = normalizeShuffleState(this.shuffleState, this.playlist.map(song => song.songId), this.currentSong?.songId)
+    },
+
     startSleepTimer(preferences?: SleepTimerPreferences) {
       this.sleepTimerPreferences = normalizeSleepTimerPreferences(preferences ?? this.sleepTimerPreferences)
       this.sleepTimerNow = Date.now()
@@ -211,7 +221,7 @@ export const usePlayerStore = defineStore('player', {
       })
     },
 
-    async playSong(index: number, countTransition = true) {
+    async playSong(index: number, countTransition = true, historyIndex?: number) {
       if (index < 0 || index >= this.playlist.length)
         return
       if (this.checkSleepTimer())
@@ -219,9 +229,16 @@ export const usePlayerStore = defineStore('player', {
       if (countTransition && (index !== this.currentIndex || this.sleepTimer.status === 'waiting') && this.beforeSongTransition())
         return
 
+      this.syncShuffleState()
+      const song = this.playlist[index]
+      if (historyIndex !== undefined) {
+        this.shuffleState.cursor = historyIndex
+      }
+      else if (this.shuffleState.history[this.shuffleState.cursor] !== song.songId) {
+        recordShuffleSong(this.shuffleState, song.songId)
+      }
       const requestId = ++this.playbackRequestId
       this.currentIndex = index
-      const song = this.playlist[index]
 
       // 立即重置播放状态，不等待加载完成
       this.currentTime = 0
@@ -309,16 +326,12 @@ export const usePlayerStore = defineStore('player', {
         case 'single':
           nextIndex = this.currentIndex
           break
-        case 'shuffle':
-          if (this.playlist.length === 1) {
-            nextIndex = 0
-          }
-          else {
-            do {
-              nextIndex = Math.floor(Math.random() * this.playlist.length)
-            } while (nextIndex === this.currentIndex)
-          }
+        case 'shuffle': {
+          this.syncShuffleState()
+          const songId = getShuffleNextId(this.shuffleState)
+          nextIndex = this.playlist.findIndex(song => song.songId === songId)
           break
+        }
         case 'loop':
           nextIndex = (this.currentIndex + 1) % this.playlist.length
           break
@@ -334,7 +347,14 @@ export const usePlayerStore = defineStore('player', {
 
       if (countTransition && this.beforeSongTransition())
         return
-      await this.playSong(nextIndex, false)
+      const historyIndex = this.playMode === 'shuffle' && this.shuffleState.cursor + 1 < this.shuffleState.history.length
+        ? this.shuffleState.cursor + 1
+        : undefined
+      // 单曲队列也会开启新一轮，但重新加载当前歌曲不会新增历史。
+      if (this.playMode === 'shuffle' && historyIndex === undefined && nextIndex === this.currentIndex) {
+        recordShuffleSong(this.shuffleState, this.playlist[nextIndex].songId)
+      }
+      await this.playSong(nextIndex, false, historyIndex)
     },
 
     async playPrev() {
@@ -347,16 +367,14 @@ export const usePlayerStore = defineStore('player', {
         case 'single':
           prevIndex = this.currentIndex
           break
-        case 'shuffle':
-          if (this.playlist.length === 1) {
-            prevIndex = 0
-          }
-          else {
-            do {
-              prevIndex = Math.floor(Math.random() * this.playlist.length)
-            } while (prevIndex === this.currentIndex)
-          }
+        case 'shuffle': {
+          this.syncShuffleState()
+          const songId = getShufflePrevId(this.shuffleState)
+          if (songId === undefined)
+            return
+          prevIndex = this.playlist.findIndex(song => song.songId === songId)
           break
+        }
         case 'loop':
           prevIndex = (this.currentIndex - 1 + this.playlist.length) % this.playlist.length
           break
@@ -372,13 +390,20 @@ export const usePlayerStore = defineStore('player', {
 
       if (this.beforeSongTransition())
         return
-      await this.playSong(prevIndex, false)
+      await this.playSong(prevIndex, false, this.playMode === 'shuffle' ? this.shuffleState.cursor - 1 : undefined)
     },
 
     async replacePlaylist(items: PlaylistItem[], startIndex = 0) {
       if (items.length > 0 && this.beforeSongTransition())
         return
+      if (!items.length) {
+        this.clearPlaylist()
+        return
+      }
+      this.playbackRequestId++
       this.playlist = items
+      this.currentIndex = -1
+      this.shuffleState = createShuffleState(items.map(song => song.songId))
       // 用户手动操作，重置连续错误计数
       this.consecutiveErrorCount = 0
       if (items.length > 0) {
@@ -390,7 +415,9 @@ export const usePlayerStore = defineStore('player', {
       // 防止重复添加相同歌曲
       const existingIndex = this.playlist.findIndex(i => i.songId === item.songId)
       if (existingIndex === -1) {
+        this.syncShuffleState()
         this.playlist.push(item)
+        this.syncShuffleState()
         return { index: this.playlist.length - 1, isNew: true }
       }
       return { index: existingIndex, isNew: false }
@@ -405,6 +432,7 @@ export const usePlayerStore = defineStore('player', {
       if (this.beforeSongTransition())
         return
 
+      this.syncShuffleState()
       if (existingIndex !== -1) {
         this.playlist.splice(existingIndex, 1)
         if (existingIndex < this.currentIndex)
@@ -425,26 +453,35 @@ export const usePlayerStore = defineStore('player', {
       if (index < 0 || index >= this.playlist.length)
         return
 
+      this.syncShuffleState()
       const wasPlaying = index === this.currentIndex
+      const currentId = this.currentSong?.songId
       const stopPlayback = wasPlaying && this.beforeSongTransition()
       this.playlist.splice(index, 1)
+      this.shuffleState = normalizeShuffleState(this.shuffleState, this.playlist.map(song => song.songId), wasPlaying ? undefined : currentId)
 
       if (this.playlist.length === 0) {
-        this.currentIndex = -1
-        this.isPlaying = false
-        getAudioPlayer().pause()
+        this.clearPlaylist()
         return
       }
 
       if (wasPlaying) {
-        // 被删除的是当前歌曲，播放下一首
-        const newIndex = Math.min(index, this.playlist.length - 1)
+        // 被删除的是当前歌曲，随机模式沿用剩余顺序或前进历史。
+        this.playbackRequestId++
+        this.currentIndex = -1
+        const newIndex = this.playMode === 'shuffle'
+          ? this.playlist.findIndex(song => song.songId === getShuffleNextId(this.shuffleState))
+          : Math.min(index, this.playlist.length - 1)
         if (stopPlayback) {
           this.currentIndex = newIndex
           getAudioPlayer().urls = []
+          this.syncShuffleState()
+        }
+        else if (this.playMode === 'shuffle') {
+          void this.playNext(false)
         }
         else {
-          this.playSong(newIndex, false)
+          void this.playSong(newIndex, false)
         }
       }
       else if (index < this.currentIndex) {
@@ -457,6 +494,7 @@ export const usePlayerStore = defineStore('player', {
         this.completeSleepTimer()
       this.playbackRequestId++
       this.playlist = []
+      this.shuffleState = createShuffleState()
       this.currentIndex = -1
       this.isPlaying = false
       this.currentTime = 0
@@ -540,6 +578,7 @@ export const usePlayerStore = defineStore('player', {
     },
 
     togglePlayMode() {
+      this.syncShuffleState()
       const modes: PlayMode[] = ['sequential', 'loop', 'single', 'shuffle']
       const currentIdx = modes.indexOf(this.playMode)
       this.playMode = modes[(currentIdx + 1) % modes.length]
@@ -665,6 +704,7 @@ export const usePlayerStore = defineStore('player', {
 
   persist: {
     afterHydrate: ({ store }) => {
+      store.syncShuffleState()
       store.sleepTimerPreferences = normalizeSleepTimerPreferences(store.sleepTimerPreferences ?? {})
       if (typeof store.enableMediaSession !== 'boolean')
         store.enableMediaSession = true
@@ -672,7 +712,7 @@ export const usePlayerStore = defineStore('player', {
         store.songListPlayBehavior = 'ask'
       store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
       if (store.mobileFullscreenLayout !== 'lyrics' && store.mobileFullscreenLayout !== 'cover')
-        store.mobileFullscreenLayout = 'lyrics'
+        store.mobileFullscreenLayout = 'cover'
       if (store.fullscreenCoverShape !== 'square' && store.fullscreenCoverShape !== 'circle')
         store.fullscreenCoverShape = 'square'
       if (typeof store.fullscreenCoverRotation !== 'boolean')
@@ -688,6 +728,7 @@ export const usePlayerStore = defineStore('player', {
       'playlist',
       'currentIndex',
       'playMode',
+      'shuffleState',
       'songListPlayBehavior',
       'volume',
       'quality',

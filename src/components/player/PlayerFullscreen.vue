@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { useElementSize, useFullscreen, useMediaQuery, useWindowSize } from '@vueuse/core'
+import { useElementSize, useFullscreen, useMediaQuery } from '@vueuse/core'
 import { usePlayerCoverColors } from '@/composables/usePlayerCoverColors'
 import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
+import { audioQualityOptions, getQualityLabel } from '@/constants'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
-import { getCoverUrl } from '@/utils'
+import { getCoverUrl, isIOS } from '@/utils'
 import { fallbackCoverColors } from '@/utils/cover'
 import { getSleepTimerLabel } from '@/utils/sleep-timer'
 
@@ -28,7 +29,6 @@ const {
   enableAudioContext,
   lyricsOffset,
   lyricsFontSize,
-  mobileFullscreenLayout,
   fullscreenCoverShape,
   fullscreenCoverRotation,
   fullscreenCoverBorder,
@@ -86,6 +86,10 @@ function openCoverMenu(x: number, y: number) {
   nextTick(() => coverMenuRef.value?.querySelector<HTMLButtonElement>('button')?.focus())
 }
 
+function openMobileCoverMenu() {
+  openCoverMenu(window.innerWidth - 224, window.innerHeight - 300)
+}
+
 function cancelCoverPress() {
   if (coverPressTimer)
     clearTimeout(coverPressTimer)
@@ -137,7 +141,7 @@ function onMobileCoverClick(event: MouseEvent) {
     suppressCoverClick = false
     return
   }
-  showLyricsLayout()
+  player.setMobileFullscreenLayout('lyrics')
 }
 
 function onDocumentPointerDown(event: PointerEvent) {
@@ -182,6 +186,11 @@ watch(isFullscreen, (value) => {
     showSleepTimer.value = false
   }
 })
+watch(isMobileViewport, () => {
+  cancelCoverPress()
+  closeCoverMenu()
+  closePlayerMenu()
+})
 watch(currentSong, (song) => {
   if (!song)
     showSleepTimer.value = false
@@ -198,7 +207,6 @@ const bg1 = ref(fallbackCoverColors.gradient)
 const bg2 = ref(fallbackCoverColors.gradient)
 const showBackground = ref(1)
 const transformPosition = ref('')
-const { width: viewportWidth, height: viewportHeight } = useWindowSize()
 const {
   isFullscreen: isPageFullscreen,
   isSupported: isPageFullscreenSupported,
@@ -219,28 +227,28 @@ const compactLyricLine = computed(() => {
   return parsedLyrics.value[index] ?? null
 })
 
-const compactCoverSize = computed(() => {
-  const availableHeight = viewportHeight.value
-    - 72 // fixed player bar spacing
-    - 56 // header
-    - (isImmersive.value ? 0 : 80) // mobile controls
-    - 96 // lyric text and gap
-  return Math.max(72, Math.min(
-    viewportWidth.value * 0.72,
-    viewportHeight.value * 0.42,
-    availableHeight,
-  ))
-})
-
 let immersiveTimer: ReturnType<typeof setTimeout> | null = null
 const IMMERSIVE_HIDE_DELAY = 3000
+let suppressActivityClick = false
+
+function onFullscreenPointerDown() {
+  suppressActivityClick = isMobileViewport.value && isImmersive.value && !immersiveControlsVisible.value
+}
+
+function onFullscreenClick(event: MouseEvent) {
+  if (!suppressActivityClick)
+    return
+  suppressActivityClick = false
+  event.preventDefault()
+  event.stopPropagation()
+}
 
 function showImmersiveControls() {
   player.setImmersiveControlsVisible(true)
   if (immersiveTimer)
     clearTimeout(immersiveTimer)
   immersiveTimer = null
-  if (showPlayerMenu.value || coverMenu.value || showSleepTimer.value)
+  if (showPlayerMenu.value || coverMenu.value || showSleepTimer.value || (isMobileViewport.value && player.showPlaylist))
     return
   immersiveTimer = setTimeout(() => {
     player.setImmersiveControlsVisible(false)
@@ -253,7 +261,7 @@ function onImmersiveActivity() {
   showImmersiveControls()
 }
 
-watch([isImmersive, showPlayerMenu, coverMenu, showSleepTimer], ([immersive]) => {
+watch([isImmersive, showPlayerMenu, coverMenu, showSleepTimer, () => isMobileViewport.value && player.showPlaylist], ([immersive]) => {
   if (immersive) {
     showImmersiveControls()
   }
@@ -302,14 +310,6 @@ function toAlbum() {
   router.push({ name: 'AlbumInfo', params: { id: currentSong.value.albumId } })
 }
 
-function onSeek(time: number) {
-  player.seek(time)
-}
-
-function showLyricsLayout() {
-  player.setMobileFullscreenLayout('lyrics')
-}
-
 const touchStartY = ref(0)
 const dragOffset = ref(0)
 const snapBack = ref(false)
@@ -351,13 +351,15 @@ function onHeaderTouchEnd() {
   <Transition name="fullscreen-player">
     <div
       v-if="isFullscreen && currentSong"
-      class="fixed inset-0 z-50 flex flex-col pb-[72px]"
+      class="fixed inset-0 z-50 flex flex-col md:pb-[72px]"
       :style="{
         transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
         transition: snapBack ? 'transform 0.3s ease' : undefined,
       }"
       @mousemove="onImmersiveActivity"
       @touchstart="onImmersiveActivity"
+      @pointerdown.capture="onFullscreenPointerDown"
+      @click.capture="onFullscreenClick"
     >
       <div class="absolute inset-0 bg-gray-900">
         <div
@@ -373,7 +375,134 @@ function onHeaderTouchEnd() {
       </div>
       <div class="background-mask absolute inset-0" />
 
-      <div class="relative flex-1 flex flex-col z-10 min-h-0">
+      <PlayerFullscreenMobile
+        v-if="isMobileViewport"
+        :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex"
+        @close="close" @to-song="toSong" @to-album="toAlbum" @sleep="showSleepTimer = true"
+        @header-touch-start="onHeaderTouchStart" @header-touch-move="onHeaderTouchMove" @header-touch-end="onHeaderTouchEnd"
+      >
+        <template #cover>
+          <button
+            type="button"
+            class="block size-full aspect-square shadow-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
+            :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl ring-1 ring-white/10', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
+            :aria-label="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
+            :title="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
+            @click="onMobileCoverClick"
+            @contextmenu="onCoverContextMenu"
+            @touchstart="onCoverTouchStart"
+            @touchmove="onCoverTouchMove"
+            @touchend="onCoverTouchEnd"
+            @touchcancel="cancelCoverPress"
+          >
+            <LazyImg
+              class="size-full object-cover fullscreen-cover-image"
+              :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
+              :src="coverUrl"
+              :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
+            />
+          </button>
+        </template>
+        <template #lyric>
+          <div v-if="compactLyricLine" class="max-w-full text-white font-bold">
+            <div
+              class="leading-tight"
+              :class="showTranslation && compactLyricLine.translation ? 'line-clamp-1' : 'line-clamp-2'"
+              :style="{ fontSize: `${lyricsFontSize}px` }"
+              :title="compactLyricLine.text"
+            >
+              {{ compactLyricLine.text }}
+            </div>
+            <div
+              v-if="showTranslation && compactLyricLine.translation"
+              class="leading-tight text-white/70 font-normal mt-1 line-clamp-1"
+              :style="{ fontSize: `${lyricsFontSize}px` }"
+              :title="compactLyricLine.translation"
+            >
+              {{ compactLyricLine.translation }}
+            </div>
+          </div>
+        </template>
+        <template #more>
+          <div class="relative" @touchstart.stop>
+            <button
+              ref="playerMenuTriggerRef"
+              type="button"
+              class="size-11 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              :class="{ 'bg-white/10': showPlayerMenu }"
+              :aria-label="t('PlayerFullscreen.player_menu')"
+              aria-haspopup="menu"
+              :aria-expanded="showPlayerMenu"
+              :aria-controls="showPlayerMenu ? playerMenuId : undefined"
+              @click="togglePlayerMenu"
+              @keydown.down.prevent="!showPlayerMenu && togglePlayerMenu()"
+            >
+              <LucideEllipsis class="size-5" />
+            </button>
+            <Transition name="player-menu">
+              <div
+                v-if="showPlayerMenu"
+                :id="playerMenuId"
+                ref="playerMenuRef"
+                role="menu"
+                :aria-label="t('PlayerFullscreen.player_settings')"
+                class="player-popup-menu absolute right-0 bottom-full mb-3 origin-bottom-right max-h-[min(65dvh,480px)] overflow-y-auto"
+                @click="closePlayerMenu()"
+              >
+                <div class="px-3 py-2 text-xs text-white/60">
+                  {{ t('Settings.audio_quality') }}
+                </div>
+                <button v-for="option in audioQualityOptions" :key="option.value" type="button" role="menuitemradio" class="player-menu-item" :aria-checked="player.quality === option.value" :disabled="!player.availableQualities.has(option.value)" @click="player.switchQuality(option.value)">
+                  <span class="flex-1">{{ getQualityLabel(option.value) }}</span>
+                  <LucideCheck v-if="player.quality === option.value" class="size-4 text-blue-400" />
+                </button>
+                <div v-if="!isIOS()" class="flex items-center gap-3 px-3 py-3" @click.stop>
+                  <LucideVolume2 class="size-4 shrink-0" aria-hidden="true" />
+                  <input type="range" min="0" max="1" step="0.01" :value="player.volume" :aria-label="t('PlayerFullscreen.volume')" class="min-w-0 w-full accent-white" @input="player.setVolume(Number(($event.target as HTMLInputElement).value))">
+                </div>
+                <button type="button" role="menuitem" class="player-menu-item" @click="openMobileCoverMenu()">
+                  <LucideImage class="size-4 shrink-0" />{{ t('PlayerFullscreen.cover_settings') }}
+                </button>
+                <button type="button" role="menuitem" class="player-menu-item" :disabled="!isPageFullscreenSupported" @click="togglePageFullscreen()">
+                  <LucideMaximize class="size-4 shrink-0" />{{ isPageFullscreen ? t('PlayerFullscreen.exit_fullscreen') : t('PlayerFullscreen.enter_fullscreen') }}
+                </button>
+                <div class="my-1 border-t border-white/15" />
+                <button
+                  type="button" role="menuitemcheckbox" class="player-menu-item"
+                  :aria-checked="immersiveModeEnabled"
+                  @click="player.setImmersiveModeEnabled(!immersiveModeEnabled)"
+                >
+                  <LucideFocus class="size-4 shrink-0" />
+                  <span class="flex-1">{{ t('Settings.immersive_mode') }}</span>
+                  <LucideCheck v-if="immersiveModeEnabled" class="size-4 text-blue-400" />
+                </button>
+                <button
+                  type="button" role="menuitemcheckbox" class="player-menu-item"
+                  :aria-checked="showTranslation" :disabled="!lyricTranslation"
+                  :title="!lyricTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
+                  @click="player.toggleTranslation()"
+                >
+                  <LucideLanguages class="size-4 shrink-0" />
+                  <span class="flex-1">{{ t('PlayerFullscreen.translated_lyrics') }}</span>
+                  <LucideCheck v-if="showTranslation" class="size-4" :class="lyricTranslation ? 'text-blue-400' : 'text-white/40'" />
+                </button>
+                <button
+                  type="button" role="menuitemcheckbox" class="player-menu-item"
+                  :aria-checked="showSpectrum" :disabled="!enableAudioContext"
+                  :title="!enableAudioContext ? t('PlayerFullscreen.enable_audio_visualization_in_settings_first') : undefined"
+                  @click="player.toggleSpectrum()"
+                >
+                  <LucideAudioLines class="size-4 shrink-0" />
+                  <span class="flex-1">{{ t('PlayerFullscreen.spectrum_visualization') }}</span>
+                  <LucideCheck v-if="showSpectrum" class="size-4" :class="enableAudioContext ? 'text-blue-400' : 'text-white/40'" />
+                </button>
+              </div>
+            </Transition>
+          </div>
+        </template>
+      </PlayerFullscreenMobile>
+
+      <div v-else class="relative flex-1 flex flex-col z-10 min-h-0">
         <div
           class="relative z-20 grid items-center gap-3 px-6 py-4 shrink-0 transition-opacity duration-300"
           :style="{ gridTemplateColumns: headerColumns }"
@@ -463,7 +592,6 @@ function onHeaderTouchEnd() {
                   <LucideCheck v-if="immersiveModeEnabled" class="size-4 text-blue-400" />
                 </button>
                 <button
-                  v-if="!isMobileViewport"
                   type="button" role="menuitemcheckbox" class="player-menu-item"
                   :aria-checked="showFullscreenLyrics"
                   @click="player.toggleFullscreenLyrics()"
@@ -497,8 +625,8 @@ function onHeaderTouchEnd() {
           </div>
         </div>
 
-        <div class="relative z-10 flex-1 flex items-center px-6 md:px-16 gap-8 min-h-0" :class="{ 'justify-center': !isMobileViewport && !showFullscreenLyrics }">
-          <div class="hidden md:block w-[40%] max-w-[40vh] shrink-0" :class="!isMobileViewport && !showFullscreenLyrics ? 'mx-auto' : 'mx-[5vw]'">
+        <div class="relative z-10 flex-1 flex items-center px-16 gap-8 min-h-0" :class="{ 'justify-center': !showFullscreenLyrics }">
+          <div class="w-[40%] max-w-[40vh] shrink-0" :class="!showFullscreenLyrics ? 'mx-auto' : 'mx-[5vw]'">
             <div
               class="w-full aspect-square shadow-2xl"
               :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
@@ -521,74 +649,16 @@ function onHeaderTouchEnd() {
             </div>
           </div>
 
-          <div
-            v-if="isMobileViewport && mobileFullscreenLayout === 'cover'"
-            class="md:hidden flex-1 min-h-0 flex flex-col items-center justify-center gap-5 px-2 overflow-hidden"
-          >
-            <button
-              type="button"
-              class="max-w-full aspect-square shadow-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
-              :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl ring-1 ring-white/10', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
-              :style="{ width: `${compactCoverSize}px`, height: `${compactCoverSize}px` }"
-              :aria-label="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
-              :title="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
-              @click="onMobileCoverClick"
-              @contextmenu="onCoverContextMenu"
-              @touchstart="onCoverTouchStart"
-              @touchmove="onCoverTouchMove"
-              @touchend="onCoverTouchEnd"
-              @touchcancel="cancelCoverPress"
-            >
-              <LazyImg
-                class="size-full object-cover fullscreen-cover-image"
-                :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
-                :src="coverUrl"
-                :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
-              />
-            </button>
-
-            <div class="w-full max-w-[min(88vw,520px)] min-h-[3.5rem] text-center flex items-center justify-center px-2">
-              <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
-                {{ t('PlayerFullscreen.no_lyrics') }}
-              </div>
-              <div v-else-if="!hasTimestamp" class="text-white/70 text-center">
-                {{ t('PlayerFullscreen.these_lyrics_do_not_support_scrolling') }}
-              </div>
-              <div v-else-if="compactLyricLine" class="max-w-full text-white font-bold">
-                <div
-                  class="leading-tight"
-                  :class="showTranslation && compactLyricLine.translation ? 'line-clamp-1' : 'line-clamp-2'"
-                  :style="{ fontSize: `${lyricsFontSize}px` }"
-                  :title="compactLyricLine.text"
-                >
-                  {{ compactLyricLine.text }}
-                </div>
-                <div
-                  v-if="showTranslation && compactLyricLine.translation"
-                  class="leading-tight text-white/70 font-normal mt-1 line-clamp-1"
-                  :style="{ fontSize: `${lyricsFontSize}px` }"
-                  :title="compactLyricLine.translation"
-                >
-                  {{ compactLyricLine.translation }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-else-if="isMobileViewport || showFullscreenLyrics" class="flex-1 h-full min-w-0">
+          <div v-if="showFullscreenLyrics" class="flex-1 h-full min-w-0">
             <PlayerLyrics
               :parsed-lyrics="parsedLyrics"
               :has-timestamp="hasTimestamp"
               :current-line-index="currentLineIndex"
               :show-translation="showTranslation"
               class="h-full"
-              @seek="onSeek"
+              @seek="player.seek"
             />
           </div>
-        </div>
-
-        <div v-if="!isImmersive || immersiveControlsVisible" class="relative z-10 md:hidden shrink-0 flex justify-end px-6 py-4">
-          <PlayerControlMobile />
         </div>
 
         <div
@@ -596,21 +666,21 @@ function onHeaderTouchEnd() {
           :style="{ height: `${player.spectrumSettings.height}px`, maxHeight: '30vh' }"
           :class="{ 'translate-y-[72px]': isImmersive && !immersiveControlsVisible }"
         >
-          <PlayerSpectrum :active="showSpectrum && isPlaying" />
+          <PlayerSpectrum :active="isPlaying" />
         </div>
       </div>
 
       <div
         v-if="isImmersive && !immersiveControlsVisible"
-        class="absolute inset-x-0 bottom-0 z-20 pointer-events-none"
+        class="absolute inset-x-0 bottom-0 z-20 h-1 overflow-hidden bg-white/10 pointer-events-none"
         aria-hidden="true"
       >
-        <PlayerProgress
-          :current-time="currentTime"
-          :duration="duration"
-          :buffered-end="bufferedEnd"
-          thin
-        />
+        <div class="absolute inset-y-0 left-0 rounded-r-full bg-white/10 transition-[width] duration-300" :style="{ width: `${duration > 0 ? bufferedEnd / duration * 100 : 0}%` }" />
+        <div class="absolute inset-y-0 left-0 rounded-r-full bg-white/80" :style="{ width: `${duration > 0 ? currentTime / duration * 100 : 0}%` }" />
+      </div>
+
+      <div v-if="isMobileViewport && showSpectrum && enableAudioContext" class="absolute inset-x-0 bottom-0 pointer-events-none" :style="{ height: `${player.spectrumSettings.height}px`, maxHeight: '30%' }">
+        <PlayerSpectrum :active="isPlaying" />
       </div>
 
       <Transition name="player-menu">
@@ -772,11 +842,6 @@ function onHeaderTouchEnd() {
   to { transform: rotate(360deg); }
 }
 
-.volume-slider {
-  height: 4px;
-  accent-color: white;
-}
-
 .fullscreen-player-enter-active,
 .fullscreen-player-leave-active {
   transition: all 0.4s ease;
@@ -789,5 +854,14 @@ function onHeaderTouchEnd() {
 .fullscreen-player-leave-to {
   transform: translateY(100%);
   opacity: 0;
+}
+@media (max-width: 767px) {
+  .player-menu-item { min-height: 44px; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .fullscreen-cover-spin { animation: none; }
+  .fullscreen-player-enter-active,
+  .fullscreen-player-leave-active { transition: opacity 0.01ms; }
 }
 </style>

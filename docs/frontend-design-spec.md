@@ -136,6 +136,10 @@ notice store 将状态分为 `readKeys`（已读）和 `promptedKeys`（重要�
 
 - 状态：持久化（playlist/currentIndex/playMode/volume/quality/歌词外观）+ 运行时（isPlaying/currentTime/duration/bufferedEnd/loading/歌词/isFullscreen/showPlaylist）。
 - 播放模式：`sequential`/`loop`/`single`/`shuffle`。
+- 随机播放使用 `utils/shuffle.ts` 按 `songId` 管理每轮随机顺序，一轮内自动选曲不重复，跨轮首曲避开上一轮末曲（单曲队列除外）。当前歌曲及手动跳过、尝试播放失败的歌曲均计为已轮到；暂停、seek、切换音质和重载当前歌曲不推进顺序。
+- `shuffleState` 随队列持久化，保存队列成员、剩余随机顺序、最近 200 条播放历史及游标；上一首返回实际历史，返回后下一首先恢复前进历史。主动点播其他歌曲截断前进历史，并从本轮剩余顺序中移除该歌曲。播放模式切换保留状态，期间选中的歌曲也计入进度。
+- 随机模式下播放列表按已播放、当前歌曲、前进历史和剩余随机顺序展示，每首歌曲仅显示一次；随播放进度与新一轮洗牌更新，当前歌曲后紧邻实际下一首。显示“当前为打乱后的播放队列”提示，隐藏保存歌单入口、拖动手柄并禁用排序；点击、删除仍映射到原队列索引，退出随机模式恢复原队列顺序及保存、排序操作。
+- 追加歌曲随机插入剩余顺序；删除歌曲同步移除剩余顺序与历史，删除当前歌曲时按随机顺序续播；拖动排序保留随机进度。替换/清空队列重置随机状态。刷新时校验持久化状态、清理失效 ID，旧版缺失状态自动初始化；桌面/移动端和系统媒体控制共用 Store 的切歌动作。
 - 动作：`playSong`（重置状态 → vue-query 缓存取媒体 → 选 URL → 播放）、`togglePlay`、`replacePlaylist`、`addToPlaylist`（去重）、`removeFrom`/`reorderPlaylist`、`switchQuality`（可播放后 seek 回位）、`reloadCurrentSong`（切源后重载）。
 - **错误恢复**：连续出错 ≥2 次判定服务不可用停止，否则自动切下一首并 toast。
 - **Media Session**：对接系统媒体控制，更新 `playbackState` 与 `setPositionState`。
@@ -149,6 +153,11 @@ notice store 将状态分为 `readKeys`（已读）和 `promptedKeys`（重要�
 ### 8.5 播放器 UI（`components/player/`）
 
 `PlayerBar`（常驻播放条，移动端滑动切歌）、`PlayerControl`/`PlayerControlMobile`、`PlayerPlayBtn`、`PlayerProgress`（进度/缓冲，支持拖拽）、`PlayerBarSongInfo`、`PlayerFullscreen`（全屏大屏 + 动态渐变背景 + 下滑收起）、`PlayerLyrics`、`PlayerSpectrum`、`PlayerPlaylist`（vuedraggable 排序/删除/清空）。
+
+移动端全屏播放器（<768px）由 `PlayerFullscreenMobile` 承载：顶部歌曲与专辑信息、中部自适应大封面或完整歌词、底部进度与独立播放控制。全屏期间隐藏移动端 `PlayerBar` 并取消其 72px 占位；桌面保留原布局及常驻播放条。`PlayerControlMobile` 提供播放模式、定时、歌词/封面切换、队列和更多入口；音质、音量、翻译、频谱、封面设置和浏览器全屏收于更多菜单。首次使用默认封面视图，已有持久化选择继续生效。
+
+移动端队列统一从屏幕底部展开并保留安全区，非全屏时覆盖底部播放条，保留原队列操作。移动端可从面板顶部下拉关闭，阈值与全屏播放器一致（超过80px）；不足阈值或触摸取消时回弹，顶部按钮、列表滚动与拖动排序不触发关闭。顶部使用 Pointer Events、指针捕获和 `touch-action: none`；起始阶段锁定方向，拖动过程中同步更新面板位移并禁用过渡，避免每帧重渲染队列；回弹途中重新按住时从当前可见位置继续拖动。桌面队列沿用右侧面板。移动端布局使用容器实测尺寸、安全区留白、矮屏压缩及横屏双列；空间不足时允许纵向滚动。移动端底部控制采用紧凑间距与较小图标，保留44px工具触摸区和52px主播放触摸区。完整歌词视图进入沉浸模式时扩展至顶部与底部控制空出的区域，恢复控制后回到常规布局；进出沉浸模式时，以当前可见歌词行为锚点补偿滚动偏移，保持歌词在屏幕上的位置；手动浏览时使用可见行而非强制回到当前播放行。封面视图保留原有布局，隐藏区域设为 `inert`；菜单、队列和定时面板打开期间暂停自动隐藏。进度条移动端触摸区为 44px，支持键盘方向键（5秒）及 Home/End，默认共享样式不变。
+
 
 ### 8.6 定时播放
 

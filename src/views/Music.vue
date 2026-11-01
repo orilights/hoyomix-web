@@ -336,7 +336,7 @@ function refreshSongInfo() {
     <div v-else-if="albumInfo && musicInfo" class="music-page detail-page">
       <div v-page-enter="0" class="detail-header">
         <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
-          <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px')" />
+          <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px')" :preview-src="getCoverUrl(albumInfo.platforms, '800px')" :alt="albumInfo.name" />
         </div>
         <div class="min-w-0">
           <div class="detail-title font-bold break-words" :title="musicInfo.name">

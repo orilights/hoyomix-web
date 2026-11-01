@@ -25,7 +25,3 @@ const playBtnTip = computed(() => {
     </button>
   </Tooltip>
 </template>
-
-<style scoped>
-
-</style>

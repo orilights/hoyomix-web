@@ -135,6 +135,7 @@ export type AlbumListItemInfo = Omit<AlbumInfo, 'songs'> & {
 }
 
 export interface SongListItemInfo {
+  maps?: SongMapInfo[]
   id: number
   name: string
   description: string
@@ -224,6 +225,7 @@ export interface PlaylistListItem {
 }
 
 export interface PlaylistSongItem {
+  maps?: SongMapInfo[]
   songId: number
   songName: string
   songDescription: string

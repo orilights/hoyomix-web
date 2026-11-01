@@ -13,7 +13,8 @@ const { currentTime, duration, bufferedEnd } = storeToRefs(player)
       <Tooltip :content="t('MusicActions.previous_song')" placement="top" align="center">
         <button
           :aria-label="t('MusicActions.previous_song')"
-          class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1"
+          :disabled="player.playMode === 'shuffle' && !player.hasPrev"
+          class="text-gray-400 hover:text-white transition-colors cursor-pointer p-1 disabled:opacity-40 disabled:cursor-not-allowed"
           @click="player.playPrev()"
         >
           <LucideSkipBack class="size-5" fill="currentColor" />
@@ -50,7 +51,3 @@ const { currentTime, duration, bufferedEnd } = storeToRefs(player)
     </div>
   </div>
 </template>
-
-<style scoped>
-
-</style>
