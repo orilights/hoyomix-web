@@ -222,9 +222,7 @@ onMounted(() => {
                 v-show="!swipeActive"
                 class="flex items-center gap-1 md:gap-2 w-[240px] ml-auto justify-end xl:flex-1 xl:min-w-0 xl:w-auto"
               >
-                <PlayerPlayBtn v-if="isMobileViewport" class="mr-2" />
-
-                <Dropdown :options="qualityOptions" alignment="center" position="up" dark>
+                <Dropdown v-if="!isMobileViewport" :options="qualityOptions" alignment="center" position="up" dark>
                   <Tooltip :content="t('Settings.audio_quality')" placement="top" align="center">
                     <button
                       class="text-xs font-bold px-2 py-1 rounded border cursor-pointer transition-colors"
