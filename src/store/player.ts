@@ -32,7 +32,7 @@ export const usePlayerStore = defineStore('player', {
     lyricsOffset: 0,
     lyricsFontSize: 16,
     lyricsSource: 'ncm' as LyricsSource,
-    mobileFullscreenLayout: 'lyrics' as MobileFullscreenLayout,
+    mobileFullscreenLayout: 'cover' as MobileFullscreenLayout,
     fullscreenCoverShape: 'square' as FullscreenCoverShape,
     fullscreenCoverRotation: true,
     fullscreenCoverBorder: true,
@@ -712,7 +712,7 @@ export const usePlayerStore = defineStore('player', {
         store.songListPlayBehavior = 'ask'
       store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
       if (store.mobileFullscreenLayout !== 'lyrics' && store.mobileFullscreenLayout !== 'cover')
-        store.mobileFullscreenLayout = 'lyrics'
+        store.mobileFullscreenLayout = 'cover'
       if (store.fullscreenCoverShape !== 'square' && store.fullscreenCoverShape !== 'circle')
         store.fullscreenCoverShape = 'square'
       if (typeof store.fullscreenCoverRotation !== 'boolean')

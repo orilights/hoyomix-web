@@ -711,6 +711,8 @@
   "PlayerFullscreen.translated_lyrics": "Translated lyrics",
   "PlayerFullscreen.enable_audio_visualization_in_settings_first": "Enable audio visualization in settings first",
   "PlayerFullscreen.spectrum_visualization": "Spectrum visualization",
+  "PlayerFullscreen.playback_progress": "Playback progress",
+  "PlayerFullscreen.volume": "Volume",
   "PlayerFullscreen.cover": "{p0} cover",
   "PlayerFullscreen.switch_to_full_lyrics_layout": "Switch to full lyrics layout",
   "PlayerFullscreen.no_lyrics": "No lyrics",

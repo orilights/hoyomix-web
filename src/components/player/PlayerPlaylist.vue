@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
 import { t } from '@/i18n'
@@ -25,10 +26,103 @@ const displayedPlaylist = computed(() => {
 
 const showCreatePlaylistDialog = ref(false)
 const showSelectPlaylistDialog = ref(false)
+const isMobileViewport = useMediaQuery('(max-width: 767px)')
+const queuePanel = useTemplateRef<HTMLElement>('queuePanel')
+let dragOffset = 0
+let dragStartOffset = 0
+let headerPointerId: number | null = null
+let headerPointerTarget: HTMLElement | null = null
+let headerPointerStart: { x: number, y: number } | null = null
+let dragDirection: 'pending' | 'vertical' = 'pending'
+
+function setDragOffset(offset: number) {
+  dragOffset = offset
+  // Keep per-frame movement out of Vue's render cycle and the draggable song list.
+  queuePanel.value?.style.setProperty('--queue-drag-offset', `${offset}px`)
+}
+
+function releaseHeaderPointer() {
+  const pointerId = headerPointerId
+  const target = headerPointerTarget
+  headerPointerId = null
+  headerPointerTarget = null
+  headerPointerStart = null
+  queuePanel.value?.classList.remove('queue-header-dragging')
+  if (pointerId !== null && target?.hasPointerCapture(pointerId))
+    target.releasePointerCapture(pointerId)
+}
+
+function cancelHeaderDrag() {
+  releaseHeaderPointer()
+  setDragOffset(0)
+}
+
+function onHeaderPointerDown(event: PointerEvent) {
+  if (!isMobileViewport.value || event.pointerType === 'mouse')
+    return
+  if (!event.isPrimary) {
+    cancelHeaderDrag()
+    return
+  }
+  if ((event.target as Element).closest('button, a, input, [role="button"]'))
+    return
+  const panel = queuePanel.value
+  if (!panel)
+    return
+  // A new grab interrupts a rebound at its visible position, not its target (0px).
+  const transform = getComputedStyle(panel).transform
+  dragStartOffset = transform === 'none' ? 0 : Math.max(0, new DOMMatrixReadOnly(transform).m42)
+  panel.classList.add('queue-header-dragging')
+  setDragOffset(dragStartOffset)
+  headerPointerStart = { x: event.clientX, y: event.clientY }
+  headerPointerId = event.pointerId
+  headerPointerTarget = event.currentTarget as HTMLElement
+  dragDirection = 'pending'
+  headerPointerTarget.setPointerCapture(event.pointerId)
+}
+
+function onHeaderPointerMove(event: PointerEvent) {
+  if (event.pointerId !== headerPointerId || !headerPointerStart)
+    return
+  const deltaX = event.clientX - headerPointerStart.x
+  const deltaY = event.clientY - headerPointerStart.y
+  if (dragDirection === 'pending') {
+    if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 8)
+      return
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      cancelHeaderDrag()
+      return
+    }
+    dragDirection = 'vertical'
+  }
+  setDragOffset(Math.max(0, dragStartOffset + deltaY))
+}
+
+function onHeaderPointerUp(event: PointerEvent) {
+  if (event.pointerId !== headerPointerId)
+    return
+  releaseHeaderPointer()
+  if (dragDirection === 'vertical' && dragOffset > 80)
+    showPlaylist.value = false
+  else
+    setDragOffset(0)
+}
+
+function onHeaderPointerCancel(event: PointerEvent) {
+  if (event.pointerId === headerPointerId)
+    cancelHeaderDrag()
+}
+
+watch(isMobileViewport, cancelHeaderDrag)
+onBeforeUnmount(releaseHeaderPointer)
 
 const playlistSongIds = computed(() => displayedPlaylist.value.map(entry => entry.song.songId))
 
 watch(showPlaylist, async (val) => {
+  if (val)
+    cancelHeaderDrag()
+  else
+    releaseHeaderPointer()
   if (val && currentIndex.value >= 0) {
     await nextTick()
     document.querySelector(`[data-playlist-index="${currentIndex.value}"]`)?.scrollIntoView({ block: 'center' })
@@ -72,10 +166,11 @@ function clearAll() {
   <Transition name="playlist-panel">
     <div
       v-show="showPlaylist"
-      class="fixed inset-0 z-80 flex justify-end pb-[72px]"
+      class="player-queue fixed inset-0 z-80 flex justify-end pb-[72px]"
       @click.self="showPlaylist = false"
     >
       <div
+        ref="queuePanel"
         class="w-full max-w-md h-full backdrop-blur-xl flex flex-col shadow-2xl border-l border-white/10"
         :class="{
           'bg-gray-900/95': !isFullscreen,
@@ -83,7 +178,14 @@ function clearAll() {
         }"
         @click.stop
       >
-        <div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
+        <div
+          class="queue-header flex items-center justify-between px-4 py-3 border-b border-white/10"
+          @pointerdown="onHeaderPointerDown"
+          @pointermove="onHeaderPointerMove"
+          @pointerup="onHeaderPointerUp"
+          @pointercancel="onHeaderPointerCancel"
+          @lostpointercapture="onHeaderPointerCancel"
+        >
           <div class="text-white font-bold">
             {{ t('PlayerBar.queue') }}<span class="text-white/50 text-sm font-normal ml-2">{{ t('Random.song', { p0: displayedPlaylist.length }, Number(displayedPlaylist.length)) }}</span>
           </div>
@@ -198,6 +300,34 @@ function clearAll() {
 </template>
 
 <style scoped>
+@media (max-width: 767px) {
+  .player-queue {
+    align-items: flex-end;
+    padding-bottom: 0;
+    background: rgb(0 0 0 / 35%);
+  }
+  .player-queue > div:last-child {
+    width: 100%;
+    max-width: none;
+    height: 75%;
+    max-height: calc(100% - max(16px, env(safe-area-inset-top)));
+    padding-bottom: env(safe-area-inset-bottom);
+    border-radius: 20px 20px 0 0;
+    background: rgb(17 24 39 / 95%);
+    transform: translateY(var(--queue-drag-offset, 0px));
+    transition: transform 0.3s ease;
+  }
+  .player-queue > .queue-header-dragging:last-child {
+    transition: none;
+  }
+  .queue-header {
+    user-select: none;
+    touch-action: none;
+  }
+  .player-queue.playlist-panel-enter-from > div:last-child,
+  .player-queue.playlist-panel-leave-to > div:last-child { transform: translateY(100%); }
+}
+
 .playlist-panel-enter-active,
 .playlist-panel-leave-active {
   transition: all 0.3s ease;

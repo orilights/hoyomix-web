@@ -51,7 +51,3 @@ const { currentTime, duration, bufferedEnd } = storeToRefs(player)
     </div>
   </div>
 </template>
-
-<style scoped>
-
-</style>

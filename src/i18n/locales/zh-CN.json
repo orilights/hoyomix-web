@@ -711,6 +711,8 @@
   "PlayerFullscreen.translated_lyrics": "歌词翻译",
   "PlayerFullscreen.enable_audio_visualization_in_settings_first": "请在设置中开启音频可视化",
   "PlayerFullscreen.spectrum_visualization": "频谱可视化",
+  "PlayerFullscreen.playback_progress": "播放进度",
+  "PlayerFullscreen.volume": "音量",
   "PlayerFullscreen.cover": "{p0} 封面",
   "PlayerFullscreen.switch_to_full_lyrics_layout": "切换到完整歌词布局",
   "PlayerFullscreen.no_lyrics": "暂无歌词",

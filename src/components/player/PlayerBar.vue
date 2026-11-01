@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { PlayMode } from '@/types/player'
+import { useMediaQuery } from '@vueuse/core'
 import { audioQualityOptions, getQualityLabel } from '@/constants'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { isIOS } from '@/utils'
 
+const isMobileViewport = useMediaQuery('(max-width: 767px)')
 const player = usePlayerStore()
 const {
   currentSong,
   playlist,
   currentIndex,
-  currentTime,
-  duration,
-  bufferedEnd,
   volume,
   playMode,
   quality,
@@ -93,7 +92,7 @@ const nextSong = computed(() => {
 })
 
 function onBarTouchStart(e: TouchEvent) {
-  if (window.innerWidth >= 768)
+  if (!isMobileViewport.value)
     return
   swipeStartX.value = e.touches[0].clientX
   swipeStartY.value = e.touches[0].clientY
@@ -102,7 +101,7 @@ function onBarTouchStart(e: TouchEvent) {
 }
 
 function onBarTouchMove(e: TouchEvent) {
-  if (window.innerWidth >= 768)
+  if (!isMobileViewport.value)
     return
   const deltaX = e.touches[0].clientX - swipeStartX.value
   const deltaY = e.touches[0].clientY - swipeStartY.value
@@ -163,19 +162,9 @@ onMounted(() => {
 <template>
   <Transition name="player-bar">
     <div
-      v-show="!isImmersive || immersiveControlsVisible"
+      v-show="!(isMobileViewport && isFullscreen) && (!isImmersive || immersiveControlsVisible)"
       class="fixed bottom-0 left-0 right-0 z-60"
     >
-      <div class="md:hidden">
-        <PlayerProgress
-          :current-time="currentTime"
-          :duration="duration"
-          :buffered-end="bufferedEnd"
-          thin
-          @seek="player.seek"
-        />
-      </div>
-
       <div
         class="backdrop-blur-xl border-t border-white/10 transition-colors"
         :class="{
@@ -191,8 +180,8 @@ onMounted(() => {
           @touchend="onBarTouchEnd"
         >
           <div
-            v-if="swipeActive"
-            class="absolute inset-0 md:hidden flex items-center px-4"
+            v-if="isMobileViewport && swipeActive"
+            class="absolute inset-0 flex items-center px-4"
             :style="{
               transform: `translateX(calc(-100% + ${swipeOffset}px))`,
               transition: swipeTransition ? 'transform 0.3s ease' : undefined,
@@ -202,8 +191,8 @@ onMounted(() => {
           </div>
 
           <div
-            v-if="swipeActive"
-            class="absolute inset-0 md:hidden flex items-center px-4"
+            v-if="isMobileViewport && swipeActive"
+            class="absolute inset-0 flex items-center px-4"
             :style="{
               transform: `translateX(calc(100% + ${swipeOffset}px))`,
               transition: swipeTransition ? 'transform 0.3s ease' : undefined,
@@ -224,7 +213,7 @@ onMounted(() => {
               :class="{ 'min-w-0 max-w-[240px] md:w-[240px] xl:flex-1 xl:max-w-none xl:w-auto': !swipeActive }"
             />
 
-            <div class="hidden md:block flex-1 shrink-0 xl:flex-none xl:w-[600px]">
+            <div v-if="!isMobileViewport" class="flex-1 shrink-0 xl:flex-none xl:w-[600px]">
               <PlayerControl />
             </div>
 
@@ -233,7 +222,7 @@ onMounted(() => {
                 v-show="!swipeActive"
                 class="flex items-center gap-1 md:gap-2 w-[240px] ml-auto justify-end xl:flex-1 xl:min-w-0 xl:w-auto"
               >
-                <PlayerPlayBtn class="md:hidden mr-2 md:mr-0" />
+                <PlayerPlayBtn v-if="isMobileViewport" class="mr-2" />
 
                 <Dropdown :options="qualityOptions" alignment="center" position="up" dark>
                   <Tooltip :content="t('Settings.audio_quality')" placement="top" align="center">
@@ -271,7 +260,7 @@ onMounted(() => {
                   </AppButton>
                 </Tooltip>
 
-                <div v-if="!isIOS()" class="hidden md:block relative" @wheel.prevent="onVolumeWheel">
+                <div v-if="!isMobileViewport && !isIOS()" class="relative" @wheel.prevent="onVolumeWheel">
                   <AppButton
                     icon-only
                     variant="dark"
