@@ -4,6 +4,7 @@ import { toast } from 'vue-sonner'
 import { submitSongRegionEditApi } from '@/api/music'
 import { useMapTreeQuery } from '@/composables/queries'
 import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 
 const props = defineProps<{
@@ -190,9 +191,9 @@ async function submit() {
     if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
       return
     if (res.directApproved)
-      toast.success('地区变更已生效')
+      toast.success(t('SongRegionEditDialog.region_links_updated'))
     else
-      toast.success('申请已提交，等待审核')
+      toast.success(t('SongCreditsEditDialog.request_submitted_for_review'))
     close()
     emit('success')
   }
@@ -200,7 +201,7 @@ async function submit() {
     if (props.songId !== submissionSongId || auth.user?.id !== submissionUserId)
       return
     void retryCheck()
-    toast.error(error instanceof Error ? error.message : '提交失败')
+    toast.error(error instanceof Error ? error.message : t('SongCreditsEditDialog.submission_failed'))
   }
   finally {
     submitting.value = false
@@ -211,7 +212,7 @@ async function submit() {
 <template>
   <AppDialog v-model="visible" :close-on-click-overlay="false" size="md">
     <template #title>
-      修改地区关联
+      {{ t('SongRegionEditDialog.edit_region_links') }}
     </template>
 
     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
@@ -219,10 +220,10 @@ async function submit() {
 
       <div>
         <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          当前地区
+          {{ t('SongRegionEditDialog.current_regions') }}
         </p>
         <div v-if="!maps.length" class="text-xs text-gray-400">
-          暂无地区标签
+          {{ t('SongRegionEditDialog.no_region_tags') }}
         </div>
         <div v-else class="space-y-1">
           <div
@@ -239,15 +240,15 @@ async function submit() {
                 :class="isRemoved(map.id) ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20' : 'bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20'"
                 @click="toggleNode(map.id)"
               >
-                {{ isRemoved(map.id) ? '恢复' : '移除' }}
+                {{ isRemoved(map.id) ? t('SongRegionEditDialog.restore') : t('SongRegionEditDialog.remove') }}
               </button>
             </div>
             <input
               v-model="noteDrafts[map.id]"
               type="text"
               :disabled="isRemoved(map.id)"
-              :aria-label="`${pathText(map.path)}备注`"
-              placeholder="备注（可选，最多 500 字）"
+              :aria-label="t('SongRegionEditDialog.note_for', { p0: pathText(map.path) })"
+              :placeholder="t('SongRegionEditDialog.note_optional_up_to_500_characters')"
               maxlength="500"
               class="mt-1 w-full px-2 py-1 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:cursor-not-allowed"
             >
@@ -257,7 +258,7 @@ async function submit() {
 
       <div v-if="addItems.length">
         <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          待添加地区
+          {{ t('SongRegionEditDialog.regions_to_add') }}
         </p>
         <div class="space-y-2">
           <div
@@ -272,13 +273,13 @@ async function submit() {
                 class="text-xs text-red-500 hover:text-red-600 hover:dark:text-red-400 cursor-pointer shrink-0"
                 @click="removeAddItem(item.mapId)"
               >
-                移除
+                {{ t('SongRegionEditDialog.remove') }}
               </button>
             </div>
             <input
               v-model="item.note"
               type="text"
-              placeholder="备注（可选，最多 500 字）"
+              :placeholder="t('SongRegionEditDialog.note_optional_up_to_500_characters')"
               maxlength="500"
               class="mt-1 w-full px-2 py-1 border border-gray-200 dark:border-gray-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
@@ -288,25 +289,24 @@ async function submit() {
 
       <div>
         <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-          选择地区
+          {{ t('SongRegionEditDialog.select_regions') }}
         </p>
         <input
           v-model="searchText"
           type="text"
-          placeholder="搜索地区"
+          :placeholder="t('SongRegionEditDialog.search_regions')"
           class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
         <div class="mt-2">
           <AsyncFade>
             <div v-if="loading && game" role="status" class="flex items-center justify-center py-8 text-gray-400">
-              <LucideLoader2 class="size-5 animate-spin mr-2" />
-              加载中...
+              <LucideLoader2 class="size-5 animate-spin mr-2" />{{ t('App.loading') }}
             </div>
             <div v-else-if="loadError || !game" class="flex items-center justify-center py-8 text-gray-400 text-sm">
-              地图数据加载失败
+              {{ t('SongRegionEditDialog.failed_to_load_map_data') }}
             </div>
             <div v-else-if="!tree.length" class="flex items-center justify-center py-8 text-gray-400 text-sm">
-              该作品暂不支持地区标签
+              {{ t('SongRegionEditDialog.region_tags_are_not_available_for_this_game') }}
             </div>
             <div v-else class="border border-gray-100 dark:border-gray-700 rounded-lg max-h-56 overflow-y-auto py-1">
               <div
@@ -345,7 +345,7 @@ async function submit() {
                 </button>
               </div>
               <div v-if="!visibleNodes.length" class="px-3 py-6 text-center text-xs text-gray-400">
-                未找到匹配地区
+                {{ t('SongRegionEditDialog.no_matching_regions') }}
               </div>
             </div>
           </AsyncFade>
@@ -359,7 +359,7 @@ async function submit() {
           type="button"
           @click="close"
         >
-          取消
+          {{ t('AlbumPickerDialog.cancel') }}
         </AppButton>
         <AppButton
           type="button"
@@ -368,7 +368,7 @@ async function submit() {
           @click="submit"
         >
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />
-          {{ submitting ? '提交中...' : '提交申请' }}
+          {{ submitting ? t('SongCreditsEditDialog.submitting') : t('SongCreditsEditDialog.submit_request') }}
         </AppButton>
       </div>
     </template>

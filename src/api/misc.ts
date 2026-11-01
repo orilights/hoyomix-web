@@ -1,3 +1,4 @@
+import { LocalizedError } from '@/i18n/error'
 import { fetchJson } from '@/utils/fetch'
 import { parseNotices } from '@/utils/notice'
 
@@ -12,6 +13,6 @@ export async function getNotice() {
   if (source == null)
     return []
   if (typeof source !== 'string')
-    throw new Error('公告内容格式无效')
+    throw new LocalizedError('misc.invalid_announcement_format')
   return parseNotices(source)
 }

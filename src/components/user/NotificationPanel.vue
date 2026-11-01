@@ -11,6 +11,7 @@ import {
   markAllNotificationsReadApi,
   markNotificationReadApi,
 } from '@/api/notification'
+import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { formatRelativeTime } from '@/utils'
 import { getRememberedCommentRoute } from '@/utils/comment-route'
@@ -59,7 +60,7 @@ async function fetchNotifications(reset = false) {
     // 加载更多失败时回滚页码，便于重试
     if (!reset)
       page.value--
-    toast.error(`通知加载失败：${e instanceof Error ? e.message : '未知错误'}`)
+    toast.error(t('NotificationPanel.failed_to_load_notifications', { p0: e instanceof Error ? e.message : t('App.unknown_error') }))
   }
   finally {
     loading.value = false
@@ -84,7 +85,7 @@ async function markRead(id: number) {
     item.isRead = prevRead
     unreadCount.value = prevUnread
     emit('unreadCountChange', prevUnread)
-    toast.error(`标记已读失败：${e instanceof Error ? e.message : '未知错误'}`)
+    toast.error(t('NotificationPanel.failed_to_mark_as_read', { p0: e instanceof Error ? e.message : t('App.unknown_error') }))
   }
 }
 
@@ -105,7 +106,7 @@ async function markAllRead() {
     notifications.value.forEach(n => (n.isRead = prevReadMap.get(n.id) ?? n.isRead))
     unreadCount.value = prevUnread
     emit('unreadCountChange', prevUnread)
-    toast.error(`全部已读失败：${e instanceof Error ? e.message : '未知错误'}`)
+    toast.error(t('NotificationPanel.failed_to_mark_all_as_read', { p0: e instanceof Error ? e.message : t('App.unknown_error') }))
   }
 }
 
@@ -135,14 +136,14 @@ async function removeNotification(id: number) {
       unreadCount.value = prevUnread
       emit('unreadCountChange', prevUnread)
     }
-    toast.error(`删除通知失败：${e instanceof Error ? e.message : '未知错误'}`)
+    toast.error(t('NotificationPanel.failed_to_delete_notification', { p0: e instanceof Error ? e.message : t('App.unknown_error') }))
   }
 }
 
 async function deleteRead() {
   const readCount = notifications.value.filter(n => n.isRead).length
   if (readCount === 0) {
-    toast.info('没有已读通知')
+    toast.info(t('NotificationPanel.no_read_notifications'))
     return
   }
   const removed = notifications.value.filter(n => n.isRead)
@@ -150,13 +151,13 @@ async function deleteRead() {
   total.value -= readCount
   try {
     await deleteReadNotificationsApi()
-    toast.success('已删除已读通知')
+    toast.success(t('NotificationPanel.read_notifications_deleted'))
   }
   catch (e) {
     // 回滚：恢复已读通知
     notifications.value = [...notifications.value, ...removed]
     total.value += readCount
-    toast.error(`删除已读失败：${e instanceof Error ? e.message : '未知错误'}`)
+    toast.error(t('NotificationPanel.failed_to_delete_read_notifications', { p0: e instanceof Error ? e.message : t('App.unknown_error') }))
   }
 }
 
@@ -217,7 +218,7 @@ async function openNotification(notification: Notification) {
   const metadata = getCommentMetadata(notification)
   if (!metadata) {
     if (isCommentNotification(notification))
-      toast.error('通知缺少评论定位信息')
+      toast.error(t('NotificationPanel.this_notification_has_no_comment_location'))
     await markRead(notification.id)
     return
   }
@@ -230,7 +231,7 @@ async function openNotification(notification: Notification) {
       Promise.resolve(resolveCommentPath(metadata.postId)),
     ])
     if (!path) {
-      toast.error('暂时无法定位该评论所属页面')
+      toast.error(t('NotificationPanel.unable_to_find_the_page_for_this_comment'))
       return
     }
     await markRead(notification.id)
@@ -248,8 +249,8 @@ async function openNotification(notification: Notification) {
   }
   catch (error) {
     toast.error(error instanceof CommentApiError && error.code === 404
-      ? '评论不存在或不可见'
-      : error instanceof Error ? error.message : '定位评论失败，请稍后重试')
+      ? t('NotificationPanel.comment_does_not_exist_or_is_not_visible')
+      : error instanceof Error ? error.message : t('CommentThread.unable_to_locate_the_comment_please_try_again_later'))
   }
   finally {
     navigatingId.value = null
@@ -258,9 +259,9 @@ async function openNotification(notification: Notification) {
 
 function notificationTypeLabel(notification: Notification) {
   if (notification.type === 'comment-reply')
-    return '评论回复'
+    return t('NotificationPanel.comment_reply')
   if (notification.type === 'comment-approval')
-    return '评论审核'
+    return t('NotificationPanel.comment_review')
   return null
 }
 
@@ -271,7 +272,7 @@ onMounted(() => fetchNotifications(true))
   <div class="flex flex-col">
     <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-700">
       <span class="text-xs text-gray-400">
-        {{ unreadCount > 0 ? `${unreadCount} 条未读` : '暂无未读通知' }}
+        {{ unreadCount > 0 ? t('NotificationPanel.unread_notification', { p0: unreadCount }, Number(unreadCount)) : t('NotificationPanel.no_unread_notifications') }}
       </span>
       <div class="flex gap-0.5">
         <AppButton
@@ -281,7 +282,7 @@ onMounted(() => fetchNotifications(true))
           :disabled="unreadCount === 0"
           @click="markAllRead"
         >
-          全部已读
+          {{ t('NotificationPanel.mark_all_as_read') }}
         </AppButton>
         <AppButton
           variant="ghost"
@@ -289,7 +290,7 @@ onMounted(() => fetchNotifications(true))
           class="text-red-500 hover:text-red-500 hover:bg-red-50 hover:dark:bg-red-500/15"
           @click="deleteRead"
         >
-          删除已读
+          {{ t('NotificationPanel.delete_read') }}
         </AppButton>
       </div>
     </div>
@@ -297,16 +298,15 @@ onMounted(() => fetchNotifications(true))
     <div class="overflow-y-auto max-h-72 overscroll-contain">
       <AsyncFade>
         <div v-if="loading && notifications.length === 0" role="status" class="py-10 text-center text-sm text-gray-400">
-          加载中...
+          {{ t('App.loading') }}
         </div>
         <div v-else-if="loadError && notifications.length === 0" class="py-10 text-center text-sm text-gray-400" role="alert">
-          通知加载失败
-          <AppButton size="sm" variant="ghost" @click="fetchNotifications(true)">
-            重试
+          {{ t('NotificationPanel.failed_to_load_notifications_alternate') }}<AppButton size="sm" variant="ghost" @click="fetchNotifications(true)">
+            {{ t('App.retry') }}
           </AppButton>
         </div>
         <div v-else-if="notifications.length === 0" class="py-10 text-center text-sm text-gray-400">
-          暂无通知
+          {{ t('NotificationPanel.no_notifications') }}
         </div>
         <div v-else>
           <div
@@ -337,7 +337,7 @@ onMounted(() => fetchNotifications(true))
               size="xs"
               variant="ghost"
               class="opacity-0 group-hover:opacity-100 transition-all shrink-0 mt-0.5"
-              aria-label="删除通知"
+              :aria-label="t('NotificationPanel.delete_notification')"
               @click.stop="removeNotification(n.id)"
             >
               <LucideX class="size-3 text-gray-400" />
@@ -349,7 +349,7 @@ onMounted(() => fetchNotifications(true))
             :disabled="loading"
             @click.stop="loadMore"
           >
-            {{ loading ? '加载中...' : '加载更多' }}
+            {{ loading ? t('App.loading') : t('NotificationPanel.load_more') }}
           </button>
         </div>
       </AsyncFade>

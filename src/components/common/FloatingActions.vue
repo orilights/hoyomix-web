@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { usePageScroll } from '@/composables/usePageScroll'
 import { useSongLocator } from '@/composables/useSongLocator'
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 
@@ -34,8 +35,8 @@ const buttonClass = 'size-11 rounded-full inline-flex items-center justify-cente
   <div class="fixed right-4 bottom-22 z-40 flex flex-col items-end gap-2">
     <Transition name="fade">
       <div v-if="showLocate">
-        <Tooltip content="定位到当前播放歌曲" placement="left" align="center">
-          <button :class="buttonClass" type="button" aria-label="定位到当前播放歌曲" @click="locateCurrentSong">
+        <Tooltip :content="t('FloatingActions.go_to_the_current_song')" placement="left" align="center">
+          <button :class="buttonClass" type="button" :aria-label="t('FloatingActions.go_to_the_current_song')" @click="locateCurrentSong">
             <LucideLocateFixed class="size-5" />
           </button>
         </Tooltip>
@@ -44,8 +45,8 @@ const buttonClass = 'size-11 rounded-full inline-flex items-center justify-cente
 
     <Transition name="fade">
       <div v-if="showBackToTop">
-        <Tooltip content="返回顶部" placement="left" align="center">
-          <button :class="buttonClass" type="button" aria-label="返回顶部" @click="backToTop">
+        <Tooltip :content="t('FloatingActions.back_to_top')" placement="left" align="center">
+          <button :class="buttonClass" type="button" :aria-label="t('FloatingActions.back_to_top')" @click="backToTop">
             <LucideArrowUp class="size-5" />
           </button>
         </Tooltip>

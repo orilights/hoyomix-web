@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { useLocalizedText } from '@/composables/useLocalizedText'
 import { useUserNameValidation } from '@/composables/useUserNameValidation'
+import { t } from '@/i18n'
 import { authClient } from '@/utils/auth-client'
 import { getAuthErrorMessage } from '@/utils/auth-error'
 
@@ -35,7 +37,7 @@ const {
 
 const forgotEmail = ref('')
 
-const errorMsg = ref('')
+const errorMsg = useLocalizedText()
 let formRevision = 0
 watch([visible, tab], () => {
   formRevision++
@@ -74,11 +76,11 @@ async function handleLogin() {
   })
   loading.value = false
   if (error) {
-    errorMsg.value = getAuthErrorMessage(error)
+    errorMsg.value = () => getAuthErrorMessage(error)
     return
   }
   close()
-  toast.success('登录成功')
+  toast.success(t('AuthDialog.signed_in'))
   if (route.name === 'EmailVerified')
     router.replace('/')
   else
@@ -90,7 +92,7 @@ async function handleRegister() {
     return
   errorMsg.value = ''
   if (registerPassword.value !== registerConfirm.value) {
-    errorMsg.value = '两次输入的密码不一致'
+    errorMsg.value = () => t('ResetPassword.passwords_do_not_match')
     return
   }
   loading.value = true
@@ -109,16 +111,16 @@ async function handleRegister() {
       return
     if (error) {
       if (error.code === 'USERNAME_TAKEN' || error.code === 'INVALID_USERNAME')
-        setRegisterNameError(getAuthErrorMessage(error))
+        setRegisterNameError(() => getAuthErrorMessage(error))
       else
-        errorMsg.value = getAuthErrorMessage(error)
+        errorMsg.value = () => getAuthErrorMessage(error)
       return
     }
     registerSuccess.value = true
   }
   catch {
     if (revision === formRevision && registerNameEnabled.value)
-      errorMsg.value = '注册失败，请检查网络后重试'
+      errorMsg.value = () => t('AuthDialog.registration_failed_check_your_connection_and_try_again')
   }
   finally {
     loading.value = false
@@ -134,7 +136,7 @@ async function handleForgot() {
   })
   loading.value = false
   if (error) {
-    errorMsg.value = getAuthErrorMessage(error)
+    errorMsg.value = () => getAuthErrorMessage(error)
     return
   }
   forgotSuccess.value = true
@@ -151,7 +153,7 @@ function handleGitHub() {
 <template>
   <AppDialog v-model="visible" :close-on-click-overlay="false" hide-header-border>
     <template #title>
-      {{ registerSuccess ? '注册成功' : forgotSuccess ? '邮件已发送' : tab === 'login' ? '登录' : tab === 'register' ? '注册账号' : '重置密码' }}
+      {{ registerSuccess ? t('AuthDialog.registration_successful') : forgotSuccess ? t('AuthDialog.email_sent') : tab === 'login' ? t('DesktopSidebar.sign_in') : tab === 'register' ? t('AuthDialog.create_account') : t('ResetPassword.reset_password') }}
     </template>
 
     <div v-if="registerSuccess" class="px-6 pb-8">
@@ -161,18 +163,17 @@ function handleGitHub() {
         </div>
         <div class="text-center">
           <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            验证邮件已发送至 <span class="font-medium text-gray-900 dark:text-gray-100">{{ registerEmail }}</span><br>
-            请点击邮件中的链接完成验证后登录。
+            {{ t('AuthDialog.a_verification_email_has_been_sent_to') }}<span class="font-medium text-gray-900 dark:text-gray-100">{{ registerEmail }}</span><br>{{ t('AuthDialog.follow_the_link_in_the_email_to_verify_your') }}
           </p>
           <p class="text-xs text-gray-400 mt-1">
-            若未收到邮件，请检查垃圾邮件文件夹。
+            {{ t('AuthDialog.if_you_do_not_see_the_email_check_your') }}
           </p>
         </div>
         <button
           class="text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer transition-colors"
           @click="tab = 'login'; registerSuccess = false"
         >
-          前往登录
+          {{ t('ResetPassword.go_to_sign_in') }}
         </button>
       </div>
     </div>
@@ -184,18 +185,17 @@ function handleGitHub() {
         </div>
         <div class="text-center">
           <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            重置邮件已发送至 <span class="font-medium text-gray-900 dark:text-gray-100">{{ forgotEmail }}</span><br>
-            请点击邮件中的链接完成密码重置。
+            {{ t('AuthDialog.a_password_reset_email_has_been_sent_to') }}<span class="font-medium text-gray-900 dark:text-gray-100">{{ forgotEmail }}</span><br>{{ t('AuthDialog.follow_the_link_in_the_email_to_reset_your') }}
           </p>
           <p class="text-xs text-gray-400 mt-1">
-            若未收到邮件，请检查垃圾邮件文件夹。
+            {{ t('AuthDialog.if_you_do_not_see_the_email_check_your') }}
           </p>
         </div>
         <button
           class="text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer transition-colors"
           @click="tab = 'login'; forgotSuccess = false"
         >
-          返回登录
+          {{ t('AuthDialog.back_to_sign_in') }}
         </button>
       </div>
     </div>
@@ -207,38 +207,38 @@ function handleGitHub() {
           :class="tab === 'login' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:dark:text-gray-300'"
           @click="tab = 'login'; errorMsg = ''"
         >
-          登录
+          {{ t('DesktopSidebar.sign_in') }}
         </button>
         <button
           class="pb-3 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px"
           :class="tab === 'register' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:dark:text-gray-300'"
           @click="tab = 'register'; errorMsg = ''"
         >
-          注册
+          {{ t('AuthDialog.register') }}
         </button>
       </div>
 
       <div class="px-6 py-5">
         <form v-if="tab === 'login'" class="space-y-3" @submit.prevent="handleLogin">
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮箱</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('AuthDialog.email') }}</label>
             <input
               v-model="loginEmail"
               type="email"
               required
               autocomplete="email"
-              placeholder="请输入邮箱"
+              :placeholder="t('AuthDialog.enter_your_email')"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">密码</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('AuthDialog.password') }}</label>
             <input
               v-model="loginPassword"
               type="password"
               required
               autocomplete="current-password"
-              placeholder="请输入密码"
+              :placeholder="t('AuthDialog.enter_your_password')"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
@@ -248,7 +248,7 @@ function handleGitHub() {
               class="text-xs text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer transition-colors"
               @click="tab = 'forgot'; errorMsg = ''"
             >
-              忘记密码？
+              {{ t('AuthDialog.forgot_password') }}
             </button>
           </div>
           <p v-if="errorMsg" class="text-sm text-red-500">
@@ -261,16 +261,14 @@ function handleGitHub() {
             :disabled="loading"
           >
             <span v-if="loading" class="flex items-center justify-center gap-2">
-              <LucideLoader2 class="size-4 animate-spin" />
-              登录中...
-            </span>
-            <span v-else>登录</span>
+              <LucideLoader2 class="size-4 animate-spin" />{{ t('AuthDialog.signing_in') }}</span>
+            <span v-else>{{ t('DesktopSidebar.sign_in') }}</span>
           </AppButton>
         </form>
 
         <form v-else-if="tab === 'register'" class="space-y-3" @submit.prevent="handleRegister">
           <div>
-            <label :for="registerNameId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">用户名</label>
+            <label :for="registerNameId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('AuthDialog.username') }}</label>
             <input
               :id="registerNameId"
               v-model="registerName"
@@ -280,7 +278,7 @@ function handleGitHub() {
               autocomplete="username"
               :aria-invalid="!!registerNameError"
               :aria-describedby="`${registerNameId}-hint`"
-              placeholder="请输入用户名"
+              :placeholder="t('AuthDialog.enter_your_username')"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
             <AsyncFade>
@@ -290,38 +288,38 @@ function handleGitHub() {
             </AsyncFade>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮箱</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('AuthDialog.email') }}</label>
             <input
               v-model="registerEmail"
               :disabled="loading"
               type="email"
               required
               autocomplete="email"
-              placeholder="请输入登录邮箱"
+              :placeholder="t('AuthDialog.enter_your_signin_email')"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">密码</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('AuthDialog.password') }}</label>
             <input
               v-model="registerPassword"
               :disabled="loading"
               type="password"
               required
               autocomplete="new-password"
-              placeholder="至少 8 位"
+              :placeholder="t('ResetPassword.at_least_8_characters')"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">确认密码</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('AuthDialog.confirm_password') }}</label>
             <input
               v-model="registerConfirm"
               :disabled="loading"
               type="password"
               required
               autocomplete="new-password"
-              placeholder="再次输入密码"
+              :placeholder="t('AuthDialog.enter_your_password_again')"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
@@ -335,25 +333,23 @@ function handleGitHub() {
             :disabled="loading"
           >
             <span v-if="loading" class="flex items-center justify-center gap-2">
-              <LucideLoader2 class="size-4 animate-spin" />
-              注册中...
-            </span>
-            <span v-else>注册账号</span>
+              <LucideLoader2 class="size-4 animate-spin" />{{ t('AuthDialog.registering') }}</span>
+            <span v-else>{{ t('AuthDialog.create_account') }}</span>
           </AppButton>
         </form>
 
         <form v-else class="space-y-3" @submit.prevent="handleForgot">
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            输入注册邮箱，我们将发送一封密码重置邮件。
+            {{ t('AuthDialog.enter_your_registered_email_to_receive_a_password_reset') }}
           </p>
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">邮箱</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('AuthDialog.email') }}</label>
             <input
               v-model="forgotEmail"
               type="email"
               required
               autocomplete="email"
-              placeholder="请输入注册邮箱"
+              :placeholder="t('AuthDialog.enter_your_registered_email')"
               class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
             >
           </div>
@@ -367,24 +363,22 @@ function handleGitHub() {
             :disabled="loading"
           >
             <span v-if="loading" class="flex items-center justify-center gap-2">
-              <LucideLoader2 class="size-4 animate-spin" />
-              发送中...
-            </span>
-            <span v-else>发送重置邮件</span>
+              <LucideLoader2 class="size-4 animate-spin" />{{ t('AuthDialog.sending') }}</span>
+            <span v-else>{{ t('AuthDialog.send_reset_email') }}</span>
           </AppButton>
           <button
             type="button"
             class="w-full text-sm text-blue-500 hover:text-blue-600 hover:dark:text-blue-400 cursor-pointer transition-colors"
             @click="tab = 'login'; errorMsg = ''"
           >
-            返回登录
+            {{ t('AuthDialog.back_to_sign_in') }}
           </button>
         </form>
 
         <div v-if="showThirdPartyLogin && tab !== 'forgot'" class="mt-4">
           <div class="relative flex items-center gap-2">
             <div class="flex-1 border-t border-gray-200 dark:border-gray-700" />
-            <span class="text-xs text-gray-400 shrink-0">或</span>
+            <span class="text-xs text-gray-400 shrink-0">{{ t('AuthDialog.or') }}</span>
             <div class="flex-1 border-t border-gray-200 dark:border-gray-700" />
           </div>
           <AppButton
@@ -392,8 +386,7 @@ function handleGitHub() {
             class="mt-3 w-full"
             @click="handleGitHub"
           >
-            <IconGitHub class="size-4" />
-            使用 GitHub 登录
+            <IconGitHub class="size-4" />{{ t('AuthDialog.sign_in_with_github') }}
           </AppButton>
         </div>
       </div>

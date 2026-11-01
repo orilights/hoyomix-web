@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import type { ThemeMode } from '@/store/theme'
+import { t } from '@/i18n'
 import { useThemeStore } from '@/store/theme'
 
 defineProps<{ compact?: boolean }>()
 const theme = useThemeStore()
 const options: { value: ThemeMode, label: string }[] = [
-  { value: 'system', label: '跟随系统' },
-  { value: 'light', label: '亮色模式' },
-  { value: 'dark', label: '暗色模式' },
+  { value: 'system', get label() {
+    return t('ThemeSwitcher.system')
+  } },
+  { value: 'light', get label() {
+    return t('ThemeSwitcher.light')
+  } },
+  { value: 'dark', get label() {
+    return t('ThemeSwitcher.dark')
+  } },
 ]
 const currentLabel = computed(() => options.find(option => option.value === theme.mode)!.label)
 const nextOption = computed(() => options[(options.findIndex(option => option.value === theme.mode) + 1) % options.length]!)
@@ -21,5 +28,5 @@ const nextOption = computed(() => options[(options.findIndex(option => option.va
       <LucideMoon v-else class="size-4.5" />
     </AppButton>
   </Tooltip>
-  <RadioGroup v-else aria-label="主题模式" :options="options" :model-value="theme.mode" @update:model-value="theme.setMode($event as ThemeMode)" />
+  <RadioGroup v-else :aria-label="t('Settings.theme')" :options="options" :model-value="theme.mode" @update:model-value="theme.setMode($event as ThemeMode)" />
 </template>

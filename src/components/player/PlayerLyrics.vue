@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Directive } from 'vue'
 import type { LyricLine } from '@/utils'
+import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 
 const props = defineProps<{
@@ -187,11 +188,11 @@ onUnmounted(() => {
       @touchcancel.passive="onTouchEnd"
     >
       <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
-        暂无歌词
+        {{ t('PlayerFullscreen.no_lyrics') }}
       </div>
       <div v-else ref="lyricLines" :class="{ 'py-[50vh]': hasTimestamp, 'py-[20vh]': !hasTimestamp }">
         <div v-if="!hasTimestamp" class="text-white/80 px-4 py-2">
-          当前歌词不支持滚动
+          {{ t('PlayerFullscreen.these_lyrics_do_not_support_scrolling') }}
         </div>
         <div
           v-for="(line, index) in parsedLyrics"
@@ -233,7 +234,7 @@ onUnmounted(() => {
         <Tooltip
           placement="left"
           align="center"
-          content="后退 0.2s"
+          :content="t('PlayerLyrics.back_02s')"
         >
           <button
             class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium"
@@ -245,7 +246,7 @@ onUnmounted(() => {
         <Tooltip
           placement="left"
           align="center"
-          content="重置歌词偏移"
+          :content="t('PlayerLyrics.reset_lyrics_offset')"
         >
           <button
             class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium"
@@ -257,7 +258,7 @@ onUnmounted(() => {
         <Tooltip
           placement="left"
           align="center"
-          content="前进 0.2s"
+          :content="t('PlayerLyrics.forward_02s')"
         >
           <button
             class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium"
@@ -269,7 +270,7 @@ onUnmounted(() => {
         <Tooltip
           placement="left"
           align="center"
-          content="放大字体"
+          :content="t('PlayerLyrics.increase_font_size')"
         >
           <button
             class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium disabled:opacity-30 disabled:cursor-not-allowed"
@@ -282,7 +283,7 @@ onUnmounted(() => {
         <Tooltip
           placement="left"
           align="center"
-          content="缩小字体"
+          :content="t('PlayerLyrics.decrease_font_size')"
         >
           <button
             class="w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white/70 hover:text-white hover:bg-white/20 transition-colors flex items-center justify-center text-xs font-medium disabled:opacity-30 disabled:cursor-not-allowed"

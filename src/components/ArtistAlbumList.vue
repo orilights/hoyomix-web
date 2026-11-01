@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import type { AlbumListItemInfo, ArtistInfo, PlaylistSongItem } from '@/types/core'
+
 import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { getAlbumInfoApi } from '@/api/music'
 import SongListPlaybackDialog from '@/components/SongListPlaybackDialog.vue'
 import { registerSongList } from '@/composables/useSongLocator'
+import { formatNumber, t } from '@/i18n'
+import { LocalizedError } from '@/i18n/error'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { buildPlaylistItem } from '@/utils/player-utils'
+import { getPublishDate } from '@/utils/time'
 
 const props = defineProps<{
   albumsList: AlbumListItemInfo[]
@@ -97,15 +101,15 @@ async function playArtistSongsFromAlbum(albumId: number) {
     )
     const filteredSongs = album.songs.filter(s => artistSongIds.has(s.id))
     if (filteredSongs.length === 0) {
-      toast.error('该专辑中无符合条件的歌曲')
+      toast.error(t('ArtistAlbumList.no_matching_songs_in_this_album'))
       return
     }
     const playlist = filteredSongs.map(song => buildPlaylistItem(song, album))
     player.replacePlaylist(playlist, 0)
-    toast.success('已替换播放列表')
+    toast.success(t('AlbumList.queue_replaced'))
   }
   catch (error) {
-    toast.error(`获取专辑信息失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('AlbumList.failed_to_get_album_details', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
 }
 
@@ -119,12 +123,14 @@ function playSong(event: Event, songId: number, albumId: number) {
 
   playbackDialog.value?.play({
     songId,
-    loadingMessage: '正在准备歌曲列表...',
+    get loadingMessage() {
+      return t('ArtistAlbumList.preparing_songs')
+    },
     loadSong: async () => {
       const album = await loadAlbum(albumId)
       const song = album.songs.find(item => item.id === songId)
       if (!song)
-        throw new Error('歌曲信息未找到')
+        throw new LocalizedError('ArtistAlbumList.song_details_not_found')
       return buildPlaylistItem(song, album)
     },
     loadSongs: async () => {
@@ -137,7 +143,7 @@ function playSong(event: Event, songId: number, albumId: number) {
           for (const id of batch[index].songIds) {
             const song = songsById.get(id)
             if (!song)
-              throw new Error('歌曲信息未找到')
+              throw new LocalizedError('ArtistAlbumList.song_details_not_found')
             playlist.push(buildPlaylistItem(song, album))
           }
         }
@@ -161,7 +167,7 @@ function playSong(event: Event, songId: number, albumId: number) {
               {{ album.name }}
             </div>
             <div class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-              {{ album.publishDate }} · {{ filteredSongsByAlbum.get(album.id)?.length }} / {{ album.songCount }}
+              {{ getPublishDate(album.publishDate) }} · {{ formatNumber(filteredSongsByAlbum.get(album.id)?.length) }} / {{ formatNumber(album.songCount) }}
             </div>
             <div v-if="getAlbumRoles(album.id).length" class="flex flex-wrap gap-1 mt-1">
               <span
@@ -177,8 +183,8 @@ function playSong(event: Event, songId: number, albumId: number) {
             size="xs"
             variant="ghost"
             class="shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 transition-all hover:scale-105 active:scale-95"
-            aria-label="播放艺术家参与的歌曲"
-            title="播放艺术家参与的歌曲"
+            :aria-label="t('ArtistAlbumList.play_songs_featuring_this_artist')"
+            :title="t('ArtistAlbumList.play_songs_featuring_this_artist')"
             @click.prevent="playArtistSongsFromAlbum(album.id)"
           >
             <LucidePlay class="size-6" fill="currentColor" />
@@ -203,8 +209,8 @@ function playSong(event: Event, songId: number, albumId: number) {
             size="xs"
             variant="ghost"
             class="hidden md:inline-flex shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 opacity-0 md:group-hover/song:opacity-100 transition-all hover:scale-105 active:scale-95"
-            aria-label="播放歌曲"
-            title="播放歌曲"
+            :aria-label="t('ArtistAlbumList.play_song')"
+            :title="t('ArtistAlbumList.play_song')"
             @click="playSong($event, song.id, song.albumId)"
           >
             <LucidePlay class="size-4" fill="currentColor" />

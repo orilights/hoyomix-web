@@ -3,6 +3,7 @@ import type { PlaylistListItem } from '@/types/core'
 import { Disc3, House, ListMusic, MapPin, Shuffle, Tags, TrendingUp, Trophy } from '@lucide/vue'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { appTitle } from '@/constants'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -18,21 +19,37 @@ const mine = useMyPlaylistsQuery()
 const favorites = useFavoritePlaylistsQuery()
 
 const navigation = [
-  { name: 'Home', label: '首页', icon: House },
-  { name: 'Albums', label: '全部专辑', icon: Disc3 },
-  { name: 'Playlists', label: '歌单广场', icon: ListMusic },
-  { name: 'Random', label: '随机播放', icon: Shuffle },
-  { name: 'Regions', label: '地区', icon: MapPin },
-  { name: 'SongTags', label: '标签', icon: Tags },
-  { name: 'Ranking', label: '热榜', icon: TrendingUp },
-  { name: 'ContributionRanking', label: '贡献榜', icon: Trophy },
+  { name: 'Home', get label() {
+    return t('DesktopSidebar.home')
+  }, icon: House },
+  { name: 'Albums', get label() {
+    return t('DesktopSidebar.all_albums')
+  }, icon: Disc3 },
+  { name: 'Playlists', get label() {
+    return t('DesktopSidebar.community_playlists')
+  }, icon: ListMusic },
+  { name: 'Random', get label() {
+    return t('DesktopSidebar.shuffle')
+  }, icon: Shuffle },
+  { name: 'Regions', get label() {
+    return t('DesktopSidebar.regions')
+  }, icon: MapPin },
+  { name: 'SongTags', get label() {
+    return t('DesktopSidebar.tags')
+  }, icon: Tags },
+  { name: 'Ranking', get label() {
+    return t('DesktopSidebar.charts')
+  }, icon: TrendingUp },
+  { name: 'ContributionRanking', get label() {
+    return t('DesktopSidebar.contributors')
+  }, icon: Trophy },
 ]
 
 const likedSongs = computed(() => mine.data.value?.find(item => item.type === 'favorites'))
 const groups = computed(() => [
   {
     tab: 'mine',
-    title: '创建的歌单',
+    title: t('DesktopSidebar.created_playlists'),
     items: mine.data.value?.filter(item => item.type !== 'favorites') ?? [],
     loading: mine.isPending.value,
     error: mine.isError.value,
@@ -40,7 +57,7 @@ const groups = computed(() => [
   },
   {
     tab: 'favorites',
-    title: '收藏的歌单',
+    title: t('DesktopSidebar.saved_playlists'),
     items: favorites.data.value ?? [],
     loading: favorites.isPending.value,
     error: favorites.isError.value,
@@ -82,7 +99,7 @@ watch(() => auth.user?.id, () => {
   <aside
     :inert="player.isFullscreen"
     :aria-hidden="player.isFullscreen || undefined"
-    aria-label="桌面导航"
+    :aria-label="t('DesktopSidebar.desktop_navigation')"
     class="fixed left-0 top-0 bottom-[72px] z-10 w-[240px] flex flex-col bg-slate-400/10 border-r border-gray-200/60 dark:border-gray-700/60"
   >
     <RouterLink to="/" class="sidebar-brand flex items-center gap-3 shrink-0 px-6 h-[72px] text-gray-900 dark:text-gray-100 font-bold tracking-wide">
@@ -98,9 +115,9 @@ watch(() => auth.user?.id, () => {
       :options="{ overflow: { x: 'hidden', y: 'scroll' }, scrollbars: { theme: 'os-theme-custom', autoHide: 'leave' } }"
     >
       <div class="px-3 pb-4 space-y-5">
-        <nav aria-label="发现">
+        <nav :aria-label="t('DesktopSidebar.discover')">
           <div class="sidebar-heading">
-            发现
+            {{ t('DesktopSidebar.discover') }}
           </div>
           <RouterLink
             v-for="item in navigation" :key="item.name"
@@ -116,16 +133,16 @@ watch(() => auth.user?.id, () => {
 
         <div v-if="!auth.isLoggedIn" class="px-3 py-3 rounded-xl bg-black/5 dark:bg-white/5">
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-            登录后查看收藏的音乐和歌单
+            {{ t('DesktopSidebar.sign_in_to_see_your_saved_music_and_playlists') }}
           </p>
           <AppButton size="sm" class="w-full" @click="auth.openAuthDialog()">
-            登录
+            {{ t('DesktopSidebar.sign_in') }}
           </AppButton>
         </div>
         <template v-else>
-          <nav v-if="likedSongs" aria-label="我的音乐">
+          <nav v-if="likedSongs" :aria-label="t('DesktopSidebar.my_music')">
             <div class="sidebar-heading">
-              我的音乐
+              {{ t('DesktopSidebar.my_music') }}
             </div>
             <RouterLink
               :to="{ name: 'PlaylistDetail', params: { id: likedSongs.id } }"
@@ -133,8 +150,7 @@ watch(() => auth.user?.id, () => {
               :class="{ 'is-active': isPlaylistActive(likedSongs.id) }"
               :aria-current="isPlaylistActive(likedSongs.id) ? 'page' : undefined"
             >
-              <LucideHeart class="size-4.5 shrink-0" />
-              我喜欢的音乐
+              <LucideHeart class="size-4.5 shrink-0" />{{ t('DesktopSidebar.liked_songs') }}
             </RouterLink>
           </nav>
 
@@ -148,22 +164,21 @@ watch(() => auth.user?.id, () => {
               >
                 {{ group.title }}
               </RouterLink>
-              <AppButton v-if="group.tab === 'mine'" icon-only size="sm" variant="ghost" aria-label="新建歌单" title="新建歌单" @click="openCreate">
+              <AppButton v-if="group.tab === 'mine'" icon-only size="sm" variant="ghost" :aria-label="t('DesktopSidebar.new_playlist')" :title="t('DesktopSidebar.new_playlist')" @click="openCreate">
                 <LucidePlus class="size-4" />
               </AppButton>
             </div>
             <AsyncFade>
               <p v-if="group.loading" role="status" class="px-3 py-2 text-center text-xs text-gray-400">
-                加载中…
+                {{ t('DesktopSidebar.loading') }}
               </p>
               <div v-else-if="group.error" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-                加载失败
-                <AppButton size="sm" variant="ghost" :aria-label="`重新加载${group.title}`" @click="group.retry()">
-                  重试
+                {{ t('AlbumSeriesHoverCard.unable_to_load') }}<AppButton size="sm" variant="ghost" :aria-label="t('DesktopSidebar.reload', { p0: group.title })" @click="group.retry()">
+                  {{ t('App.retry') }}
                 </AppButton>
               </div>
               <p v-else-if="!group.items.length" class="px-3 py-2 text-xs text-gray-400">
-                暂无歌单
+                {{ t('DesktopSidebar.no_playlists') }}
               </p>
               <div v-else>
                 <RouterLink
@@ -187,14 +202,14 @@ watch(() => auth.user?.id, () => {
       </div>
     </OverlayScrollbarsComponent>
 
-    <nav aria-label="应用" class="shrink-0 border-t border-gray-200/60 dark:border-gray-700/60 p-3 grid grid-cols-2 gap-1">
+    <nav :aria-label="t('DesktopSidebar.application')" class="shrink-0 border-t border-gray-200/60 dark:border-gray-700/60 p-3 grid grid-cols-2 gap-1">
       <RouterLink
         :to="{ name: 'Settings' }"
         class="sidebar-link"
         :class="{ 'is-active': route.name === 'Settings' }"
         :aria-current="route.name === 'Settings' ? 'page' : undefined"
       >
-        <LucideSlidersHorizontal class="size-4 shrink-0" />设置
+        <LucideSlidersHorizontal class="size-4 shrink-0" />{{ t('DesktopSidebar.settings') }}
       </RouterLink>
       <RouterLink
         :to="{ name: 'Feedback' }"
@@ -202,7 +217,7 @@ watch(() => auth.user?.id, () => {
         :class="{ 'is-active': route.name === 'Feedback' }"
         :aria-current="route.name === 'Feedback' ? 'page' : undefined"
       >
-        <LucideMessageSquare class="size-4 shrink-0" />反馈
+        <LucideMessageSquare class="size-4 shrink-0" />{{ t('DesktopSidebar.feedback') }}
       </RouterLink>
     </nav>
   </aside>

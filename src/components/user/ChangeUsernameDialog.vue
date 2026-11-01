@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { useLocalizedText } from '@/composables/useLocalizedText'
 import { useUserNameValidation } from '@/composables/useUserNameValidation'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { authClient } from '@/utils/auth-client'
 import { getAuthErrorMessage } from '@/utils/auth-error'
@@ -12,7 +14,7 @@ const { user } = storeToRefs(auth)
 
 const loading = ref(false)
 const name = ref('')
-const errorMsg = ref('')
+const errorMsg = useLocalizedText()
 let formRevision = 0
 
 const nameId = useId()
@@ -57,20 +59,20 @@ async function handleSubmit() {
       return
     if (error) {
       if (error.code === 'USERNAME_TAKEN' || error.code === 'INVALID_USERNAME')
-        setServerError(getAuthErrorMessage(error))
+        setServerError(() => getAuthErrorMessage(error))
       else
-        errorMsg.value = getAuthErrorMessage(error)
+        errorMsg.value = () => getAuthErrorMessage(error)
       return
     }
     await auth.refreshSession()
     if (revision !== formRevision || !visible.value || user.value?.id !== userId)
       return
-    toast.success('用户名修改成功')
+    toast.success(t('ChangeUsernameDialog.username_changed'))
     close()
   }
   catch {
     if (revision === formRevision && visible.value && user.value?.id === userId)
-      errorMsg.value = '修改用户名失败，请检查网络后重试'
+      errorMsg.value = () => t('ChangeUsernameDialog.failed_to_change_username_check_your_connection_and_try')
   }
   finally {
     loading.value = false
@@ -79,10 +81,10 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" :close-on-click-overlay="false" title="修改用户名">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" :title="t('Settings.change_username')">
     <form class="px-6 py-5 space-y-3" @submit.prevent="handleSubmit">
       <div>
-        <label :for="nameId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">用户名</label>
+        <label :for="nameId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ t('AuthDialog.username') }}</label>
         <input
           :id="nameId"
           v-model="name"
@@ -92,7 +94,7 @@ async function handleSubmit() {
           autocomplete="username"
           :aria-invalid="!!nameError"
           :aria-describedby="`${nameId}-hint`"
-          placeholder="请输入新的用户名"
+          :placeholder="t('ChangeUsernameDialog.enter_your_new_username')"
           class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm outline-none focus:border-blue-500 transition-colors"
         >
         <AsyncFade>
@@ -111,10 +113,8 @@ async function handleSubmit() {
         :disabled="loading"
       >
         <span v-if="loading" class="flex items-center justify-center gap-2">
-          <LucideLoader2 class="size-4 animate-spin" />
-          提交中...
-        </span>
-        <span v-else>确认修改</span>
+          <LucideLoader2 class="size-4 animate-spin" />{{ t('SongCreditsEditDialog.submitting') }}</span>
+        <span v-else>{{ t('ChangePasswordDialog.confirm_changes') }}</span>
       </AppButton>
     </form>
   </AppDialog>

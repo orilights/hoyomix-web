@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { t } from '@/i18n'
+
 interface DropdownOption {
   label: string
   desc?: string
@@ -27,40 +29,36 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <Tooltip placement="top" theme="light" content="替换当前播放列表并播放">
+  <Tooltip placement="top" theme="light" :content="t('AlbumActions.replace_the_current_queue_and_play')">
     <AppButton variant="primary" @click="emit('playAll')">
-      <LucidePlay class="size-4" fill="currentColor" />
-      播放全部
+      <LucidePlay class="size-4" fill="currentColor" />{{ t('AlbumActions.play_all') }}
     </AppButton>
   </Tooltip>
 
   <FavoriteButton type="album" :album-id="albumId" variant="action" />
 
   <AppButton @click="emit('saveAsPlaylist')">
-    <LucideListPlus class="size-4" />
-    保存为歌单
+    <LucideListPlus class="size-4" />{{ t('AlbumActions.save_as_playlist') }}
   </AppButton>
 
   <AppButton @click="emit('addToPlaylist')">
-    <LucideListMusic class="size-4" />
-    添加至歌单
+    <LucideListMusic class="size-4" />{{ t('AlbumActions.add_to_playlist') }}
   </AppButton>
 
   <div class="detail-comment-action">
     <AppButton @click="emit('showComments')">
-      <LucideMessageCircle class="size-4" />
-      评论 {{ commentCount }}
+      <LucideMessageCircle class="size-4" />{{ t('AlbumActions.comments', { p0: commentCount }) }}
     </AppButton>
   </div>
 
   <Dropdown v-if="ncmOptions" :position="dropdownPosition" :options="ncmOptions">
-    <AppButton icon-only aria-label="网易云音乐更多操作">
+    <AppButton icon-only :aria-label="t('AlbumActions.more_netease_cloud_music_actions')">
       <IconNcm class="size-5 text-[#fc3b5b]" />
     </AppButton>
   </Dropdown>
 
   <Dropdown v-if="qqOptions" :position="dropdownPosition" :options="qqOptions">
-    <AppButton icon-only aria-label="QQ音乐更多操作">
+    <AppButton icon-only :aria-label="t('AlbumActions.more_qq_music_actions')">
       <IconQQ class="size-5" />
     </AppButton>
   </Dropdown>

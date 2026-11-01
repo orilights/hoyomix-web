@@ -5,6 +5,7 @@ import { toast } from 'vue-sonner'
 import { submitSongCreditsEditApi } from '@/api/music'
 import { useArtistInfoQuery, useCreditInfoQuery, useSearchQuery } from '@/composables/queries'
 import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 
 const props = defineProps<{ songId: number }>()
@@ -92,7 +93,7 @@ async function selectArtist(name: string) {
     if (!visible.value || editSession !== session || props.songId !== songId || auth.user?.id !== userId || activeRole.value !== role)
       return
     if (result.isError || !result.data || result.data.name !== name) {
-      toast.error('艺术家信息加载失败，请重试')
+      toast.error(t('SongCreditsEditDialog.failed_to_load_artist_details_please_try_again'))
       return
     }
     const credit = { role, name: result.data.name }
@@ -122,7 +123,7 @@ async function submit() {
     const result = await submitSongCreditsEditApi(songId, credits)
     if (props.songId !== songId || auth.user?.id !== userId)
       return
-    toast.success(result.directApproved ? '制作人员已更新' : '申请已提交，等待审核')
+    toast.success(result.directApproved ? t('SongCreditsEditDialog.credits_updated') : t('SongCreditsEditDialog.request_submitted_for_review'))
     visible.value = false
     emit('success')
   }
@@ -130,7 +131,7 @@ async function submit() {
     if (props.songId !== songId || auth.user?.id !== userId)
       return
     void retryCheck()
-    toast.error(error instanceof Error ? error.message : '提交失败')
+    toast.error(error instanceof Error ? error.message : t('SongCreditsEditDialog.submission_failed'))
   }
   finally {
     submitting.value = false
@@ -139,68 +140,67 @@ async function submit() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" :close-on-click-overlay="false" title="修改制作人员" size="xl">
+  <AppDialog v-model="visible" :close-on-click-overlay="false" :title="t('SongCreditsEditDialog.edit_credits')" size="xl">
     <div class="p-4 sm:p-5 space-y-3 max-h-[65vh] overflow-y-auto overscroll-contain">
       <PendingEditRequestNotice :pending-request="pendingRequest" :checking="checking" :check-error="checkError" @retry="retryCheck()" />
       <AsyncFade>
         <div v-if="isPending" role="status" class="flex items-center justify-center gap-2 py-8 text-gray-400">
-          <LucideLoader2 class="size-5 animate-spin" />
-          加载中...
+          <LucideLoader2 class="size-5 animate-spin" />{{ t('App.loading') }}
         </div>
         <div v-else-if="isError" class="text-center py-8 space-y-2">
           <p class="text-sm text-red-400">
-            制作人员加载失败
+            {{ t('SongCreditsEditDialog.failed_to_load_credits') }}
           </p>
           <AppButton @click="refetch()">
-            重试
+            {{ t('App.retry') }}
           </AppButton>
         </div>
         <fieldset v-else :disabled="submitting || selecting || blocked" class="min-w-0 space-y-2">
           <p v-if="!roles.length" class="text-sm text-gray-400">
-            暂无制作人员，请先添加角色
+            {{ t('SongCreditsEditDialog.no_credits_add_a_role_to_get_started') }}
           </p>
           <section v-for="role in roles" :key="role" class="px-3 py-2 rounded-lg bg-black/5 dark:bg-white/5 space-y-1.5">
             <div class="flex items-center justify-between gap-2">
               <h3 class="font-medium text-sm break-words">
                 {{ role }}
               </h3>
-              <button type="button" :aria-label="`为${role}添加人员`" class="shrink-0 text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 hover:dark:text-blue-300 cursor-pointer rounded px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 disabled:opacity-50 disabled:cursor-not-allowed" @click="activeRole = role; keyword = ''">
-                添加人员
+              <button type="button" :aria-label="t('SongCreditsEditDialog.add_a_person_for', { p0: role })" class="shrink-0 text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 hover:dark:text-blue-300 cursor-pointer rounded px-1 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 disabled:opacity-50 disabled:cursor-not-allowed" @click="activeRole = role; keyword = ''">
+                {{ t('SongCreditsEditDialog.add_person') }}
               </button>
             </div>
             <div class="flex flex-wrap gap-1.5">
               <span v-for="credit in draft.filter(item => item.role === role)" :key="credit.name" class="inline-flex items-center gap-1 rounded-md bg-white/60 dark:bg-white/10 pl-2 pr-1 py-0.5 text-xs max-w-full">
                 <span class="break-words min-w-0">{{ credit.name }}</span>
-                <button type="button" :aria-label="`移除${role}：${credit.name}`" class="shrink-0 cursor-pointer rounded p-0.5 text-gray-500 hover:text-red-500" @click="removeArtist(credit)">
+                <button type="button" :aria-label="t('SongCreditsEditDialog.remove', { p0: role, p1: credit.name })" class="shrink-0 cursor-pointer rounded p-0.5 text-gray-500 hover:text-red-500" @click="removeArtist(credit)">
                   <LucideX class="size-3.5" />
                 </button>
               </span>
-              <span v-if="!draft.some(item => item.role === role)" class="text-xs text-gray-400">暂无人员</span>
+              <span v-if="!draft.some(item => item.role === role)" class="text-xs text-gray-400">{{ t('SongCreditsEditDialog.no_people_added') }}</span>
             </div>
             <div v-if="activeRole === role" class="space-y-2">
-              <input v-model="keyword" type="search" :aria-label="`搜索${role}人员`" placeholder="搜索已有艺术家" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <input v-model="keyword" type="search" :aria-label="t('SongCreditsEditDialog.search_artists_for', { p0: role })" :placeholder="t('SongCreditsEditDialog.search_existing_artists')" class="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
               <div aria-live="polite" class="text-sm">
                 <AsyncFade>
                   <p v-if="selecting" class="text-gray-400 py-2">
-                    正在添加...
+                    {{ t('SongCreditsEditDialog.adding') }}
                   </p>
                   <p v-else-if="searching || keyword.trim() !== debouncedKeyword.trim()" role="status" class="text-gray-400 py-2">
-                    搜索中...
+                    {{ t('SearchModal.searching') }}
                   </p>
                   <div v-else-if="searchError && searchKeyword" class="flex items-center gap-2">
-                    <span class="text-red-400">搜索失败</span>
+                    <span class="text-red-400">{{ t('SearchModal.search_failed_alternate') }}</span>
                     <AppButton @click="retrySearch()">
-                      重试
+                      {{ t('App.retry') }}
                     </AppButton>
                   </div>
                   <div v-else-if="searchKeyword" class="max-h-44 overflow-y-auto space-y-1">
                     <button v-for="artist in results" :key="artist.id" type="button" :disabled="contains(draft, { role, name: artist.name })" class="w-full flex items-center justify-between gap-2 text-left px-3 py-2 rounded-lg hover:bg-black/5 hover:dark:bg-white/5 disabled:opacity-50 cursor-pointer" @click="selectArtist(artist.name)">
                       <span class="break-words min-w-0">{{ artist.name }}</span>
-                      <span v-if="contains(draft, { role, name: artist.name })" class="shrink-0 text-xs text-gray-400">已添加</span>
+                      <span v-if="contains(draft, { role, name: artist.name })" class="shrink-0 text-xs text-gray-400">{{ t('SongCreditsEditDialog.added') }}</span>
                       <LucidePlus v-else class="size-4 shrink-0" />
                     </button>
                     <p v-if="!results.length" class="text-gray-400 py-2">
-                      未找到匹配的艺术家
+                      {{ t('SongCreditsEditDialog.no_matching_artists') }}
                     </p>
                   </div>
                 </AsyncFade>
@@ -208,9 +208,9 @@ async function submit() {
             </div>
           </section>
           <form class="flex gap-2" @submit.prevent="addRole">
-            <input v-model="roleInput" type="text" aria-label="角色名称" placeholder="输入角色名称" class="min-w-0 flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <input v-model="roleInput" type="text" :aria-label="t('SongCreditsEditDialog.role_name')" :placeholder="t('SongCreditsEditDialog.enter_a_role_name')" class="min-w-0 flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
             <AppButton type="submit" :disabled="!roleInput.trim()">
-              添加角色
+              {{ t('SongCreditsEditDialog.add_role') }}
             </AppButton>
           </form>
         </fieldset>
@@ -219,11 +219,11 @@ async function submit() {
     <template #footer>
       <div class="px-4 sm:px-5 py-3 flex justify-end gap-2">
         <AppButton @click="visible = false">
-          取消
+          {{ t('AlbumPickerDialog.cancel') }}
         </AppButton>
         <AppButton variant="primary" :disabled="!hasChanges || !initialized || isError || submitting || selecting || blocked" @click="submit">
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />
-          {{ submitting ? '提交中...' : '提交申请' }}
+          {{ submitting ? t('SongCreditsEditDialog.submitting') : t('SongCreditsEditDialog.submit_request') }}
         </AppButton>
       </div>
     </template>

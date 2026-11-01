@@ -1,3 +1,5 @@
+import { t } from '@/i18n'
+
 export interface SleepTimerPreferences {
   mode: 'duration' | 'songs'
   minutes: number
@@ -61,11 +63,11 @@ export function consumeSleepTimerSong(state: SleepTimerState): boolean {
 
 export function getSleepTimerLabel(state: SleepTimerState, now: number): string {
   if (state.status === 'off')
-    return '定时播放'
+    return t('sleep_timer.sleep_timer')
   if (state.status === 'waiting')
-    return '播放完当前歌曲后暂停'
+    return t('sleep_timer.pause_after_the_current_song')
   if (state.mode === 'songs')
-    return `剩余 ${state.remainingSongs} 首歌曲`
+    return t('sleep_timer.song_remaining', { p0: state.remainingSongs }, Number(state.remainingSongs))
   const seconds = Math.max(0, Math.ceil((state.deadline - now) / 1000))
-  return `剩余 ${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`
+  return t('sleep_timer.remaining', { p0: Math.floor(seconds / 60).toString().padStart(2, '0'), p1: (seconds % 60).toString().padStart(2, '0') })
 }

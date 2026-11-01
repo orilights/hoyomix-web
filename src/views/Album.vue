@@ -7,6 +7,7 @@ import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
 import { asyncFadeHeightKey } from '@/constants/async-fade'
 import { vPageEnter } from '@/directives/page-enter'
+import { formatNumber, t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -19,6 +20,7 @@ import {
   goNeteaseClient,
 } from '@/utils'
 import { NotFoundError } from '@/utils/fetch'
+import { getPublishDate } from '@/utils/time'
 
 provide(asyncFadeHeightKey, true)
 
@@ -52,7 +54,7 @@ watch(isError, (val) => {
   if (error.value instanceof NotFoundError)
     router.replace({ path: '/404', query: { errorMessage: error.value?.message } })
   else
-    toast.error(`专辑信息加载失败：${error.value?.message ?? '未知错误'}`)
+    toast.error(t('Album.failed_to_load_album_details', { p0: error.value?.message ?? t('App.unknown_error') }))
 })
 
 const discList = computed(() => {
@@ -110,13 +112,13 @@ watch(albumInfo, (val) => {
 
 const neteaseOptions = computed(() => [
   {
-    label: '跳转至详情页',
+    label: t('MusicActions.view_details'),
     onClick: () => {
       window.open(`https://music.163.com/#/album?id=${albumInfo.value!.platforms.ncm!.id}`)
     },
   },
   {
-    label: '在 APP 中播放',
+    label: t('MusicActions.play_in_app'),
     onClick: () => {
       goNeteaseClient({
         type: 'album',
@@ -129,7 +131,7 @@ const neteaseOptions = computed(() => [
 
 const qqMusicOptions = computed(() => [
   {
-    label: '跳转至详情页',
+    label: t('MusicActions.view_details'),
     onClick: () => {
       window.open(`https://y.qq.com/n/ryqq_v2/albumDetail/${albumInfo.value!.platforms.qq!.id}`)
     },
@@ -140,14 +142,14 @@ function playAll() {
   if (!albumInfo.value)
     return
   player.replacePlaylist(buildPlaylistFromAlbum(albumInfo.value), 0)
-  toast.success('已替换播放列表')
+  toast.success(t('AlbumList.queue_replaced'))
 }
 
 const tabOptions = computed(() => [
-  { key: 'songs' as const, label: '曲目' },
-  { key: 'artists' as const, label: '制作人员' },
-  { key: 'info' as const, label: '专辑信息' },
-  { key: 'comments' as const, label: `评论 ${commentCount.value}` },
+  { key: 'songs' as const, label: t('Album.tracks') },
+  { key: 'artists' as const, label: t('MusicActions.credits') },
+  { key: 'info' as const, label: t('Album.album_information') },
+  { key: 'comments' as const, label: t('AlbumActions.comments', { p0: commentCount.value }) },
 ])
 
 const songSection = ref<HTMLElement | null>(null)
@@ -207,7 +209,7 @@ function addAlbumToPlaylist() {
     <PageLoading v-if="isLoading" />
 
     <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
-      加载失败，请刷新重试
+      {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
     </div>
 
     <div v-else-if="albumInfo" class="album-page detail-page">
@@ -231,15 +233,15 @@ function addAlbumToPlaylist() {
                 {{ albumInfo.productName }}
               </span>
             </RouterLink>
-            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" aria-label="发布日期">
+            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" :aria-label="t('Album.release_date')">
               <LucideCalendarDays class="size-4 shrink-0" aria-hidden="true" />
-              {{ albumInfo.publishDate }}
+              {{ getPublishDate(albumInfo.publishDate) }}
             </span>
-            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" aria-label="歌曲数量">
+            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" :aria-label="t('Album.song_count')">
               <LucideMusic class="size-4 shrink-0" aria-hidden="true" />
-              {{ albumInfo.songs.length }}
+              {{ formatNumber(albumInfo.songs.length) }}
             </span>
-            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" aria-label="总时长">
+            <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400" :aria-label="t('Album.total_duration')">
               <LucideClock class="size-4 shrink-0" aria-hidden="true" />
               {{ formatDuration(albumInfo.totalDuration) }}
             </span>
@@ -261,7 +263,7 @@ function addAlbumToPlaylist() {
       </div>
 
       <div class="detail-tabs">
-        <SegmentSwitch v-model="activeTab" :options="tabOptions" block aria-label="专辑内容" />
+        <SegmentSwitch v-model="activeTab" :options="tabOptions" block :aria-label="t('Album.album_content')" />
       </div>
 
       <div class="detail-content">
@@ -270,7 +272,7 @@ function addAlbumToPlaylist() {
             <nav
               v-if="showDiscName"
               class="mb-3 w-fit max-w-full"
-              aria-label="分碟导航"
+              :aria-label="t('Album.disc_navigation')"
             >
               <div class="flex gap-2 overflow-x-auto">
                 <AppButton
@@ -278,11 +280,11 @@ function addAlbumToPlaylist() {
                   :key="disc.name"
                   class="shrink-0"
                   :title="disc.name"
-                  :aria-label="`定位到 ${disc.name}，共 ${disc.songs.length} 首`"
+                  :aria-label="t('Album.go_to_songs', { p0: disc.name, p1: disc.songs.length }, disc.songs.length)"
                   @click="scrollToDisc(index)"
                 >
                   {{ disc.name }}
-                  <span class="text-gray-500 dark:text-gray-400">{{ disc.songs.length }}</span>
+                  <span class="text-gray-500 dark:text-gray-400">{{ formatNumber(disc.songs.length) }}</span>
                 </AppButton>
               </div>
             </nav>
@@ -311,11 +313,11 @@ function addAlbumToPlaylist() {
                 aria-controls="album-description-content"
                 @click="descriptionExpanded = !descriptionExpanded"
               >
-                {{ descriptionExpanded ? '收起介绍' : '展开介绍' }}
+                {{ descriptionExpanded ? t('Album.collapse_description') : t('Album.expand_description') }}
               </button>
             </div>
             <p v-else class="text-sm text-gray-500 dark:text-gray-400">
-              暂无简介
+              {{ t('Album.no_description') }}
             </p>
             <div v-if="albumInfo.tags.length" class="mt-4">
               <TagList :tags="albumInfo.tags" :album-id="albumInfo.id" />

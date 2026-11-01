@@ -5,6 +5,7 @@ import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
 import SongListPlaybackDialog from '@/components/SongListPlaybackDialog.vue'
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration, getCoverUrl } from '@/utils'
@@ -30,7 +31,6 @@ const props = withDefaults(defineProps<{
 }>(), {
   songs: () => [],
   groups: () => [],
-  emptyText: '暂无歌曲',
   selectedIds: () => new Set<number>(),
 })
 
@@ -187,7 +187,7 @@ function playSong(song: PlaylistSongItem) {
 
 function addSongToPlaylist(song: PlaylistSongItem) {
   const { isNew } = player.addToPlaylist(song)
-  toast.success(isNew ? '已添加至播放列表' : '歌曲已在播放列表中')
+  toast.success(isNew ? t('SongList.added_to_queue') : t('SongList.song_is_already_in_the_queue'))
 }
 
 function handleDragStart() {
@@ -219,7 +219,7 @@ function handleDragEnd() {
               type="checkbox"
               class="cursor-pointer"
               :checked="allSelected"
-              aria-label="选择全部歌曲"
+              :aria-label="t('SongList.select_all_songs')"
               @change="toggleSelectAll"
             >
           </th>
@@ -228,16 +228,16 @@ function handleDragEnd() {
           </th>
           <th v-if="showCover" class="hidden sm:table-cell p-2 w-[56px]" />
           <th class="p-2">
-            歌曲
+            {{ t('SongList.song') }}
           </th>
           <th v-if="showAlbum" class="hidden md:table-cell p-2 w-[200px]">
-            专辑
+            {{ t('SongList.album') }}
           </th>
           <th v-if="!sorting" class="p-2 w-[100px]">
-            时长
+            {{ t('SongList.duration') }}
           </th>
           <th v-if="sorting" class="p-2 w-[56px]">
-            <span class="sr-only">拖拽排序</span>
+            <span class="sr-only">{{ t('SongList.drag_to_reorder') }}</span>
           </th>
           <th
             v-else
@@ -282,7 +282,7 @@ function handleDragEnd() {
                 type="checkbox"
                 class="cursor-pointer"
                 :checked="selectedIds.has(row.song.songId)"
-                :aria-label="`选择歌曲 ${row.song.songName}`"
+                :aria-label="t('SongList.select_song', { p0: row.song.songName })"
                 @change="toggleSelect(row.song.songId)"
               >
             </td>
@@ -291,7 +291,7 @@ function handleDragEnd() {
                 v-if="player.isPlaying && player.currentSong?.songId === row.song.songId"
                 class="song-list-playing inline-flex h-6 w-6 items-center justify-center gap-[2px] align-middle text-blue-500"
                 role="img"
-                :aria-label="`正在播放：${row.song.songName}`"
+                :aria-label="t('SongList.now_playing', { p0: row.song.songName })"
               >
                 <span v-for="bar in 3" :key="bar" class="song-list-playing-bar" aria-hidden="true" />
               </span>
@@ -340,7 +340,7 @@ function handleDragEnd() {
                 class="song-list-drag-handle size-10 flex items-center justify-center rounded-lg text-gray-400 cursor-grab active:cursor-grabbing touch-none select-none hover:bg-gray-500/10"
                 :class="{ 'pointer-events-none opacity-40': busy }"
                 :disabled="busy"
-                :aria-label="`拖动排序：${row.song.songName}`"
+                :aria-label="t('SongList.drag_to_reorder_alternate', { p0: row.song.songName })"
               >
                 <LucideGripVertical class="size-5" />
               </button>
@@ -363,7 +363,7 @@ function handleDragEnd() {
                     icon-only
                     size="xs"
                     variant="ghost"
-                    title="播放"
+                    :title="t('MusicActions.play')"
                     @click="playSong(row.song)"
                   >
                     <LucidePlay class="size-4" />
@@ -372,7 +372,7 @@ function handleDragEnd() {
                     icon-only
                     size="xs"
                     variant="ghost"
-                    title="加入播放列表"
+                    :title="t('SongList.add_to_queue')"
                     @click="addSongToPlaylist(row.song)"
                   >
                     <LucidePlus class="size-4" />
@@ -382,7 +382,7 @@ function handleDragEnd() {
                     v-if="reorderable"
                     class="song-list-drag-handle p-1 rounded cursor-grab active:cursor-grabbing"
                     :class="{ 'pointer-events-none opacity-40': busy }"
-                    title="拖拽排序"
+                    :title="t('SongList.drag_to_reorder')"
                   >
                     <LucideGripVertical class="size-4" />
                   </div>
@@ -396,7 +396,7 @@ function handleDragEnd() {
 
     <div v-else class="text-center py-10 text-sm text-gray-400">
       <slot name="empty">
-        {{ emptyText }}
+        {{ emptyText ?? t('ArtistSongsHoverCard.no_songs') }}
       </slot>
     </div>
     <SongListPlaybackDialog ref="playbackDialog" />

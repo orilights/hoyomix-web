@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePageSeo } from '@/composables/usePageSeo'
+import { formatNumber, t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { formatDuration, getCoverUrl, getProductIconUrl, getProductName } from '@/utils'
 
@@ -14,7 +15,9 @@ const { albumList, productList } = storeToRefs(store)
 // 检查产品是否存在，若 productList 已加载且不包含该产品则跳转 404
 watch([productList, product], ([list, name]) => {
   if (list && list.length > 0 && !list.some(p => p.name === getProductName(name))) {
-    router.replace({ path: '/404', query: { errorMessage: `游戏「${getProductName(name)}」不存在` } })
+    router.replace({ path: '/404', query: { get errorMessage() {
+      return t('Product.game_not_found', { p0: getProductName(name) })
+    } } })
   }
 }, { immediate: true })
 
@@ -140,7 +143,7 @@ usePageSeo({
   description: computed(() => {
     if (!product.value)
       return null
-    return `${getProductName(product.value)}专辑列表`
+    return t('Product.albums', { p0: getProductName(product.value) })
   }),
   path: computed(() => (product.value ? `/product/${product.value}` : null)),
 })
@@ -162,21 +165,15 @@ watch(product, (val) => {
           {{ getProductName(product) }}
         </div>
         <div class="mt-2 md:mt-6">
-          <span class="text-gray-500 dark:text-gray-400">
-            专辑
-          </span>
+          <span class="text-gray-500 dark:text-gray-400">{{ t('SongList.album') }}</span>
           <span>
-            {{ albumsFiltered.length }}
+            {{ formatNumber(albumsFiltered.length) }}
           </span>
-          <span class="ml-4 text-gray-500 dark:text-gray-400">
-            歌曲
-          </span>
+          <span class="ml-4 text-gray-500 dark:text-gray-400">{{ t('SongList.song') }}</span>
           <span>
-            {{ sumBy(albumsFiltered, (i) => i.songCount) }}
+            {{ formatNumber(sumBy(albumsFiltered, (i) => i.songCount)) }}
           </span>
-          <span class="ml-4 text-gray-500 dark:text-gray-400">
-            时长
-          </span>
+          <span class="ml-4 text-gray-500 dark:text-gray-400">{{ t('SongList.duration') }}</span>
           <span>
             {{ formatDuration(sumBy(albumsFiltered, (i) => Number(i.totalDuration))) }}
           </span>
@@ -186,9 +183,9 @@ watch(product, (val) => {
 
     <SegmentSwitch
       v-model="activeTab"
-      :options="[{ key: 'albums', label: '专辑列表' }, { key: 'artists', label: '制作人员' }]"
+      :options="[{ key: 'albums', label: t('Product.album_list') }, { key: 'artists', label: t('MusicActions.credits') }]"
       class="mt-4 lg:hidden h-fit"
-      aria-label="游戏内容"
+      :aria-label="t('Product.game_content')"
     />
 
     <div class="flex flex-col lg:flex-row gap-4 mt-4">
@@ -199,46 +196,45 @@ watch(product, (val) => {
       <div v-show="activeTab === 'albums'" class="flex-1 lg:!block overflow-hidden" :class="{ hidden: activeTab !== 'albums' }">
         <section v-if="albumSeries.length" class="mb-2">
           <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-            专辑系列
+            {{ t('search.album_series') }}
           </h2>
           <FilterChips
             v-model="selectedSeries"
-            :options="[{ value: null, label: '全部' }, ...albumSeries.map(series => ({ value: series.name, label: series.displayName, title: series.displayName, count: series.count }))]"
-            aria-label="专辑系列筛选"
+            :options="[{ value: null, label: t('search.all') }, ...albumSeries.map(series => ({ value: series.name, label: series.displayName, title: series.displayName, count: series.count }))]"
+            :aria-label="t('Product.filter_by_album_series')"
           />
         </section>
 
         <section v-if="versionRanges.length > 0" class="mb-2">
           <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-            版本
+            {{ t('Product.version') }}
           </h2>
           <FilterChips
             v-model="selectedVersion"
-            :options="[{ value: null, label: '全部' }, ...versionRanges.map(range => ({ value: range.major, label: getVersionLabel(range.major) }))]"
-            aria-label="版本筛选"
+            :options="[{ value: null, label: t('search.all') }, ...versionRanges.map(range => ({ value: range.major, label: getVersionLabel(range.major) }))]"
+            :aria-label="t('Product.filter_by_version')"
           />
         </section>
 
         <section class="mb-2">
           <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-            年份
+            {{ t('Artist.year') }}
           </h2>
           <FilterChips
             v-model="selectedYear"
-            :options="[{ value: null, label: '全部' }, ...availableYears.map(year => ({ value: year, label: String(year) }))]"
-            aria-label="年份筛选"
+            :options="[{ value: null, label: t('search.all') }, ...availableYears.map(year => ({ value: year, label: String(year) }))]"
+            :aria-label="t('Artist.filter_by_year')"
           />
         </section>
 
         <AlbumList default-layout="list" :albums-list="albumsFilteredByYear" persist-key="product">
           <template #toolbar>
-            <span class="text-sm text-gray-400 pl-1">
-              专辑 {{ albumsFilteredByYear.length }} · 歌曲 {{ sumBy(albumsFilteredByYear, (i) => i.songCount) }} · 时长 {{ formatDuration(sumBy(albumsFilteredByYear, (i) => Number(i.totalDuration))) }}
+            <span class="text-sm text-gray-400 pl-1">{{ t('Product.albums_songs_duration', { p0: albumsFilteredByYear.length, p1: sumBy(albumsFilteredByYear, (i) => i.songCount), p2: formatDuration(sumBy(albumsFilteredByYear, (i) => Number(i.totalDuration))) }) }}
             </span>
           </template>
         </AlbumList>
         <div v-if="albumsFiltered.length && !albumsFilteredByYear.length" role="status" class="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
-          暂无符合条件的专辑
+          {{ t('Product.no_matching_albums') }}
         </div>
       </div>
     </div>

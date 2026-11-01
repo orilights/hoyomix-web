@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PlaylistItem } from '@/types/player'
+import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 
@@ -36,7 +37,7 @@ function toAlbum() {
   <div class="flex items-center">
     <Transition name="cover-fade">
       <div v-if="coverUrl && !isFullscreen" class="size-12 mr-3 shrink-0">
-        <Tooltip content="切换全屏播放器" placement="top" align="center">
+        <Tooltip :content="t('PlayerBarSongInfo.toggle_fullscreen_player')" placement="top" align="center">
           <img
             :src="coverUrl"
             class="size-12 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity shadow shrink-0"

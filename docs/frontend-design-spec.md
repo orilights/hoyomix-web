@@ -53,7 +53,7 @@ src/
 - **API 层（`api/`）**：按业务拆分网络接口。音乐服务接口位于 `music.ts`，表情目录位于 `emoticon.ts`，媒体源测速位于 `media.ts`，更新日志等难归类接口位于 `misc.ts`。`utils/fetch.ts` 的 `fetchJson`/`fetchJsonMutation` 提供统一请求封装（`credentials: include`、404 抛 `NotFoundError`、`{error}` 消息），接口以 `xxxApi` 命名。
 - **数据访问层（`composables/queries.ts`）**：`useXxxQuery` 封装 queryKey、enabled、staleTime。
 - **状态层（`store/*`）**：Pinia 承载全局 UI 与播放器状态。
-- **工具层（`utils/*`）**：无 Vue 依赖的纯函数。
+- **工具层（`utils/*`）**：算法与展示辅助函数；纯格式化函数接收显式语言参数，展示封装读取当前界面语言。
 - **视图/组件层**：页面与通用/业务组件。
 
 > 约定：**读取走 vue-query，写入走 store 内直接调 API**。跨组件/持久化/高频状态进 Pinia；查询结果需全局共享时用 `watch(..., { immediate: true })` 反填 store（如 `main` 的 `albumList`）。
@@ -61,6 +61,17 @@ src/
 ### 4.1 启动流程（`main.ts`）
 
 `OverlayScrollbars` 插件 → `createPinia`+持久化 → `app.use(router/pinia/VueQueryPlugin)` → 挂载。`App.vue` 内为主内容区装配 OverlayScrollbars、初始化播放器，拉取专辑列表与应用配置，装配认证会话。
+
+### 4.2 前端语言与翻译约定
+
+- Vue I18n 使用 Composition API，全局入口位于 `src/i18n/`；`zh-CN`（简体中文）、`zh-TW`（繁体中文）、`en`（English）的 JSON 资源随应用加载，缺少译文时回退简体中文。资源采用业务语义 key，三种语言必须拥有相同 key 和命名插值参数。
+- 独立 `language` store 只持久化 `preference: 'auto' | 'zh-CN' | 'zh-TW' | 'en'`，默认 `auto`。挂载前恢复偏好并初始化语言，更新 `html lang` 与 `og:locale`。存储损坏、无效值或存储不可用时仍可正常使用；设置页“外观 → 语言”提供切换入口。
+- 自动模式只看浏览器第一首选语言（`navigator.languages[0]`，缺失时使用 `navigator.language`）。中文显式 `Hans` / `Hant` 优先于地区；`TW/HK/MO` 使用繁体，其他中文使用简体；非中文使用英文，缺失或格式无效时使用简体。自动模式响应 `languagechange`，手动模式优先于环境，恢复自动模式时重新识别。
+- 仅翻译前端自有文案，包括操作、选项标签、状态、校验、错误兜底、图表、tooltip 和无障碍名称。接口返回的名称、描述、歌词、标签、制作角色、公告、更新日志、用户内容及错误消息保持原样；不添加语言请求参数、语言路由或改变查询缓存、排序、提交值。公告缺省标题在显示层翻译，参与已有已读标识计算的规范化数据保持稳定。
+- 组件与展示辅助函数通过 `@/i18n` 的 `t`、`formatNumber` 使用当前语言；`t` 支持命名插值和第三参数单复数计数，数字插值自动本地化。选项使用响应式计算或标签 getter，避免在模块初始化时固定译文。SEO 文案传入 getter / computed；图表配置显式依赖语言。切换不重新挂载页面，不重置播放、表单、弹窗或滚动。
+- 组合数量与单位时翻译完整句子，英文提供单复数分支；不要拼接中文量词。原始文本不得作为翻译 key，也不对页面或后端字段运行简繁转换。`useLocalizedText` 保留持续校验提示的生成函数，`LocalizedError` 保留前端错误 key 与参数，使这些提示随语言更新；后端消息保留字符串，已经弹出的 Toast 保留创建时语言。
+- `src/i18n/formatters.ts` 提供显式 locale 的纯格式化函数，`utils/time.ts` 为前端提供当前语言封装，保留现有相对时间阈值和本地时区。仅日期字符串按日历日期格式化，避免 UTC 解析造成跨日；歌曲时长仍为 `mm:ss` / `h:mm:ss`，输入值、API 参数和排序数据保持原格式。
+- 新增文案时同步维护三份资源，检查语言识别、持久化与异常存储、资源 key / 插值一致性、消息编译、单复数与格式化、原文透传和公告标识稳定性。浏览器验收需覆盖语言切换、刷新恢复、窄屏长文案及真实 Chromium 109，不能用修改 UA 代替。
 
 ---
 

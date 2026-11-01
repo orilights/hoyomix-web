@@ -2,6 +2,7 @@
 import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/vue'
 import { useId } from 'vue'
 import { useArtistInfoQuery } from '@/composables/queries'
+import { formatNumber, t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 
 const props = defineProps<{
@@ -172,7 +173,7 @@ onBeforeUnmount(() => {
         @click="onTriggerClick($event, navigate)"
       >
         <span class="min-w-0">{{ artistName }}</span>
-        <span v-if="songCount != null" class="mx-1 shrink-0 text-xs text-gray-600 dark:text-gray-400 tabular-nums">{{ songCount }}</span>
+        <span v-if="songCount != null" class="mx-1 shrink-0 text-xs text-gray-600 dark:text-gray-400 tabular-nums">{{ formatNumber(songCount) }}</span>
       </a>
     </RouterLink>
   </span>
@@ -185,7 +186,7 @@ onBeforeUnmount(() => {
         ref="card"
         tabindex="-1"
         role="dialog"
-        :aria-label="`${artistName}的${role}歌曲`"
+        :aria-label="t('ArtistSongsHoverCard.songs', { p0: artistName, p1: role })"
         class="z-1000 w-80 max-w-[calc(100vw-16px)] overflow-hidden rounded-xl bg-white/95 dark:bg-[var(--theme-surface)]/95 backdrop-blur-xl border border-white/70 dark:border-gray-700/70 shadow-xl p-2 text-sm outline-none"
         :style="floatingStyles"
         @pointerenter="cancelClose"
@@ -194,28 +195,27 @@ onBeforeUnmount(() => {
         @focusout="scheduleClose"
       >
         <div class="flex items-center gap-2 px-2 py-1.5">
-          <span class="font-medium flex-1 min-w-0 truncate">{{ artistName }} · {{ role }} {{ songCount }}</span>
+          <span class="font-medium flex-1 min-w-0 truncate">{{ artistName }} · {{ role }} {{ formatNumber(songCount) }}</span>
           <RouterLink
             :to="{ name: 'ArtistInfo', params: { name: artistName } }"
             class="shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:dark:text-blue-400"
             @click="closeCard"
           >
-            查看全部
+            {{ t('AlbumSeriesHoverCard.view_all') }}
           </RouterLink>
         </div>
 
         <AsyncFade>
           <div v-if="isLoading" role="status" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-            加载中...
+            {{ t('App.loading') }}
           </div>
           <div v-else-if="isError" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-            加载失败
-            <button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
-              重试
+            {{ t('AlbumSeriesHoverCard.unable_to_load') }}<button class="ml-1 text-blue-600 dark:text-blue-400 cursor-pointer" @click="refetch()">
+              {{ t('App.retry') }}
             </button>
           </div>
           <div v-else-if="!songs.length" class="px-2 py-5 text-center text-gray-500 dark:text-gray-400">
-            暂无歌曲
+            {{ t('ArtistSongsHoverCard.no_songs') }}
           </div>
           <OverlayScrollbarsComponent
             v-else

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/i18n'
 import { dialogStack, removeDialog } from '@/utils/dialog-stack'
 
 const props = withDefaults(defineProps<{
@@ -127,7 +128,7 @@ onUnmounted(() => {
               shape="pill"
               variant="ghost"
               class="text-gray-400 hover:text-gray-600 hover:dark:text-gray-400 hover:bg-gray-100 hover:dark:bg-gray-800"
-              aria-label="关闭对话框"
+              :aria-label="t('AppDialog.close_dialog')"
               @click="close"
             >
               <LucideX class="size-4" />

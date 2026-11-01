@@ -2,6 +2,7 @@
 import type { Comment } from '@/types/comment'
 import { toast } from 'vue-sonner'
 import { CommentApiError, createCommentApi, getCommentApi } from '@/api/comment'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 
 const props = withDefaults(defineProps<{
@@ -27,7 +28,7 @@ function ensureWritable() {
   if (!auth.requireLogin())
     return false
   if (!canWriteComments.value) {
-    toast.error('当前账号无法发表评论')
+    toast.error(t('CommentInput.this_account_cannot_post_comments'))
     return false
   }
   return true
@@ -40,11 +41,11 @@ async function submit() {
     return
   const value = content.value.trim()
   if (!value) {
-    toast.error('请输入评论内容')
+    toast.error(t('CommentInput.enter_a_comment'))
     return
   }
   if (value.length > maxLength) {
-    toast.error(`评论不能超过 ${maxLength} 个字符`)
+    toast.error(t('CommentEditor.comments_cannot_exceed_characters', { p0: maxLength }))
     return
   }
 
@@ -67,7 +68,7 @@ async function submit() {
     }
     if (props.postId === submittedPostId && user.value?.id === submittedUserId)
       content.value = ''
-    toast.success(state === 'pending' ? '评论已提交，正在审核中' : '评论已发表')
+    toast.success(state === 'pending' ? t('CommentInput.comment_submitted_for_review') : t('CommentInput.comment_posted'))
     emit('created', {
       id: result.id,
       state,
@@ -78,11 +79,11 @@ async function submit() {
   }
   catch (error) {
     if (error instanceof CommentApiError && error.code === 401) {
-      toast.error('登录已过期，请重新登录后提交')
+      toast.error(t('CommentInput.your_session_has_expired_sign_in_again_to_submit'))
       auth.openAuthDialog()
     }
     else {
-      toast.error(error instanceof Error ? error.message : '评论发表失败')
+      toast.error(error instanceof Error ? error.message : t('CommentInput.failed_to_post_comment'))
     }
   }
   finally {
@@ -94,27 +95,26 @@ async function submit() {
 <template>
   <div class="bg-white/65 dark:bg-[var(--theme-surface)]/65 rounded-xl border border-gray-200/80 dark:border-gray-700/80 p-4">
     <div v-if="replyTo" class="mb-2 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-      <span>回复 <strong class="text-gray-700 dark:text-gray-300">@{{ replyTo.user.name }}</strong><span v-if="replyToNumber" class="ml-1">#{{ replyToNumber }}</span></span>
-      <AppButton icon-only size="xs" variant="ghost" title="取消回复" aria-label="取消回复" @click="emit('cancelReply')">
+      <span>{{ t('CommentInput.reply') }}<strong class="text-gray-700 dark:text-gray-300">@{{ replyTo.user.name }}</strong><span v-if="replyToNumber" class="ml-1">#{{ replyToNumber }}</span></span>
+      <AppButton icon-only size="xs" variant="ghost" :title="t('CommentInput.cancel_reply')" :aria-label="t('CommentInput.cancel_reply')" @click="emit('cancelReply')">
         <LucideX class="size-4" />
       </AppButton>
     </div>
     <CommentEditor
       v-model="content"
       :disabled="submitting || !isLoggedIn"
-      :placeholder="isLoggedIn ? '写下你此刻的想法…' : '登录后参与讨论'"
+      :placeholder="isLoggedIn ? t('CommentEditor.share_your_thoughts') : t('CommentInput.sign_in_to_join_the_discussion')"
       :max-length="maxLength"
       @submit="submit"
     >
       <template #actions>
         <AppButton v-if="!isLoggedIn" variant="primary" size="sm" @click="auth.openAuthDialog()">
-          <LucideLogIn class="size-4" />
-          登录
+          <LucideLogIn class="size-4" />{{ t('DesktopSidebar.sign_in') }}
         </AppButton>
         <AppButton v-else variant="primary" size="sm" :disabled="submitting" @click="submit">
           <LucideLoader2 v-if="submitting" class="size-4 animate-spin" />
           <LucideSend v-else class="size-4" />
-          {{ submitting ? '发表中' : '发表' }}
+          {{ submitting ? t('CommentInput.posting') : t('CommentInput.post') }}
         </AppButton>
       </template>
     </CommentEditor>

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { formatNumber, t } from '@/i18n'
 import { insertCommentText } from '@/utils/emoticons'
 
 const props = withDefaults(defineProps<{
   disabled?: boolean
   placeholder?: string
   maxLength?: number
-}>(), { maxLength: 2000, placeholder: '写下你此刻的想法…' })
+}>(), { maxLength: 2000, placeholder: t('CommentEditor.share_your_thoughts') })
 const emit = defineEmits<{ submit: [] }>()
 const content = defineModel<string>({ default: '' })
 const textarea = useTemplateRef<HTMLTextAreaElement>('textarea')
@@ -20,7 +21,7 @@ async function insert(text: string, onInserted: () => void) {
     return
   const result = insertCommentText(content.value, text, selection.value.start, selection.value.end, props.maxLength)
   if (!result) {
-    toast.error(`评论不能超过 ${props.maxLength} 个字符`)
+    toast.error(t('CommentEditor.comments_cannot_exceed_characters', { p0: props.maxLength }))
     return
   }
   content.value = result.value
@@ -53,7 +54,7 @@ async function insert(text: string, onInserted: () => void) {
     <div class="mt-2 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         <EmoticonPicker :disabled="disabled" @select="insert" />
-        <span class="text-xs text-gray-400">{{ content.length }}/{{ maxLength }}</span>
+        <span class="text-xs text-gray-400">{{ formatNumber(content.length) }}/{{ maxLength }}</span>
       </div>
       <slot name="actions" />
     </div>

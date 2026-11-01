@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 
 interface Props {
@@ -32,22 +33,20 @@ const emit = defineEmits<{
 const store = useMainStore()
 
 const favoriteTooltip = computed(() =>
-  store.favoritePlaylistIds.includes(props.playlistId ?? '') ? '取消收藏歌单' : '收藏歌单',
+  store.favoritePlaylistIds.includes(props.playlistId ?? '') ? t('PlaylistActions.unsave_playlist') : t('PlaylistActions.save_playlist'),
 )
 </script>
 
 <template>
-  <Tooltip placement="top" theme="light" content="替换当前播放列表并播放">
+  <Tooltip placement="top" theme="light" :content="t('AlbumActions.replace_the_current_queue_and_play')">
     <AppButton variant="primary" @click="emit('playAll')">
-      <LucidePlay class="size-4" fill="currentColor" />
-      播放全部
+      <LucidePlay class="size-4" fill="currentColor" />{{ t('AlbumActions.play_all') }}
     </AppButton>
   </Tooltip>
 
-  <Tooltip placement="top" theme="light" content="将专辑内所有歌曲添加至播放列表">
+  <Tooltip placement="top" theme="light" :content="t('PlaylistActions.add_all_songs_in_the_album_to_the_queue')">
     <AppButton @click="emit('addAll')">
-      <LucidePlus class="size-4" />
-      加入播放列表
+      <LucidePlus class="size-4" />{{ t('SongList.add_to_queue') }}
     </AppButton>
   </Tooltip>
 
@@ -61,38 +60,33 @@ const favoriteTooltip = computed(() =>
 
   <div v-if="showComments" class="detail-comment-action">
     <AppButton @click="emit('showComments')">
-      <LucideMessageCircle class="size-4" />
-      评论 {{ commentCount }}
+      <LucideMessageCircle class="size-4" />{{ t('AlbumActions.comments', { p0: commentCount }) }}
     </AppButton>
   </div>
 
-  <Tooltip placement="top" theme="light" content="切换多选模式">
+  <Tooltip placement="top" theme="light" :content="t('PlaylistActions.toggle_multiple_selection')">
     <AppButton
       :class="multiSelectActive ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25' : 'bg-gray-500/10 hover:bg-gray-500/20'"
       @click="emit('toggleMultiSelect')"
     >
-      <LucideListChecks class="size-4" />
-      多选
+      <LucideListChecks class="size-4" />{{ t('PlaylistActions.select_multiple') }}
     </AppButton>
   </Tooltip>
 
   <AppButton v-if="canSort" :disabled="sortDisabled" @click="emit('sort')">
-    <LucideGripVertical class="size-4" />
-    调整顺序
+    <LucideGripVertical class="size-4" />{{ t('Playlist.reorder') }}
   </AppButton>
 
   <template v-if="isOwner">
-    <Tooltip placement="top" theme="light" content="编辑歌单信息">
+    <Tooltip placement="top" theme="light" :content="t('PlaylistActions.edit_playlist_information')">
       <AppButton @click="emit('edit')">
-        <LucidePencil class="size-4" />
-        编辑
+        <LucidePencil class="size-4" />{{ t('CommentItem.edit') }}
       </AppButton>
     </Tooltip>
 
-    <Tooltip placement="top" theme="light" content="删除歌单">
+    <Tooltip placement="top" theme="light" :content="t('Playlist.delete_playlist')">
       <AppButton variant="danger" @click="emit('delete')">
-        <LucideTrash2 class="size-4" />
-        删除
+        <LucideTrash2 class="size-4" />{{ t('SongVideoEditDialog.delete') }}
       </AppButton>
     </Tooltip>
   </template>

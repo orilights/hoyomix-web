@@ -3,6 +3,7 @@ import type { ArtistInfo } from '@/types/core'
 import { toast } from 'vue-sonner'
 import { useArtistInfoQuery, useArtistNameByAliasQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { formatNumber, t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { getProductIconUrl, getProductName } from '@/utils'
 import { NotFoundError } from '@/utils/fetch'
@@ -25,7 +26,7 @@ watch([error, aliasMatch, aliasError], ([infoError, match, resolveError]) => {
   if (!isError.value)
     return
   if (!(infoError instanceof NotFoundError)) {
-    toast.error(`艺术家信息加载失败：${infoError?.message ?? '未知错误'}`)
+    toast.error(t('Artist.failed_to_load_artist_details', { p0: infoError?.message ?? t('App.unknown_error') }))
     return
   }
   if (match && match.name !== artistName.value) {
@@ -35,7 +36,7 @@ watch([error, aliasMatch, aliasError], ([infoError, match, resolveError]) => {
     router.replace({ path: '/404', query: { errorMessage: infoError.message } })
   }
   else if (resolveError) {
-    toast.error(`艺术家别名查询失败：${resolveError.message}`)
+    toast.error(t('Artist.failed_to_look_up_artist_aliases', { p0: resolveError.message }))
   }
 }, { immediate: true })
 
@@ -55,7 +56,7 @@ usePageSeo({
     if (!info)
       return null
     const products = info.products.map(p => getProductName(p)).join('、')
-    return `${info.name}，${info.isHoyomix ? 'HOYO-MiX 团队成员，' : ''}参与了${products}的音乐制作`
+    return t('Artist.contributed_to_the_music_of', { p0: info.name, p1: info.isHoyomix ? t('Artist.hoyomix_team_member') : '', p2: products })
   }),
   path: computed(() => (artistName.value ? `/artist/${artistName.value}` : null)),
 })
@@ -122,7 +123,7 @@ onMounted(() => {
     <PageLoading v-if="isLoading || isAliasLoading || isResolvingAlias" />
 
     <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
-      加载失败，请刷新重试
+      {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
     </div>
 
     <div v-else class="flex flex-col lg:flex-row gap-4 mt-4">
@@ -130,11 +131,11 @@ onMounted(() => {
         <div class="font-bold text-2xl pb-4">
           {{ artistName }}
           <div v-if="artistInfo?.isHoyomix" class="font-normal text-base text-gray-500 dark:text-gray-400">
-            HOYO-MiX 成员
+            {{ t('Artist.hoyomix_member') }}
           </div>
         </div>
         <div class="font-bold mt-2 mb-1">
-          参与项目
+          {{ t('Artist.projects') }}
         </div>
         <div v-if="artistInfo" class="flex flex-col gap-0.5">
           <button
@@ -155,7 +156,7 @@ onMounted(() => {
 
         <template v-if="allRoles.length">
           <div class="font-bold mt-4 mb-1">
-            担任职责
+            {{ t('Artist.roles') }}
           </div>
           <div class="flex flex-col gap-0.5">
             <button
@@ -165,7 +166,7 @@ onMounted(() => {
               @click="selectedRole = selectedRole === item.role ? null : item.role"
             >
               <span class="text-sm truncate mr-2">{{ item.role }}</span>
-              <span class="text-xs text-gray-400 shrink-0">{{ item.count }}</span>
+              <span class="text-xs text-gray-400 shrink-0">{{ formatNumber(item.count) }}</span>
             </button>
           </div>
         </template>
@@ -174,12 +175,12 @@ onMounted(() => {
       <div class="flex-1 overflow-hidden">
         <section v-if="availableYears.length > 1" class="mb-4">
           <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-            年份
+            {{ t('Artist.year') }}
           </h2>
           <FilterChips
             v-model="selectedYear"
-            :options="[{ value: null, label: '全部' }, ...availableYears.map(year => ({ value: year, label: String(year) }))]"
-            aria-label="年份筛选"
+            :options="[{ value: null, label: t('search.all') }, ...availableYears.map(year => ({ value: year, label: String(year) }))]"
+            :aria-label="t('Artist.filter_by_year')"
           />
         </section>
         <ArtistAlbumList v-if="artistInfoResolved" :albums-list="albumsFilteredByYear" :artist-info="artistInfoResolved" :selected-role="selectedRole" :selected-product="selectedProduct" />

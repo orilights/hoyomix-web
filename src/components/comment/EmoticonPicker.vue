@@ -3,6 +3,7 @@ import type { Emoticon } from '@/types/emoticon'
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { useEmoticonsQuery } from '@/composables/queries'
 import { useRecentEmoticons } from '@/composables/useRecentEmoticons'
+import { t } from '@/i18n'
 import { emoticonInsertion } from '@/utils/emoticons'
 
 const props = defineProps<{ disabled?: boolean }>()
@@ -130,8 +131,8 @@ onBeforeUnmount(() => {
   <button
     ref="trigger"
     type="button"
-    title="插入表情"
-    aria-label="插入表情"
+    :title="t('EmoticonPicker.insert_emoticon')"
+    :aria-label="t('EmoticonPicker.insert_emoticon')"
     aria-haspopup="dialog"
     :aria-controls="panelId"
     :aria-expanded="isOpen"
@@ -148,30 +149,30 @@ onBeforeUnmount(() => {
         :id="panelId"
         ref="panel"
         role="dialog"
-        aria-label="选择表情"
+        :aria-label="t('EmoticonPicker.choose_an_emoticon')"
         class="emoticon-panel z-[1001] flex w-88 flex-col overflow-hidden rounded-xl border border-gray-200/80 dark:border-gray-700/80 bg-white/95 dark:bg-[var(--theme-surface)]/95 text-gray-700 dark:text-gray-200 shadow-lg backdrop-blur-xl"
         :style="floatingStyles"
         @scroll.capture="closePreview"
       >
         <div class="flex shrink-0 items-center justify-between border-b border-black/5 dark:border-white/5 px-3 py-2">
-          <span class="text-xs font-medium">{{ isRecent ? '最近使用' : group?.name ?? '表情' }}</span>
-          <AppButton size="xs" icon-only variant="ghost" title="关闭表情面板" aria-label="关闭表情面板" @click="close">
+          <span class="text-xs font-medium">{{ isRecent ? t('EmoticonPicker.recently_used') : group?.name ?? t('EmoticonPicker.emoticons') }}</span>
+          <AppButton size="xs" icon-only variant="ghost" :title="t('EmoticonPicker.close_emoticon_picker')" :aria-label="t('EmoticonPicker.close_emoticon_picker')" @click="close">
             <LucideX class="size-4" />
           </AppButton>
         </div>
         <div class="min-h-0 overflow-y-auto overscroll-contain p-2" style="height: 240px">
           <AsyncFade>
             <div v-if="isError" class="flex h-full flex-col items-center justify-center gap-2 text-sm text-gray-400">
-              <span>表情加载失败</span>
+              <span>{{ t('EmoticonPicker.failed_to_load_emoticons') }}</span>
               <AppButton size="sm" variant="ghost" :disabled="isFetching" @click="refetch()">
-                重试
+                {{ t('App.retry') }}
               </AppButton>
             </div>
             <div v-else-if="isPending" role="status" class="flex h-full items-center justify-center gap-2 text-sm text-gray-400">
-              <LucideLoader2 class="size-4 animate-spin" />加载表情…
+              <LucideLoader2 class="size-4 animate-spin" />{{ t('EmoticonPicker.loading_emoticons') }}
             </div>
             <div v-else-if="!visibleItems.length" class="flex h-full items-center justify-center text-sm text-gray-400">
-              {{ isRecent ? '暂无最近使用的表情' : '暂无可用表情' }}
+              {{ isRecent ? t('EmoticonPicker.no_recently_used_emoticons') : t('EmoticonPicker.no_emoticons_available') }}
             </div>
             <div v-else class="flex flex-wrap content-start gap-1">
               <button
@@ -200,11 +201,11 @@ onBeforeUnmount(() => {
             </div>
           </AsyncFade>
         </div>
-        <div class="flex shrink-0 gap-1 overflow-x-auto overscroll-contain border-t border-black/5 dark:border-white/5 bg-black/2 dark:bg-white/3 p-1.5" aria-label="表情分组">
+        <div class="flex shrink-0 gap-1 overflow-x-auto overscroll-contain border-t border-black/5 dark:border-white/5 bg-black/2 dark:bg-white/3 p-1.5" :aria-label="t('EmoticonPicker.emoticon_groups')">
           <button
             type="button"
-            title="最近使用"
-            aria-label="最近使用"
+            :title="t('EmoticonPicker.recently_used')"
+            :aria-label="t('EmoticonPicker.recently_used')"
             :aria-pressed="isRecent"
             class="flex min-h-9 shrink-0 items-center justify-center rounded-lg px-2 text-xs hover:bg-black/5 dark:hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
             :class="isRecent ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : ''"

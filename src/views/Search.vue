@@ -3,6 +3,7 @@ import type { SearchResultItem, SearchType } from '@/types/search'
 import { useSearchPageQuery } from '@/composables/queries'
 import { scrollPageToElement } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
+import { t } from '@/i18n'
 import { parseSearchType, searchQuery, searchResultRoute, searchTypeOptions } from '@/utils/search'
 
 const route = useRoute()
@@ -21,7 +22,7 @@ const resultsSection = useTemplateRef<HTMLElement>('resultsSection')
 let inputTimer: ReturnType<typeof setTimeout> | undefined
 let scrollAfterNavigation: string | undefined
 
-usePageSeo({ title: computed(() => queryKeyword.value ? `搜索：${queryKeyword.value}` : '搜索'), path: '/search', noindex: true })
+usePageSeo({ title: computed(() => queryKeyword.value ? t('Search.search', { p0: queryKeyword.value }) : t('Header.search')), path: '/search', noindex: true })
 const { data, isFetching, isError, error, refetch } = useSearchPageQuery(queryKeyword, searchType, page)
 const isTyping = computed(() => keyword.value.trim() !== queryKeyword.value || composing.value)
 const results = computed(() => isTyping.value ? [] : data.value?.results ?? [])
@@ -118,46 +119,46 @@ onBeforeUnmount(() => clearTimeout(inputTimer))
 
 <template>
   <div class="max-w-4xl mx-auto">
-    <PageHeader title="搜索" />
+    <PageHeader :title="t('Header.search')" />
     <form class="flex items-center gap-3 rounded-xl bg-black/5 dark:bg-white/5 px-4 py-3" role="search" @submit.prevent="submitSearch">
       <LucideSearch class="size-5 text-gray-400 shrink-0" />
       <input
         v-model="keyword"
         type="search"
-        aria-label="搜索关键词"
-        placeholder="搜索歌曲、专辑、游戏、艺术家..."
+        :aria-label="t('Search.search_keywords')"
+        :placeholder="t('SearchModal.search_songs_albums_games_artists')"
         class="min-w-0 flex-1 text-base outline-none bg-transparent placeholder-gray-400"
         @compositionstart="composing = true"
         @compositionend="composing = false"
         @keydown="onInputKeydown"
       >
       <AppButton type="submit" size="sm" variant="primary">
-        搜索
+        {{ t('Header.search') }}
       </AppButton>
     </form>
-    <FilterChips :model-value="searchType" :options="searchTypeOptions" class="my-4" aria-label="搜索类型" @update:model-value="setType" />
+    <FilterChips :model-value="searchType" :options="searchTypeOptions" class="my-4" :aria-label="t('SearchModal.search_type')" @update:model-value="setType" />
 
     <section
       ref="resultsSection"
       :aria-busy="isFetching || isTyping"
-      aria-label="搜索结果"
+      :aria-label="t('Search.search_results')"
       class="rounded-xl bg-black/5 dark:bg-white/5 overflow-hidden"
     >
       <AsyncFade>
         <div v-if="isTyping || (isFetching && !data)" class="flex items-center justify-center py-16 text-gray-400" role="status">
-          <LucideLoader2 class="size-5 animate-spin mr-2" />搜索中...
+          <LucideLoader2 class="size-5 animate-spin mr-2" />{{ t('SearchModal.searching') }}
         </div>
         <div v-else-if="!hasCriteria" class="py-16 text-center text-gray-400">
-          输入关键词开始搜索
+          {{ t('SearchModal.enter_a_keyword_to_search') }}
         </div>
         <div v-else-if="isError" class="py-16 text-center text-red-500" role="alert">
-          <p>搜索失败：{{ error?.message ?? '未知错误' }}</p>
+          <p>{{ t('SearchModal.search_failed', { p0: error?.message ?? t('App.unknown_error') }) }}</p>
           <AppButton variant="ghost" size="sm" class="mt-3" @click="refetch()">
-            重试
+            {{ t('App.retry') }}
           </AppButton>
         </div>
         <div v-else-if="!results.length" class="py-16 text-center text-gray-400">
-          未找到相关结果
+          {{ t('SearchModal.no_results_found') }}
         </div>
         <div v-else class="py-2">
           <SearchResultRow
@@ -177,7 +178,7 @@ onBeforeUnmount(() => clearTimeout(inputTimer))
       :model-value="page"
       :total-pages="pagination.totalPages"
       :disabled="isFetching"
-      aria-label="搜索分页"
+      :aria-label="t('Search.search_result_pages')"
       class="justify-center mt-5"
       @update:model-value="setPage"
     />

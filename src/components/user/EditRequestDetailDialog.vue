@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { cancelEditRequestApi } from '@/api/music'
 import { useEditRequestQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { editRequestColors, editRequestLabels } from '@/utils/edit-request'
 import { formatDateTime } from '@/utils/time'
@@ -33,13 +34,13 @@ async function cancel() {
   try {
     await cancelEditRequestApi(requestId)
     if (auth.user?.id === userId && id.value === requestId) {
-      toast.success('已取消编辑申请')
+      toast.success(t('EditRequestDetailDialog.edit_request_cancelled'))
       confirmCancel.value = false
     }
   }
   catch (error) {
     if (auth.user?.id === userId && id.value === requestId)
-      toast.error(error instanceof Error ? error.message : '取消失败')
+      toast.error(error instanceof Error ? error.message : t('EditRequestDetailDialog.cancellation_failed'))
   }
   finally {
     if (auth.user?.id === userId) {
@@ -56,16 +57,16 @@ async function cancel() {
 </script>
 
 <template>
-  <AppDialog v-model="visible" title="编辑申请详情" size="md">
+  <AppDialog v-model="visible" :title="t('EditRequestDetailDialog.edit_request_details')" size="md">
     <div class="p-4 sm:p-6 max-h-[65vh] overflow-y-auto overscroll-contain space-y-4 text-sm break-words [overflow-wrap:anywhere]">
       <AsyncFade>
         <p v-if="isPending" class="text-center" role="status">
-          加载中...
+          {{ t('App.loading') }}
         </p>
         <div v-else-if="isError">
-          {{ error?.message || '详情加载失败' }}
+          {{ error?.message || t('EditRequestDetailDialog.failed_to_load_details') }}
           <AppButton size="sm" variant="ghost" @click="refetch()">
-            重试
+            {{ t('App.retry') }}
           </AppButton>
         </div>
         <div v-else-if="detail" class="space-y-4">
@@ -73,25 +74,25 @@ async function cancel() {
             <RouterLink v-if="detail.resourcePath" :to="detail.resourcePath" class="text-blue-500" @click="visible = false">
               {{ detail.resourceName }}
             </RouterLink>
-            <span v-else>{{ detail.resourceName }}（资源已删除）</span>
+            <span v-else>{{ t('EditRequestDetailDialog.resource_deleted', { p0: detail.resourceName }) }}</span>
           </div>
           <span class="inline-block text-xs rounded px-2 py-0.5" :class="editRequestColors[detail.status]">{{ editRequestLabels[detail.status] }}</span>
-          <p>提交时间：<time :datetime="detail.createdAt">{{ formatDateTime(detail.createdAt) }}</time></p>
-          <p>更新时间：<time :datetime="detail.updatedAt">{{ formatDateTime(detail.updatedAt) }}</time></p>
+          <p>{{ t('EditRequestDetailDialog.submitted') }}<time :datetime="detail.createdAt">{{ formatDateTime(detail.createdAt) }}</time></p>
+          <p>{{ t('EditRequestDetailDialog.updated') }}<time :datetime="detail.updatedAt">{{ formatDateTime(detail.updatedAt) }}</time></p>
           <div>
             <p class="font-medium mb-1">
-              变更摘要
+              {{ t('EditRequestDetailDialog.change_summary') }}
             </p><p>{{ detail.summary }}</p>
           </div>
           <div>
             <p class="font-medium mb-1">
-              变更明细
+              {{ t('EditRequestDetailDialog.change_details') }}
             </p><p class="whitespace-pre-wrap">
-              {{ detail.detail || '暂无修改明细' }}
+              {{ detail.detail || t('EditRequestDetailDialog.no_change_details') }}
             </p>
           </div>
           <p v-if="detail.status === 'rejected'" class="text-red-600 dark:text-red-400 whitespace-pre-wrap">
-            驳回原因：{{ detail.reason?.trim() || '未提供驳回原因' }}
+            {{ t('EditRequestDetailDialog.rejection_reason', { p0: detail.reason?.trim() || t('EditRequestDetailDialog.no_rejection_reason_provided') }) }}
           </p>
         </div>
       </AsyncFade>
@@ -99,22 +100,22 @@ async function cancel() {
     <template v-if="!isError && detail?.status === 'pending'" #footer>
       <div class="p-4 flex justify-end">
         <AppButton variant="danger" :disabled="cancelling" @click="confirmCancel = true">
-          取消申请
+          {{ t('EditRequestDetailDialog.cancel_request') }}
         </AppButton>
       </div>
     </template>
   </AppDialog>
-  <AppDialog v-model="confirmCancel" title="取消编辑申请">
+  <AppDialog v-model="confirmCancel" :title="t('EditRequestDetailDialog.cancel_edit_request')">
     <div class="p-6 text-sm">
-      确认取消这条审核中的申请？取消后将保留历史记录。
+      {{ t('EditRequestDetailDialog.cancel_this_pending_request_the_history_will_be_kept') }}
     </div>
     <template #footer>
       <div class="flex justify-end gap-2 p-4">
         <AppButton :disabled="cancelling" @click="confirmCancel = false">
-          返回
+          {{ t('PlayerSleepTimer.back') }}
         </AppButton>
         <AppButton variant="danger" :disabled="cancelling" @click="cancel">
-          {{ cancelling ? '取消中...' : '确认取消' }}
+          {{ cancelling ? t('Playlist.cancelling') : t('EditRequestDetailDialog.confirm_cancellation') }}
         </AppButton>
       </div>
     </template>

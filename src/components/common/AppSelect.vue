@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
+import { t } from '@/i18n'
 
 defineOptions({ inheritAttrs: false })
 
@@ -10,7 +11,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   ariaLabel?: string
   ariaLabelledby?: string
-}>(), { placeholder: '请选择', disabled: false })
+}>(), { disabled: false })
 
 const emit = defineEmits<{ 'update:modelValue': [value: string | number] }>()
 
@@ -169,7 +170,7 @@ onBeforeUnmount(() => {
     @click="open ? close() : show()"
     @keydown="onKeydown"
   >
-    <span class="truncate">{{ selected?.label ?? placeholder }}</span>
+    <span class="truncate">{{ selected?.label ?? placeholder ?? t('AppSelect.please_select') }}</span>
     <LucideChevronDown
       class="size-4 shrink-0 text-gray-500 dark:text-gray-400 transition-transform"
       :class="{ 'rotate-180': open }"
@@ -209,7 +210,7 @@ onBeforeUnmount(() => {
         <span v-else class="size-4 shrink-0" />
       </div>
       <p v-if="!options.length" class="px-3 py-2 text-gray-400">
-        暂无选项
+        {{ t('AppSelect.no_options') }}
       </p>
     </div>
   </Teleport>

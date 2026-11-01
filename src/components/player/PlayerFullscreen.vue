@@ -2,6 +2,7 @@
 import { useElementSize, useFullscreen, useMediaQuery, useWindowSize } from '@vueuse/core'
 import { usePlayerCoverColors } from '@/composables/usePlayerCoverColors'
 import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
+import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl } from '@/utils'
 import { fallbackCoverColors } from '@/utils/cover'
@@ -385,7 +386,7 @@ function onHeaderTouchEnd() {
             <Tooltip
               placement="bottom"
               align="center"
-              content="退出全屏播放器"
+              :content="t('PlayerFullscreen.exit_fullscreen_player')"
             >
               <button
                 class="size-10 shrink-0 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
@@ -398,13 +399,13 @@ function onHeaderTouchEnd() {
             <Tooltip
               placement="bottom"
               align="center"
-              :content="isPageFullscreenSupported ? (isPageFullscreen ? '退出页面全屏' : '进入页面全屏') : '当前浏览器不支持页面全屏'"
+              :content="isPageFullscreenSupported ? (isPageFullscreen ? t('PlayerFullscreen.exit_fullscreen') : t('PlayerFullscreen.enter_fullscreen')) : t('PlayerFullscreen.fullscreen_is_unavailable_in_this_browser')"
             >
               <button
                 class="size-10 shrink-0 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
                 :class="{ 'opacity-40 cursor-not-allowed': !isPageFullscreenSupported }"
                 :disabled="!isPageFullscreenSupported"
-                :aria-label="isPageFullscreen ? '退出页面全屏' : '进入页面全屏'"
+                :aria-label="isPageFullscreen ? t('PlayerFullscreen.exit_fullscreen') : t('PlayerFullscreen.enter_fullscreen')"
                 @click="togglePageFullscreen()"
               >
                 <LucideMaximize v-if="!isPageFullscreen" class="size-5" />
@@ -427,7 +428,7 @@ function onHeaderTouchEnd() {
               type="button"
               class="size-10 inline-flex items-center justify-center text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
               :class="{ 'bg-white/10': showPlayerMenu }"
-              aria-label="播放器菜单"
+              :aria-label="t('PlayerFullscreen.player_menu')"
               aria-haspopup="menu"
               :aria-expanded="showPlayerMenu"
               :aria-controls="showPlayerMenu ? playerMenuId : undefined"
@@ -442,13 +443,13 @@ function onHeaderTouchEnd() {
                 :id="playerMenuId"
                 ref="playerMenuRef"
                 role="menu"
-                aria-label="播放器设置"
+                :aria-label="t('PlayerFullscreen.player_settings')"
                 class="player-popup-menu absolute right-0 top-full mt-2 origin-top-right max-h-[calc(100dvh-96px)] overflow-y-auto"
                 @click="closePlayerMenu()"
               >
                 <button type="button" role="menuitem" class="player-menu-item" @click="showSleepTimer = true">
                   <LucideTimer class="size-4 shrink-0" />
-                  <span class="flex-1">定时播放</span>
+                  <span class="flex-1">{{ t('sleep_timer.sleep_timer') }}</span>
                   <span v-if="player.sleepTimer.status !== 'off'" class="text-xs text-blue-400">{{ sleepTimerLabel }}</span>
                 </button>
                 <div class="my-1 border-t border-white/15" />
@@ -458,7 +459,7 @@ function onHeaderTouchEnd() {
                   @click="player.setImmersiveModeEnabled(!immersiveModeEnabled)"
                 >
                   <LucideFocus class="size-4 shrink-0" />
-                  <span class="flex-1">沉浸模式</span>
+                  <span class="flex-1">{{ t('Settings.immersive_mode') }}</span>
                   <LucideCheck v-if="immersiveModeEnabled" class="size-4 text-blue-400" />
                 </button>
                 <button
@@ -468,27 +469,27 @@ function onHeaderTouchEnd() {
                   @click="player.toggleFullscreenLyrics()"
                 >
                   <LucideScrollText class="size-4 shrink-0" />
-                  <span class="flex-1">显示歌词</span>
+                  <span class="flex-1">{{ t('PlayerFullscreen.show_lyrics') }}</span>
                   <LucideCheck v-if="showFullscreenLyrics" class="size-4 text-blue-400" />
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
                   :aria-checked="showTranslation" :disabled="!lyricTranslation"
-                  :title="!lyricTranslation ? '当前歌曲无歌词翻译' : undefined"
+                  :title="!lyricTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
                   @click="player.toggleTranslation()"
                 >
                   <LucideLanguages class="size-4 shrink-0" />
-                  <span class="flex-1">歌词翻译</span>
+                  <span class="flex-1">{{ t('PlayerFullscreen.translated_lyrics') }}</span>
                   <LucideCheck v-if="showTranslation" class="size-4" :class="lyricTranslation ? 'text-blue-400' : 'text-white/40'" />
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
                   :aria-checked="showSpectrum" :disabled="!enableAudioContext"
-                  :title="!enableAudioContext ? '请在设置中开启音频可视化' : undefined"
+                  :title="!enableAudioContext ? t('PlayerFullscreen.enable_audio_visualization_in_settings_first') : undefined"
                   @click="player.toggleSpectrum()"
                 >
                   <LucideAudioLines class="size-4 shrink-0" />
-                  <span class="flex-1">频谱可视化</span>
+                  <span class="flex-1">{{ t('PlayerFullscreen.spectrum_visualization') }}</span>
                   <LucideCheck v-if="showSpectrum" class="size-4" :class="enableAudioContext ? 'text-blue-400' : 'text-white/40'" />
                 </button>
               </div>
@@ -507,7 +508,7 @@ function onHeaderTouchEnd() {
                 class="size-full fullscreen-cover-image"
                 :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
                 :src="coverUrl"
-                :alt="`${currentSong.songName} 封面`"
+                :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
               />
             </div>
             <div class="mt-4 text-center">
@@ -529,8 +530,8 @@ function onHeaderTouchEnd() {
               class="max-w-full aspect-square shadow-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
               :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl ring-1 ring-white/10', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
               :style="{ width: `${compactCoverSize}px`, height: `${compactCoverSize}px` }"
-              aria-label="切换到完整歌词布局"
-              title="切换到完整歌词布局"
+              :aria-label="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
+              :title="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
               @click="onMobileCoverClick"
               @contextmenu="onCoverContextMenu"
               @touchstart="onCoverTouchStart"
@@ -542,16 +543,16 @@ function onHeaderTouchEnd() {
                 class="size-full object-cover fullscreen-cover-image"
                 :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
                 :src="coverUrl"
-                :alt="`${currentSong.songName} 封面`"
+                :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
               />
             </button>
 
             <div class="w-full max-w-[min(88vw,520px)] min-h-[3.5rem] text-center flex items-center justify-center px-2">
               <div v-if="parsedLyrics.length === 0" class="text-white/50 text-center">
-                暂无歌词
+                {{ t('PlayerFullscreen.no_lyrics') }}
               </div>
               <div v-else-if="!hasTimestamp" class="text-white/70 text-center">
-                当前歌词不支持滚动
+                {{ t('PlayerFullscreen.these_lyrics_do_not_support_scrolling') }}
               </div>
               <div v-else-if="compactLyricLine" class="max-w-full text-white font-bold">
                 <div
@@ -617,13 +618,13 @@ function onHeaderTouchEnd() {
           v-if="coverMenu"
           ref="coverMenuRef"
           role="menu"
-          aria-label="封面设置"
+          :aria-label="t('PlayerFullscreen.cover_settings')"
           class="player-popup-menu fixed z-30 origin-top-left"
           :style="{ left: `${coverMenu.x}px`, top: `${coverMenu.y}px` }"
           @contextmenu.prevent
         >
           <div class="px-3 py-1.5 text-xs text-white/50">
-            封面形状
+            {{ t('PlayerFullscreen.cover_shape') }}
           </div>
           <button
             type="button"
@@ -632,8 +633,7 @@ function onHeaderTouchEnd() {
             class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
             @click="player.setFullscreenCoverShape('square'); closeCoverMenu()"
           >
-            方形
-            <LucideCheck v-if="fullscreenCoverShape === 'square'" class="size-4" />
+            {{ t('Settings.square') }}<LucideCheck v-if="fullscreenCoverShape === 'square'" class="size-4" />
           </button>
           <button
             type="button"
@@ -642,8 +642,7 @@ function onHeaderTouchEnd() {
             class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
             @click="player.setFullscreenCoverShape('circle'); closeCoverMenu()"
           >
-            圆形
-            <LucideCheck v-if="isRoundCover" class="size-4" />
+            {{ t('Settings.circle') }}<LucideCheck v-if="isRoundCover" class="size-4" />
           </button>
           <div class="my-1 border-t border-white/15" />
           <button
@@ -654,8 +653,7 @@ function onHeaderTouchEnd() {
             class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent"
             @click="fullscreenCoverRotation = !fullscreenCoverRotation; closeCoverMenu()"
           >
-            播放中封面旋转
-            <LucideCheck v-if="fullscreenCoverRotation" class="size-4" />
+            {{ t('Settings.rotate_cover_during_playback') }}<LucideCheck v-if="fullscreenCoverRotation" class="size-4" />
           </button>
           <button
             type="button"
@@ -665,8 +663,7 @@ function onHeaderTouchEnd() {
             class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none disabled:cursor-not-allowed disabled:text-white/40 disabled:hover:bg-transparent"
             @click="fullscreenCoverBorder = !fullscreenCoverBorder; closeCoverMenu()"
           >
-            封面边框
-            <LucideCheck v-if="fullscreenCoverBorder" class="size-4" />
+            {{ t('Settings.cover_border') }}<LucideCheck v-if="fullscreenCoverBorder" class="size-4" />
           </button>
         </div>
       </Transition>

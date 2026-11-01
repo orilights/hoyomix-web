@@ -1,10 +1,12 @@
+import { useLocalizedText } from '@/composables/useLocalizedText'
+import { t } from '@/i18n'
 import { imageCacheSupported, requestImageCache } from '@/utils/image-cache'
 
 export function useImageCache() {
   const bytes = ref<number | null>(null)
   const count = ref(0)
   const busy = ref(false)
-  const error = ref('')
+  const error = useLocalizedText()
   async function update(action: 'stats' | 'clear' = 'stats') {
     if (busy.value || !imageCacheSupported)
       return false
@@ -17,7 +19,7 @@ export function useImageCache() {
       return true
     }
     catch (cause) {
-      error.value = cause instanceof Error ? cause.message : '无法读取图片缓存'
+      error.value = () => cause instanceof Error ? cause.message : t('useImageCache.unable_to_read_image_cache')
       return false
     }
     finally {

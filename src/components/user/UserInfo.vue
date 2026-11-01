@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/vue'
 import { toast } from 'vue-sonner'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 
 const auth = useAuthStore()
@@ -63,7 +64,7 @@ function onAvatarClick(e: MouseEvent) {
 async function logout() {
   closeDropdown()
   await auth.logout()
-  toast.success('已退出登录')
+  toast.success(t('Settings.signed_out'))
 }
 
 onUnmounted(() => {
@@ -73,23 +74,23 @@ onUnmounted(() => {
 
 <template>
   <div class="relative">
-    <Tooltip v-if="!isLoggedIn && !isPending" content="登录" placement="bottom" align="center">
+    <Tooltip v-if="!isLoggedIn && !isPending" :content="t('DesktopSidebar.sign_in')" placement="bottom" align="center">
       <AppButton
         shape="pill"
-        aria-label="登录"
+        :aria-label="t('DesktopSidebar.sign_in')"
         @click="auth.openAuthDialog()"
       >
         <LucideUser class="size-4.5" />
-        <span class="hidden md:inline text-xs">登录</span>
+        <span class="hidden md:inline text-xs">{{ t('DesktopSidebar.sign_in') }}</span>
       </AppButton>
     </Tooltip>
 
     <div v-else-if="isLoggedIn" class="relative">
-      <Tooltip :content="user?.name ?? '账户'" placement="bottom" align="center">
+      <Tooltip :content="user?.name ?? t('UserInfo.account')" placement="bottom" align="center">
         <button
           ref="avatar"
           class="size-8 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-blue-400 transition-all cursor-pointer flex items-center justify-center"
-          aria-label="账户菜单"
+          :aria-label="t('UserInfo.account_menu')"
           @click="onAvatarClick"
         >
           <img
@@ -139,32 +140,28 @@ onUnmounted(() => {
           </div>
           <div class="p-2">
             <RouterLink to="/edit-requests" class="flex items-center gap-1 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-500/10 focus-visible:ring-2 focus-visible:ring-blue-400/60" @click="closeDropdown">
-              <LucideClipboardList class="size-4" />
-              编辑申请记录
+              <LucideClipboardList class="size-4" />{{ t('UserInfo.edit_request_history') }}
             </RouterLink>
             <AppButton
               variant="ghost"
               class="w-full !justify-start"
               @click="showChangeName = true"
             >
-              <LucidePenLine class="size-4" />
-              修改用户名
+              <LucidePenLine class="size-4" />{{ t('Settings.change_username') }}
             </AppButton>
             <AppButton
               variant="ghost"
               class="w-full !justify-start"
               @click="showChangePassword = true"
             >
-              <LucideKeyRound class="size-4" />
-              修改密码
+              <LucideKeyRound class="size-4" />{{ t('Settings.change_password') }}
             </AppButton>
             <AppButton
               variant="danger"
               class="w-full !justify-start"
               @click="logout"
             >
-              <LucideLogOut class="size-4" />
-              退出登录
+              <LucideLogOut class="size-4" />{{ t('Settings.sign_out') }}
             </AppButton>
           </div>
         </div>

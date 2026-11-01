@@ -1,10 +1,11 @@
 import { refDebounced } from '@vueuse/core'
 import { useUserNameAvailabilityQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { getUserNameValidationError } from '@/utils/user-name'
 
 export function useUserNameValidation(name: Ref<string>, enabled: Ref<boolean>, originalName: Ref<string | undefined> = ref(undefined)) {
   const attempted = ref(false)
-  const serverError = ref<{ name: string, message: string } | null>(null)
+  const serverError = shallowRef<{ name: string, message: string | (() => string) } | null>(null)
   const unchanged = computed(() => originalName.value !== undefined && name.value === originalName.value)
   const formatError = computed(() => unchanged.value ? null : getUserNameValidationError(name.value))
   const candidate = computed(() => enabled.value && !unchanged.value && !formatError.value ? name.value : null)
@@ -17,13 +18,13 @@ export function useUserNameValidation(name: Ref<string>, enabled: Ref<boolean>, 
     if (!enabled.value || unchanged.value || (!name.value && !attempted.value))
       return ''
     if (serverError.value?.name === name.value)
-      return serverError.value.message
+      return typeof serverError.value.message === 'function' ? serverError.value.message() : serverError.value.message
     if (formatError.value)
       return formatError.value
     if (result.value?.available === false)
-      return '用户名已被占用'
+      return t('useUserNameValidation.this_username_is_already_taken')
     if (!checking.value && query.isError.value)
-      return '暂时无法检查用户名，请重试'
+      return t('useUserNameValidation.unable_to_check_username_availability_please_try_again')
     return ''
   })
   const message = computed(() => {
@@ -32,10 +33,10 @@ export function useUserNameValidation(name: Ref<string>, enabled: Ref<boolean>, 
     if (error.value)
       return error.value
     if (checking.value)
-      return '正在检查用户名…'
+      return t('useUserNameValidation.checking_username')
     if (result.value?.available)
-      return '用户名可用'
-    return '2～32 个字符，支持各语言文字、数字和下划线'
+      return t('useUserNameValidation.username_is_available')
+    return t('useUserNameValidation.232_characters_letters_in_any_language_numbers_and_underscores')
   })
 
   watch([name, enabled, originalName], () => {
@@ -43,7 +44,7 @@ export function useUserNameValidation(name: Ref<string>, enabled: Ref<boolean>, 
     attempted.value = false
   }, { flush: 'sync' })
 
-  function setServerError(message: string) {
+  function setServerError(message: string | (() => string)) {
     serverError.value = { name: name.value, message }
   }
 
@@ -61,14 +62,14 @@ export function useUserNameValidation(name: Ref<string>, enabled: Ref<boolean>, 
       if (!enabled.value || name.value !== requested || originalName.value !== original)
         return false
       if (!response.available) {
-        setServerError('用户名已被占用')
+        setServerError(() => t('useUserNameValidation.this_username_is_already_taken'))
         return false
       }
       return true
     }
     catch {
       if (enabled.value && name.value === requested)
-        setServerError('暂时无法检查用户名，请重试')
+        setServerError(() => t('useUserNameValidation.unable_to_check_username_availability_please_try_again'))
       return false
     }
   }

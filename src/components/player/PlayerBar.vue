@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PlayMode } from '@/types/player'
 import { audioQualityOptions, getQualityLabel } from '@/constants'
+import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { isIOS } from '@/utils'
 
@@ -43,10 +44,10 @@ function onVolumeWheel(e: WheelEvent) {
 
 const playModeTip = computed(() => {
   const map: Record<PlayMode, string> = {
-    sequential: '顺序播放',
-    loop: '列表循环',
-    single: '单曲循环',
-    shuffle: '随机播放',
+    sequential: t('PlayerBar.play_in_order'),
+    loop: t('PlayerBar.repeat_all'),
+    single: t('PlayerBar.repeat_one'),
+    shuffle: t('DesktopSidebar.shuffle'),
   }
   return map[playMode.value]
 })
@@ -231,7 +232,7 @@ onMounted(() => {
                 <PlayerPlayBtn class="md:hidden mr-2 md:mr-0" />
 
                 <Dropdown :options="qualityOptions" alignment="center" position="up" dark>
-                  <Tooltip content="音频质量" placement="top" align="center">
+                  <Tooltip :content="t('Settings.audio_quality')" placement="top" align="center">
                     <button
                       class="text-xs font-bold px-2 py-1 rounded border cursor-pointer transition-colors"
                       :class="quality === 9
@@ -270,7 +271,7 @@ onMounted(() => {
                   <AppButton
                     icon-only
                     variant="dark"
-                    :aria-label="volume > 0 ? '静音' : '取消静音'"
+                    :aria-label="volume > 0 ? t('PlayerBar.mute') : t('PlayerBar.unmute')"
                     @click="toggleMute"
                     @mouseenter="showVolumeSlider = true"
                     @mouseleave="showVolumeSlider = false"
@@ -300,11 +301,11 @@ onMounted(() => {
                   </Transition>
                 </div>
 
-                <Tooltip content="播放列表" placement="top" align="center">
+                <Tooltip :content="t('PlayerBar.queue')" placement="top" align="center">
                   <AppButton
                     icon-only
                     variant="dark"
-                    aria-label="播放列表"
+                    :aria-label="t('PlayerBar.queue')"
                     :class="{ 'text-blue-400': showPlaylist, 'text-white/60 hover:text-white': !showPlaylist }"
                     @click="showPlaylist = !showPlaylist"
                   >

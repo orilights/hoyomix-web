@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+
 import { useAlbumFavoriteMutation, useAlbumFavoritesQuery } from '@/composables/queries'
+import { t } from '@/i18n'
+import { LocalizedError } from '@/i18n/error'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 
@@ -49,7 +52,7 @@ async function handleClick() {
       if (albumFavorites.isError.value) {
         const result = await albumFavorites.refetch()
         if (result.isError)
-          throw new Error('收藏状态加载失败，请重试')
+          throw new LocalizedError('FavoriteButton.failed_to_load_favorite_status_please_try_again')
         await nextTick()
       }
       if (userId !== auth.user?.id)
@@ -74,7 +77,7 @@ async function handleClick() {
     }
   }
   catch (error: any) {
-    toast.error(error instanceof Error ? error.message : '操作失败')
+    toast.error(error instanceof Error ? error.message : t('FavoriteButton.action_failed'))
   }
   finally {
     loading.value = false
@@ -101,7 +104,7 @@ async function handleClick() {
       :fill="isFavorited ? 'currentColor' : 'none'"
     />
     <span>
-      {{ isFavorited ? '已收藏' : '收藏' }}
+      {{ isFavorited ? t('Albums.saved') : t('Playlists.favorites') }}
     </span>
   </AppButton>
   <AppButton
@@ -115,8 +118,8 @@ async function handleClick() {
     }"
     :disabled="busy"
     :aria-pressed="isFavorited"
-    :title="isFavorited ? '取消收藏' : '收藏'"
-    :aria-label="isFavorited ? '取消收藏' : '收藏'"
+    :title="isFavorited ? t('FavoriteButton.remove_from_favorites') : t('Playlists.favorites')"
+    :aria-label="isFavorited ? t('FavoriteButton.remove_from_favorites') : t('Playlists.favorites')"
     @click.stop="handleClick"
   >
     <LucideLoader2

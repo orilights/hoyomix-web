@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePageSeo } from '@/composables/usePageSeo'
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 
 const route = useRoute()
@@ -9,8 +10,8 @@ const store = useMainStore()
 const errorMessage = computed(() => route.query.errorMessage as string | undefined)
 
 usePageSeo({
-  title: '页面不存在',
-  description: '你访问的页面或内容可能不存在',
+  title: () => t('NotFound.page_not_found'),
+  description: () => t('NotFound.the_page_or_content_you_requested_may_not_exist'),
   noindex: true,
 })
 
@@ -25,16 +26,16 @@ onMounted(() => {
       404
     </div>
     <div class="text-xl mb-2 text-gray-500 dark:text-gray-400">
-      {{ errorMessage || '资源不存在' }}
+      {{ errorMessage || t('fetch.resource_not_found') }}
     </div>
     <div class="text-sm text-gray-400 mb-8">
-      你访问的页面或内容可能不存在
+      {{ t('NotFound.the_page_or_content_you_requested_may_not_exist') }}
     </div>
     <AppButton
       variant="ghost" size="lg"
       @click="router.replace('/')"
     >
-      返回首页
+      {{ t('Header.go_to_home') }}
     </AppButton>
   </div>
 </template>

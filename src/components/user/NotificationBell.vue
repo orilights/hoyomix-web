@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useQuery } from '@tanstack/vue-query'
 import { getNotificationUnreadCountApi } from '@/api/notification'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 
 const auth = useAuthStore()
@@ -22,12 +23,12 @@ const hasUnread = computed(() => (unreadCountData.value?.count ?? 0) > 0)
 </script>
 
 <template>
-  <Tooltip v-if="isLoggedIn" content="站内信" placement="bottom" align="center">
+  <Tooltip v-if="isLoggedIn" :content="t('NotificationBell.inbox')" placement="bottom" align="center">
     <AppButton
       icon-only
       shape="pill"
       class="relative"
-      aria-label="站内信"
+      :aria-label="t('NotificationBell.inbox')"
       @click="showNotificationDialog = true"
     >
       <LucideBell class="size-4.5" />

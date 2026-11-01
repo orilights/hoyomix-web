@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MapTreeNode } from '@/types/core'
+import { formatNumber, t } from '@/i18n'
 import { buildRegionIndex, filterPopulatedRegions } from '@/utils/regions'
 
 const props = defineProps<{
@@ -85,12 +86,12 @@ function leaveRow(element: Element) {
   <div ref="treeRoot">
     <div class="flex items-center gap-1 bg-black/5 dark:bg-white/5 rounded-lg px-3 mb-3 focus-within:ring-2 focus-within:ring-blue-400/60">
       <LucideSearch class="size-4 shrink-0 text-gray-400" />
-      <input v-model="keyword" aria-label="搜索地区" placeholder="搜索地区名称" class="min-w-0 w-full h-9 bg-transparent text-base md:text-sm outline-none">
-      <AppButton v-if="keyword" icon-only size="sm" variant="ghost" aria-label="清空地区搜索" @click="keyword = ''">
+      <input v-model="keyword" :aria-label="t('SongRegionEditDialog.search_regions')" :placeholder="t('RegionTree.search_region_names')" class="min-w-0 w-full h-9 bg-transparent text-base md:text-sm outline-none">
+      <AppButton v-if="keyword" icon-only size="sm" variant="ghost" :aria-label="t('RegionTree.clear_region_search')" @click="keyword = ''">
         <LucideX class="size-4" />
       </AppButton>
     </div>
-    <nav aria-label="地区地图树">
+    <nav :aria-label="t('RegionTree.region_tree')">
       <TransitionGroup tag="ul" name="region-row" @enter="enterRow" @before-leave="leaveRow">
         <li
           v-for="row in visibleNodes" :key="row.node.id"
@@ -102,7 +103,7 @@ function leaveRow(element: Element) {
           <AppButton
             v-if="row.node.children.length" icon-only variant="ghost" class="shrink-0"
             :disabled="!!query" :aria-expanded="!!query || expanded.has(row.node.id)"
-            :aria-label="`${query || expanded.has(row.node.id) ? '折叠' : '展开'}${row.node.name}`"
+            :aria-label="`${query || expanded.has(row.node.id) ? t('RegionTree.collapse') : t('RegionTree.expand')}${row.node.name}`"
             @click="toggle(row.node.id)"
           >
             <LucideChevronRight class="region-chevron size-4" :class="{ 'rotate-90': query || expanded.has(row.node.id) }" />
@@ -114,12 +115,12 @@ function leaveRow(element: Element) {
             @click="selectNode(row.node.id)"
           >
             <span class="truncate">{{ row.node.name }}</span>
-            <span class="ml-auto shrink-0 text-xs tabular-nums" :class="selectedId === row.node.id ? 'text-blue-500/80' : 'text-gray-500 dark:text-gray-400'" :aria-label="`${row.node.songCount} 首歌曲，包含子地区`">{{ row.node.songCount }}</span>
+            <span class="ml-auto shrink-0 text-xs tabular-nums" :class="selectedId === row.node.id ? 'text-blue-500/80' : 'text-gray-500 dark:text-gray-400'" :aria-label="t('RegionTree.song_including_subregions', { p0: row.node.songCount }, Number(row.node.songCount))">{{ formatNumber(row.node.songCount) }}</span>
           </button>
         </li>
       </TransitionGroup>
       <p v-if="!visibleNodes.length" class="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">
-        {{ query ? '未找到相关地区' : '暂无地区' }}
+        {{ query ? t('RegionTree.no_regions_found') : t('RegionTree.no_regions') }}
       </p>
     </nav>
   </div>

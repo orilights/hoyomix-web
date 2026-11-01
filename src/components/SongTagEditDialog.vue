@@ -4,6 +4,7 @@ import { toast } from 'vue-sonner'
 import { submitSongTagEditApi } from '@/api/song-tags'
 import { useSongLyricLanguagesQuery, useSongTagsQuery } from '@/composables/queries'
 import { usePendingSongEditRequest } from '@/composables/usePendingSongEditRequest'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { groupSongTags } from '@/types/song-tag'
 import { formatLyricLanguage } from '@/utils/lyric-language'
@@ -46,7 +47,7 @@ async function submit() {
     const result = await submitSongTagEditApi(songId, patch)
     if (props.songId !== songId || auth.user?.id !== userId)
       return
-    toast.success(result.directApproved ? '歌曲标签已更新' : '申请已提交，等待审核')
+    toast.success(result.directApproved ? t('SongTagEditDialog.song_tags_updated') : t('SongCreditsEditDialog.request_submitted_for_review'))
     visible.value = false
     emit('success')
   }
@@ -54,45 +55,44 @@ async function submit() {
     if (props.songId !== songId || auth.user?.id !== userId)
       return
     void retryCheck()
-    toast.error(error instanceof Error ? error.message : '提交失败')
+    toast.error(error instanceof Error ? error.message : t('SongCreditsEditDialog.submission_failed'))
   }
   finally { submitting.value = false }
 }
 </script>
 
 <template>
-  <AppDialog v-model="visible" title="修改歌曲标签" size="lg" :close-on-click-overlay="false">
+  <AppDialog v-model="visible" :title="t('SongTagEditDialog.edit_song_tags')" size="lg" :close-on-click-overlay="false">
     <div class="p-4 sm:p-5 space-y-4 max-h-[65vh] overflow-y-auto">
       <PendingEditRequestNotice :pending-request="pendingRequest" :checking="checking" :check-error="checkError" @retry="retryCheck()" />
       <AsyncFade>
         <p v-if="lyricLanguages.isLoading.value" class="text-sm text-gray-400" role="status">
-          加载中...
+          {{ t('App.loading') }}
         </p>
         <p v-else-if="lyricLanguages.isError.value" class="text-sm text-gray-400" role="alert">
-          歌词语言加载失败
-          <AppButton size="sm" variant="ghost" @click="lyricLanguages.refetch()">
-            重试
+          {{ t('SongTagEditDialog.failed_to_load_lyric_languages') }}<AppButton size="sm" variant="ghost" @click="lyricLanguages.refetch()">
+            {{ t('App.retry') }}
           </AppButton>
         </p>
         <p v-else-if="possibleLanguages.length" class="text-sm text-blue-600 dark:text-blue-300" role="status">
-          可能的歌词语言：{{ possibleLanguages.map(formatLyricLanguage).join('、') }}
+          {{ t('SongTagEditDialog.possible_lyric_languages', { p0: possibleLanguages.map(formatLyricLanguage).join('、') }) }}
         </p>
       </AsyncFade>
       <AsyncFade>
         <p v-if="isPending" role="status" class="py-8 text-center text-gray-400">
-          加载中...
+          {{ t('App.loading') }}
         </p>
         <div v-else-if="isError" class="text-center space-y-2">
           <p class="text-red-400">
-            标签加载失败
+            {{ t('SongTagEditDialog.failed_to_load_tags') }}
           </p>
           <AppButton @click="refetch()">
-            重试
+            {{ t('App.retry') }}
           </AppButton>
         </div>
         <fieldset v-else :disabled="blocked || submitting" class="space-y-4">
           <p v-if="!tagGroups.length" class="text-sm text-gray-400">
-            暂无可用标签
+            {{ t('SongTagEditDialog.no_available_tags') }}
           </p>
           <section v-for="group in tagGroups" :key="group.value" class="space-y-2">
             <h3 class="font-medium text-sm">
@@ -106,7 +106,7 @@ async function submit() {
                 class="inline-flex items-center gap-2 rounded-lg bg-black/5 dark:bg-white/5 px-3 py-2 text-sm"
               >
                 <input v-model="selected" type="checkbox" :value="tag.id" class="accent-blue-500">
-                {{ tag.name }}<span v-if="!tag.enabled" class="text-xs text-gray-400">已停用</span>
+                {{ tag.name }}<span v-if="!tag.enabled" class="text-xs text-gray-400">{{ t('SongTagEditDialog.disabled') }}</span>
               </label>
             </div>
           </section>
@@ -116,10 +116,10 @@ async function submit() {
     <template #footer>
       <div class="px-5 py-3 flex justify-end gap-2">
         <AppButton @click="visible = false">
-          取消
+          {{ t('AlbumPickerDialog.cancel') }}
         </AppButton>
         <AppButton variant="primary" :disabled="!changed || submitting || blocked || isPending || isError" @click="submit">
-          {{ submitting ? '提交中...' : '提交申请' }}
+          {{ submitting ? t('SongCreditsEditDialog.submitting') : t('SongCreditsEditDialog.submit_request') }}
         </AppButton>
       </div>
     </template>

@@ -1,13 +1,26 @@
 import type { LocationQueryRaw, RouteLocationRaw } from 'vue-router'
 import type { SearchResultItem, SearchType } from '@/types/search'
+import { t } from '@/i18n'
 
 export const searchTypeOptions: { label: string, value: SearchType | undefined }[] = [
-  { label: '全部', value: undefined },
-  { label: '歌曲', value: 'song' },
-  { label: '专辑', value: 'album' },
-  { label: '专辑系列', value: 'series' },
-  { label: '游戏', value: 'product' },
-  { label: '艺术家', value: 'artist' },
+  { get label() {
+    return t('search.all')
+  }, value: undefined },
+  { get label() {
+    return t('SongList.song')
+  }, value: 'song' },
+  { get label() {
+    return t('SongList.album')
+  }, value: 'album' },
+  { get label() {
+    return t('search.album_series')
+  }, value: 'series' },
+  { get label() {
+    return t('search.game')
+  }, value: 'product' },
+  { get label() {
+    return t('search.artist')
+  }, value: 'artist' },
 ]
 
 export function parseSearchType(value: unknown): SearchType | undefined {

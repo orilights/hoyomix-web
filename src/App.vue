@@ -5,6 +5,7 @@ import { useEventListener, useIntervalFn, useMediaQuery } from '@vueuse/core'
 import { toast, Toaster } from 'vue-sonner'
 import { useAlbumFavoritesQuery, useAlbumListQuery, useAppConfigQuery } from '@/composables/queries'
 import { completePageRender, setPageScrollElement, updatePageScroll } from '@/composables/usePageScroll'
+import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { useMediaSourceStore } from '@/store/media-source'
@@ -101,7 +102,7 @@ watch(appConfigData, (data) => {
 
 watch(isAlbumListError, (val) => {
   if (val && albumListData.value !== undefined)
-    toast.error(`专辑列表加载失败：${albumListError.value?.message ?? '未知错误'}`)
+    toast.error(t('App.failed_to_load_albums', { p0: albumListError.value?.message ?? t('App.unknown_error') }))
 })
 
 function onKeydown(e: KeyboardEvent) {
@@ -176,15 +177,14 @@ onUnmounted(() => {
       <AsyncFade>
         <div v-if="initialDataError" role="alert">
           <p class="text-sm text-red-500">
-            加载失败，请稍后重试
+            {{ t('App.unable_to_load_please_try_again_later') }}
           </p>
           <AppButton class="mt-3" size="sm" :disabled="!canRetryInitialData" @click="retryInitialData">
-            重试
+            {{ t('App.retry') }}
           </AppButton>
         </div>
         <div v-else class="flex items-center justify-center gap-2 text-gray-400" role="status">
-          <LucideLoader2 class="size-5 animate-spin" />
-          加载中...
+          <LucideLoader2 class="size-5 animate-spin" />{{ t('App.loading') }}
         </div>
       </AsyncFade>
     </div>

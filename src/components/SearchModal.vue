@@ -3,6 +3,7 @@ import type { SearchResultItem, SearchType } from '@/types/search'
 import { refDebounced, useResizeObserver } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { useSearchQuery } from '@/composables/queries'
+import { t } from '@/i18n'
 import { searchQuery, searchResultRoute, searchTypeOptions } from '@/utils/search'
 
 const visible = defineModel<boolean>({ required: true })
@@ -31,7 +32,7 @@ const hasSearched = computed(() => debouncedKeyword.value.trim() !== '')
 
 watch(isError, (val) => {
   if (val)
-    toast.error(`搜索失败：${error.value?.message ?? '未知错误'}`)
+    toast.error(t('SearchModal.search_failed', { p0: error.value?.message ?? t('App.unknown_error') }))
 })
 
 watch(keyword, () => {
@@ -151,7 +152,7 @@ onUnmounted(() => {
               ref="inputRef"
               v-model="keyword"
               type="text"
-              placeholder="搜索歌曲、专辑、游戏、艺术家..."
+              :placeholder="t('SearchModal.search_songs_albums_games_artists')"
               class="flex-1 text-base outline-none bg-transparent placeholder-gray-400"
             >
             <kbd class="hidden md:inline-flex items-center text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">ESC</kbd>
@@ -162,7 +163,7 @@ onUnmounted(() => {
             :options="searchTypeOptions"
             scroll
             class="px-4 py-2 border-b border-gray-200 dark:border-gray-700"
-            aria-label="搜索类型"
+            :aria-label="t('SearchModal.search_type')"
           />
 
           <div
@@ -172,19 +173,17 @@ onUnmounted(() => {
             <div ref="contentRef" class="search-results overflow-y-auto">
               <AsyncFade :animate-height="false">
                 <div v-if="showLoading && results.length === 0" role="status" class="flex items-center justify-center py-12 text-gray-400">
-                  <LucideLoader2 class="size-5 animate-spin mr-2" />
-                  搜索中...
+                  <LucideLoader2 class="size-5 animate-spin mr-2" />{{ t('SearchModal.searching') }}
                 </div>
 
                 <div v-else-if="isError && !showLoading" class="py-12 text-center text-gray-400" role="alert">
-                  搜索失败
-                  <AppButton class="ml-2" size="sm" variant="ghost" @click="refetch()">
-                    重试
+                  {{ t('SearchModal.search_failed_alternate') }}<AppButton class="ml-2" size="sm" variant="ghost" @click="refetch()">
+                    {{ t('App.retry') }}
                   </AppButton>
                 </div>
 
                 <div v-else-if="hasSearched && !showLoading && results.length === 0" class="py-12 text-center text-gray-400">
-                  未找到相关结果
+                  {{ t('SearchModal.no_results_found') }}
                 </div>
 
                 <div v-else-if="results.length > 0" class="py-2">
@@ -199,14 +198,14 @@ onUnmounted(() => {
                 </div>
 
                 <div v-else-if="!keyword.trim()" class="py-12 text-center text-gray-400">
-                  输入关键词开始搜索
+                  {{ t('SearchModal.enter_a_keyword_to_search') }}
                 </div>
               </AsyncFade>
             </div>
           </div>
           <div v-if="results.length > 0" class="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
             <AppButton variant="ghost" class="w-full" @click="viewMore">
-              查看更多
+              {{ t('SearchModal.view_more') }}
             </AppButton>
           </div>
         </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
 
@@ -30,31 +31,31 @@ onUnmounted(() => {
     }"
   >
     <div class="flex items-center">
-      <Tooltip content="返回上一页" placement="bottom" align="center">
+      <Tooltip :content="t('Header.go_back')" placement="bottom" align="center">
         <AppButton
           icon-only
           shape="pill"
-          aria-label="返回上一页"
+          :aria-label="t('Header.go_back')"
           @click="$router.back()"
         >
           <LucideChevronLeft class="size-4.5" />
         </AppButton>
       </Tooltip>
-      <Tooltip class="ml-0.5 sm:ml-2 xl:hidden" content="返回首页" placement="bottom" align="center">
+      <Tooltip class="ml-0.5 sm:ml-2 xl:hidden" :content="t('Header.go_to_home')" placement="bottom" align="center">
         <AppButton
           icon-only
           shape="pill"
-          aria-label="返回首页"
+          :aria-label="t('Header.go_to_home')"
           @click="$router.push({ name: 'Home' })"
         >
           <LucideLayoutGrid class="size-4.5" />
         </AppButton>
       </Tooltip>
-      <Tooltip class="ml-0.5 sm:ml-2" content="搜索" placement="bottom" align="center">
+      <Tooltip class="ml-0.5 sm:ml-2" :content="t('Header.search')" placement="bottom" align="center">
         <AppButton
           class="max-md:w-9 max-md:px-0"
           shape="pill"
-          aria-label="搜索"
+          :aria-label="t('Header.search')"
           @click="showSearch = true"
         >
           <LucideSearch class="size-4.5" />
@@ -64,11 +65,11 @@ onUnmounted(() => {
     </div>
     <div class="ml-auto flex items-center gap-0.5 sm:gap-2">
       <ThemeSwitcher compact />
-      <Tooltip class="xl:hidden" content="打开设置" placement="bottom" align="center">
+      <Tooltip class="xl:hidden" :content="t('Header.open_settings')" placement="bottom" align="center">
         <AppButton
           icon-only
           shape="pill"
-          aria-label="打开设置"
+          :aria-label="t('Header.open_settings')"
           @click="$router.push({ name: 'Settings' })"
         >
           <LucideSlidersHorizontal class="size-4.5" />

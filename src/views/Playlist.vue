@@ -9,6 +9,7 @@ import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
 import { asyncFadeHeightKey } from '@/constants/async-fade'
 import { vPageEnter } from '@/directives/page-enter'
+import { formatNumber, t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -38,9 +39,9 @@ const commentSection = ref<HTMLElement | null>(null)
 const activeTab = ref<'songs' | 'info' | 'comments'>('songs')
 const descriptionExpanded = ref(false)
 const tabOptions = computed(() => [
-  { key: 'songs' as const, label: '曲目' },
-  { key: 'info' as const, label: '歌单信息' },
-  ...(playlist.value?.isPublic ? [{ key: 'comments' as const, label: `评论 ${commentCount.value}` }] : []),
+  { key: 'songs' as const, label: t('Album.tracks') },
+  { key: 'info' as const, label: t('Playlist.playlist_information') },
+  ...(playlist.value?.isPublic ? [{ key: 'comments' as const, label: t('AlbumActions.comments', { p0: commentCount.value }) }] : []),
 ])
 
 async function scrollToComments() {
@@ -65,7 +66,7 @@ watch(isError, (v) => {
   if (error.value instanceof NotFoundError)
     router.replace({ path: '/404', query: { errorMessage: error.value?.message } })
   else
-    toast.error(`歌单加载失败：${error.value?.message ?? '未知错误'}`)
+    toast.error(t('Playlist.failed_to_load_playlist', { p0: error.value?.message ?? t('App.unknown_error') }))
 })
 
 const isOwner = computed(() =>
@@ -188,11 +189,11 @@ async function saveSorting() {
     draftSongs.value = []
     originalOrder.value = []
     void queryClient.invalidateQueries({ queryKey: ['playlistDetail', id] })
-    toast.success('已保存歌曲顺序')
+    toast.success(t('Playlist.song_order_saved'))
     return true
   }
   catch (error) {
-    toast.error(`保存顺序失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('Playlist.failed_to_save_order', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
     return false
   }
   finally {
@@ -265,7 +266,7 @@ function playAll() {
   if (!localSongs.value.length)
     return
   player.replacePlaylist(localSongs.value, 0)
-  toast.success('已替换播放列表')
+  toast.success(t('AlbumList.queue_replaced'))
 }
 
 function addAllToPlaylist() {
@@ -275,7 +276,7 @@ function addAllToPlaylist() {
     if (isNew)
       addCount++
   }
-  toast.success(addCount > 0 ? `已添加 ${addCount} 首至播放列表` : '所有歌曲已在播放列表中')
+  toast.success(addCount > 0 ? t('Playlist.added_song_to_queue', { p0: addCount }, Number(addCount)) : t('Playlist.all_songs_are_already_in_the_queue'))
 }
 
 function toggleMultiSelect() {
@@ -292,7 +293,7 @@ function playSelected() {
   if (!selectedSongs.value.length)
     return
   player.replacePlaylist(selectedSongs.value, 0)
-  toast.success('已替换播放列表')
+  toast.success(t('AlbumList.queue_replaced'))
   selectedIds.value = new Set()
 }
 
@@ -303,7 +304,7 @@ function addSelectedToPlaylist() {
     if (isNew)
       addCount++
   }
-  toast.success(addCount > 0 ? `已添加 ${addCount} 首至播放列表` : '所有歌曲已在播放列表中')
+  toast.success(addCount > 0 ? t('Playlist.added_song_to_queue', { p0: addCount }, Number(addCount)) : t('Playlist.all_songs_are_already_in_the_queue'))
   selectedIds.value = new Set()
 }
 
@@ -316,10 +317,10 @@ async function removeSong(song: PlaylistSongItem) {
     await updatePlaylistSongsApi(playlist.value.id, newIds)
     localSongs.value = localSongs.value.filter(s => s.songId !== song.songId)
     queryClient.invalidateQueries({ queryKey: ['playlistDetail', playlist.value.id] })
-    toast.success('已从歌单移除')
+    toast.success(t('Playlist.removed_from_playlist'))
   }
   catch (error) {
-    toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('Playlist.failed_to_delete', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     savingOrder.value = false
@@ -338,10 +339,10 @@ async function removeSelected() {
     localSongs.value = localSongs.value.filter(s => !selectedIds.value.has(s.songId))
     queryClient.invalidateQueries({ queryKey: ['playlistDetail', playlist.value.id] })
     selectedIds.value = new Set()
-    toast.success('已删除选中歌曲')
+    toast.success(t('Playlist.selected_songs_deleted'))
   }
   catch (error) {
-    toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('Playlist.failed_to_delete', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     savingOrder.value = false
@@ -362,7 +363,7 @@ async function onDragEnd() {
     queryClient.invalidateQueries({ queryKey: ['playlistDetail', playlist.value.id] })
   }
   catch (error) {
-    toast.error(`保存顺序失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('Playlist.failed_to_save_order', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
     refetch()
   }
   finally {
@@ -374,7 +375,7 @@ function openEdit() {
   if (!auth.requireLogin())
     return
   if (isFavoritesPlaylist.value) {
-    toast.error('收藏歌单不支持编辑')
+    toast.error(t('Playlist.saved_playlists_cannot_be_edited'))
     return
   }
   showEditDialog.value = true
@@ -396,10 +397,10 @@ async function cancelReview() {
     await cancelPlaylistReviewApi(playlist.value.id)
     await refetch()
     queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
-    toast.success('已取消审核申请')
+    toast.success(t('Playlist.review_request_cancelled'))
   }
   catch (error) {
-    toast.error(`取消失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('Playlist.failed_to_cancel', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     cancellingReview.value = false
@@ -422,11 +423,11 @@ async function deletePlaylist() {
     queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
     queryClient.invalidateQueries({ queryKey: ['playlists'] })
     showDeleteConfirm.value = false
-    toast.success('歌单已删除')
+    toast.success(t('Playlist.playlist_deleted'))
     router.push({ name: 'Playlists' })
   }
   catch (error) {
-    toast.error(`删除失败：${error instanceof Error ? error.message : '未知错误'}`)
+    toast.error(t('Playlist.failed_to_delete', { p0: error instanceof Error ? error.message : t('App.unknown_error') }))
   }
   finally {
     deletingPlaylist.value = false
@@ -439,7 +440,7 @@ async function deletePlaylist() {
     <PageLoading v-if="isLoading" />
 
     <div v-else-if="isError" class="flex items-center justify-center py-20 text-red-400">
-      加载失败，请刷新重试
+      {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
     </div>
 
     <div v-else-if="playlist" class="playlist-page detail-page">
@@ -458,19 +459,19 @@ async function deletePlaylist() {
             {{ playlist.name }}
           </div>
           <div class="detail-meta mt-1 flex items-center flex-wrap text-sm text-gray-500 dark:text-gray-400">
-            <span class="inline-flex items-center gap-1 min-w-0" aria-label="创建人">
+            <span class="inline-flex items-center gap-1 min-w-0" :aria-label="t('Playlist.created_by')">
               <LucideUserRound class="size-4 shrink-0" aria-hidden="true" />
               <span class="max-w-[140px] truncate" :title="playlist.username">{{ playlist.username }}</span>
             </span>
-            <span class="inline-flex items-center gap-1" aria-label="创建日期">
+            <span class="inline-flex items-center gap-1" :aria-label="t('Playlist.created_on')">
               <LucideCalendarDays class="size-4 shrink-0" aria-hidden="true" />
               {{ getPublishDate(playlist.createdAt) }}
             </span>
-            <span class="inline-flex items-center gap-1" aria-label="歌曲数量">
+            <span class="inline-flex items-center gap-1" :aria-label="t('Album.song_count')">
               <LucideMusic class="size-4 shrink-0" aria-hidden="true" />
-              {{ playlist.songCount }}
+              {{ formatNumber(playlist.songCount) }}
             </span>
-            <span class="inline-flex items-center gap-1" aria-label="总时长">
+            <span class="inline-flex items-center gap-1" :aria-label="t('Album.total_duration')">
               <LucideClock class="size-4 shrink-0" aria-hidden="true" />
               {{ formatDuration(totalDuration) }}
             </span>
@@ -483,35 +484,22 @@ async function deletePlaylist() {
               v-if="reviewStatus === 'pending'"
               class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400"
             >
-              <LucideClock class="size-3" />
-              审核中
-            </span>
+              <LucideClock class="size-3" />{{ t('MusicActions.pending_review') }}</span>
             <span
               v-else-if="reviewStatus === 'rejected'"
               class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400"
             >
-              <LucideCircleX class="size-3" />
-              审核已驳回
-            </span>
+              <LucideCircleX class="size-3" />{{ t('Playlist.review_rejected') }}</span>
             <span
               v-else-if="reviewStatus === 'approved'"
               class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400"
             >
-              <LucideCircleCheck class="size-3" />
-              审核已通过
-            </span>
+              <LucideCircleCheck class="size-3" />{{ t('Playlist.review_approved') }}</span>
             <AsyncFade>
-              <span v-if="reviewStatus === 'rejected' && isReviewLoading" class="text-xs text-gray-400" role="status">
-                加载中...
+              <span v-if="reviewStatus === 'rejected' && isReviewLoading" class="text-xs text-gray-400" role="status">{{ t('App.loading') }}</span>
+              <span v-else-if="reviewStatus === 'rejected' && isReviewError" class="text-xs text-gray-400" role="alert">{{ t('Playlist.failed_to_load_review_reason') }}<button type="button" class="ml-1 text-blue-500 cursor-pointer" @click="refetchReview()">{{ t('App.retry') }}</button>
               </span>
-              <span v-else-if="reviewStatus === 'rejected' && isReviewError" class="text-xs text-gray-400" role="alert">
-                审核原因加载失败
-                <button type="button" class="ml-1 text-blue-500 cursor-pointer" @click="refetchReview()">
-                  重试
-                </button>
-              </span>
-              <span v-else-if="reviewStatus === 'rejected' && reviewDetail?.reason" class="text-xs text-gray-500 dark:text-gray-400">
-                原因：{{ reviewDetail.reason }}
+              <span v-else-if="reviewStatus === 'rejected' && reviewDetail?.reason" class="text-xs text-gray-500 dark:text-gray-400">{{ t('Playlist.reason', { p0: reviewDetail.reason }) }}
               </span>
             </AsyncFade>
             <button
@@ -520,7 +508,7 @@ async function deletePlaylist() {
               :disabled="cancellingReview"
               @click="cancelReview"
             >
-              {{ cancellingReview ? '取消中...' : '撤销申请' }}
+              {{ cancellingReview ? t('Playlist.cancelling') : t('Playlist.withdraw_request') }}
             </button>
           </div>
         </div>
@@ -546,10 +534,10 @@ async function deletePlaylist() {
       </div>
 
       <div v-if="!sorting" class="detail-tabs">
-        <SegmentSwitch v-model="activeTab" :options="tabOptions" block aria-label="歌单内容" />
+        <SegmentSwitch v-model="activeTab" :options="tabOptions" block :aria-label="t('Playlist.playlist_content')" />
       </div>
       <div v-if="sorting" class="mt-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 p-3 text-sm text-blue-700 dark:text-blue-300" role="status">
-        拖动右侧手柄调整歌曲顺序，完成后点击保存
+        {{ t('Playlist.drag_the_handles_on_the_right_to_reorder_songs') }}
       </div>
 
       <div class="detail-content" :class="{ 'detail-content-single': sorting }">
@@ -563,7 +551,7 @@ async function deletePlaylist() {
               :reorderable="canEdit && (!needsSortingMode || sorting)"
               :sorting="sorting"
               :busy="savingOrder"
-              empty-text="歌单暂无歌曲"
+              :empty-text="t('Playlist.this_playlist_has_no_songs')"
               @reorder-start="sortDragging = true"
               @reorder-end="onDragEnd"
             >
@@ -572,7 +560,7 @@ async function deletePlaylist() {
                   icon-only
                   size="xs"
                   variant="ghost"
-                  title="从歌单移除"
+                  :title="t('Playlist.remove_from_playlist')"
                   :disabled="savingOrder"
                   @click="removeSong(song)"
                 >
@@ -601,35 +589,35 @@ async function deletePlaylist() {
               aria-controls="playlist-description-content"
               @click="descriptionExpanded = !descriptionExpanded"
             >
-              {{ descriptionExpanded ? '收起介绍' : '展开介绍' }}
+              {{ descriptionExpanded ? t('Album.collapse_description') : t('Album.expand_description') }}
             </button>
           </div>
           <p v-else class="text-sm text-gray-500 dark:text-gray-400">
-            暂无介绍
+            {{ t('Playlist.no_introduction') }}
           </p>
           <dl class="detail-facts mt-4 text-sm">
             <dt class="text-gray-500 dark:text-gray-400">
-              更新于
+              {{ t('Playlist.updated_on') }}
             </dt>
             <dd>{{ getPublishDate(playlist.updatedAt) }}</dd>
             <dt class="text-gray-500 dark:text-gray-400">
-              可见范围
+              {{ t('Playlist.visibility') }}
             </dt>
-            <dd>{{ playlist.isPublic ? '公开' : '仅自己可见' }}</dd>
+            <dd>{{ playlist.isPublic ? t('Playlist.public') : t('Playlist.only_me') }}</dd>
           </dl>
         </aside>
       </div>
 
       <Teleport to="body">
         <div v-if="sorting" class="fixed bottom-20 left-4 right-4 md:left-auto md:w-96 z-40 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-[var(--theme-surface)]/95 backdrop-blur-xl shadow-xl p-3">
-          <span class="text-sm text-gray-500 dark:text-gray-400">{{ orderChanged ? '顺序未保存' : '调整顺序' }}</span>
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ orderChanged ? t('Playlist.order_not_saved') : t('Playlist.reorder') }}</span>
           <div class="flex gap-2 shrink-0">
             <AppButton variant="outline" :disabled="savingOrder || sortDragging" @click="cancelSorting">
-              取消
+              {{ t('AlbumPickerDialog.cancel') }}
             </AppButton>
             <AppButton variant="primary" :disabled="!orderChanged || savingOrder || sortDragging" @click="saveSorting">
               <LucideLoader2 v-if="savingOrder" class="size-4 animate-spin" />
-              {{ savingOrder ? '保存中...' : '保存顺序' }}
+              {{ savingOrder ? t('Playlist.saving') : t('Playlist.save_order') }}
             </AppButton>
           </div>
         </div>
@@ -638,21 +626,19 @@ async function deletePlaylist() {
             v-if="selectedIds.size > 0"
             class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3 whitespace-nowrap"
           >
-            <span class="text-sm text-white/70">已选 {{ selectedIds.size }} 首</span>
+            <span class="text-sm text-white/70">{{ t('Playlist.song_selected', { p0: selectedIds.size }, Number(selectedIds.size)) }}</span>
             <div class="w-px h-4 bg-white/20 dark:bg-[var(--theme-surface)]/20" />
             <button
               class="flex items-center gap-1.5 text-sm hover:text-blue-400 transition-colors cursor-pointer"
               @click="playSelected"
             >
-              <LucidePlay class="size-4" />
-              播放
+              <LucidePlay class="size-4" />{{ t('MusicActions.play') }}
             </button>
             <button
               class="flex items-center gap-1.5 text-sm hover:text-blue-400 transition-colors cursor-pointer"
               @click="addSelectedToPlaylist"
             >
-              <LucidePlus class="size-4" />
-              加入播放列表
+              <LucidePlus class="size-4" />{{ t('SongList.add_to_queue') }}
             </button>
             <template v-if="canEdit">
               <div class="w-px h-4 bg-white/20 dark:bg-[var(--theme-surface)]/20" />
@@ -661,8 +647,7 @@ async function deletePlaylist() {
                 :disabled="savingOrder"
                 @click="removeSelected"
               >
-                <LucideTrash2 class="size-4" />
-                删除
+                <LucideTrash2 class="size-4" />{{ t('SongVideoEditDialog.delete') }}
               </button>
             </template>
             <button
@@ -675,21 +660,21 @@ async function deletePlaylist() {
         </Transition>
       </Teleport>
 
-      <AppDialog v-model="showUnsavedOrderDialog" title="歌曲顺序尚未保存">
+      <AppDialog v-model="showUnsavedOrderDialog" :title="t('Playlist.unsaved_song_order')">
         <div class="px-6 py-5 text-sm text-gray-600 dark:text-gray-400">
-          离开前是否保存调整后的歌曲顺序？
+          {{ t('Playlist.save_the_new_song_order_before_leaving') }}
         </div>
         <template #footer>
           <div class="px-4 py-3 flex flex-wrap justify-end gap-2">
             <AppButton variant="outline" :disabled="savingOrder" @click="finishNavigation(false)">
-              继续调整
+              {{ t('Playlist.keep_editing') }}
             </AppButton>
             <AppButton variant="danger" :disabled="savingOrder" @click="discardAndLeave">
-              放弃更改
+              {{ t('Playlist.discard_changes') }}
             </AppButton>
             <AppButton variant="primary" :disabled="savingOrder" @click="saveAndLeave">
               <LucideLoader2 v-if="savingOrder" class="size-4 animate-spin" />
-              {{ savingOrder ? '保存中...' : '保存并离开' }}
+              {{ savingOrder ? t('Playlist.saving') : t('Playlist.save_and_leave') }}
             </AppButton>
           </div>
         </template>
@@ -702,21 +687,21 @@ async function deletePlaylist() {
         :existing-playlist="playlist"
         @success="onEditSuccess"
       />
-      <AppDialog v-model="showDeleteConfirm" title="删除歌单">
+      <AppDialog v-model="showDeleteConfirm" :title="t('Playlist.delete_playlist')">
         <div class="px-6 py-5 text-sm text-gray-600 dark:text-gray-400">
-          <p>确定要删除歌单「{{ playlist?.name }}」吗？</p>
+          <p>{{ t('Playlist.delete_the_playlist', { p0: playlist?.name }) }}</p>
           <p class="mt-2 text-red-500">
-            删除后无法恢复
+            {{ t('Playlist.this_cannot_be_undone') }}
           </p>
         </div>
         <template #footer>
           <div class="px-6 py-3 flex justify-end gap-2">
             <AppButton variant="outline" :disabled="deletingPlaylist" @click="showDeleteConfirm = false">
-              取消
+              {{ t('AlbumPickerDialog.cancel') }}
             </AppButton>
             <AppButton variant="danger" :disabled="deletingPlaylist" @click="deletePlaylist">
               <LucideLoader2 v-if="deletingPlaylist" class="size-4 animate-spin" />
-              {{ deletingPlaylist ? '删除中...' : '确认删除' }}
+              {{ deletingPlaylist ? t('Playlist.deleting') : t('Playlist.confirm_deletion') }}
             </AppButton>
           </div>
         </template>

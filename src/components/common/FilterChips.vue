@@ -1,4 +1,6 @@
 <script setup lang="ts" generic="T extends string | number | null | undefined">
+import { formatNumber } from '@/i18n'
+
 withDefaults(defineProps<{
   modelValue: T
   options: { value: T, label: string, count?: number, title?: string }[]
@@ -28,7 +30,7 @@ const emit = defineEmits<{
       @click="emit('update:modelValue', option.value)"
     >
       <span class="truncate">{{ option.label }}</span>
-      <span v-if="option.count !== undefined" class="shrink-0 text-xs" :class="modelValue === option.value ? 'text-white/75' : 'text-gray-500 dark:text-gray-400'">{{ option.count }}</span>
+      <span v-if="option.count !== undefined" class="shrink-0 text-xs" :class="modelValue === option.value ? 'text-white/75' : 'text-gray-500 dark:text-gray-400'">{{ formatNumber(option.count) }}</span>
     </button>
   </div>
 </template>

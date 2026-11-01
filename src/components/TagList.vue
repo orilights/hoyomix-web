@@ -2,6 +2,7 @@
 import type { SongMapInfo, TagInfo } from '@/types/core'
 import type { SongTag } from '@/types/song-tag'
 import type { VideoTagData } from '@/types/tag'
+import { t } from '@/i18n'
 import { formatDuration } from '@/utils'
 
 defineProps<{
@@ -12,8 +13,12 @@ defineProps<{
 }>()
 
 const videoSourceMap: Record<string, string> = {
-  web: '官网',
-  mys: '米游社',
+  get web() {
+    return t('SongVideoEditDialog.official_website')
+  },
+  get mys() {
+    return t('SongVideoEditDialog.hoyolab_china')
+  },
   bilibili: 'Bilibili',
 }
 
@@ -47,7 +52,7 @@ function goSourceLink(url: string) {
       class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl inline-flex items-center gap-1 hover:bg-black/10 hover:dark:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-colors"
     >
       <LucideTag class="size-3.5 shrink-0 text-gray-500 dark:text-gray-400" aria-hidden="true" />
-      {{ tag.name }}<span v-if="!tag.enabled" class="text-gray-400">已停用</span>
+      {{ tag.name }}<span v-if="!tag.enabled" class="text-gray-400">{{ t('SongTagEditDialog.disabled') }}</span>
     </RouterLink>
 
     <div
@@ -62,7 +67,7 @@ function goSourceLink(url: string) {
           v-if="map.pathIds?.[si] && map.game === 'genshin'"
           :to="{ name: 'Regions', query: { game: map.game, region: map.pathIds[si] } }"
           class="rounded hover:text-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-colors"
-          :aria-label="`查看${map.path.slice(0, si + 1).join(' / ')}的歌曲`"
+          :aria-label="t('TagList.view_songs_for', { p0: map.path.slice(0, si + 1).join(' / ') })"
         >
           {{ segment }}
         </RouterLink>
@@ -73,7 +78,7 @@ function goSourceLink(url: string) {
 
     <template v-for="(tagInfo, index) in tags" :key="index">
       <div v-if="tagInfo.tagType === 'version'" class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl">
-        发布版本：{{ tagInfo.tagName }}
+        {{ t('TagList.release_version', { p0: tagInfo.tagName }) }}
       </div>
 
       <AlbumSeriesHoverCard
@@ -87,7 +92,7 @@ function goSourceLink(url: string) {
         :to="{ name: 'AlbumSeries', params: { seriesName: tagInfo.tagName } }"
         class="px-2 py-0.5 bg-black/5 dark:bg-white/5 rounded-xl hover:bg-black/10 hover:dark:bg-white/10 transition-colors"
       >
-        {{ tagInfo.tagName }} 系列专辑
+        {{ t('AlbumSeriesHoverCard.album_series', { p0: tagInfo.tagName }) }}
       </RouterLink>
 
       <div
