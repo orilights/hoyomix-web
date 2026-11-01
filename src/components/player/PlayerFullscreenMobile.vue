@@ -34,7 +34,7 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
 </script>
 
 <template>
-  <div class="mobile-fullscreen relative z-10 flex-1 min-h-0 text-white">
+  <div class="mobile-fullscreen relative z-10 flex-1 min-h-0 text-white" :class="{ 'immersive-lyrics': controlsHidden && mobileFullscreenLayout === 'lyrics' }">
     <header
       class="mobile-heading transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden"
       @touchstart="$emit('headerTouchStart', $event)" @touchmove.prevent="$emit('headerTouchMove', $event)" @touchend="$emit('headerTouchEnd')" @touchcancel="$emit('headerTouchEnd')"
@@ -60,7 +60,7 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
         </button>
       </div>
     </header>
-    <div ref="artArea" class="mobile-art min-h-0 min-w-0">
+    <div ref="artArea" class="mobile-art min-h-0 min-w-0" :class="{ 'pt-4': mobileFullscreenLayout === 'cover' }">
       <div v-if="mobileFullscreenLayout === 'cover'" class="h-full flex flex-col items-center justify-center gap-5">
         <div class="shrink-0 max-w-full aspect-square" :style="{ width: `${coverSize}px`, height: `${coverSize}px` }">
           <slot name="cover" />
@@ -69,7 +69,7 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
           <slot name="lyric" />
         </div>
       </div>
-      <PlayerLyrics v-else :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" class="h-full" @seek="player.seek" />
+      <PlayerLyrics v-else :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" recenter-on-resize class="h-full" @seek="player.seek" />
     </div>
     <div class="mobile-controls transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
       <PlayerControlMobile @sleep="$emit('sleep')">
@@ -101,10 +101,19 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(180px, 1fr) auto;
-  gap: 12px;
+  gap: 8px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: max(8px, env(safe-area-inset-top)) 28px max(16px, env(safe-area-inset-bottom));
+  padding: max(8px, env(safe-area-inset-top)) 28px max(8px, env(safe-area-inset-bottom));
+}
+.mobile-heading {
+  grid-area: 1 / 1;
+}
+.mobile-art {
+  grid-area: 2 / 1;
+}
+.mobile-controls {
+  grid-area: 3 / 1;
 }
 .mobile-icon {
   display: inline-flex;
@@ -148,6 +157,9 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
     grid-row: 2;
     align-self: end;
   }
+}
+.immersive-lyrics .mobile-art {
+  grid-area: 1 / 1 / -1 / -1;
 }
 @media (prefers-reduced-motion: reduce) {
   .song-title { text-overflow: ellipsis; }

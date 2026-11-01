@@ -18,31 +18,31 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
     <div class="flex justify-between text-xs text-white/60 tabular-nums -mt-1 pointer-events-none">
       <span>{{ formatDuration(Math.floor(currentTime)) }}</span><span>{{ formatDuration(Math.floor(duration)) }}</span>
     </div>
-    <div class="mobile-transport flex items-center justify-center gap-10">
+    <div class="mobile-transport flex items-center justify-center gap-7">
       <button type="button" class="control-button" :aria-label="t('MusicActions.previous_song')" :disabled="playMode === 'shuffle' && !player.hasPrev" @click="player.playPrev()">
-        <LucideSkipBack class="size-7" fill="currentColor" />
+        <LucideSkipBack class="size-6" fill="currentColor" />
       </button>
       <button type="button" class="control-button main-play" :aria-label="playLabel" :aria-busy="isLoading" @click="player.togglePlay()">
-        <LucideLoader2 v-if="isLoading" class="size-10 animate-spin" />
-        <LucidePause v-else-if="isPlaying" class="size-11" fill="currentColor" stroke-width="0.5" />
-        <LucidePlay v-else class="size-11" fill="currentColor" />
+        <LucideLoader2 v-if="isLoading" class="size-8 animate-spin" />
+        <LucidePause v-else-if="isPlaying" class="size-9" fill="currentColor" stroke-width="0.5" />
+        <LucidePlay v-else class="size-9" fill="currentColor" />
       </button>
       <button type="button" class="control-button" :aria-label="t('MusicActions.next_song')" @click="player.playNext()">
-        <LucideSkipForward class="size-7" fill="currentColor" />
+        <LucideSkipForward class="size-6" fill="currentColor" />
       </button>
     </div>
     <div class="mobile-tools flex items-center justify-between gap-1">
       <button type="button" class="control-button" :aria-label="modeLabel" :title="modeLabel" @click="player.togglePlayMode()">
-        <LucideListEnd v-if="playMode === 'sequential'" class="size-6" /><LucideRepeat v-else-if="playMode === 'loop'" class="size-6" /><LucideRepeat1 v-else-if="playMode === 'single'" class="size-6" /><LucideShuffle v-else class="size-6" />
+        <LucideListEnd v-if="playMode === 'sequential'" class="size-5" /><LucideRepeat v-else-if="playMode === 'loop'" class="size-5" /><LucideRepeat1 v-else-if="playMode === 'single'" class="size-5" /><LucideShuffle v-else class="size-5" />
       </button>
       <button type="button" class="control-button relative" :class="{ 'text-blue-400': player.sleepTimer.status !== 'off' }" :aria-label="timerLabel" :title="timerLabel" @click="$emit('sleep')">
-        <LucideTimer class="size-6" /><span v-if="player.sleepTimer.status !== 'off'" class="absolute right-1 top-1 size-1.5 rounded-full bg-blue-400" />
+        <LucideTimer class="size-5" /><span v-if="player.sleepTimer.status !== 'off'" class="absolute right-1 top-1 size-1.5 rounded-full bg-blue-400" />
       </button>
       <button type="button" class="control-button" :class="{ 'text-blue-400': mobileFullscreenLayout === 'lyrics' }" :aria-label="mobileFullscreenLayout === 'lyrics' ? t('PlayerControlMobile.view_cover') : t('PlayerControlMobile.view_lyrics')" :aria-pressed="mobileFullscreenLayout === 'lyrics'" @click="player.setMobileFullscreenLayout(mobileFullscreenLayout === 'lyrics' ? 'cover' : 'lyrics')">
-        <LucideScrollText class="size-6" />
+        <LucideScrollText class="size-5" />
       </button>
       <button type="button" class="control-button" :aria-label="t('PlayerBar.queue')" :aria-expanded="showPlaylist" @click="showPlaylist = !showPlaylist">
-        <LucideListMusic class="size-6" />
+        <LucideListMusic class="size-5" />
       </button>
       <slot name="more" />
     </div>
@@ -70,21 +70,18 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
   cursor: not-allowed;
 }
 .main-play {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
 }
 .mobile-transport {
-  padding-block: 20px;
+  padding-block: 6px;
 }
 .mobile-tools {
-  padding-top: 12px;
+  padding-top: 0;
 }
 @media (max-height: 700px) {
   .mobile-transport {
-    padding-block: 8px;
-  }
-  .mobile-tools {
-    padding-top: 4px;
+    padding-block: 4px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

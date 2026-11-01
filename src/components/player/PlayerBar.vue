@@ -210,7 +210,7 @@ onMounted(() => {
           >
             <PlayerBarSongInfo
               :song="currentSong"
-              :class="{ 'min-w-0 max-w-[240px] md:w-[240px] xl:flex-1 xl:max-w-none xl:w-auto': !swipeActive }"
+              :class="{ 'min-w-0 flex-1 md:flex-none md:max-w-[240px] md:w-[240px] xl:flex-1 xl:max-w-none xl:w-auto': !swipeActive }"
             />
 
             <div v-if="!isMobileViewport" class="flex-1 shrink-0 xl:flex-none xl:w-[600px]">
@@ -220,7 +220,7 @@ onMounted(() => {
             <Transition name="fade">
               <div
                 v-show="!swipeActive"
-                class="flex items-center gap-1 md:gap-2 w-[240px] ml-auto justify-end xl:flex-1 xl:min-w-0 xl:w-auto"
+                class="flex items-center gap-1 md:gap-2 shrink-0 md:shrink md:w-[240px] ml-auto justify-end xl:flex-1 xl:min-w-0 xl:w-auto"
               >
                 <Dropdown v-if="!isMobileViewport" :options="qualityOptions" alignment="center" position="up" dark>
                   <Tooltip :content="t('Settings.audio_quality')" placement="top" align="center">

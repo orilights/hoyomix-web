@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Directive } from 'vue'
 import type { LyricLine } from '@/utils'
+import { useResizeObserver } from '@vueuse/core'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 
@@ -9,6 +10,7 @@ const props = defineProps<{
   hasTimestamp: boolean
   currentLineIndex: number
   showTranslation: boolean
+  recenterOnResize?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -133,6 +135,11 @@ function scrollToCurrentLine(smooth = true) {
     }
   }
 }
+
+useResizeObserver(() => props.recenterOnResize ? lyricContainer.value : null, () => {
+  if (!userScrolling.value)
+    scrollToCurrentLine(false)
+})
 
 function handleChangeFontSize(delta: number) {
   const newSize = lyricsFontSize.value + delta
