@@ -292,6 +292,8 @@
   "Album.no_description": "No description",
   "Albums.saved": "Saved",
   "Albums.all_albums_in_the_collection": "All albums in the collection",
+  "Albums.release_year": "Release year",
+  "Albums.filter_by_release_year": "Filter albums by release year",
   "Albums.album_filters": "Album filters",
   "Albums.sign_in_to_view_saved_albums": "Sign in to view saved albums",
   "Albums.failed_to_load_saved_albums": "Failed to load saved albums",

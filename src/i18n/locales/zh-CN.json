@@ -292,6 +292,8 @@
   "Album.no_description": "暂无简介",
   "Albums.saved": "已收藏",
   "Albums.all_albums_in_the_collection": "已收录的所有专辑",
+  "Albums.release_year": "发布年份",
+  "Albums.filter_by_release_year": "按专辑发布年份筛选",
   "Albums.album_filters": "专辑筛选",
   "Albums.sign_in_to_view_saved_albums": "请先登录以查看收藏专辑",
   "Albums.failed_to_load_saved_albums": "收藏专辑加载失败",

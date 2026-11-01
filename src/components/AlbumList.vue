@@ -129,6 +129,7 @@ async function playAlbum(albumId: number) {
         </Tooltip>
       </div>
     </div>
+    <slot name="filters" />
     <AsyncFade>
       <div v-if="!albumsList.length && $slots.empty" key="empty">
         <slot name="empty" />
