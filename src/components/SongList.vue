@@ -320,7 +320,14 @@ function handleDragEnd() {
               <p v-if="row.song.songDescription" class="truncate text-xs text-gray-500 dark:text-gray-400">
                 {{ row.song.songDescription }}
               </p>
-              <slot name="song-description" :song="row.song" />
+              <slot name="song-description" :song="row.song">
+                <div v-if="row.song.maps?.length" class="mt-1 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+                  <div v-for="map in row.song.maps" :key="map.id" class="flex items-start gap-1">
+                    <LucideMapPin class="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+                    <span class="min-w-0 break-words">{{ map.path.join(' / ') }}<span v-if="map.note"> · {{ map.note }}</span></span>
+                  </div>
+                </div>
+              </slot>
             </td>
             <td v-if="showAlbum" class="hidden md:table-cell p-2 text-sm text-gray-500 dark:text-gray-400 truncate" :title="row.song.albumName">
               <RouterLink
