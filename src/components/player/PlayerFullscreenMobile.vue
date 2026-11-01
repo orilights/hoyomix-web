@@ -3,6 +3,7 @@ import type { LyricLine } from '@/utils'
 import { useElementSize } from '@vueuse/core'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
+import PlayerLyrics from './PlayerLyrics.vue'
 
 defineProps<{ parsedLyrics: LyricLine[], hasTimestamp: boolean, currentLineIndex: number }>()
 defineEmits<{
@@ -17,6 +18,14 @@ defineEmits<{
 const player = usePlayerStore()
 const { currentSong, mobileFullscreenLayout, showTranslation, isImmersive, immersiveControlsVisible, lyricsFontSize } = storeToRefs(player)
 const controlsHidden = computed(() => isImmersive.value && !immersiveControlsVisible.value)
+const mobileLyrics = useTemplateRef<InstanceType<typeof PlayerLyrics>>('mobileLyrics')
+watch(controlsHidden, async () => {
+  const restorePosition = mobileLyrics.value?.captureViewportPosition()
+  if (restorePosition) {
+    await nextTick()
+    restorePosition()
+  }
+})
 const songTitle = useTemplateRef<HTMLElement>('songTitle')
 const songTitleText = useTemplateRef<HTMLElement>('songTitleText')
 const { width: titleWidth } = useElementSize(songTitle)
@@ -69,7 +78,7 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
           <slot name="lyric" />
         </div>
       </div>
-      <PlayerLyrics v-else :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" recenter-on-resize class="h-full" @seek="player.seek" />
+      <PlayerLyrics v-else ref="mobileLyrics" :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" class="h-full" @seek="player.seek" />
     </div>
     <div class="mobile-controls transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
       <PlayerControlMobile @sleep="$emit('sleep')">

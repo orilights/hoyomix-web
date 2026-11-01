@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Directive } from 'vue'
 import type { LyricLine } from '@/utils'
-import { useResizeObserver } from '@vueuse/core'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 
@@ -10,7 +9,6 @@ const props = defineProps<{
   hasTimestamp: boolean
   currentLineIndex: number
   showTranslation: boolean
-  recenterOnResize?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -136,10 +134,37 @@ function scrollToCurrentLine(smooth = true) {
   }
 }
 
-useResizeObserver(() => props.recenterOnResize ? lyricContainer.value : null, () => {
-  if (!userScrolling.value)
-    scrollToCurrentLine(false)
-})
+let viewportAnchor: { element: HTMLElement, top: number, measuredTop: number } | null = null
+
+function captureViewportPosition() {
+  const container = lyricContainer.value
+  const lines = lyricLines.value?.querySelectorAll<HTMLElement>('[data-lyric-line]')
+  if (!container || !lines?.length)
+    return
+  // Stop any in-flight smooth scroll before recording the visible anchor.
+  container.scrollTo({ top: container.scrollTop, behavior: 'auto' })
+  const bounds = container.getBoundingClientRect()
+  const isVisible = (line: HTMLElement) => {
+    const rect = line.getBoundingClientRect()
+    return rect.bottom > bounds.top && rect.top < bounds.bottom
+  }
+  const currentLine = lines[currentLineIndex.value]
+  const anchor = currentLine && isVisible(currentLine) ? currentLine : [...lines].find(isVisible)
+  if (!anchor)
+    return
+  const measuredTop = anchor.getBoundingClientRect().top
+  // Retain the ideal position across repeated toggles instead of accumulating scroll rounding.
+  const top = viewportAnchor?.element === anchor && Math.abs(viewportAnchor.measuredTop - measuredTop) <= 1
+    ? viewportAnchor.top
+    : measuredTop
+  return () => {
+    if (lyricContainer.value !== container || !anchor.isConnected)
+      return
+    const delta = anchor.getBoundingClientRect().top - top
+    container.scrollTo({ top: container.scrollTop + delta, behavior: 'auto' })
+    viewportAnchor = { element: anchor, top, measuredTop: anchor.getBoundingClientRect().top }
+  }
+}
 
 function handleChangeFontSize(delta: number) {
   const newSize = lyricsFontSize.value + delta
@@ -164,6 +189,7 @@ function onClickLine(line: LyricLine) {
 
 defineExpose({
   scrollToCurrentLine,
+  captureViewportPosition,
 })
 
 onMounted(() => {
