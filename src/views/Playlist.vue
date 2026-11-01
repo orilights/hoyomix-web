@@ -449,6 +449,8 @@ async function deletePlaylist() {
           <CoverImage
             v-if="coverUrl"
             :src="getCoverUrl(coverAlbum?.platforms ?? {}, '256px')"
+            :preview-src="getCoverUrl(coverAlbum?.platforms ?? {}, '800px')"
+            :alt="coverAlbum?.name ?? playlist.name"
           />
           <div v-else class="size-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
             <LucideMusic class="size-12 text-blue-400" />

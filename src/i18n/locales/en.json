@@ -1,4 +1,7 @@
 {
+  "CoverImage.view_cover": "View cover for {name}",
+  "CoverImage.cover_preview": "Cover preview",
+  "CoverImage.failed_to_load_cover": "Failed to load cover",
   "App.failed_to_load_albums": "Failed to load albums: {p0}",
   "App.unknown_error": "Unknown error",
   "App.unable_to_load_please_try_again_later": "Unable to load. Please try again later.",

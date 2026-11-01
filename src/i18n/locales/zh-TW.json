@@ -1,4 +1,7 @@
 {
+  "CoverImage.view_cover": "查看{name}封面大圖",
+  "CoverImage.cover_preview": "封面預覽",
+  "CoverImage.failed_to_load_cover": "封面載入失敗",
   "App.failed_to_load_albums": "專輯列表載入失敗：{p0}",
   "App.unknown_error": "未知錯誤",
   "App.unable_to_load_please_try_again_later": "載入失敗，請稍後重試",
