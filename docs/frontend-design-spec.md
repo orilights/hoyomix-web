@@ -146,13 +146,15 @@ notice store 将状态分为 `readKeys`（已读）和 `promptedKeys`（重要�
 
 ### 8.4 歌词（`utils/lyric.ts` + `PlayerLyrics`）
 
-- LRC 解析 `[mm:ss.xx]`，`mergeLyrics` 合并原文与翻译（±0.01s 模糊匹配），无时间戳则纯文本展示。
+- LRC 解析 `[mm:ss.xx]`，`mergeLyrics` 合并原文与翻译（±0.01s 模糊匹配）；同一时间戳的多行按原顺序换行合并，共同高亮和跳转，带时间戳的空行仅作为歌词结束标记，不在列表中占位或触发滚动；无时间戳则纯文本展示。
 - 来源 `ncm`/`qq` 由 `selectLyricProvider` 按平台与偏好选择。
 - `PlayerLyrics`：逐行高亮、自动滚动（用户滚动暂停 3s）、点击 seek、可开关翻译、偏移与字号调节。
 
 ### 8.5 播放器 UI（`components/player/`）
 
 `PlayerBar`（常驻播放条，移动端滑动切歌）、`PlayerControl`/`PlayerControlMobile`、`PlayerPlayBtn`、`PlayerProgress`（进度/缓冲，支持拖拽）、`PlayerBarSongInfo`、`PlayerFullscreen`（全屏大屏 + 动态渐变背景 + 下滑收起）、`PlayerLyrics`、`PlayerSpectrum`、`PlayerPlaylist`（vuedraggable 排序/删除/清空）。
+
+移动端播放条的整个歌曲信息区域（封面、歌名、专辑／当前歌词及区域内空白）均可点击打开全屏播放器，支持键盘激活；滑动切歌期间禁用点击入口，右侧操作按钮独立。
 
 移动端全屏播放器（<768px）由 `PlayerFullscreenMobile` 承载：顶部歌曲与专辑信息、中部自适应大封面或完整歌词、底部进度与独立播放控制。全屏期间隐藏移动端 `PlayerBar` 并取消其 72px 占位；桌面保留原布局及常驻播放条。`PlayerControlMobile` 提供播放模式、定时、歌词/封面切换、队列和更多入口；音质、音量、翻译、频谱、封面设置和浏览器全屏收于更多菜单。首次使用默认封面视图，已有持久化选择继续生效。
 

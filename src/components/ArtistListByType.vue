@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
 import type { ArtistTypeInfo } from '@/types/core'
-import { AudioLines, Building2, ListMusic, MicVocal, Music2, PenLine, SlidersHorizontal, UsersRound } from '@lucide/vue'
+import { AudioLines, ListMusic, MicVocal, Music2, PenLine, SlidersHorizontal, UsersRound } from '@lucide/vue'
 import { useCreditInfoQuery } from '@/composables/queries'
+import { artistPriorityGroups } from '@/constants'
 import { formatNumber, t } from '@/i18n'
 
 const props = defineProps<{
@@ -22,7 +23,6 @@ const groupIcons: Record<string, Component> = {
   '编曲': ListMusic,
   '作词': PenLine,
   '演唱 / 人声': MicVocal,
-  '出品': Building2,
   '制作人': SlidersHorizontal,
   '其他': UsersRound,
 }
@@ -31,14 +31,7 @@ function groupIcon(label: string) {
   return groupIcons[label] ?? AudioLines
 }
 
-const priorityGroups = [
-  { label: '作曲', roles: ['作曲'] },
-  { label: '编曲', roles: ['编曲'] },
-  { label: '作词', roles: ['作词'] },
-  { label: '演唱 / 人声', roles: ['歌手', '演唱', '人声', '主唱'] },
-  { label: '出品', roles: ['出品'] },
-  { label: '制作人', roles: ['制作人'] },
-]
+const priorityGroups = artistPriorityGroups
 
 function mergeArtists(roles: string[]): CreditArtist[] {
   const artists = new Map<string, CreditArtist>()

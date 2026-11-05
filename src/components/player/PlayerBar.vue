@@ -229,6 +229,8 @@ onMounted(() => {
             <PlayerBarSongInfo
               :song="currentSong"
               :lyric="currentLyric"
+              :mobile="isMobileViewport"
+              :disabled="swipeActive"
               :class="{ 'min-w-0 flex-1 md:flex-none md:max-w-[240px] md:w-[240px] xl:flex-1 xl:max-w-none xl:w-auto': !swipeActive }"
             />
 

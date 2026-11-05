@@ -611,18 +611,31 @@ async function deletePlaylist() {
       </div>
 
       <Teleport to="body">
-        <div v-if="sorting" class="fixed bottom-20 left-4 right-4 md:left-auto md:w-96 z-40 flex items-center justify-between gap-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-[var(--theme-surface)]/95 backdrop-blur-xl shadow-xl p-3">
-          <span class="text-sm text-gray-500 dark:text-gray-400">{{ orderChanged ? t('Playlist.order_not_saved') : t('Playlist.reorder') }}</span>
-          <div class="flex gap-2 shrink-0">
-            <AppButton variant="outline" :disabled="savingOrder || sortDragging" @click="cancelSorting">
+        <Transition name="action-bar">
+          <div v-if="sorting" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-2xl shadow-2xl px-4 py-2.5 flex items-center gap-3 whitespace-nowrap">
+            <span class="text-sm text-white/70">{{ orderChanged ? t('Playlist.order_not_saved') : t('Playlist.reorder') }}</span>
+            <div class="w-px h-4 bg-white/20 dark:bg-[var(--theme-surface)]/20" />
+            <button
+              type="button"
+              class="flex items-center gap-1.5 text-sm hover:text-blue-400 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-white"
+              :disabled="savingOrder || sortDragging"
+              @click="cancelSorting"
+            >
+              <LucideX class="size-4" />
               {{ t('AlbumPickerDialog.cancel') }}
-            </AppButton>
-            <AppButton variant="primary" :disabled="!orderChanged || savingOrder || sortDragging" @click="saveSorting">
+            </button>
+            <button
+              type="button"
+              class="flex items-center gap-1.5 text-sm hover:text-blue-400 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-white"
+              :disabled="!orderChanged || savingOrder || sortDragging"
+              @click="saveSorting"
+            >
               <LucideLoader2 v-if="savingOrder" class="size-4 animate-spin" />
+              <LucideCheck v-else class="size-4" />
               {{ savingOrder ? t('Playlist.saving') : t('Playlist.save_order') }}
-            </AppButton>
+            </button>
           </div>
-        </div>
+        </Transition>
         <Transition name="action-bar">
           <div
             v-if="selectedIds.size > 0"

@@ -31,15 +31,15 @@ function parseLrc(lrc: string): Map<number, string> {
     if (matches.length === 0)
       continue
     const text = line.replace(lrcLineRegex, '').trim()
-    if (!text)
-      continue
     for (const match of matches) {
       const minutes = Number.parseInt(match[1], 10)
       const seconds = Number.parseInt(match[2], 10)
       const ms = Number.parseInt(match[3].padEnd(3, '0'), 10)
       // 精确到 10ms，用于模糊匹配
       const time = Math.round((minutes * 60 + seconds + ms / 1000) * 100) / 100
-      map.set(time, text)
+      // 同时演唱的声部共用一个时间段；空行保留为上一句的结束标记。
+      const previous = map.get(time)
+      map.set(time, previous && text ? `${previous}\n${text}` : previous || text)
     }
   }
   return map

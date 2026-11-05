@@ -902,5 +902,16 @@
   "SongAnalysis.disclaimer": "AI 生成，僅供參考",
   "language.label": "語言",
   "language.follow_browser": "跟隨瀏覽器",
-  "image_cache.storage_unavailable": "無法存取圖片快取，請檢查瀏覽器的儲存權限"
+  "image_cache.storage_unavailable": "無法存取圖片快取，請檢查瀏覽器的儲存權限",
+  "Artists.title": "藝術家",
+  "Artists.description": "參與藝術家總覽",
+  "Artists.search": "搜尋藝術家或別名",
+  "Artists.count": "{count} 位藝術家",
+  "Artists.empty": "沒有找到符合條件的藝術家",
+  "Artists.reset": "重設篩選",
+  "Artists.songs": "共參與 {count} 首作品",
+  "Artist.former_hoyomix_member": "前 HOYO-MiX 成員",
+  "Artists.sort": "排序",
+  "Artists.by_name": "依名稱",
+  "Artists.by_song_count": "依參與作品數量"
 }

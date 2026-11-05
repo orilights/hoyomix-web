@@ -2,6 +2,7 @@
 import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
+import { useDragAutoScroll } from '@/composables/useDragAutoScroll'
 import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { usePlayerStore } from '@/store/player'
@@ -28,6 +29,10 @@ const showCreatePlaylistDialog = ref(false)
 const showSelectPlaylistDialog = ref(false)
 const isMobileViewport = useMediaQuery('(max-width: 767px)')
 const queuePanel = useTemplateRef<HTMLElement>('queuePanel')
+const { isDragging: isQueueDragging, start: startQueueScroll, stop: stopQueueScroll } = useDragAutoScroll(
+  () => queuePanel.value?.querySelector<HTMLElement>('[data-overlayscrollbars-viewport]'),
+  () => isMobileViewport.value ? 80 : 160,
+)
 let dragOffset = 0
 let dragStartOffset = 0
 let headerPointerId: number | null = null
@@ -58,6 +63,8 @@ function cancelHeaderDrag() {
 }
 
 function onHeaderPointerDown(event: PointerEvent) {
+  if (isQueueDragging.value)
+    return
   if (!isMobileViewport.value || event.pointerType === 'mouse')
     return
   if (!event.isPrimary) {
@@ -114,6 +121,10 @@ function onHeaderPointerCancel(event: PointerEvent) {
 }
 
 watch(isMobileViewport, cancelHeaderDrag)
+watch([showPlaylist, isShuffle], ([visible, shuffled]) => {
+  if (!visible || shuffled)
+    stopQueueScroll()
+})
 onBeforeUnmount(releaseHeaderPointer)
 
 const playlistSongIds = computed(() => displayedPlaylist.value.map(entry => entry.song.songId))
@@ -142,6 +153,7 @@ function overwriteExisting() {
 }
 
 function onDragEnd(evt: { oldIndex: number, newIndex: number }) {
+  stopQueueScroll()
   if (!isShuffle.value && evt.oldIndex !== evt.newIndex) {
     player.reorderPlaylist(evt.oldIndex, evt.newIndex)
   }
@@ -232,6 +244,8 @@ function clearAll() {
             handle=".drag-handle"
             :disabled="isShuffle"
             :animation="200"
+            :scroll="false"
+            @start="startQueueScroll"
             @end="onDragEnd"
           >
             <template #item="{ element }">
@@ -240,7 +254,7 @@ function clearAll() {
                 class="flex items-center px-4 py-2 hover:bg-white/5 transition-colors group mr-1"
                 :class="{ 'bg-white/10': element.index === currentIndex }"
               >
-                <div v-if="!isShuffle" class="drag-handle cursor-grab active:cursor-grabbing text-white/30 hover:text-white/60 mr-2 shrink-0">
+                <div v-if="!isShuffle" class="drag-handle cursor-grab active:cursor-grabbing touch-none select-none text-white/30 hover:text-white/60 mr-2 shrink-0">
                   <LucideGripVertical class="size-4" />
                 </div>
 

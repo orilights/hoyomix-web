@@ -5,6 +5,7 @@ import { useMediaQuery } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
 import SongListPlaybackDialog from '@/components/SongListPlaybackDialog.vue'
+import { useDragAutoScroll } from '@/composables/useDragAutoScroll'
 import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
 import { usePlayerStore } from '@/store/player'
@@ -49,46 +50,11 @@ const slots = defineSlots<{
 const router = useRouter()
 const store = useMainStore()
 const player = usePlayerStore()
-const isDragging = ref(false)
 const listRoot = useTemplateRef<HTMLElement>('listRoot')
-let dragPointerY = 0
-let scrollFrame = 0
-let previousScrollTime = 0
-
-function stopSortScroll() {
-  cancelAnimationFrame(scrollFrame)
-  scrollFrame = 0
-  previousScrollTime = 0
-}
-
-function onSortPointerMove(event: PointerEvent | TouchEvent) {
-  if (!props.sorting)
-    return
-  const pointer = 'touches' in event ? event.touches[0] : event
-  if (pointer)
-    dragPointerY = pointer.clientY
-}
-
-function scrollWhileSorting(time: number) {
-  if (!props.sorting || !isDragging.value) {
-    stopSortScroll()
-    return
-  }
-  const viewport = listRoot.value?.closest<HTMLElement>('[data-overlayscrollbars-viewport]')
-  if (viewport) {
-    const bounds = viewport.getBoundingClientRect()
-    const edge = Math.min(80, bounds.height / 3)
-    const velocity = dragPointerY < bounds.top + edge
-      ? -Math.min(1, Math.max(0, (bounds.top + edge - dragPointerY) / edge))
-      : Math.min(1, Math.max(0, (dragPointerY - bounds.bottom + edge) / edge))
-    const elapsed = previousScrollTime ? Math.min(time - previousScrollTime, 50) : 0
-    viewport.scrollTop += velocity * elapsed * 0.5
-  }
-  previousScrollTime = time
-  scrollFrame = requestAnimationFrame(scrollWhileSorting)
-}
-
-onUnmounted(stopSortScroll)
+const { isDragging, start: startSortScroll, stop: stopSortScroll } = useDragAutoScroll(
+  () => listRoot.value?.closest<HTMLElement>('[data-overlayscrollbars-viewport]'),
+  () => props.sorting ? 80 : 160,
+)
 const showSmColumns = useMediaQuery('(min-width: 640px)')
 const showMdColumns = useMediaQuery('(min-width: 768px)')
 const playbackDialog = useTemplateRef<InstanceType<typeof SongListPlaybackDialog>>('playbackDialog')
@@ -190,15 +156,12 @@ function addSongToPlaylist(song: PlaylistSongItem) {
   toast.success(isNew ? t('SongList.added_to_queue') : t('SongList.song_is_already_in_the_queue'))
 }
 
-function handleDragStart() {
-  isDragging.value = true
-  if (props.sorting)
-    scrollFrame = requestAnimationFrame(scrollWhileSorting)
+function handleDragStart(event: { originalEvent?: MouseEvent | TouchEvent }) {
+  startSortScroll(event)
   emit('reorderStart')
 }
 
 function handleDragEnd() {
-  isDragging.value = false
   stopSortScroll()
   emit('reorderEnd')
 }
@@ -208,8 +171,6 @@ function handleDragEnd() {
   <div
     ref="listRoot"
     class="bg-black/5 dark:bg-white/5 rounded-xl pt-2 pb-4 overflow-hidden"
-    @pointermove.capture="onSortPointerMove"
-    @touchmove.capture="onSortPointerMove"
   >
     <table v-if="songCount" class="w-full table-fixed">
       <thead>
@@ -255,7 +216,7 @@ function handleDragEnd() {
         :animation="200"
         :force-fallback="sorting"
         :fallback-on-body="sorting"
-        :scroll="!sorting"
+        :scroll="false"
         @start="handleDragStart"
         @end="handleDragEnd"
       >

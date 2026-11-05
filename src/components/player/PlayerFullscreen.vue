@@ -406,7 +406,7 @@ function onHeaderTouchEnd() {
         <template #lyric>
           <div v-if="compactLyricLine" class="max-w-full text-white font-bold">
             <div
-              class="leading-tight"
+              class="leading-tight whitespace-pre-line"
               :class="showTranslation && compactLyricLine.translation ? 'line-clamp-1' : 'line-clamp-2'"
               :style="{ fontSize: `${lyricsFontSize}px` }"
               :title="compactLyricLine.text"
@@ -415,7 +415,7 @@ function onHeaderTouchEnd() {
             </div>
             <div
               v-if="showTranslation && compactLyricLine.translation"
-              class="leading-tight text-white/70 font-normal mt-1 line-clamp-1"
+              class="leading-tight whitespace-pre-line text-white/70 font-normal mt-1 line-clamp-1"
               :style="{ fontSize: `${lyricsFontSize}px` }"
               :title="compactLyricLine.translation"
             >

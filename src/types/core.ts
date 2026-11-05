@@ -100,6 +100,7 @@ export interface ArtistInfo {
   name: string
   alias: string[]
   isHoyomix: boolean
+  isFormerHoyomix: boolean
   songs: {
     id: number
     name: string
@@ -150,6 +151,17 @@ export interface SongLyricInfo {
   provider: 'ncm' | 'qq'
   content: string
   translation: string | null
+}
+
+export interface ArtistOverviewItem {
+  id: number
+  name: string
+  alias: string[]
+  isHoyomix: boolean
+  isFormerHoyomix: boolean
+  roles: string[]
+  products: string[]
+  songCount: number
 }
 
 export interface ArtistTypeInfo {

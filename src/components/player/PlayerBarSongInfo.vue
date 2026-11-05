@@ -7,6 +7,8 @@ import { getCoverUrl } from '@/utils'
 const props = defineProps<{
   song: PlaylistItem | null
   lyric?: { key: string, text: string } | null
+  mobile?: boolean
+  disabled?: boolean
 }>()
 
 const router = useRouter()
@@ -18,6 +20,14 @@ const coverUrl = computed(() => {
     return ''
   return getCoverUrl(props.song.albumPlatforms, '96px')
 })
+
+function openMobilePlayer(event: MouseEvent) {
+  if (!props.mobile)
+    return
+  event.stopPropagation()
+  if (props.song && !props.disabled)
+    player.setFullscreen(true)
+}
 
 function toSong() {
   if (!props.song)
@@ -35,7 +45,15 @@ function toAlbum() {
 </script>
 
 <template>
-  <div class="flex items-center">
+  <component
+    :is="mobile ? 'button' : 'div'"
+    :type="mobile ? 'button' : undefined"
+    :disabled="mobile ? !song || disabled : undefined"
+    :aria-label="mobile ? t('PlayerBarSongInfo.toggle_fullscreen_player') : undefined"
+    class="flex items-center text-left"
+    :class="{ 'h-full cursor-pointer': mobile }"
+    @click.capture="openMobilePlayer"
+  >
     <Transition name="cover-fade">
       <div v-if="coverUrl && !isFullscreen" class="size-12 mr-3 shrink-0">
         <Tooltip :content="t('PlayerBarSongInfo.toggle_fullscreen_player')" placement="top" align="center">
@@ -59,7 +77,7 @@ function toAlbum() {
         </Transition>
       </div>
     </div>
-  </div>
+  </component>
 </template>
 
 <style scoped>

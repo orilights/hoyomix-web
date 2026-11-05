@@ -902,5 +902,16 @@
   "SongAnalysis.disclaimer": "AI-generated, for reference only",
   "language.label": "Language",
   "language.follow_browser": "Follow browser",
-  "image_cache.storage_unavailable": "Unable to access image cache. Check your browser storage permissions."
+  "image_cache.storage_unavailable": "Unable to access image cache. Check your browser storage permissions.",
+  "Artists.title": "Artists",
+  "Artists.description": "Contributing artists overview",
+  "Artists.search": "Search artists or aliases",
+  "Artists.count": "{count} artists",
+  "Artists.empty": "No artists match your filters",
+  "Artists.reset": "Reset filters",
+  "Artists.songs": "{count} songs in total",
+  "Artist.former_hoyomix_member": "Former HOYO-MiX member",
+  "Artists.sort": "Sort",
+  "Artists.by_name": "Name",
+  "Artists.by_song_count": "Songs contributed"
 }
