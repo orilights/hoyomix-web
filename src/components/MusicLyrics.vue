@@ -30,7 +30,7 @@ const { data: lyricsData, isLoading: isLyricsLoading, isError: isLyricsError, er
 const lyricList = computed(() => {
   if (!lyricsData.value)
     return []
-  return mergeLyrics(lyricsData.value.content, lyricsData.value.translation ?? '')
+  return mergeLyrics(lyricsData.value.content, lyricsData.value.translation ?? '').filter(line => line.text)
 })
 const visibleLyrics = computed(() => expanded.value ? lyricList.value : lyricList.value.slice(0, 5))
 
@@ -77,7 +77,7 @@ watch(isLyricsError, (val) => {
           <div v-if="lyricList.length === 0" class="text-gray-400 text-sm text-center py-4">
             {{ t('MusicLyrics.no_data') }}
           </div>
-          <div v-for="line, index in visibleLyrics" v-else :key="index" class="my-1">
+          <div v-for="line, index in visibleLyrics" v-else :key="index" class="my-1 whitespace-pre-line">
             <span>{{ line.text }}</span>
             <span v-if="line.translation" class="text-gray-500 dark:text-gray-400 ml-2">/ {{ line.translation }}</span>
           </div>

@@ -146,7 +146,7 @@ notice store 将状态分为 `readKeys`（已读）和 `promptedKeys`（重要�
 
 ### 8.4 歌词（`utils/lyric.ts` + `PlayerLyrics`）
 
-- LRC 解析 `[mm:ss.xx]`，`mergeLyrics` 合并原文与翻译（±0.01s 模糊匹配），无时间戳则纯文本展示。
+- LRC 解析 `[mm:ss.xx]`，`mergeLyrics` 合并原文与翻译（±0.01s 模糊匹配）；同一时间戳的多行按原顺序换行合并，共同高亮和跳转，带时间戳的空行仅作为歌词结束标记，不在列表中占位或触发滚动；无时间戳则纯文本展示。
 - 来源 `ncm`/`qq` 由 `selectLyricProvider` 按平台与偏好选择。
 - `PlayerLyrics`：逐行高亮、自动滚动（用户滚动暂停 3s）、点击 seek、可开关翻译、偏移与字号调节。
 

@@ -123,7 +123,7 @@ watch(
 function scrollToCurrentLine(smooth = true) {
   if (currentLineIndex.value >= 0 && lyricContainer.value) {
     const currentEl = lyricLines.value?.children[currentLineIndex.value] as HTMLElement | undefined
-    if (currentEl) {
+    if (currentEl && parsedLyrics.value[currentLineIndex.value]?.text) {
       const containerHeight = lyricContainer.value.clientHeight
       const targetTop = currentEl.offsetTop - containerHeight / 2 + currentEl.clientHeight / 2
       lyricContainer.value.scrollTo({
@@ -229,6 +229,7 @@ onUnmounted(() => {
         </div>
         <div
           v-for="(line, index) in parsedLyrics"
+          v-show="line.text"
           :key="index"
           v-memo="[line, index === currentLineIndex, lyricsFontSize, showTranslation]"
           data-lyric-line
@@ -241,14 +242,14 @@ onUnmounted(() => {
         >
           <div
             v-lyric-size="index === currentLineIndex ? lyricsFontSize + FONT_STEP : lyricsFontSize"
-            class="origin-top-left"
+            class="origin-top-left whitespace-pre-line"
           >
             {{ line.text }}
           </div>
           <div
             v-if="showTranslation && line.translation"
             v-lyric-size="index === currentLineIndex ? lyricsFontSize : lyricsFontSize - FONT_STEP"
-            class="mt-0.5 origin-top-left"
+            class="mt-0.5 origin-top-left whitespace-pre-line"
             :class="index === currentLineIndex
               ? 'text-white/70 font-normal'
               : 'text-white/30'"
