@@ -1,4 +1,4 @@
-import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsParams, MapSongsResponse, MapSongsSort, MapTreeNode, PlaylistCreateData, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, PlaylistsQueryParams, RandomPlaylistParams, RankingPeriod, RankingResponse, SongCreditsChange, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
+import type { AlbumInfo, AlbumListItemInfo, AppConfigResponse, ArtistInfo, ArtistOverviewItem, ArtistTypeInfo, ContributionInfo, ContributionRankingPeriod, ContributionRankingResponse, EditRequestResponse, MapSongsParams, MapSongsResponse, MapSongsSort, MapTreeNode, PlaylistCreateData, PlaylistDetail, PlaylistListItem, PlaylistListResponse, PlaylistReview, PlaylistSongItem, PlaylistsQueryParams, RandomPlaylistParams, RankingPeriod, RankingResponse, SongCreditsChange, SongInfo, SongInfoChange, SongLyricInfo, SongMapsChange, SongMediaResponse, SongTagsChange } from '@/types/core'
 
 import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/types/edit-request'
 
@@ -88,6 +88,10 @@ export function submitSongCreditsEditApi(songId: number, credits: SongCreditsCha
 export function getCreditInfoApi(id: number | string, type: 'album' | 'song' | 'product') {
   const paths: Record<string, string> = { album: 'albums', song: 'songs', product: 'products' }
   return fetchJson<ArtistTypeInfo>(`${apiBase}/credits/${paths[type]}/${id}`)
+}
+
+export function getArtistsApi() {
+  return fetchJson<ArtistOverviewItem[]>(`${apiBase}/artists`)
 }
 
 export function getArtistInfoApi(artistName: string) {

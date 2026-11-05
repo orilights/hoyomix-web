@@ -56,7 +56,7 @@ usePageSeo({
     if (!info)
       return null
     const products = info.products.map(p => getProductName(p)).join('、')
-    return t('Artist.contributed_to_the_music_of', { p0: info.name, p1: info.isHoyomix ? t('Artist.hoyomix_team_member') : '', p2: products })
+    return t('Artist.contributed_to_the_music_of', { p0: info.name, p1: info.isFormerHoyomix ? t('Artist.former_hoyomix_member') : info.isHoyomix ? t('Artist.hoyomix_team_member') : '', p2: products })
   }),
   path: computed(() => (artistName.value ? `/artist/${artistName.value}` : null)),
 })
@@ -130,8 +130,8 @@ onMounted(() => {
       <div class="w-full lg:w-[400px] shrink-0 h-fit p-4 bg-black/5 dark:bg-white/5 rounded-xl">
         <div class="font-bold text-2xl pb-4">
           {{ artistName }}
-          <div v-if="artistInfo?.isHoyomix" class="font-normal text-base text-gray-500 dark:text-gray-400">
-            {{ t('Artist.hoyomix_member') }}
+          <div v-if="artistInfo?.isHoyomix || artistInfo?.isFormerHoyomix" class="font-normal text-base text-gray-500 dark:text-gray-400">
+            {{ t(artistInfo?.isFormerHoyomix ? 'Artist.former_hoyomix_member' : 'Artist.hoyomix_member') }}
           </div>
         </div>
         <div class="font-bold mt-2 mb-1">

@@ -902,5 +902,16 @@
   "SongAnalysis.disclaimer": "AI 生成，仅供参考",
   "language.label": "语言",
   "language.follow_browser": "跟随浏览器",
-  "image_cache.storage_unavailable": "无法访问图片缓存，请检查浏览器的存储权限"
+  "image_cache.storage_unavailable": "无法访问图片缓存，请检查浏览器的存储权限",
+  "Artists.title": "艺术家",
+  "Artists.description": "参与艺术家总览",
+  "Artists.search": "搜索艺术家或别名",
+  "Artists.count": "{count} 位艺术家",
+  "Artists.empty": "没有找到符合条件的艺术家",
+  "Artists.reset": "重置筛选",
+  "Artists.songs": "共参与 {count} 首作品",
+  "Artist.former_hoyomix_member": "前 HOYO-MiX 成员",
+  "Artists.sort": "排序",
+  "Artists.by_name": "按名称",
+  "Artists.by_song_count": "按参与作品数量"
 }

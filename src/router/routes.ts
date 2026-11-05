@@ -8,6 +8,7 @@ declare module 'vue-router' {
 }
 
 const routes: RouteRecordRaw[] = [
+  { path: '/artists', name: 'Artists', meta: { showScrollToTop: true }, component: () => import('@/views/Artists.vue') },
   { path: '/tags', name: 'SongTags', meta: { showScrollToTop: true }, component: () => import('@/views/SongTags.vue') },
   { path: '/tags/:code', name: 'SongTagDetail', meta: { showScrollToTop: true }, component: () => import('@/views/SongTagDetail.vue') },
   {

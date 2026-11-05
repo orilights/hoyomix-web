@@ -53,6 +53,14 @@ export const mediaSourceRegionOptions: MediaSourceRegionOption[] = [
   }, badgeClass: 'bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400' },
 ]
 
+export const artistPriorityGroups = [
+  { label: '作曲', roles: ['作曲'] },
+  { label: '编曲', roles: ['编曲'] },
+  { label: '作词', roles: ['作词'] },
+  { label: '演唱 / 人声', roles: ['歌手', '演唱', '人声', '主唱'] },
+  { label: '制作人', roles: ['制作人'] },
+]
+
 export const artistTypeSort = [
   '作曲',
   '编曲',
@@ -60,11 +68,6 @@ export const artistTypeSort = [
   '歌手',
   '演唱',
   '人声',
-]
-
-export const artistTypeSortLast = [
-  '出品',
-  '制作人',
 ]
 
 export const lyricTimeRegex = /\[\d{2}:\d{2}\.\d{2,3}(?:\.\d{3})?\]/

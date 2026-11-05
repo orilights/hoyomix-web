@@ -16,6 +16,7 @@ import {
   getAlbumsByTagApi,
   getArtistInfoApi,
   getArtistNameByAliasApi,
+  getArtistsApi,
   getContributionRankingApi,
   getContributionsApi,
   getCreditInfoApi,
@@ -185,6 +186,13 @@ export function useSongInfoQuery(songId: Ref<number | null>) {
     queryKey: computed(() => ['songInfo', songId.value]),
     queryFn: () => getSongInfoApi(songId.value!),
     enabled: computed(() => !!songId.value),
+  })
+}
+
+export function useArtistOverviewQuery() {
+  return useQuery({
+    queryKey: ['artists'],
+    queryFn: getArtistsApi,
   })
 }
 

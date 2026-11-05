@@ -140,6 +140,7 @@ declare module 'vue' {
     LucideTrophy: typeof import('@lucide/vue')['Trophy']
     LucideUser: typeof import('@lucide/vue')['User']
     LucideUserRound: typeof import('@lucide/vue')['UserRound']
+    LucideUsersRound: typeof import('@lucide/vue')['UsersRound']
     LucideVideo: typeof import('@lucide/vue')['Video']
     LucideVolume2: typeof import('@lucide/vue')['Volume2']
     LucideVolumeX: typeof import('@lucide/vue')['VolumeX']
