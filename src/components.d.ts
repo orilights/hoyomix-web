@@ -90,6 +90,7 @@ declare module 'vue' {
     LucideListMusic: typeof import('@lucide/vue')['ListMusic']
     LucideListPlus: typeof import('@lucide/vue')['ListPlus']
     LucideListTree: typeof import('@lucide/vue')['ListTree']
+    LucideListVideo: typeof import('@lucide/vue')['ListVideo']
     LucideListX: typeof import('@lucide/vue')['ListX']
     LucideLoader2: typeof import('@lucide/vue')['Loader2']
     LucideLoaderCircle: typeof import('@lucide/vue')['LoaderCircle']

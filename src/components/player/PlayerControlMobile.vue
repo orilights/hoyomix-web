@@ -45,7 +45,7 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
         <LucideScrollText class="size-5" />
       </button>
       <button type="button" class="control-button" :aria-label="t('PlayerBar.queue')" :aria-expanded="showPlaylist" @click="showPlaylist = !showPlaylist">
-        <LucideListMusic class="size-5" />
+        <LucideListVideo class="size-5" />
       </button>
       <slot name="more" />
     </div>
