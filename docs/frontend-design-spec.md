@@ -152,7 +152,7 @@ notice store 将状态分为 `readKeys`（已读）和 `promptedKeys`（重要�
 
 ### 8.5 播放器 UI（`components/player/`）
 
-`PlayerBar`（常驻播放条，移动端滑动切歌）、`PlayerControl`/`PlayerControlMobile`、`PlayerPlayBtn`、`PlayerProgress`（进度/缓冲，支持拖拽）、`PlayerBarSongInfo`、`PlayerFullscreen`（全屏大屏 + 动态渐变背景 + 下滑收起）、`PlayerLyrics`、`PlayerSpectrum`、`PlayerPlaylist`（vuedraggable 排序/删除/清空）。
+`PlayerBar`（常驻播放条，移动端横滑切歌、上滑超过 80px 展开全屏）、`PlayerControl`/`PlayerControlMobile`、`PlayerPlayBtn`、`PlayerProgress`（进度/缓冲，支持拖拽）、`PlayerBarSongInfo`、`PlayerFullscreen`（全屏大屏 + 动态渐变背景 + 下滑收起）、`PlayerLyrics`、`PlayerSpectrum`、`PlayerPlaylist`（vuedraggable 排序/删除/清空）。
 
 移动端播放条的整个歌曲信息区域（封面、歌名、专辑／当前歌词及区域内空白）均可点击打开全屏播放器，支持键盘激活；滑动切歌期间禁用点击入口，右侧操作按钮独立。
 

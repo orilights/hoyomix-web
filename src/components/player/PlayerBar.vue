@@ -80,10 +80,9 @@ const qualityOptions = computed(() =>
   })),
 )
 
-const swipeStartX = ref(0)
-const swipeStartY = ref(0)
+let swipeStart: Touch | undefined
+let swipeAxis: 'x' | 'y' | undefined
 const swipeOffset = ref(0)
-const isHorizontalSwipe = ref(false)
 const swipeTransition = ref(false)
 const swipeActive = ref(false)
 
@@ -112,45 +111,64 @@ const nextSong = computed(() => {
 function onBarTouchStart(e: TouchEvent) {
   if (!isMobileViewport.value)
     return
-  swipeStartX.value = e.touches[0].clientX
-  swipeStartY.value = e.touches[0].clientY
-  isHorizontalSwipe.value = false
-  swipeTransition.value = false
+  if (e.touches.length !== 1) {
+    onBarTouchCancel()
+    return
+  }
+  if (swipeTransition.value || swipeActive.value)
+    return
+  swipeStart = e.touches[0]
+  swipeAxis = undefined
 }
 
 function onBarTouchMove(e: TouchEvent) {
-  if (!isMobileViewport.value)
+  if (!swipeStart)
     return
-  const deltaX = e.touches[0].clientX - swipeStartX.value
-  const deltaY = e.touches[0].clientY - swipeStartY.value
-  if (!isHorizontalSwipe.value && Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8)
-    return
-  if (!isHorizontalSwipe.value) {
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      isHorizontalSwipe.value = true
-      swipeActive.value = true
-    }
-    else {
+  const deltaX = e.touches[0].clientX - swipeStart.clientX
+  const deltaY = e.touches[0].clientY - swipeStart.clientY
+  if (!swipeAxis) {
+    if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 8)
       return
-    }
+    swipeAxis = Math.abs(deltaX) > Math.abs(deltaY) ? 'x' : 'y'
   }
   e.preventDefault()
-  swipeOffset.value = deltaX
+  if (swipeAxis === 'x') {
+    swipeActive.value = true
+    swipeOffset.value = deltaX
+  }
 }
 
-function onBarTouchEnd() {
-  if (!isHorizontalSwipe.value || Math.abs(swipeOffset.value) < 60 || (swipeOffset.value > 0 && playMode.value === 'shuffle' && !player.hasPrev)) {
-    if (swipeOffset.value !== 0) {
-      swipeTransition.value = true
-      swipeOffset.value = 0
-      setTimeout(() => {
-        swipeTransition.value = false
-        swipeActive.value = false
-      }, 300)
-    }
-    else {
-      swipeActive.value = false
-    }
+function resetBarSwipe() {
+  if (swipeOffset.value === 0) {
+    swipeActive.value = false
+    return
+  }
+  swipeTransition.value = true
+  swipeOffset.value = 0
+  setTimeout(() => {
+    swipeTransition.value = false
+    swipeActive.value = false
+  }, 300)
+}
+
+function onBarTouchCancel() {
+  if (!swipeStart)
+    return
+  swipeStart = undefined
+  resetBarSwipe()
+}
+
+function onBarTouchEnd(e: TouchEvent) {
+  if (!swipeStart)
+    return
+  const deltaY = e.changedTouches[0].clientY - swipeStart.clientY
+  swipeStart = undefined
+  if (swipeAxis === 'y' && deltaY < -80 && isMobileViewport.value && currentSong.value) {
+    player.setFullscreen(true)
+    return
+  }
+  if (swipeAxis !== 'x' || Math.abs(swipeOffset.value) < 60 || (swipeOffset.value > 0 && playMode.value === 'shuffle' && !player.hasPrev)) {
+    resetBarSwipe()
     return
   }
   const direction = swipeOffset.value < 0 ? 'next' : 'prev'
@@ -163,7 +181,6 @@ function onBarTouchEnd() {
       player.playPrev()
     swipeTransition.value = false
     swipeOffset.value = 0
-    isHorizontalSwipe.value = false
     setTimeout(() => {
       swipeActive.value = false
     }, 50)
@@ -192,10 +209,11 @@ onMounted(() => {
       >
         <div
           class="h-[72px] relative"
-          :class="{ 'overflow-hidden': swipeActive }"
+          :class="{ 'overflow-hidden': swipeActive, 'touch-none': isMobileViewport }"
           @touchstart="onBarTouchStart"
           @touchmove="onBarTouchMove"
           @touchend="onBarTouchEnd"
+          @touchcancel="onBarTouchCancel"
         >
           <div
             v-if="isMobileViewport && swipeActive"
