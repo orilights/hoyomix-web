@@ -39,29 +39,14 @@ const { floatingStyles } = useFloating(reference, floating, {
   whileElementsMounted: autoUpdate,
 })
 
-function onTouchStart() {
-  show.value = !show.value
-  if (show.value) {
-    document.addEventListener('touchstart', hideTooltip, { once: true, capture: true })
-  }
-}
-
-function hideTooltip() {
-  show.value = false
-}
-
-function onMouseEnter() {
-  show.value = true
-}
-
-function onMouseLeave() {
-  show.value = false
+function onPointerEnter(event: PointerEvent) {
+  show.value = event.pointerType === 'mouse'
 }
 </script>
 
 <template>
   <div ref="reference" class="relative" v-bind="$attrs">
-    <div @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @touchstart="onTouchStart">
+    <div @pointerenter="onPointerEnter" @pointerleave="show = false">
       <slot />
     </div>
   </div>
