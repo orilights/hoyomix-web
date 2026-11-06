@@ -71,7 +71,9 @@ const isHovering = ref(false)
 // 用户手动滚动检测
 const userScrolling = ref(false)
 let userScrollTimer: ReturnType<typeof setTimeout> | null = null
+let scrollFallbackTimer: ReturnType<typeof setTimeout> | undefined
 const SCROLL_PAUSE_DURATION = 3000
+const SCROLL_FALLBACK_DURATION = 5000
 
 function onUserScroll() {
   userScrolling.value = true
@@ -80,6 +82,8 @@ function onUserScroll() {
   userScrollTimer = setTimeout(() => {
     userScrolling.value = false
   }, SCROLL_PAUSE_DURATION)
+  clearTimeout(scrollFallbackTimer)
+  scrollFallbackTimer = setTimeout(scrollToCurrentLine, SCROLL_FALLBACK_DURATION)
 }
 
 function onWheel() {
@@ -125,6 +129,7 @@ function scrollToCurrentLine(smooth = true) {
   if (currentLineIndex.value >= 0 && lyricContainer.value) {
     const currentEl = lyricLines.value?.children[currentLineIndex.value] as HTMLElement | undefined
     if (currentEl && parsedLyrics.value[currentLineIndex.value]?.text) {
+      clearTimeout(scrollFallbackTimer)
       const containerHeight = lyricContainer.value.clientHeight
       const targetTop = currentEl.offsetTop - containerHeight / 2 + currentEl.clientHeight / 2
       lyricContainer.value.scrollTo({
@@ -167,6 +172,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (userScrollTimer)
     clearTimeout(userScrollTimer)
+  clearTimeout(scrollFallbackTimer)
 })
 </script>
 
