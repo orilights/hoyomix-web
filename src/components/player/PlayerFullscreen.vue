@@ -229,20 +229,6 @@ const compactLyricLine = computed(() => {
 
 let immersiveTimer: ReturnType<typeof setTimeout> | null = null
 const IMMERSIVE_HIDE_DELAY = 3000
-let suppressActivityClick = false
-
-function onFullscreenPointerDown() {
-  suppressActivityClick = isMobileViewport.value && isImmersive.value && !immersiveControlsVisible.value
-}
-
-function onFullscreenClick(event: MouseEvent) {
-  if (!suppressActivityClick)
-    return
-  suppressActivityClick = false
-  event.preventDefault()
-  event.stopPropagation()
-}
-
 function showImmersiveControls() {
   player.setImmersiveControlsVisible(true)
   if (immersiveTimer)
@@ -320,14 +306,11 @@ function onHeaderTouchStart(e: TouchEvent) {
 }
 
 function onHeaderTouchMove(e: TouchEvent) {
-  const delta = e.touches[0].clientY - touchStartY.value
-  if (delta > 0) {
-    dragOffset.value = delta
-  }
+  dragOffset.value = Math.max(0, e.touches[0].clientY - touchStartY.value)
 }
 
-function onHeaderTouchEnd() {
-  if (dragOffset.value > 80) {
+function onHeaderTouchEnd(cancelled = false) {
+  if (!cancelled && dragOffset.value > 80) {
     transformPosition.value = `${dragOffset.value}px`
     dragOffset.value = 0
     nextTick(() => {
@@ -358,8 +341,6 @@ function onHeaderTouchEnd() {
       }"
       @mousemove="onImmersiveActivity"
       @touchstart="onImmersiveActivity"
-      @pointerdown.capture="onFullscreenPointerDown"
-      @click.capture="onFullscreenClick"
     >
       <div class="absolute inset-0 bg-gray-900">
         <div
@@ -509,7 +490,7 @@ function onHeaderTouchEnd() {
           :class="{ 'opacity-0': isImmersive && !immersiveControlsVisible }"
           @touchstart="onHeaderTouchStart"
           @touchmove.prevent="onHeaderTouchMove"
-          @touchend="onHeaderTouchEnd"
+          @touchend="onHeaderTouchEnd()"
         >
           <div ref="headerStartRef" class="flex items-center gap-1 justify-self-start">
             <Tooltip

@@ -71,8 +71,6 @@ function onHeaderPointerDown(event: PointerEvent) {
     cancelHeaderDrag()
     return
   }
-  if ((event.target as Element).closest('button, a, input, [role="button"]'))
-    return
   const panel = queuePanel.value
   if (!panel)
     return
@@ -85,7 +83,6 @@ function onHeaderPointerDown(event: PointerEvent) {
   headerPointerId = event.pointerId
   headerPointerTarget = event.currentTarget as HTMLElement
   dragDirection = 'pending'
-  headerPointerTarget.setPointerCapture(event.pointerId)
 }
 
 function onHeaderPointerMove(event: PointerEvent) {
@@ -101,6 +98,8 @@ function onHeaderPointerMove(event: PointerEvent) {
       return
     }
     dragDirection = 'vertical'
+    // Retarget the click only after a drag, so taps still reach the original button.
+    headerPointerTarget?.setPointerCapture(event.pointerId)
   }
   setDragOffset(Math.max(0, dragStartOffset + deltaY))
 }
@@ -196,7 +195,7 @@ function clearAll() {
           @pointermove="onHeaderPointerMove"
           @pointerup="onHeaderPointerUp"
           @pointercancel="onHeaderPointerCancel"
-          @lostpointercapture="onHeaderPointerCancel"
+          @lostpointercapture.self="onHeaderPointerCancel"
         >
           <div class="text-white font-bold">
             {{ t('PlayerBar.queue') }}<span class="text-white/50 text-sm font-normal ml-2">{{ t('Random.song', { p0: displayedPlaylist.length }, Number(displayedPlaylist.length)) }}</span>

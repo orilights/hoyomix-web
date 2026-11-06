@@ -4,6 +4,7 @@ import { usePlayerStore } from '@/store/player'
 import { formatDuration } from '@/utils'
 import { getSleepTimerLabel } from '@/utils/sleep-timer'
 
+defineProps<{ controlsHidden: boolean }>()
 defineEmits<{ sleep: [] }>()
 const player = usePlayerStore()
 const { currentTime, duration, bufferedEnd, mobileFullscreenLayout, isPlaying, isLoading, playMode, showPlaylist } = storeToRefs(player)
@@ -14,9 +15,11 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
 
 <template>
   <div>
-    <PlayerProgress :current-time="currentTime" :duration="duration" :buffered-end="bufferedEnd" touch-friendly @seek="player.seek" />
-    <div class="flex justify-between text-xs text-white/60 tabular-nums -mt-1 pointer-events-none">
-      <span>{{ formatDuration(Math.floor(currentTime)) }}</span><span>{{ formatDuration(Math.floor(duration)) }}</span>
+    <div class="mobile-progress transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
+      <PlayerProgress :current-time="currentTime" :duration="duration" :buffered-end="bufferedEnd" touch-friendly @seek="player.seek" />
+      <div class="flex justify-between text-xs text-white/60 tabular-nums -mt-1 pointer-events-none">
+        <span>{{ formatDuration(Math.floor(currentTime)) }}</span><span>{{ formatDuration(Math.floor(duration)) }}</span>
+      </div>
     </div>
     <div class="mobile-transport flex items-center justify-center gap-7">
       <button type="button" class="control-button" :aria-label="t('MusicActions.previous_song')" :disabled="playMode === 'shuffle' && !player.hasPrev" @click="player.playPrev()">
@@ -31,7 +34,7 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
         <LucideSkipForward class="size-6" fill="currentColor" />
       </button>
     </div>
-    <div class="mobile-tools flex items-center justify-between gap-1">
+    <div class="mobile-tools flex items-center justify-between gap-1 transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
       <button type="button" class="control-button" :aria-label="modeLabel" :title="modeLabel" @click="player.togglePlayMode()">
         <LucideListEnd v-if="playMode === 'sequential'" class="size-5" /><LucideRepeat v-else-if="playMode === 'loop'" class="size-5" /><LucideRepeat1 v-else-if="playMode === 'single'" class="size-5" /><LucideShuffle v-else class="size-5" />
       </button>
@@ -75,6 +78,7 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
 }
 .mobile-transport {
   padding-block: 6px;
+  transform: translateY(-10px);
 }
 .mobile-tools {
   padding-top: 0;
@@ -85,7 +89,7 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .control-button {
+  .control-button, .mobile-progress, .mobile-tools {
     transition: none;
   }
   .control-button:active {

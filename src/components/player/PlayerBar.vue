@@ -321,7 +321,7 @@ onMounted(() => {
                     :class="{ 'text-blue-400': showPlaylist, 'text-white/60 hover:text-white': !showPlaylist }"
                     @click="showPlaylist = !showPlaylist"
                   >
-                    <LucideList class="size-4" />
+                    <LucideListMusic class="size-4" />
                   </AppButton>
                 </Tooltip>
               </div>
