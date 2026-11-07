@@ -275,8 +275,8 @@ onUnmounted(() => {
           </div>
         </div>
         <div v-if="wordMode" class="px-4 pt-6 pb-2 text-sm text-white/40 break-words">
-          <p>
-            {{ t('Settings.word_lyrics_source') }}
+          <p class="flex">
+            <span class="shrink-0">{{ t('Settings.word_lyrics_source') }}</span>
             <a href="https://github.com/amll-dev/amll-ttml-db" target="_blank" rel="noopener noreferrer" class="hover:text-white/70 hover:underline">AMLL TTML DataBase</a>
           </p>
           <p v-if="wordLyricAuthors?.length" class="mt-1">
