@@ -274,8 +274,14 @@ onUnmounted(() => {
             {{ line.translation }}
           </div>
         </div>
-        <div v-if="wordMode && wordLyricAuthors?.length" class="px-4 pt-6 pb-2 text-sm text-white/40 break-words">
-          {{ t('PlayerLyrics.creators', { p0: wordLyricAuthors.join('、') }) }}
+        <div v-if="wordMode" class="px-4 pt-6 pb-2 text-sm text-white/40 break-words">
+          <p>
+            {{ t('Settings.word_lyrics_source') }}
+            <a href="https://github.com/amll-dev/amll-ttml-db" target="_blank" rel="noopener noreferrer" class="hover:text-white/70 hover:underline">AMLL TTML DataBase</a>
+          </p>
+          <p v-if="wordLyricAuthors?.length" class="mt-1">
+            {{ t('PlayerLyrics.creators', { p0: wordLyricAuthors.join('、') }) }}
+          </p>
         </div>
       </div>
     </div>

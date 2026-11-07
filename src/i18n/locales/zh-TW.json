@@ -918,5 +918,5 @@
   "Settings.use_word_lyrics": "使用逐字歌詞",
   "Settings.word_lyrics_preference": "存在時優先使用逐字歌詞",
   "Settings.word_lyrics_source": "逐字歌詞來源：",
-  "PlayerLyrics.creators": "逐字歌詞製作：{p0}"
+  "PlayerLyrics.creators": "逐字歌詞作者：{p0}"
 }

@@ -918,5 +918,5 @@
   "Settings.use_word_lyrics": "Use word-synced lyrics",
   "Settings.word_lyrics_preference": "Prefer word-synced lyrics when available",
   "Settings.word_lyrics_source": "Word-synced lyrics source:",
-  "PlayerLyrics.creators": "Word-synced lyrics by: {p0}"
+  "PlayerLyrics.creators": "Word-synced lyrics authors: {p0}"
 }
