@@ -359,6 +359,7 @@ function onHeaderTouchEnd(cancelled = false) {
       <PlayerFullscreenMobile
         v-if="isMobileViewport"
         :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :word-lyric-authors="wordLyricAuthors"
+        @click="onImmersiveActivity"
         @close="close" @to-song="toSong" @to-album="toAlbum" @sleep="showSleepTimer = true"
         @header-touch-start="onHeaderTouchStart" @header-touch-move="onHeaderTouchMove" @header-touch-end="onHeaderTouchEnd"
       >

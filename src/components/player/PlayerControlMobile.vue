@@ -21,7 +21,8 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
         <span>{{ formatDuration(Math.floor(currentTime)) }}</span><span>{{ formatDuration(Math.floor(duration)) }}</span>
       </div>
     </div>
-    <div class="mobile-transport flex items-center justify-center gap-7">
+    <!-- 点击时再唤醒界面，避免触摸阶段显示控件导致首次点击被浏览器吞掉。 -->
+    <div class="mobile-transport flex items-center justify-center gap-7" @touchstart.stop @mousemove.stop>
       <button type="button" class="control-button" :aria-label="t('MusicActions.previous_song')" :disabled="playMode === 'shuffle' && !player.hasPrev" @click="player.playPrev()">
         <LucideSkipBack class="size-6" fill="currentColor" />
       </button>
