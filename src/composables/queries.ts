@@ -40,7 +40,7 @@ import {
   removeAlbumFavoriteApi,
   updatePlaylistSongsApi,
 } from '@/api/music'
-import { getSongLyricLanguagesApi, getSongTagApi, getSongTagsApi, getSongTagSongsApi } from '@/api/song-tags'
+import { getAllSongTagSongsApi, getSongLyricLanguagesApi, getSongTagApi, getSongTagsApi, getSongTagSongsApi } from '@/api/song-tags'
 import { getUserNameAvailabilityApi } from '@/api/user'
 import { LocalizedError } from '@/i18n/error'
 import { useAuthStore } from '@/store/auth'
@@ -432,4 +432,9 @@ export function useSongTagQuery(code: Ref<string>) {
 }
 export function useSongTagSongsQuery(code: Ref<string>, params: Ref<SongTagSongsParams>) {
   return useQuery({ queryKey: computed(() => ['songTagSongs', code.value, params.value]), queryFn: () => getSongTagSongsApi(code.value, params.value) })
+}
+export function useSongTagPlaybackQuery() {
+  return useMutation({
+    mutationFn: ({ code, ...params }: Omit<SongTagSongsParams, 'page'> & { code: string }) => getAllSongTagSongsApi(code, params),
+  })
 }

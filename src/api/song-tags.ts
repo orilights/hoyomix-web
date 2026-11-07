@@ -20,6 +20,16 @@ export function getSongTagSongsApi(code: string, params: SongTagSongsParams) {
     query.set('productId', String(params.productId))
   return fetchJson<SongTagSongsResponse>(`${apiBase}/song-tags/${encodeURIComponent(code)}/songs?${query}`)
 }
+export async function getAllSongTagSongsApi(code: string, params: Omit<SongTagSongsParams, 'page'>) {
+  const first = await getSongTagSongsApi(code, { ...params, page: 1 })
+  const songs = [...first.items]
+  const pages = Math.ceil(first.total / first.limit)
+  for (let page = 2; page <= pages; page++) {
+    const result = await getSongTagSongsApi(code, { ...params, page })
+    songs.push(...result.items)
+  }
+  return songs
+}
 export function submitSongTagEditApi(songId: number, songTags: SongTagPatch) {
   return fetchJsonMutation<EditRequestResponse>(`${apiBase}/edit-requests`, 'POST', { resourceType: 'song', resourceId: songId, changes: { songTags } })
 }
