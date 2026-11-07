@@ -3,8 +3,10 @@ import type { EditRequestStatus } from '@/types/edit-request'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
+import { useMainStore } from '@/store/main'
 
 const auth = useAuthStore()
+const store = useMainStore()
 const route = useRoute()
 const router = useRouter()
 usePageSeo({ title: () => t('EditRequests.my_edit_requests'), path: '/edit-requests', noindex: true })
@@ -38,6 +40,7 @@ function setStatus(value: string) {
 function setPage(value: number) {
   void router.replace({ query: { ...route.query, page: value > 1 ? String(value) : undefined } })
 }
+onMounted(() => store.setBackground())
 </script>
 
 <template>

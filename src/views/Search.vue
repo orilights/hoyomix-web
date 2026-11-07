@@ -4,10 +4,12 @@ import { useSearchPageQuery } from '@/composables/queries'
 import { scrollPageToElement } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { t } from '@/i18n'
+import { useMainStore } from '@/store/main'
 import { parseSearchType, searchQuery, searchResultRoute, searchTypeOptions } from '@/utils/search'
 
 const route = useRoute()
 const router = useRouter()
+const store = useMainStore()
 const queryKeyword = computed(() => typeof route.query.q === 'string' ? route.query.q.trim() : '')
 const searchType = computed(() => parseSearchType(route.query.type))
 const hasCriteria = computed(() => !!queryKeyword.value)
@@ -114,6 +116,7 @@ function onInputKeydown(event: KeyboardEvent) {
 }
 
 watch(results, () => activeIndex.value = -1)
+onMounted(() => store.setBackground())
 onBeforeUnmount(() => clearTimeout(inputTimer))
 </script>
 
