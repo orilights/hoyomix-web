@@ -36,6 +36,7 @@ import {
   getSearchApi,
   getSearchPageApi,
   getSongInfoApi,
+  getWordLyricsApi,
   removeAlbumFavoriteApi,
   updatePlaylistSongsApi,
 } from '@/api/music'
@@ -233,6 +234,16 @@ export function useLyricsQuery(
     queryFn: () => getLyricsApi(provider.value!, songId.value!),
     enabled: computed(() => !!provider.value && !!songId.value),
     staleTime: 1000 * 60 * 30,
+  })
+}
+
+export function useWordLyricsQuery(songId: Ref<number | null>) {
+  return useQuery({
+    queryKey: computed(() => ['wordLyrics', songId.value]),
+    queryFn: () => getWordLyricsApi(songId.value!),
+    enabled: computed(() => songId.value !== null),
+    staleTime: 1000 * 60 * 30,
+    retry: false,
   })
 }
 

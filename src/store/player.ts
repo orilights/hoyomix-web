@@ -32,6 +32,7 @@ export const usePlayerStore = defineStore('player', {
     lyricsOffset: 0,
     lyricsFontSize: 16,
     lyricsSource: 'ncm' as LyricsSource,
+    useWordLyrics: true,
     mobileFullscreenLayout: 'cover' as MobileFullscreenLayout,
     fullscreenCoverShape: 'square' as FullscreenCoverShape,
     fullscreenCoverRotation: true,
@@ -51,6 +52,7 @@ export const usePlayerStore = defineStore('player', {
     isImmersive: false,
     immersiveControlsVisible: true,
     lyricData: '',
+    lyricRequestRevision: 0,
     lyricTranslation: '',
     showPlaylist: false,
     consecutiveErrorCount: 0,
@@ -673,6 +675,7 @@ export const usePlayerStore = defineStore('player', {
     },
 
     fetchLyric() {
+      const revision = ++this.lyricRequestRevision
       const song = this.currentSong
       if (!song) {
         this.lyricData = ''
@@ -690,12 +693,14 @@ export const usePlayerStore = defineStore('player', {
       getLyricsApi(provider, song.songId)
         .then((data) => {
           // 确认仍然是同一首歌
-          if (this.currentSong?.songId === song.songId) {
+          if (this.lyricRequestRevision === revision && this.currentSong?.songId === song.songId) {
             this.lyricData = data.content
             this.lyricTranslation = data.translation ?? ''
           }
         })
         .catch(() => {
+          if (this.lyricRequestRevision !== revision || this.currentSong?.songId !== song.songId)
+            return
           this.lyricData = ''
           this.lyricTranslation = ''
         })
@@ -721,6 +726,8 @@ export const usePlayerStore = defineStore('player', {
         store.fullscreenCoverBorder = false
       if (typeof store.immersiveModeEnabled !== 'boolean')
         store.immersiveModeEnabled = true
+      if (typeof store.useWordLyrics !== 'boolean')
+        store.useWordLyrics = true
       if (typeof store.showFullscreenLyrics !== 'boolean')
         store.showFullscreenLyrics = true
     },
@@ -741,6 +748,7 @@ export const usePlayerStore = defineStore('player', {
       'lyricsOffset',
       'lyricsFontSize',
       'lyricsSource',
+      'useWordLyrics',
       'mobileFullscreenLayout',
       'fullscreenCoverShape',
       'fullscreenCoverRotation',

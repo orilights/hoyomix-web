@@ -213,7 +213,7 @@ const {
   toggle: togglePageFullscreen,
 } = useFullscreen()
 
-const { parsedLyrics, hasTimestamp, currentLineIndex } = usePlayerLyrics({
+const { parsedLyrics, hasTimestamp, currentLineIndex, hasTranslation, wordLyricAuthors } = usePlayerLyrics({
   lyricData,
   lyricTranslation,
   currentTime,
@@ -358,7 +358,7 @@ function onHeaderTouchEnd(cancelled = false) {
 
       <PlayerFullscreenMobile
         v-if="isMobileViewport"
-        :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex"
+        :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :word-lyric-authors="wordLyricAuthors"
         @close="close" @to-song="toSong" @to-album="toAlbum" @sleep="showSleepTimer = true"
         @header-touch-start="onHeaderTouchStart" @header-touch-move="onHeaderTouchMove" @header-touch-end="onHeaderTouchEnd"
       >
@@ -459,13 +459,13 @@ function onHeaderTouchEnd(cancelled = false) {
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
-                  :aria-checked="showTranslation" :disabled="!lyricTranslation"
-                  :title="!lyricTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
+                  :aria-checked="showTranslation" :disabled="!hasTranslation"
+                  :title="!hasTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
                   @click="player.toggleTranslation()"
                 >
                   <LucideLanguages class="size-4 shrink-0" />
                   <span class="flex-1">{{ t('PlayerFullscreen.translated_lyrics') }}</span>
-                  <LucideCheck v-if="showTranslation" class="size-4" :class="lyricTranslation ? 'text-blue-400' : 'text-white/40'" />
+                  <LucideCheck v-if="showTranslation" class="size-4" :class="hasTranslation ? 'text-blue-400' : 'text-white/40'" />
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
@@ -583,13 +583,13 @@ function onHeaderTouchEnd(cancelled = false) {
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
-                  :aria-checked="showTranslation" :disabled="!lyricTranslation"
-                  :title="!lyricTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
+                  :aria-checked="showTranslation" :disabled="!hasTranslation"
+                  :title="!hasTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
                   @click="player.toggleTranslation()"
                 >
                   <LucideLanguages class="size-4 shrink-0" />
                   <span class="flex-1">{{ t('PlayerFullscreen.translated_lyrics') }}</span>
-                  <LucideCheck v-if="showTranslation" class="size-4" :class="lyricTranslation ? 'text-blue-400' : 'text-white/40'" />
+                  <LucideCheck v-if="showTranslation" class="size-4" :class="hasTranslation ? 'text-blue-400' : 'text-white/40'" />
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
@@ -632,6 +632,7 @@ function onHeaderTouchEnd(cancelled = false) {
 
           <div v-if="showFullscreenLyrics" class="flex-1 h-full min-w-0">
             <PlayerLyrics
+              :word-lyric-authors="wordLyricAuthors"
               :parsed-lyrics="parsedLyrics"
               :has-timestamp="hasTimestamp"
               :current-line-index="currentLineIndex"

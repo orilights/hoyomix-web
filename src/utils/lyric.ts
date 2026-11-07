@@ -1,4 +1,5 @@
 import type { PlatformInfoMap } from '@/types/core'
+import type { WordLyricLine } from '@/types/word-lyrics'
 
 export function selectLyricProvider(platforms: PlatformInfoMap, preferred: 'ncm' | 'qq' = 'ncm'): 'ncm' | 'qq' | null {
   if (preferred === 'ncm') {
@@ -20,6 +21,7 @@ export interface LyricLine {
   time: number | null
   text: string
   translation?: string
+  wordLine?: WordLyricLine
 }
 
 const lrcLineRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g

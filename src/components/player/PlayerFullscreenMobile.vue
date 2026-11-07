@@ -5,7 +5,7 @@ import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import PlayerLyrics from './PlayerLyrics.vue'
 
-defineProps<{ parsedLyrics: LyricLine[], hasTimestamp: boolean, currentLineIndex: number }>()
+defineProps<{ parsedLyrics: LyricLine[], hasTimestamp: boolean, currentLineIndex: number, wordLyricAuthors: string[] }>()
 defineEmits<{
   close: []
   toSong: []
@@ -88,7 +88,7 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
           <slot name="lyric" />
         </div>
       </div>
-      <PlayerLyrics v-else :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" controls-on-scroll-only class="h-full" @seek="player.seek" />
+      <PlayerLyrics v-else :word-lyric-authors="wordLyricAuthors" :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" controls-on-scroll-only class="h-full" @seek="player.seek" />
     </div>
     <div class="mobile-controls">
       <PlayerControlMobile :controls-hidden="controlsHidden" @sleep="$emit('sleep')">

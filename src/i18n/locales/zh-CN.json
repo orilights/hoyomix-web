@@ -913,5 +913,10 @@
   "Artist.former_hoyomix_member": "前 HOYO-MiX 成员",
   "Artists.sort": "排序",
   "Artists.by_name": "按名称",
-  "Artists.by_song_count": "按参与作品数量"
+  "Artists.by_song_count": "按参与作品数量",
+  "Settings.lyrics": "歌词",
+  "Settings.use_word_lyrics": "使用逐字歌词",
+  "Settings.word_lyrics_preference": "存在时优先使用逐字歌词",
+  "Settings.word_lyrics_source": "逐字歌词来源：",
+  "PlayerLyrics.creators": "逐字歌词制作：{p0}"
 }

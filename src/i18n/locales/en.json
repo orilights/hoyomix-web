@@ -913,5 +913,10 @@
   "Artist.former_hoyomix_member": "Former HOYO-MiX member",
   "Artists.sort": "Sort",
   "Artists.by_name": "Name",
-  "Artists.by_song_count": "Songs contributed"
+  "Artists.by_song_count": "Songs contributed",
+  "Settings.lyrics": "Lyrics",
+  "Settings.use_word_lyrics": "Use word-synced lyrics",
+  "Settings.word_lyrics_preference": "Prefer word-synced lyrics when available",
+  "Settings.word_lyrics_source": "Word-synced lyrics source:",
+  "PlayerLyrics.creators": "Word-synced lyrics by: {p0}"
 }
