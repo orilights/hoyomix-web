@@ -42,7 +42,7 @@ async function playAll() {
     const songs = await playbackQuery.mutateAsync({ code: code.value, productId: productId.value, sort: sort.value })
     if (route.fullPath !== path || !songs.length)
       return
-    await player.replacePlaylist(songs, 0)
+    await player.replacePlaylist(songs)
     toast.success(t('AlbumList.queue_replaced'))
   }
   catch (error) {

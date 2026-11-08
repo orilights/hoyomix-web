@@ -105,7 +105,7 @@ async function playArtistSongsFromAlbum(albumId: number) {
       return
     }
     const playlist = filteredSongs.map(song => buildPlaylistItem(song, album))
-    player.replacePlaylist(playlist, 0)
+    player.replacePlaylist(playlist)
     toast.success(t('AlbumList.queue_replaced'))
   }
   catch (error) {

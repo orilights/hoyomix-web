@@ -116,7 +116,7 @@ async function generate() {
 function playAll() {
   if (!playlistItems.value.length)
     return
-  player.replacePlaylist(playlistItems.value, 0)
+  player.replacePlaylist(playlistItems.value)
   toast.success(t('AlbumList.queue_replaced'))
 }
 

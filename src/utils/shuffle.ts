@@ -20,9 +20,9 @@ function shuffle(ids: number[], avoidFirst?: number): number[] {
   return result
 }
 
-export function createShuffleState(ids: number[] = [], currentId?: number): ShuffleState {
+export function createShuffleState(ids: number[] = [], currentId?: number, avoidFirst?: number): ShuffleState {
   const knownIds = [...new Set(ids)]
-  const state = { knownIds, remaining: shuffle(knownIds), history: [], cursor: -1 }
+  const state = { knownIds, remaining: shuffle(knownIds, avoidFirst), history: [], cursor: -1 }
   if (currentId !== undefined && knownIds.includes(currentId))
     recordShuffleSong(state, currentId)
   return state

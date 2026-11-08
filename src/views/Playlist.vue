@@ -265,7 +265,7 @@ registerSongList({
 function playAll() {
   if (!localSongs.value.length)
     return
-  player.replacePlaylist(localSongs.value, 0)
+  player.replacePlaylist(localSongs.value)
   toast.success(t('AlbumList.queue_replaced'))
 }
 
@@ -292,7 +292,7 @@ const selectedSongs = computed(() =>
 function playSelected() {
   if (!selectedSongs.value.length)
     return
-  player.replacePlaylist(selectedSongs.value, 0)
+  player.replacePlaylist(selectedSongs.value)
   toast.success(t('AlbumList.queue_replaced'))
   selectedIds.value = new Set()
 }

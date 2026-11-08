@@ -395,7 +395,7 @@ export const usePlayerStore = defineStore('player', {
       await this.playSong(prevIndex, false, this.playMode === 'shuffle' ? this.shuffleState.cursor - 1 : undefined)
     },
 
-    async replacePlaylist(items: PlaylistItem[], startIndex = 0) {
+    async replacePlaylist(items: PlaylistItem[], startIndex?: number) {
       if (items.length > 0 && this.beforeSongTransition())
         return
       if (!items.length) {
@@ -403,13 +403,17 @@ export const usePlayerStore = defineStore('player', {
         return
       }
       this.playbackRequestId++
+      const avoidFirst = this.playMode === 'shuffle' && startIndex === undefined ? this.currentSong?.songId : undefined
+      this.shuffleState = createShuffleState(items.map(song => song.songId), undefined, avoidFirst)
       this.playlist = items
       this.currentIndex = -1
-      this.shuffleState = createShuffleState(items.map(song => song.songId))
       // 用户手动操作，重置连续错误计数
       this.consecutiveErrorCount = 0
       if (items.length > 0) {
-        await this.playSong(startIndex, false)
+        const index = startIndex ?? (this.playMode === 'shuffle'
+          ? items.findIndex(song => song.songId === getShuffleNextId(this.shuffleState))
+          : 0)
+        await this.playSong(index, false)
       }
     },
 
