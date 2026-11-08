@@ -6,6 +6,7 @@ export interface LyricWord {
 
 export interface WordLyricLine {
   id: string
+  lang?: string | null
   start: number
   end: number
   text: string

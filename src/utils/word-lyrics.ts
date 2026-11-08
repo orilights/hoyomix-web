@@ -57,6 +57,7 @@ export function isWordLyrics(value: unknown): value is WordLyrics {
   const mainIds = new Set<string>()
   for (const line of data.lines) {
     if (!line || typeof line.id !== 'string' || ids.has(line.id) || typeof line.text !== 'string'
+      || (line.lang !== undefined && line.lang !== null && typeof line.lang !== 'string')
       || !validTime(line.start) || !validTime(line.end) || line.end < line.start
       || (line.backgroundOf !== null && typeof line.backgroundOf !== 'string')
       || (line.agent !== null && typeof line.agent !== 'string')
@@ -77,14 +78,16 @@ export function isWordLyrics(value: unknown): value is WordLyrics {
     && data.lines.some(l => l.words.some(w => w.end > w.start))
 }
 
-export function selectWordTranslation(translations: { lang: string, text: string }[], locale: string): string | undefined {
+export function selectWordTranslation(translations: { lang: string, text: string }[], locale: string, sourceLanguage?: string | null): string | undefined {
+  const language = (tag: string) => tag.trim().toLowerCase().replace(/_/g, '-').split('-')[0]
+  if (sourceLanguage && language(sourceLanguage) === language(locale))
+    return undefined
   translations = translations.filter(t => t.text.trim())
   const normalized = locale.toLowerCase()
   return (translations.find(t => t.lang.toLowerCase() === normalized)
     ?? translations.find(t => /^zh-(?:hans|cn|sg)(?:-|$)/i.test(t.lang.replace(/_/g, '-')))
     ?? translations.find(t => t.lang.toLowerCase().split('-')[0] === normalized.split('-')[0])
-    ?? translations.find(t => t.lang.toLowerCase().startsWith('zh'))
-    ?? translations[0])?.text
+    ?? translations.find(t => t.lang.toLowerCase().startsWith('zh')))?.text
 }
 
 export function wordProgress(word: LyricWord, time: number, discrete: boolean): number {

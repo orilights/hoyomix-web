@@ -27,7 +27,7 @@ export function usePlayerLyrics(options: UsePlayerLyricsOptions) {
     ? wordLyrics.value.lines.map(line => ({
         time: line.start / 1000,
         text: line.text,
-        translation: selectWordTranslation(line.translations, i18n.global.locale.value),
+        translation: selectWordTranslation(line.translations, i18n.global.locale.value, line.lang),
         wordLine: line,
       }))
     : mergeLyrics(toValue(options.lyricData), toValue(options.lyricTranslation)))
