@@ -79,7 +79,7 @@ const displayDate = computed({
 function playAll() {
   if (!canPlay.value)
     return
-  player.replacePlaylist(songs.value, 0)
+  player.replacePlaylist(songs.value)
   toast.success(t('AlbumList.queue_replaced'))
 }
 

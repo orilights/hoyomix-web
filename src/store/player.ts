@@ -32,6 +32,7 @@ export const usePlayerStore = defineStore('player', {
     lyricsOffset: 0,
     lyricsFontSize: 16,
     lyricsSource: 'ncm' as LyricsSource,
+    useWordLyrics: true,
     mobileFullscreenLayout: 'cover' as MobileFullscreenLayout,
     fullscreenCoverShape: 'square' as FullscreenCoverShape,
     fullscreenCoverRotation: true,
@@ -51,6 +52,7 @@ export const usePlayerStore = defineStore('player', {
     isImmersive: false,
     immersiveControlsVisible: true,
     lyricData: '',
+    lyricRequestRevision: 0,
     lyricTranslation: '',
     showPlaylist: false,
     consecutiveErrorCount: 0,
@@ -393,7 +395,7 @@ export const usePlayerStore = defineStore('player', {
       await this.playSong(prevIndex, false, this.playMode === 'shuffle' ? this.shuffleState.cursor - 1 : undefined)
     },
 
-    async replacePlaylist(items: PlaylistItem[], startIndex = 0) {
+    async replacePlaylist(items: PlaylistItem[], startIndex?: number) {
       if (items.length > 0 && this.beforeSongTransition())
         return
       if (!items.length) {
@@ -401,13 +403,17 @@ export const usePlayerStore = defineStore('player', {
         return
       }
       this.playbackRequestId++
+      const avoidFirst = this.playMode === 'shuffle' && startIndex === undefined ? this.currentSong?.songId : undefined
+      this.shuffleState = createShuffleState(items.map(song => song.songId), undefined, avoidFirst)
       this.playlist = items
       this.currentIndex = -1
-      this.shuffleState = createShuffleState(items.map(song => song.songId))
       // 用户手动操作，重置连续错误计数
       this.consecutiveErrorCount = 0
       if (items.length > 0) {
-        await this.playSong(startIndex, false)
+        const index = startIndex ?? (this.playMode === 'shuffle'
+          ? items.findIndex(song => song.songId === getShuffleNextId(this.shuffleState))
+          : 0)
+        await this.playSong(index, false)
       }
     },
 
@@ -673,6 +679,7 @@ export const usePlayerStore = defineStore('player', {
     },
 
     fetchLyric() {
+      const revision = ++this.lyricRequestRevision
       const song = this.currentSong
       if (!song) {
         this.lyricData = ''
@@ -690,12 +697,14 @@ export const usePlayerStore = defineStore('player', {
       getLyricsApi(provider, song.songId)
         .then((data) => {
           // 确认仍然是同一首歌
-          if (this.currentSong?.songId === song.songId) {
+          if (this.lyricRequestRevision === revision && this.currentSong?.songId === song.songId) {
             this.lyricData = data.content
             this.lyricTranslation = data.translation ?? ''
           }
         })
         .catch(() => {
+          if (this.lyricRequestRevision !== revision || this.currentSong?.songId !== song.songId)
+            return
           this.lyricData = ''
           this.lyricTranslation = ''
         })
@@ -721,6 +730,8 @@ export const usePlayerStore = defineStore('player', {
         store.fullscreenCoverBorder = false
       if (typeof store.immersiveModeEnabled !== 'boolean')
         store.immersiveModeEnabled = true
+      if (typeof store.useWordLyrics !== 'boolean')
+        store.useWordLyrics = true
       if (typeof store.showFullscreenLyrics !== 'boolean')
         store.showFullscreenLyrics = true
     },
@@ -741,6 +752,7 @@ export const usePlayerStore = defineStore('player', {
       'lyricsOffset',
       'lyricsFontSize',
       'lyricsSource',
+      'useWordLyrics',
       'mobileFullscreenLayout',
       'fullscreenCoverShape',
       'fullscreenCoverRotation',

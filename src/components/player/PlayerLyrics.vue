@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import type { Directive } from 'vue'
 import type { LyricLine } from '@/utils'
+import { useWordLyricAnimation } from '@/composables/useWordLyricAnimation'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
+import { animateWordLyricScroll } from '@/utils/lyric-scroll'
+import { wordLyricActiveRange, wordLyricScrollIndex, wordLyricSides } from '@/utils/word-lyrics'
 
 const props = defineProps<{
   parsedLyrics: LyricLine[]
   hasTimestamp: boolean
   currentLineIndex: number
   showTranslation: boolean
+  controlsOnScrollOnly?: boolean
+  wordLyricAuthors?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -23,6 +28,10 @@ const { lyricsOffset, lyricsFontSize } = storeToRefs(player)
 const MIN_FONT_SIZE = 12
 const MAX_FONT_SIZE = 32
 const FONT_STEP = 4
+
+function lineKey(line: LyricLine, index: number) {
+  return line.wordLine?.id ?? index
+}
 
 const sizeAnimations = new WeakMap<HTMLElement, Animation>()
 
@@ -64,21 +73,37 @@ const vLyricSize: Directive<HTMLElement, number> = {
 }
 
 const lyricContainer = useTemplateRef<HTMLElement>('lyricContainer')
+const wordMode = computed(() => parsedLyrics.value.some(line => line.wordLine))
+const duetSides = computed(() => wordLyricSides(parsedLyrics.value.map((line, index) => line.wordLine ?? { id: String(index), agent: null, backgroundOf: null })))
+const hasDuet = computed(() => duetSides.value.includes('right'))
+const scrollRanges = computed(() => parsedLyrics.value.map(line => line.wordLine
+  ? { ...wordLyricActiveRange(line.wordLine), backgroundOf: line.wordLine.backgroundOf }
+  : { start: (line.time ?? 0) * 1000, end: (line.time ?? 0) * 1000, backgroundOf: null }))
+const scrollLineIndex = computed(() => wordMode.value
+  ? wordLyricScrollIndex(scrollRanges.value, player.currentTime + lyricsOffset.value)
+  : currentLineIndex.value >= 0 ? currentLineIndex.value : parsedLyrics.value.findIndex(line => line.time !== null && !!line.text))
+const { reducedMotion } = useWordLyricAnimation(lyricContainer, wordMode)
 const lyricLines = useTemplateRef<HTMLElement>('lyricLines')
 const isHovering = ref(false)
 
 // 用户手动滚动检测
 const userScrolling = ref(false)
 let userScrollTimer: ReturnType<typeof setTimeout> | null = null
+let scrollFallbackTimer: ReturnType<typeof setTimeout> | undefined
 const SCROLL_PAUSE_DURATION = 3000
+const SCROLL_FALLBACK_DURATION = 5000
+let cancelScrollAnimation: (() => void) | undefined
 
 function onUserScroll() {
+  cancelScrollAnimation?.()
   userScrolling.value = true
   if (userScrollTimer)
     clearTimeout(userScrollTimer)
   userScrollTimer = setTimeout(() => {
     userScrolling.value = false
   }, SCROLL_PAUSE_DURATION)
+  clearTimeout(scrollFallbackTimer)
+  scrollFallbackTimer = setTimeout(scrollToCurrentLine, SCROLL_FALLBACK_DURATION)
 }
 
 function onWheel() {
@@ -111,7 +136,7 @@ function onTouchEnd() {
 
 // 合并同一轮更新的定位请求，在 DOM 更新后读取布局。
 watch(
-  [parsedLyrics, currentLineIndex, lyricsFontSize, () => props.showTranslation],
+  [parsedLyrics, scrollLineIndex, lyricsFontSize, () => props.showTranslation],
   ([lines, , fontSize, translation], [previousLines, , previousFontSize, previousTranslation]) => {
     const layoutChanged = lines !== previousLines || fontSize !== previousFontSize || translation !== previousTranslation
     if (layoutChanged || !userScrolling.value)
@@ -121,48 +146,23 @@ watch(
 )
 
 function scrollToCurrentLine(smooth = true) {
-  if (currentLineIndex.value >= 0 && lyricContainer.value) {
-    const currentEl = lyricLines.value?.children[currentLineIndex.value] as HTMLElement | undefined
-    if (currentEl && parsedLyrics.value[currentLineIndex.value]?.text) {
+  cancelScrollAnimation?.()
+  cancelScrollAnimation = undefined
+  if (scrollLineIndex.value >= 0 && lyricContainer.value) {
+    const currentEl = lyricLines.value?.children[scrollLineIndex.value] as HTMLElement | undefined
+    if (currentEl && parsedLyrics.value[scrollLineIndex.value]?.text) {
+      clearTimeout(scrollFallbackTimer)
       const containerHeight = lyricContainer.value.clientHeight
       const targetTop = currentEl.offsetTop - containerHeight / 2 + currentEl.clientHeight / 2
+      if (wordMode.value && smooth && reducedMotion.value !== 'reduce') {
+        cancelScrollAnimation = animateWordLyricScroll(lyricContainer.value, targetTop)
+        return
+      }
       lyricContainer.value.scrollTo({
         top: targetTop,
-        behavior: smooth ? 'smooth' : 'auto',
+        behavior: smooth && reducedMotion.value !== 'reduce' ? 'smooth' : 'auto',
       })
     }
-  }
-}
-
-let viewportAnchor: { element: HTMLElement, top: number, measuredTop: number } | null = null
-
-function captureViewportPosition() {
-  const container = lyricContainer.value
-  const lines = lyricLines.value?.querySelectorAll<HTMLElement>('[data-lyric-line]')
-  if (!container || !lines?.length)
-    return
-  // Stop any in-flight smooth scroll before recording the visible anchor.
-  container.scrollTo({ top: container.scrollTop, behavior: 'auto' })
-  const bounds = container.getBoundingClientRect()
-  const isVisible = (line: HTMLElement) => {
-    const rect = line.getBoundingClientRect()
-    return rect.bottom > bounds.top && rect.top < bounds.bottom
-  }
-  const currentLine = lines[currentLineIndex.value]
-  const anchor = currentLine && isVisible(currentLine) ? currentLine : [...lines].find(isVisible)
-  if (!anchor)
-    return
-  const measuredTop = anchor.getBoundingClientRect().top
-  // Retain the ideal position across repeated toggles instead of accumulating scroll rounding.
-  const top = viewportAnchor?.element === anchor && Math.abs(viewportAnchor.measuredTop - measuredTop) <= 1
-    ? viewportAnchor.top
-    : measuredTop
-  return () => {
-    if (lyricContainer.value !== container || !anchor.isConnected)
-      return
-    const delta = anchor.getBoundingClientRect().top - top
-    container.scrollTo({ top: container.scrollTop + delta, behavior: 'auto' })
-    viewportAnchor = { element: anchor, top, measuredTop: anchor.getBoundingClientRect().top }
   }
 }
 
@@ -172,6 +172,14 @@ function handleChangeFontSize(delta: number) {
     lyricsFontSize.value = newSize
   }
 }
+
+watch(reducedMotion, (value) => {
+  if (value === 'reduce') {
+    cancelScrollAnimation?.()
+    if (!userScrolling.value)
+      scrollToCurrentLine(false)
+  }
+})
 
 function onClickLine(line: LyricLine) {
   if (skipNextClick.value) {
@@ -184,12 +192,12 @@ function onClickLine(line: LyricLine) {
   userScrolling.value = false
   if (userScrollTimer)
     clearTimeout(userScrollTimer)
-  emit('seek', line.time)
+  const time = line.wordLine ? wordLyricActiveRange(line.wordLine).start / 1000 - lyricsOffset.value : line.time
+  emit('seek', Math.max(0, Math.min(time, player.duration || Number.POSITIVE_INFINITY)))
 }
 
 defineExpose({
   scrollToCurrentLine,
-  captureViewportPosition,
 })
 
 onMounted(() => {
@@ -197,8 +205,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  cancelScrollAnimation?.()
   if (userScrollTimer)
     clearTimeout(userScrollTimer)
+  clearTimeout(scrollFallbackTimer)
 })
 </script>
 
@@ -230,17 +240,24 @@ onUnmounted(() => {
         <div
           v-for="(line, index) in parsedLyrics"
           v-show="line.text"
-          :key="index"
-          v-memo="[line, index === currentLineIndex, lyricsFontSize, showTranslation]"
+          :key="lineKey(line, index)"
+          v-memo="[line, index === currentLineIndex, lyricsFontSize, showTranslation, hasDuet, duetSides[index]]"
           data-lyric-line
           class="px-4 py-2 transition-colors duration-300 rounded-lg"
           :class="[
+            hasDuet ? `lyric-duet-${duetSides[index]}` : '',
             index === currentLineIndex ? 'text-white font-bold' : 'text-white/40',
             line.time !== null ? 'cursor-pointer hover:bg-white/10' : 'cursor-default',
           ]"
+          :role="line.time !== null ? 'button' : undefined"
+          :tabindex="line.time !== null ? 0 : undefined"
           @click="onClickLine(line)"
+          @keydown.enter.prevent="onClickLine(line)"
+          @keydown.space.prevent="onClickLine(line)"
         >
+          <PlayerWordLyricLine v-if="line.wordLine" :line="line.wordLine" :style="{ fontSize: `${lyricsFontSize * (line.wordLine.backgroundOf ? 0.85 : 1)}px` }" />
           <div
+            v-else
             v-lyric-size="index === currentLineIndex ? lyricsFontSize + FONT_STEP : lyricsFontSize"
             class="origin-top-left whitespace-pre-line"
           >
@@ -248,21 +265,30 @@ onUnmounted(() => {
           </div>
           <div
             v-if="showTranslation && line.translation"
-            v-lyric-size="index === currentLineIndex ? lyricsFontSize : lyricsFontSize - FONT_STEP"
-            class="mt-0.5 origin-top-left whitespace-pre-line"
-            :class="index === currentLineIndex
+            v-lyric-size="wordMode ? (lyricsFontSize - FONT_STEP) * (line.wordLine?.backgroundOf ? 0.85 : 1) : index === currentLineIndex ? lyricsFontSize : lyricsFontSize - FONT_STEP"
+            class="mt-0.5 origin-top-left whitespace-pre-line transition-colors duration-300 ease-out motion-reduce:transition-none"
+            :class="line.wordLine ? 'word-translation text-white/30 font-normal' : index === currentLineIndex
               ? 'text-white/70 font-normal'
               : 'text-white/30'"
           >
             {{ line.translation }}
           </div>
         </div>
+        <div v-if="wordMode" class="px-4 pt-6 pb-2 text-sm text-white/40 break-words">
+          <p class="flex">
+            <span class="shrink-0">{{ t('Settings.word_lyrics_source') }}</span>
+            <a href="https://github.com/amll-dev/amll-ttml-db" target="_blank" rel="noopener noreferrer" class="hover:text-white/70 hover:underline">AMLL TTML DataBase</a>
+          </p>
+          <p v-if="wordLyricAuthors?.length" class="mt-1">
+            {{ t('PlayerLyrics.creators', { p0: wordLyricAuthors.join('、') }) }}
+          </p>
+        </div>
       </div>
     </div>
 
     <Transition name="fade">
       <div
-        v-show="isHovering || userScrolling"
+        v-show="userScrolling || (isHovering && !controlsOnScrollOnly)"
         class="absolute right-2 bottom-4 flex flex-col gap-1 z-10"
       >
         <Tooltip
@@ -333,6 +359,26 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.lyric-duet-left {
+  width: 90%;
+  margin-right: auto;
+}
+.lyric-duet-right {
+  width: 90%;
+  margin-left: auto;
+  text-align: right;
+}
+.lyric-duet-right > .word-translation {
+  transform-origin: top right;
+}
+
+.word-line[data-active='true'] + .word-translation {
+  color: rgb(255 255 255 / 70%);
+}
+.word-background[data-active='true'] + .word-translation {
+  color: rgb(255 255 255 / 50%);
+}
+
 .lyrics-container {
   mask-image: linear-gradient(
     to bottom,

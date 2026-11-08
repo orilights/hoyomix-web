@@ -84,7 +84,7 @@ function getAlbumYear(album: AlbumListItemInfo) {
 async function playAlbum(albumId: number) {
   try {
     const album = await getAlbumInfoApi(albumId)
-    player.replacePlaylist(buildPlaylistFromAlbum(album), 0)
+    player.replacePlaylist(buildPlaylistFromAlbum(album))
     toast.success(t('AlbumList.queue_replaced'))
   }
   catch (error) {

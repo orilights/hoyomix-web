@@ -141,7 +141,7 @@ const qqMusicOptions = computed(() => [
 function playAll() {
   if (!albumInfo.value)
     return
-  player.replacePlaylist(buildPlaylistFromAlbum(albumInfo.value), 0)
+  player.replacePlaylist(buildPlaylistFromAlbum(albumInfo.value))
   toast.success(t('AlbumList.queue_replaced'))
 }
 

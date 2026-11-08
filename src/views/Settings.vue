@@ -34,7 +34,7 @@ async function clearImageCache() {
   else
     toast.error(imageCacheError.value || t('Settings.failed_to_clear_image_cache_please_try_again_later'))
 }
-const { quality, enableAudioContext, enableMediaSession, lyricsSource, songListPlayBehavior, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
+const { quality, enableAudioContext, enableMediaSession, lyricsSource, useWordLyrics, songListPlayBehavior, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 const songListPlayOptions: { value: SongListPlayBehavior, label: string }[] = [
@@ -123,6 +123,7 @@ const { scrollY } = usePageScroll()
 const settingsSections = computed(() => [
   { id: 'settings-appearance', label: t('Settings.appearance') },
   { id: 'settings-audio', label: t('Settings.media_sources') },
+  { id: 'settings-lyrics', label: t('Settings.lyrics') },
   { id: 'settings-player', label: t('Settings.player') },
   { id: 'settings-account', label: t('Settings.account') },
   { id: 'settings-cache', label: t('Settings.cache') },
@@ -299,7 +300,14 @@ onMounted(() => {
               {{ t('Settings.no_audio_quality_options_available') }}
             </div>
           </div>
+        </div>
+      </section>
 
+      <section id="settings-lyrics" class="scroll-mt-32 grid gap-4 border-t border-gray-200 dark:border-gray-700 py-6 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-8" aria-labelledby="settings-lyrics-heading">
+        <h2 id="settings-lyrics-heading" class="font-bold text-xl">
+          {{ t('Settings.lyrics') }}
+        </h2>
+        <div class="space-y-6">
           <div>
             <div class="font-bold text-lg mb-2">
               {{ t('Settings.lyrics_source') }}
@@ -313,6 +321,29 @@ onMounted(() => {
             <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">
               {{ t('Settings.prefer_lyrics_from_the_selected_platform') }}
             </div>
+          </div>
+          <div>
+            <div class="font-bold text-lg mb-2">
+              {{ t('Settings.use_word_lyrics') }}
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                type="button" role="switch" :aria-label="t('Settings.use_word_lyrics')" :aria-checked="useWordLyrics"
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-blue-500"
+                :class="useWordLyrics ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
+                @click="useWordLyrics = !useWordLyrics"
+              >
+                <span class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200" :class="useWordLyrics ? 'translate-x-5' : 'translate-x-0'" />
+              </button>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ useWordLyrics ? t('Settings.enabled') : t('Settings.disabled') }}</span>
+            </div>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('Settings.word_lyrics_preference') }}
+            </p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('Settings.word_lyrics_source') }}
+              <a href="https://github.com/amll-dev/amll-ttml-db" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">AMLL TTML DataBase</a>
+            </p>
           </div>
         </div>
       </section>

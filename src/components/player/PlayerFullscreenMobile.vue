@@ -5,7 +5,7 @@ import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import PlayerLyrics from './PlayerLyrics.vue'
 
-defineProps<{ parsedLyrics: LyricLine[], hasTimestamp: boolean, currentLineIndex: number }>()
+defineProps<{ parsedLyrics: LyricLine[], hasTimestamp: boolean, currentLineIndex: number, wordLyricAuthors: string[] }>()
 defineEmits<{
   close: []
   toSong: []
@@ -13,19 +13,25 @@ defineEmits<{
   sleep: []
   headerTouchStart: [event: TouchEvent]
   headerTouchMove: [event: TouchEvent]
-  headerTouchEnd: []
+  headerTouchEnd: [cancelled?: boolean]
 }>()
 const player = usePlayerStore()
 const { currentSong, mobileFullscreenLayout, showTranslation, isImmersive, immersiveControlsVisible, lyricsFontSize } = storeToRefs(player)
 const controlsHidden = computed(() => isImmersive.value && !immersiveControlsVisible.value)
-const mobileLyrics = useTemplateRef<InstanceType<typeof PlayerLyrics>>('mobileLyrics')
-watch(controlsHidden, async () => {
-  const restorePosition = mobileLyrics.value?.captureViewportPosition()
-  if (restorePosition) {
-    await nextTick()
-    restorePosition()
+let suppressActivityClick = false
+
+function onArtPointerDown() {
+  suppressActivityClick = controlsHidden.value
+}
+
+function onArtClick(event: MouseEvent) {
+  const suppress = suppressActivityClick
+  suppressActivityClick = false
+  if (suppress && event.detail > 0) {
+    event.preventDefault()
+    event.stopPropagation()
   }
-})
+}
 const songTitle = useTemplateRef<HTMLElement>('songTitle')
 const songTitleText = useTemplateRef<HTMLElement>('songTitleText')
 const { width: titleWidth } = useElementSize(songTitle)
@@ -43,18 +49,18 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
 </script>
 
 <template>
-  <div class="mobile-fullscreen relative z-10 flex-1 min-h-0 text-white" :class="{ 'immersive-lyrics': controlsHidden && mobileFullscreenLayout === 'lyrics' }">
+  <div class="mobile-fullscreen relative z-10 flex-1 min-h-0 text-white">
     <header
-      class="mobile-heading transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden"
-      @touchstart="$emit('headerTouchStart', $event)" @touchmove.prevent="$emit('headerTouchMove', $event)" @touchend="$emit('headerTouchEnd')" @touchcancel="$emit('headerTouchEnd')"
+      class="mobile-heading"
+      @touchstart="$emit('headerTouchStart', $event)" @touchmove.prevent="$emit('headerTouchMove', $event)" @touchend="$emit('headerTouchEnd')" @touchcancel="$emit('headerTouchEnd', true)"
     >
-      <div class="flex items-center justify-between mb-2">
-        <button type="button" class="mobile-icon -ml-2" :aria-label="t('PlayerFullscreen.exit_fullscreen_player')" @touchstart.stop @touchmove.stop @click="$emit('close')">
+      <div class="mobile-heading-actions flex items-center justify-between">
+        <button type="button" class="mobile-icon -ml-2" :aria-label="t('PlayerFullscreen.exit_fullscreen_player')" @click="$emit('close')">
           <LucideChevronDown class="size-6" />
         </button>
-        <FavoriteButton v-if="currentSong" type="song" :song-id="currentSong.songId" size="md" class="shrink-0 min-w-11 min-h-11 -mr-2 text-white!" @touchstart.stop @touchmove.stop />
+        <FavoriteButton v-if="currentSong" type="song" :song-id="currentSong.songId" size="md" class="shrink-0 min-w-11 min-h-11 -mr-2 text-white!" />
       </div>
-      <div class="min-w-0">
+      <div class="mobile-song-info min-w-0 transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
         <button ref="songTitle" type="button" class="song-title block w-full overflow-hidden whitespace-nowrap text-left text-[22px] leading-tight font-semibold cursor-pointer" :aria-label="currentSong?.songName" :title="currentSong?.songName" @touchstart.stop @touchmove.stop @click="$emit('toSong')">
           <span
             :key="`${currentSong?.songId}:${currentSong?.songName}`"
@@ -69,7 +75,11 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
         </button>
       </div>
     </header>
-    <div ref="artArea" class="mobile-art min-h-0 min-w-0" :class="{ 'pt-4': mobileFullscreenLayout === 'cover' }">
+    <div
+      ref="artArea"
+      class="mobile-art min-h-0 min-w-0" :class="{ 'pt-4': mobileFullscreenLayout === 'cover' }"
+      @pointerdown.capture="onArtPointerDown" @click.capture="onArtClick"
+    >
       <div v-if="mobileFullscreenLayout === 'cover'" class="h-full flex flex-col items-center justify-center gap-5">
         <div class="shrink-0 max-w-full aspect-square" :style="{ width: `${coverSize}px`, height: `${coverSize}px` }">
           <slot name="cover" />
@@ -78,10 +88,10 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
           <slot name="lyric" />
         </div>
       </div>
-      <PlayerLyrics v-else ref="mobileLyrics" :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" class="h-full" @seek="player.seek" />
+      <PlayerLyrics v-else :word-lyric-authors="wordLyricAuthors" :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" controls-on-scroll-only class="h-full" @seek="player.seek" />
     </div>
-    <div class="mobile-controls transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
-      <PlayerControlMobile @sleep="$emit('sleep')">
+    <div class="mobile-controls">
+      <PlayerControlMobile :controls-hidden="controlsHidden" @sleep="$emit('sleep')">
         <template #more>
           <slot name="more" />
         </template>
@@ -107,16 +117,23 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
   100% { transform: translateX(var(--title-scroll-distance)); }
 }
 .mobile-fullscreen {
+  --mobile-inline-padding: 28px;
+  --mobile-top-padding: max(8px, env(safe-area-inset-top));
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(180px, 1fr) auto;
   gap: 8px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: max(8px, env(safe-area-inset-top)) 28px max(8px, env(safe-area-inset-bottom));
+  padding: var(--mobile-top-padding) var(--mobile-inline-padding) max(8px, env(safe-area-inset-bottom));
 }
 .mobile-heading {
   grid-area: 1 / 1;
+}
+.mobile-heading-actions {
+  margin: calc(-1 * var(--mobile-top-padding)) calc(-1 * var(--mobile-inline-padding)) 8px;
+  padding: var(--mobile-top-padding) var(--mobile-inline-padding) 0;
+  touch-action: none;
 }
 .mobile-art {
   grid-area: 2 / 1;
@@ -139,12 +156,12 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
 @media (max-height: 700px) {
   .mobile-fullscreen {
     gap: 4px;
-    padding-inline: 24px;
+    --mobile-inline-padding: 24px;
   }
 }
 @media (max-width: 359px) {
   .mobile-fullscreen {
-    padding-inline: 20px;
+    --mobile-inline-padding: 20px;
   }
 }
 @media (orientation: landscape) and (max-height: 520px) {
@@ -167,14 +184,11 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
     align-self: end;
   }
 }
-.immersive-lyrics .mobile-art {
-  grid-area: 1 / 1 / -1 / -1;
-}
 @media (prefers-reduced-motion: reduce) {
   .song-title { text-overflow: ellipsis; }
   .song-title-track { display: inline; animation: none; }
   .song-title-track > [aria-hidden] { display: none; }
-  .mobile-heading, .mobile-controls {
+  .mobile-song-info {
     transition: none;
   }
 }

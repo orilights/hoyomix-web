@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import type { SongTagSongsParams } from '@/types/song-tag'
-import { useSongTagQuery, useSongTagSongsQuery } from '@/composables/queries'
+import { toast } from 'vue-sonner'
+import { useSongTagPlaybackQuery, useSongTagQuery, useSongTagSongsQuery } from '@/composables/queries'
 import { usePageSeo } from '@/composables/usePageSeo'
 import { registerSongList } from '@/composables/useSongLocator'
 import { t } from '@/i18n'
 import { useMainStore } from '@/store/main'
+import { usePlayerStore } from '@/store/player'
 import { NotFoundError } from '@/utils/fetch'
 
 const route = useRoute()
 const router = useRouter()
 const store = useMainStore()
+const player = usePlayerStore()
 const code = computed(() => String(route.params.code))
 const page = computed(() => typeof route.query.page === 'string' && /^[1-9]\d*$/.test(route.query.page) ? Math.min(100000, Number(route.query.page)) : 1)
 const productId = computed(() => store.productList.some(product => product.productId === Number(route.query.productId)) ? Number(route.query.productId) : undefined)
@@ -17,6 +20,8 @@ const sort = computed(() => route.query.sort === 'album_asc' ? 'album_asc' : 'al
 const params = computed<SongTagSongsParams>(() => ({ page: page.value, productId: productId.value, sort: sort.value }))
 const tagQuery = useSongTagQuery(code)
 const { data, isPending, isFetching, isError, refetch } = useSongTagSongsQuery(code, params)
+const playbackQuery = useSongTagPlaybackQuery()
+const canPlay = computed(() => !isFetching.value && !isError.value && !tagQuery.isPending.value && !tagQuery.isError.value && !playbackQuery.isPending.value && !!data.value?.items.length)
 const products = computed(() => store.productList
   .map((product, index) => ({
     ...product,
@@ -28,6 +33,21 @@ const products = computed(() => store.productList
   .sort((a, b) => b.count - a.count || a.index - b.index))
 function updateQuery(patch: Record<string, string | undefined>) {
   void router.push({ query: { ...route.query, page: undefined, ...patch } })
+}
+async function playAll() {
+  if (!canPlay.value)
+    return
+  const path = route.fullPath
+  try {
+    const songs = await playbackQuery.mutateAsync({ code: code.value, productId: productId.value, sort: sort.value })
+    if (route.fullPath !== path || !songs.length)
+      return
+    await player.replacePlaylist(songs)
+    toast.success(t('AlbumList.queue_replaced'))
+  }
+  catch (error) {
+    toast.error(error instanceof Error ? error.message : t('SongTagDetail.failed_to_load_tag_or_songs'))
+  }
 }
 watch(data, (value) => {
   if (!value || value.page !== page.value)
@@ -74,6 +94,10 @@ onMounted(() => store.setBackground())
         />
       </div>
       <span v-if="data" class="text-sm text-gray-400">{{ t('Random.song_alternate', { p0: data.total }, Number(data.total)) }}</span>
+      <AppButton variant="primary" class="ml-auto" :disabled="!canPlay" @click="playAll">
+        <LucideLoader2 v-if="playbackQuery.isPending.value" class="size-4 animate-spin" />
+        <LucidePlay v-else class="size-4" fill="currentColor" />{{ t('AlbumActions.play_all') }}
+      </AppButton>
     </div>
     <AsyncFade>
       <PageLoading v-if="isPending || tagQuery.isPending.value" />

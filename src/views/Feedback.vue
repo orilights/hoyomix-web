@@ -2,12 +2,16 @@
 import { usePageSeo } from '@/composables/usePageSeo'
 import { appGithubRepoUrl } from '@/constants'
 import { t } from '@/i18n'
+import { useMainStore } from '@/store/main'
+
+const store = useMainStore()
 
 usePageSeo({
   title: () => t('DesktopSidebar.feedback'),
   description: () => t('Feedback.report_issues_suggest_improvements_or_share_your_experience'),
   path: '/feedback',
 })
+onMounted(() => store.setBackground())
 </script>
 
 <template>

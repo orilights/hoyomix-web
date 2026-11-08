@@ -213,7 +213,7 @@ const {
   toggle: togglePageFullscreen,
 } = useFullscreen()
 
-const { parsedLyrics, hasTimestamp, currentLineIndex } = usePlayerLyrics({
+const { parsedLyrics, hasTimestamp, currentLineIndex, hasTranslation, wordLyricAuthors } = usePlayerLyrics({
   lyricData,
   lyricTranslation,
   currentTime,
@@ -229,20 +229,6 @@ const compactLyricLine = computed(() => {
 
 let immersiveTimer: ReturnType<typeof setTimeout> | null = null
 const IMMERSIVE_HIDE_DELAY = 3000
-let suppressActivityClick = false
-
-function onFullscreenPointerDown() {
-  suppressActivityClick = isMobileViewport.value && isImmersive.value && !immersiveControlsVisible.value
-}
-
-function onFullscreenClick(event: MouseEvent) {
-  if (!suppressActivityClick)
-    return
-  suppressActivityClick = false
-  event.preventDefault()
-  event.stopPropagation()
-}
-
 function showImmersiveControls() {
   player.setImmersiveControlsVisible(true)
   if (immersiveTimer)
@@ -320,14 +306,11 @@ function onHeaderTouchStart(e: TouchEvent) {
 }
 
 function onHeaderTouchMove(e: TouchEvent) {
-  const delta = e.touches[0].clientY - touchStartY.value
-  if (delta > 0) {
-    dragOffset.value = delta
-  }
+  dragOffset.value = Math.max(0, e.touches[0].clientY - touchStartY.value)
 }
 
-function onHeaderTouchEnd() {
-  if (dragOffset.value > 80) {
+function onHeaderTouchEnd(cancelled = false) {
+  if (!cancelled && dragOffset.value > 80) {
     transformPosition.value = `${dragOffset.value}px`
     dragOffset.value = 0
     nextTick(() => {
@@ -358,8 +341,6 @@ function onHeaderTouchEnd() {
       }"
       @mousemove="onImmersiveActivity"
       @touchstart="onImmersiveActivity"
-      @pointerdown.capture="onFullscreenPointerDown"
-      @click.capture="onFullscreenClick"
     >
       <div class="absolute inset-0 bg-gray-900">
         <div
@@ -377,7 +358,8 @@ function onHeaderTouchEnd() {
 
       <PlayerFullscreenMobile
         v-if="isMobileViewport"
-        :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex"
+        :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :word-lyric-authors="wordLyricAuthors"
+        @click="onImmersiveActivity"
         @close="close" @to-song="toSong" @to-album="toAlbum" @sleep="showSleepTimer = true"
         @header-touch-start="onHeaderTouchStart" @header-touch-move="onHeaderTouchMove" @header-touch-end="onHeaderTouchEnd"
       >
@@ -478,13 +460,13 @@ function onHeaderTouchEnd() {
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
-                  :aria-checked="showTranslation" :disabled="!lyricTranslation"
-                  :title="!lyricTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
+                  :aria-checked="showTranslation" :disabled="!hasTranslation"
+                  :title="!hasTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
                   @click="player.toggleTranslation()"
                 >
                   <LucideLanguages class="size-4 shrink-0" />
                   <span class="flex-1">{{ t('PlayerFullscreen.translated_lyrics') }}</span>
-                  <LucideCheck v-if="showTranslation" class="size-4" :class="lyricTranslation ? 'text-blue-400' : 'text-white/40'" />
+                  <LucideCheck v-if="showTranslation" class="size-4" :class="hasTranslation ? 'text-blue-400' : 'text-white/40'" />
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
@@ -509,7 +491,7 @@ function onHeaderTouchEnd() {
           :class="{ 'opacity-0': isImmersive && !immersiveControlsVisible }"
           @touchstart="onHeaderTouchStart"
           @touchmove.prevent="onHeaderTouchMove"
-          @touchend="onHeaderTouchEnd"
+          @touchend="onHeaderTouchEnd()"
         >
           <div ref="headerStartRef" class="flex items-center gap-1 justify-self-start">
             <Tooltip
@@ -602,13 +584,13 @@ function onHeaderTouchEnd() {
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
-                  :aria-checked="showTranslation" :disabled="!lyricTranslation"
-                  :title="!lyricTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
+                  :aria-checked="showTranslation" :disabled="!hasTranslation"
+                  :title="!hasTranslation ? t('PlayerFullscreen.no_translated_lyrics_for_this_song') : undefined"
                   @click="player.toggleTranslation()"
                 >
                   <LucideLanguages class="size-4 shrink-0" />
                   <span class="flex-1">{{ t('PlayerFullscreen.translated_lyrics') }}</span>
-                  <LucideCheck v-if="showTranslation" class="size-4" :class="lyricTranslation ? 'text-blue-400' : 'text-white/40'" />
+                  <LucideCheck v-if="showTranslation" class="size-4" :class="hasTranslation ? 'text-blue-400' : 'text-white/40'" />
                 </button>
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
@@ -651,6 +633,7 @@ function onHeaderTouchEnd() {
 
           <div v-if="showFullscreenLyrics" class="flex-1 h-full min-w-0">
             <PlayerLyrics
+              :word-lyric-authors="wordLyricAuthors"
               :parsed-lyrics="parsedLyrics"
               :has-timestamp="hasTimestamp"
               :current-line-index="currentLineIndex"

@@ -6,6 +6,7 @@ import type { SearchPageResponse, SearchResponse, SearchType } from '@/types/sea
 
 import { apiBase } from '@/constants'
 import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
+import { isWordLyrics } from '@/utils/word-lyrics'
 
 export function getAlbumListApi() {
   return fetchJson<AlbumListItemInfo[]>(`${apiBase}/albums`)
@@ -104,6 +105,11 @@ export function getArtistNameByAliasApi(alias: string) {
 
 export function getLyricsApi(provider: 'qq' | 'ncm', songId: number | string) {
   return fetchJson<SongLyricInfo>(`${apiBase}/lyrics?provider=${provider}&songId=${songId}`)
+}
+
+export async function getWordLyricsApi(songId: number) {
+  const data = await fetchJson<{ songId: number, lyrics: unknown }>(`${apiBase}/songs/${songId}/word-lyrics`)
+  return { songId: data.songId, lyrics: isWordLyrics(data.lyrics) ? data.lyrics : null }
 }
 
 export function getSongMediaApi(songId: number | string) {
