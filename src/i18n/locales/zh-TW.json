@@ -39,6 +39,7 @@
   "ArtistAlbumList.song_details_not_found": "歌曲資訊未找到",
   "ArtistAlbumList.play_songs_featuring_this_artist": "播放藝術家參與的歌曲",
   "ArtistAlbumList.play_song": "播放歌曲",
+  "ArtistListByType.no_data": "暫無資料",
   "ArtistListByType.other": "其他",
   "ArtistListByType.unable_to_load_refresh_to_try_again": "載入失敗，請重新整理重試",
   "ArtistSongsHoverCard.songs": "{p0}的{p1}歌曲",
