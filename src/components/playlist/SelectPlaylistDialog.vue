@@ -28,7 +28,7 @@ function getCover(playlist: PlaylistListItem) {
   if (!playlist.coverAlbumId)
     return ''
   const album = albumList.value.find(a => a.id === playlist.coverAlbumId)
-  return album ? getCoverUrl(album.platforms, '96px') : ''
+  return album ? getCoverUrl(album.platforms, '96px', album.coverUrl) : ''
 }
 
 async function select(playlist: PlaylistListItem) {

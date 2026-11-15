@@ -3,7 +3,9 @@ import type { NeteaseClientSchemeParams } from '@/types/netease'
 import { iOSUserAgentRegex, mobileUserAgentRegex, resourceBase } from '@/constants'
 import { useMainStore } from '@/store/main'
 
-export function getCoverUrl(platforms: PlatformInfoMap, size: '96px' | '128px' | '256px' | '512px' | '800px') {
+export function getCoverUrl(platforms: PlatformInfoMap, size: '96px' | '128px' | '256px' | '512px' | '800px', coverUrl?: string | null) {
+  if (coverUrl)
+    return coverUrl
   if (platforms.ncm) {
     return `${resourceBase}/cover/ncm/${platforms.ncm.id}_${size}.jpg`
   }

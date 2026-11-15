@@ -111,7 +111,7 @@ const coverAlbumInfo = computed(() =>
 )
 
 const coverPreviewUrl = computed(() =>
-  coverAlbumInfo.value ? getCoverUrl(coverAlbumInfo.value.platforms, '96px') : '',
+  coverAlbumInfo.value ? getCoverUrl(coverAlbumInfo.value.platforms, '96px', coverAlbumInfo.value.coverUrl) : '',
 )
 
 const hasPendingReview = computed(() =>

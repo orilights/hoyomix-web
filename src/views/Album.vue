@@ -94,7 +94,7 @@ const songGroups = computed<SongListGroup[]>(() => {
 })
 
 const albumCoverUrl = computed(() =>
-  albumInfo.value ? getCoverUrl(albumInfo.value.platforms, '512px') : '',
+  albumInfo.value ? getCoverUrl(albumInfo.value.platforms, '512px', albumInfo.value.coverUrl) : '',
 )
 
 usePageSeo({
@@ -106,7 +106,7 @@ usePageSeo({
 
 watch(albumInfo, (val) => {
   if (val) {
-    store.setBackground(getCoverUrl(val.platforms, '128px'))
+    store.setBackground(getCoverUrl(val.platforms, '128px', val.coverUrl))
   }
 }, { immediate: true })
 
@@ -215,7 +215,7 @@ function addAlbumToPlaylist() {
     <div v-else-if="albumInfo" class="album-page detail-page">
       <div v-page-enter="0" class="detail-header">
         <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
-          <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px')" :preview-src="getCoverUrl(albumInfo.platforms, '800px')" :alt="albumInfo.name" />
+          <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px', albumInfo.coverUrl)" :preview-src="getCoverUrl(albumInfo.platforms, '800px', albumInfo.coverUrl)" :alt="albumInfo.name" />
         </div>
 
         <div class="min-w-0">

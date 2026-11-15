@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
                   aria-current="page"
                 >
                   <div class="size-10 shrink-0 rounded-md overflow-hidden">
-                    <CoverImage :src="getCoverUrl(album.platforms, '96px')" />
+                    <CoverImage :src="getCoverUrl(album.platforms, '96px', album.coverUrl)" />
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="truncate font-medium">
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
                   @click="closeCard"
                 >
                   <div class="size-10 shrink-0 rounded-md overflow-hidden">
-                    <CoverImage :src="getCoverUrl(album.platforms, '96px')" />
+                    <CoverImage :src="getCoverUrl(album.platforms, '96px', album.coverUrl)" />
                   </div>
                   <div class="min-w-0 flex-1">
                     <div class="truncate font-medium">

@@ -199,7 +199,7 @@ watch(currentSong, (song) => {
 const coverUrl = computed(() => {
   if (!currentSong.value)
     return ''
-  return getCoverUrl(currentSong.value.albumPlatforms, '800px')
+  return getCoverUrl(currentSong.value.albumPlatforms, '800px', currentSong.value.albumCoverUrl)
 })
 
 const { gradient: coverGradient } = usePlayerCoverColors()

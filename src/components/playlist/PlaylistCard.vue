@@ -28,7 +28,7 @@ const coverAlbum = computed(() =>
 )
 
 const coverUrl = computed(() =>
-  coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '256px') : '',
+  coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '256px', coverAlbum.value.coverUrl) : '',
 )
 </script>
 

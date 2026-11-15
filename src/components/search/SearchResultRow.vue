@@ -14,7 +14,7 @@ const imageUrl = computed(() => {
     return getProductIconUrl(item.name, '48px')
   const albumId = item.type === 'song' ? item.albumId : item.type === 'album' ? item.id : undefined
   const album = store.albumList.find(album => album.id === albumId)
-  return album ? getCoverUrl(album.platforms, '96px') : undefined
+  return album ? getCoverUrl(album.platforms, '96px', album.coverUrl) : undefined
 })
 const subtitle = computed(() => {
   const item = props.item

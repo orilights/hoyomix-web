@@ -271,7 +271,7 @@ function handleDragEnd() {
             </td>
             <td v-if="showCover" class="hidden sm:table-cell align-middle p-2">
               <div class="size-10 overflow-hidden rounded-md">
-                <CoverImage :src="getCoverUrl(row.song.albumPlatforms, '96px')" />
+                <CoverImage :src="getCoverUrl(row.song.albumPlatforms, '96px', row.song.albumCoverUrl)" />
               </div>
             </td>
             <td class="p-2 min-w-0">

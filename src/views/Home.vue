@@ -108,7 +108,7 @@ onMounted(() => {
           >
             <div class="group rounded-2xl p-3 hover:bg-gray-500/20 transition-colors">
               <div class="rounded-xl overflow-hidden">
-                <CoverImage :src="getCoverUrl(album.platforms, '256px')" />
+                <CoverImage :src="getCoverUrl(album.platforms, '256px', album.coverUrl)" />
               </div>
               <div class="h-[42px] text-ellipsis text-sm mt-2 line-clamp-2">
                 {{ album.name }}

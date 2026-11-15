@@ -87,11 +87,11 @@ const coverAlbum = computed(() =>
 )
 
 const coverUrl = computed(() =>
-  coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '512px') : '',
+  coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '512px', coverAlbum.value.coverUrl) : '',
 )
 
 const coverThumbUrl = computed(() =>
-  coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '128px') : '',
+  coverAlbum.value ? getCoverUrl(coverAlbum.value.platforms, '128px', coverAlbum.value.coverUrl) : '',
 )
 
 const savingOrder = ref(false)
@@ -448,8 +448,8 @@ async function deletePlaylist() {
         <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
           <CoverImage
             v-if="coverUrl"
-            :src="getCoverUrl(coverAlbum?.platforms ?? {}, '256px')"
-            :preview-src="getCoverUrl(coverAlbum?.platforms ?? {}, '800px')"
+            :src="getCoverUrl(coverAlbum?.platforms ?? {}, '256px', coverAlbum?.coverUrl)"
+            :preview-src="getCoverUrl(coverAlbum?.platforms ?? {}, '800px', coverAlbum?.coverUrl)"
             :alt="coverAlbum?.name ?? playlist.name"
           />
           <div v-else class="size-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">

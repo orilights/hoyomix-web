@@ -65,7 +65,7 @@ const groups = computed(() => [
   },
 ])
 
-const covers = computed(() => new Map(store.albumList.map(album => [album.id, getCoverUrl(album.platforms, '96px')])))
+const covers = computed(() => new Map(store.albumList.map(album => [album.id, getCoverUrl(album.platforms, '96px', album.coverUrl)])))
 function coverUrl(playlist: PlaylistListItem) {
   return playlist.coverAlbumId ? covers.value.get(playlist.coverAlbumId) ?? '' : ''
 }
