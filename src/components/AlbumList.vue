@@ -152,7 +152,7 @@ async function playAlbum(albumId: number) {
             >
               <div v-reveal-cover class="cover-reveal group p-4 rounded-2xl hover:bg-gray-500/20 transition-colors relative">
                 <div class="rounded-2xl overflow-hidden relative">
-                  <CoverImage :src="getCoverUrl(album_info.platforms, '256px')" />
+                  <CoverImage :src="getCoverUrl(album_info.platforms, '256px', album_info.coverUrl)" />
                   <button
                     class="absolute bottom-2 right-2 text-white opacity-0 group-hover:opacity-100 transition-all hidden md:flex items-center justify-center hover:scale-105 active:scale-95 cursor-pointer shadow-lg rounded-full p-2 bg-black/40 hover:bg-black/60"
                     :title="t('AlbumList.play_album')"
@@ -179,7 +179,7 @@ async function playAlbum(albumId: number) {
             >
               <div class="group flex items-center gap-2 md:gap-3 p-2 md:px-4 rounded-xl hover:bg-gray-500/20 transition-colors">
                 <div class="shrink-0 size-14 md:size-20 rounded-lg overflow-hidden">
-                  <CoverImage :src="getCoverUrl(album_info.platforms, '128px')" />
+                  <CoverImage :src="getCoverUrl(album_info.platforms, '128px', album_info.coverUrl)" />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="text-sm md:text-base font-medium truncate">

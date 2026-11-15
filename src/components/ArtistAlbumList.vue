@@ -160,7 +160,7 @@ function playSong(event: Event, songId: number, albumId: number) {
       <RouterLink :to="{ name: 'AlbumInfo', params: { id: album.id } }" :title="album.name">
         <div class="group flex items-center gap-2 md:gap-3 rounded-xl">
           <div class="shrink-0 size-14 md:size-20 rounded-lg overflow-hidden">
-            <CoverImage :src="getCoverUrl(album.platforms, '128px')" />
+            <CoverImage :src="getCoverUrl(album.platforms, '128px', album.coverUrl)" />
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-sm md:text-base font-medium truncate">

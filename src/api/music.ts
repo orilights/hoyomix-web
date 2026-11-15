@@ -5,7 +5,7 @@ import type { EditRequestDetail, EditRequestList, EditRequestParams } from '@/ty
 import type { SearchPageResponse, SearchResponse, SearchType } from '@/types/search'
 
 import { apiBase } from '@/constants'
-import { fetchJson, fetchJsonMutation } from '@/utils/fetch'
+import { fetchJson, fetchJsonMutation, NotFoundError } from '@/utils/fetch'
 import { isWordLyrics } from '@/utils/word-lyrics'
 
 export function getAlbumListApi() {
@@ -86,9 +86,16 @@ export function submitSongCreditsEditApi(songId: number, credits: SongCreditsCha
   })
 }
 
-export function getCreditInfoApi(id: number | string, type: 'album' | 'song' | 'product') {
+export async function getCreditInfoApi(id: number | string, type: 'album' | 'song' | 'product'): Promise<ArtistTypeInfo> {
   const paths: Record<string, string> = { album: 'albums', song: 'songs', product: 'products' }
-  return fetchJson<ArtistTypeInfo>(`${apiBase}/credits/${paths[type]}/${id}`)
+  try {
+    return await fetchJson<ArtistTypeInfo>(`${apiBase}/credits/${paths[type]}/${id}`)
+  }
+  catch (error) {
+    if (error instanceof NotFoundError)
+      return {}
+    throw error
+  }
 }
 
 export function getArtistsApi() {

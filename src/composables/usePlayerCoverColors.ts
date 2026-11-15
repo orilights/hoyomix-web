@@ -8,7 +8,7 @@ export const usePlayerCoverColors = createSharedComposable(() => {
   const player = usePlayerStore()
   const colors = shallowRef(fallbackCoverColors)
   const coverUrl = computed(() => player.currentSong
-    ? getCoverUrl(player.currentSong.albumPlatforms, '128px')
+    ? getCoverUrl(player.currentSong.albumPlatforms, '128px', player.currentSong.albumCoverUrl)
     : '')
 
   watch(coverUrl, async (url, _, onCleanup) => {

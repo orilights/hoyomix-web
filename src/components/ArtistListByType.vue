@@ -79,6 +79,10 @@ const displayGroups = computed(() => {
       {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
     </div>
 
+    <div v-else-if="!displayGroups.length" class="flex items-center justify-center py-8 text-gray-400">
+      {{ t('ArtistListByType.no_data') }}
+    </div>
+
     <div v-else class="grid grid-cols-2 gap-2 items-start">
       <section
         v-for="group in displayGroups" :key="group.label"

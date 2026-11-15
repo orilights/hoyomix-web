@@ -32,6 +32,10 @@
 > [!WARNING]
 > 本网站由爱好者制作，并非 HOYO-MiX 官方网站。 网站内使用的图标、专辑图片、文本，仅用于信息展示，其版权属于 米哈游/miHoYo/上海米哈游网络科技股份有限公司
 
+## Credits
+
+- [AMLL TTML DataBase](https://github.com/amll-dev/amll-ttml-db) 逐字歌词数据源
+
 ## License
 
 [MIT License](LICENSE)

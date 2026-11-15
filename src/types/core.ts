@@ -16,6 +16,7 @@ export interface ContributionInfo {
 }
 
 export interface AlbumInfo {
+  coverUrl?: string | null
   id: number
   name: string
   description: string
@@ -47,6 +48,7 @@ export interface MapSongsResponse {
 }
 
 export interface SongInfo {
+  albumId?: number
   aiAnalysis?: SongAnalysis | null
   songTags: SongTag[]
   id: number
@@ -246,6 +248,7 @@ export interface PlaylistSongItem {
   albumName: string
   platforms: PlatformInfoMap
   albumPlatforms: PlatformInfoMap
+  albumCoverUrl?: string | null
 }
 
 export interface PlaylistDetail extends Omit<PlaylistListItem, 'songCount'> {

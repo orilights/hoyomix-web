@@ -77,6 +77,7 @@ export function buildPlaylistItem(song: SongListItemInfo, album: AlbumInfo): Pla
     albumName: album.name,
     platforms: song.platforms,
     albumPlatforms: album.platforms,
+    albumCoverUrl: album.coverUrl,
   }
 }
 
@@ -92,9 +93,11 @@ export function updateMediaSession(song: PlaylistItem) {
   if (!('mediaSession' in navigator))
     return
 
-  const artwork: MediaImage[] = MEDIA_SESSION_ARTWORK_SIZES
-    .map(size => ({ src: getCoverUrl(song.albumPlatforms, size), sizes: `${size.replace('px', '')}x${size.replace('px', '')}`, type: 'image/jpeg' }))
-    .filter(a => a.src !== '')
+  const artwork: MediaImage[] = song.albumCoverUrl
+    ? [{ src: song.albumCoverUrl }]
+    : MEDIA_SESSION_ARTWORK_SIZES
+        .map(size => ({ src: getCoverUrl(song.albumPlatforms, size, song.albumCoverUrl), sizes: `${size.replace('px', '')}x${size.replace('px', '')}`, type: 'image/jpeg' }))
+        .filter(a => a.src !== '')
 
   navigator.mediaSession.metadata = new MediaMetadata({
     title: song.songName,

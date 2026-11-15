@@ -18,7 +18,7 @@ const { isFullscreen } = storeToRefs(player)
 const coverUrl = computed(() => {
   if (!props.song)
     return ''
-  return getCoverUrl(props.song.albumPlatforms, '96px')
+  return getCoverUrl(props.song.albumPlatforms, '96px', props.song.albumCoverUrl)
 })
 
 function openMobilePlayer(event: MouseEvent) {

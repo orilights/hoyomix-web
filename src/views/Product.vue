@@ -151,7 +151,7 @@ usePageSeo({
 watch(product, (val) => {
   if (val) {
     if (albumsFiltered.value[0])
-      store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '128px'))
+      store.setBackground(getCoverUrl(albumsFiltered.value[0].platforms, '128px', albumsFiltered.value[0].coverUrl))
   }
 }, { immediate: true })
 </script>

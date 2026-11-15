@@ -36,14 +36,15 @@ const currentPlaylistSong = computed(() => {
   return playlistDetail.value.songs.find(song => song.songId === musicId.value) || null
 })
 
+const { data: songInfo, isLoading: isSongLoading, isError: isSongError, error: songError } = useSongInfoQuery(musicId)
+
 const albumId = computed(() => {
   if (isPlaylistContext.value)
     return currentPlaylistSong.value?.albumId ?? null
-  return Number(route.params.albumId as string) || null
+  return songInfo.value?.albumId ?? (Number(route.params.albumId as string) || null)
 })
 
 const { data: albumInfo, isLoading, isError: isAlbumError, error: albumError } = useAlbumInfoQuery(albumId)
-const { data: songInfo, isLoading: isSongLoading, isError: isSongError, error: songError } = useSongInfoQuery(musicId)
 const hasSongTags = computed(() => !!(songInfo.value?.tags.length || songInfo.value?.maps?.length || songInfo.value?.songTags?.length))
 const showDiscName = computed(() => new Set(albumInfo.value?.songs.map(song => song.disc)).size > 1)
 
@@ -76,8 +77,8 @@ const lyricSongId = computed(() => musicInfo.value?.id ?? null)
 const hasNcmPlatform = computed(() => !!musicInfo.value?.platforms?.ncm)
 const hasQQPlatform = computed(() => !!musicInfo.value?.platforms?.qq)
 
-watch(isAlbumError, (val) => {
-  if (!val)
+watch([isAlbumError, isSongLoading], ([val, songLoading]) => {
+  if (!val || songLoading)
     return
   if (albumError.value instanceof NotFoundError)
     router.replace({ path: '/404', query: { errorMessage: albumError.value?.message } })
@@ -86,8 +87,19 @@ watch(isAlbumError, (val) => {
 })
 
 // 专辑加载成功但歌曲不存在于该专辑中，跳转 404 页面
-watch([() => !!albumInfo.value, musicInfo], ([hasAlbum, song]) => {
-  if (hasAlbum && !song) {
+watch([() => route.params.albumId, () => songInfo.value?.albumId], ([routeAlbumId, currentAlbumId]) => {
+  if (!isPlaylistContext.value && currentAlbumId && Number(routeAlbumId) !== currentAlbumId) {
+    router.replace({
+      name: 'MusicInfo',
+      params: { albumId: currentAlbumId, musicId: musicId.value },
+      query: route.query,
+      hash: route.hash,
+    })
+  }
+}, { immediate: true })
+
+watch([() => !!albumInfo.value, musicInfo, isSongLoading], ([hasAlbum, song, songLoading]) => {
+  if (!isPlaylistContext.value && hasAlbum && !song && !songLoading) {
     router.replace({ path: '/404', query: { get errorMessage() {
       return t('Music.song_not_found')
     } } })
@@ -173,7 +185,7 @@ const hasNext = computed(() => {
 })
 
 const musicCoverUrl = computed(() =>
-  albumInfo.value ? getCoverUrl(albumInfo.value.platforms, '512px') : '',
+  albumInfo.value ? getCoverUrl(albumInfo.value.platforms, '512px', albumInfo.value.coverUrl) : '',
 )
 
 const musicPagePath = computed(() => {
@@ -202,7 +214,7 @@ usePageSeo({
 
 watch([musicInfo, albumInfo], ([song, album]) => {
   if (song && album) {
-    store.setBackground(getCoverUrl(album.platforms, '128px'))
+    store.setBackground(getCoverUrl(album.platforms, '128px', album.coverUrl))
   }
 }, { immediate: true })
 
@@ -336,7 +348,7 @@ function refreshSongInfo() {
     <div v-else-if="albumInfo && musicInfo" class="music-page detail-page">
       <div v-page-enter="0" class="detail-header">
         <div class="detail-cover rounded-2xl shrink-0 shadow-md overflow-hidden">
-          <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px')" :preview-src="getCoverUrl(albumInfo.platforms, '800px')" :alt="albumInfo.name" />
+          <CoverImage :src="getCoverUrl(albumInfo.platforms, '256px', albumInfo.coverUrl)" :preview-src="getCoverUrl(albumInfo.platforms, '800px', albumInfo.coverUrl)" :alt="albumInfo.name" />
         </div>
         <div class="min-w-0">
           <div class="detail-title font-bold break-words" :title="musicInfo.name">

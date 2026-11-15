@@ -9,6 +9,7 @@ export interface PlaylistItem {
   albumName: string
   platforms: PlatformInfoMap
   albumPlatforms: PlatformInfoMap
+  albumCoverUrl?: string | null
 }
 
 export type PlayMode = 'sequential' | 'loop' | 'single' | 'shuffle'
