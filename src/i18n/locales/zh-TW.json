@@ -293,7 +293,6 @@
   "Album.go_to_songs": "定位到 {p0}，共 {p1} 首",
   "Album.collapse_description": "收起介紹",
   "Album.expand_description": "展開介紹",
-  "Album.no_description": "暫無簡介",
   "Albums.saved": "已收藏",
   "Albums.all_albums_in_the_collection": "已收錄的所有專輯",
   "Albums.release_year": "發行年份",

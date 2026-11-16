@@ -293,7 +293,6 @@
   "Album.go_to_songs": "Go to {p0}, {p1} song | Go to {p0}, {p1} songs",
   "Album.collapse_description": "Collapse description",
   "Album.expand_description": "Expand description",
-  "Album.no_description": "No description",
   "Albums.saved": "Saved",
   "Albums.all_albums_in_the_collection": "All albums in the collection",
   "Albums.release_year": "Release year",
