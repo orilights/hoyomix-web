@@ -226,7 +226,10 @@ function discardAndLeave() {
 }
 
 onBeforeRouteLeave(confirmNavigation)
-onBeforeRouteUpdate((to, from) => to.params.id !== from.params.id ? confirmNavigation() : true)
+onBeforeRouteUpdate((to, from) => {
+  if (to.params.id !== from.params.id || (sorting.value && to.query.commentPostId === commentPostId.value))
+    return confirmNavigation()
+})
 watch(showUnsavedOrderDialog, (visible) => {
   if (!visible)
     finishNavigation(false)

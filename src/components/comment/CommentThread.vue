@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ComponentPublicInstance } from 'vue'
 import type { Comment, CommentThread as CommentThreadData } from '@/types/comment'
 import { toast } from 'vue-sonner'
 import { COMMENT_REPLY_PAGE_SIZE, CommentApiError, getCommentLocationApi } from '@/api/comment'
@@ -28,7 +29,7 @@ const emit = defineEmits<{
   'cancelReply': []
   'created': [payload: { id: string, state: string, postId: string, userId: string, threadId: string | null }]
   'changed': []
-  'located': [threadId: string]
+  'located': [threadId: string, commentId: string]
 }>()
 
 const auth = useAuthStore()
@@ -59,8 +60,6 @@ function replyNumberOf(id: string | null) {
 }
 
 watch(() => props.thread, (thread) => {
-  if (page.value === 1)
-    replies.value = [...thread.replies]
   replyPagination.value = { ...replyPagination.value, total: thread.replyCount, totalPages: Math.ceil(thread.replyCount / COMMENT_REPLY_PAGE_SIZE) }
 }, { deep: true })
 
@@ -76,14 +75,14 @@ watch(repliesQuery.data, (data) => {
   }
   replies.value = [...data.data]
   replyPagination.value = data.pagination
-  const targetId = props.targetCommentId ?? pendingLocatedId.value ?? props.newReplyId
+  const targetId = pendingLocatedId.value ?? props.newReplyId
   if (targetId && data.data.some(comment => comment.id === targetId)) {
     nextTick(() => {
       if (focusComment(targetId)) {
         locatingNewReply.value = false
         pendingLocatedId.value = null
         locatingReply.value = null
-        emit('located', props.thread.threadId)
+        emit('located', props.thread.threadId, targetId)
       }
     })
   }
@@ -104,24 +103,10 @@ watch(() => props.newReplyId, (id) => {
 }, { immediate: true })
 
 watch([() => props.targetCommentId, () => props.targetReplyPage], ([id, replyPage]) => {
-  if (!id)
-    return
-  if (replyPage == null) {
-    nextTick(() => {
-      if (focusComment(id))
-        emit('located', props.thread.threadId)
-    })
-    return
+  if (id && replyPage != null) {
+    expanded.value = true
+    page.value = replyPage
   }
-  expanded.value = true
-  page.value = replyPage
-  nextTick(() => {
-    if (focusComment(id)) {
-      emit('located', props.thread.threadId)
-      return
-    }
-    repliesQuery.refetch()
-  })
 }, { immediate: true })
 
 function expand() {
@@ -138,9 +123,8 @@ function onReply(comment: Comment) {
   emit('reply', comment)
 }
 
-function focusComment(id: string) {
-  const element = document.getElementById(`comment-${id}`)
-  if (!element)
+function focusComment(id: string, element = document.getElementById(`comment-${id}`)) {
+  if (!element?.getClientRects().length)
     return false
   element.scrollIntoView({ block: 'center' })
   element.focus({ preventScroll: true })
@@ -152,6 +136,17 @@ function focusComment(id: string) {
     { backgroundColor: 'transparent' },
   ], { duration: 2000, easing: 'ease-in-out' })
   return true
+}
+
+async function focusNotificationComment(instance: Element | ComponentPublicInstance | null) {
+  const element = instance && '$el' in instance ? instance.$el : instance
+  const id = props.targetCommentId
+  if (!(element instanceof HTMLElement) || !id)
+    return
+  // 回复列表可能等过渡结束才挂载，此时才能滚动到目标。
+  await nextTick()
+  if (props.targetCommentId === id && element.id === `comment-${id}` && focusComment(id, element))
+    emit('located', props.thread.threadId, id)
 }
 
 async function locateReply(id: string) {
@@ -206,7 +201,7 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="border-b border-black/5 dark:border-white/5 last:border-b-0">
-    <CommentItem :comment="thread.root" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">
+    <CommentItem :ref="thread.root.id === targetCommentId ? focusNotificationComment : undefined" :comment="thread.root" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">
       <template v-if="replyTarget?.id === thread.root.id" #reply-composer>
         <CommentInput
           :model-value="replyContent"
@@ -222,7 +217,7 @@ onBeforeUnmount(() => {
 
     <div v-if="thread.replyCount" class="ml-6 md:ml-12 pl-3">
       <div v-if="expanded">
-        <AsyncFade>
+        <AsyncFade :animate-height="targetCommentId ? false : undefined">
           <div v-if="repliesQuery.isPending.value" class="py-3 flex items-center justify-center gap-2 text-xs text-gray-400" role="status">
             <LucideLoader2 class="size-4 animate-spin" />{{ t('App.loading') }}
           </div>
@@ -232,7 +227,18 @@ onBeforeUnmount(() => {
             </AppButton>
           </div>
           <div v-else :key="repliesQuery.data.value?.pagination.page ?? page">
-            <CommentItem v-for="(comment, index) in replies" :key="comment.id" :comment="comment" :depth="1" :reply-number="firstReplyNumber + index" :reply-to-number="replyNumberOf(comment.replyTo)" @reply="onReply" @locate-reply="locateReply" @changed="emit('changed')">
+            <CommentItem
+              v-for="(comment, index) in replies"
+              :key="comment.id"
+              :ref="comment.id === targetCommentId && repliesQuery.data.value?.pagination.page === targetReplyPage ? focusNotificationComment : undefined"
+              :comment="comment"
+              :depth="1"
+              :reply-number="firstReplyNumber + index"
+              :reply-to-number="replyNumberOf(comment.replyTo)"
+              @reply="onReply"
+              @locate-reply="locateReply"
+              @changed="emit('changed')"
+            >
               <template v-if="replyTarget?.id === comment.id" #reply-composer>
                 <CommentInput
                   :model-value="replyContent"

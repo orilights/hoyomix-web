@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { useCommentThreadsQuery } from '@/composables/queries'
 import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
-import { rememberCommentRoute } from '@/utils/comment-route'
 
 const props = defineProps<{
   postId: string
@@ -45,10 +44,6 @@ watch(postId, () => {
   content.value = ''
 })
 watch(userId, resetList)
-watch([postId, () => route.path], ([currentPostId, path]) => {
-  if (currentPostId)
-    rememberCommentRoute(currentPostId, path)
-}, { immediate: true })
 
 function positiveInteger(value: unknown) {
   if (typeof value !== 'string')
@@ -58,8 +53,10 @@ function positiveInteger(value: unknown) {
 }
 
 watch([postId, userId, () => route.query], ([currentPostId, , query]) => {
-  if (query.commentPostId !== currentPostId || typeof query.commentId !== 'string' || typeof query.commentThreadId !== 'string')
+  if (query.commentPostId !== currentPostId || typeof query.commentId !== 'string' || typeof query.commentThreadId !== 'string') {
+    notificationTarget.value = null
     return
+  }
   const threadPage = positiveInteger(query.commentThreadPage)
   if (!threadPage)
     return
@@ -76,11 +73,12 @@ watch([postId, userId, () => route.query], ([currentPostId, , query]) => {
 }, { immediate: true, deep: true })
 
 watch(threadsQuery.data, (data) => {
-  if (!data)
+  if (!data || data.pagination.page !== page.value)
     return
-  threads.value = page.value === 1
-    ? [...data.data]
-    : [...threads.value, ...data.data.filter(thread => !threads.value.some(existing => existing.threadId === thread.threadId))]
+  const loadedThreads = new Map((page.value === 1 ? [] : threads.value).map(thread => [thread.threadId, thread]))
+  for (const thread of data.data)
+    loadedThreads.set(thread.threadId, thread)
+  threads.value = [...loadedThreads.values()]
   commentCount.value = data.commentCount ?? data.pagination.total
   pagination.value = data.pagination
 }, { immediate: true })
@@ -118,11 +116,13 @@ function onCreated(payload: { id: string, state: string, postId: string, userId:
   replyTarget.value = null
 }
 
-function onLocated(threadId: string) {
-  const next = new Map(replyJump.value)
-  next.delete(threadId)
-  replyJump.value = next
-  if (notificationTarget.value?.threadId !== threadId)
+function onLocated(threadId: string, commentId: string) {
+  if (replyJump.value.get(threadId) === commentId) {
+    const next = new Map(replyJump.value)
+    next.delete(threadId)
+    replyJump.value = next
+  }
+  if (notificationTarget.value?.commentId !== commentId || notificationTarget.value.threadId !== threadId)
     return
   notificationTarget.value = null
   const query = { ...route.query }
@@ -155,7 +155,7 @@ function onChanged() {
       @created="onCreated"
     />
 
-    <AsyncFade>
+    <AsyncFade :animate-height="notificationTarget ? false : undefined">
       <div v-if="threadsQuery.isError.value && !threads.length" class="py-10 text-center text-sm text-red-400" role="alert">
         {{ t('CommentSection.failed_to_load_comments_please_try_again_later') }}<AppButton size="sm" variant="ghost" class="ml-2" @click="threadsQuery.refetch">
           {{ t('App.retry') }}
