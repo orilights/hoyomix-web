@@ -26,23 +26,19 @@ export function wordLyricScrollIndex(lines: readonly { start: number, end: numbe
   if (!Number.isFinite(time))
     return -1
   const now = time * 1000
-  const target = now + 400
   let index = -1
-  let nearest = -1
-  let distance = Number.POSITIVE_INFINITY
+  let previousEnd = 0
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     if (line.backgroundOf)
       continue
-    if (line.start <= target && target < line.end)
+    // 在进句前 400ms 或较长空档的中点切换。短句结束后不回到仍在唱的旧行。
+    const transitionAt = Math.min(line.start - 400, (previousEnd + line.start) / 2)
+    if (index < 0 || now >= transitionAt)
       index = i
-    const delta = Math.max(line.start - now, now - line.end, 0)
-    if (delta <= distance) {
-      distance = delta
-      nearest = i
-    }
+    previousEnd = Math.max(previousEnd, line.end)
   }
-  return index >= 0 ? index : nearest
+  return index
 }
 
 export function isWordLyrics(value: unknown): value is WordLyrics {
