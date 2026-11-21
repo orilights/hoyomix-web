@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
+import type { AudioQuality, FullscreenBackgroundStyle, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
 import { useImageCache } from '@/composables/useImageCache'
 import { usePageScroll } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
-import { appGithubRepoUrl, appVersion, audioQualityOptions, getAppDescription, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { appGithubRepoUrl, appVersion, audioQualityOptions, fullscreenBackgroundOptions, getAppDescription, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useLanguageStore } from '@/store/language'
@@ -35,7 +35,7 @@ async function clearImageCache() {
     toast.error(imageCacheError.value || t('Settings.failed_to_clear_image_cache_please_try_again_later'))
 }
 const { quality, enableAudioContext, enableMediaSession, lyricsSource, useWordLyrics, songListPlayBehavior, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
-const { lyricsPerspective } = storeToRefs(player)
+const { fullscreenBackgroundStyle, lyricsPerspective } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 const songListPlayOptions: { value: SongListPlayBehavior, label: string }[] = [
@@ -415,6 +415,18 @@ onMounted(() => {
               @update:model-value="player.setMobileFullscreenLayout($event as MobileFullscreenLayout)"
             />
           </div>
+
+          <section aria-labelledby="fullscreen-background-heading">
+            <h2 id="fullscreen-background-heading" class="font-bold text-lg mb-2">
+              {{ t('Settings.fullscreen_player_background') }}
+            </h2>
+            <RadioGroup
+              aria-labelledby="fullscreen-background-heading"
+              :options="fullscreenBackgroundOptions"
+              :model-value="fullscreenBackgroundStyle"
+              @update:model-value="fullscreenBackgroundStyle = $event as FullscreenBackgroundStyle"
+            />
+          </section>
 
           <section aria-labelledby="fullscreen-cover-heading">
             <h2 id="fullscreen-cover-heading" class="font-bold text-lg mb-2">

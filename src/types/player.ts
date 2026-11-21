@@ -18,6 +18,7 @@ export type AudioQuality = 9 | 5 | 1
 export type LyricsSource = 'ncm' | 'qq'
 export type MobileFullscreenLayout = 'lyrics' | 'cover'
 export type FullscreenCoverShape = 'square' | 'circle'
+export type FullscreenBackgroundStyle = 'default' | 'blurred-cover'
 
 export type MediaSourceSelection = 'auto' | string
 

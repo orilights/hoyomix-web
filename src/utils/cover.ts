@@ -444,6 +444,8 @@ class ColorCutQuantizer {
     const histogram = new Int16Array(32768)
 
     for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i + 3] === 0)
+        continue
       const idx = ((pixels[i] >> 3) << 10) | ((pixels[i + 1] >> 3) << 5) | (pixels[i + 2] >> 3)
       histogram[idx]++
     }
@@ -457,7 +459,8 @@ class ColorCutQuantizer {
     }
 
     // 如果过滤后没有颜色，则取消过滤
-    if (distinctColorCount === 0) {
+    const filterColors = distinctColorCount > 0
+    if (!filterColors) {
       for (let i = 0; i < 32768; i++) {
         if (histogram[i] > 0)
           distinctColorCount++
@@ -467,7 +470,7 @@ class ColorCutQuantizer {
     const distinctColors = new Int16Array(distinctColorCount)
     let idx = 0
     for (let i = 0; i < 32768; i++) {
-      if (histogram[i] > 0) {
+      if (histogram[i] > 0 && (!filterColors || !shouldIgnoreQuantizedColor(i))) {
         distinctColors[idx++] = i
       }
     }
@@ -566,7 +569,7 @@ export const fallbackCoverColors = {
   accent: '#ffffff',
 }
 
-/** 只提取一次主色，同时生成播放器背景和频谱强调色。 */
+/** 共享一次取色结果，生成播放器背景和频谱强调色。 */
 export function getImageColors(image: ImageData): typeof fallbackCoverColors {
   const color = new Palette(image).getDominantColor()
   if (color.r < 0)

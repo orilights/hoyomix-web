@@ -1,9 +1,9 @@
-import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, PlaylistItem, PlayMode, SongListPlayBehavior, SongMediaItem } from '@/types/player'
+import type { AudioQuality, FullscreenBackgroundStyle, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, PlaylistItem, PlayMode, SongListPlayBehavior, SongMediaItem } from '@/types/player'
 import type { SleepTimerPreferences } from '@/utils/sleep-timer'
 import { defineStore } from 'pinia'
 import { toast } from 'vue-sonner'
 import { getLyricsApi, getSongMediaApi } from '@/api/music'
-import { audioQualityOptions } from '@/constants'
+import { audioQualityOptions, fullscreenBackgroundOptions } from '@/constants'
 import { t } from '@/i18n'
 import { clearMediaSession, getAvailableQualities, parseSongMediaResponse, selectLyricProvider, selectMediaUrlsWithSource, setupMediaSessionHandlers, updateMediaSession } from '@/utils'
 import { getAudioPlayer } from '@/utils/player'
@@ -35,6 +35,7 @@ export const usePlayerStore = defineStore('player', {
     lyricsSource: 'ncm' as LyricsSource,
     useWordLyrics: true,
     mobileFullscreenLayout: 'cover' as MobileFullscreenLayout,
+    fullscreenBackgroundStyle: 'default' as FullscreenBackgroundStyle,
     fullscreenCoverShape: 'square' as FullscreenCoverShape,
     fullscreenCoverRotation: true,
     fullscreenCoverBorder: true,
@@ -731,6 +732,8 @@ export const usePlayerStore = defineStore('player', {
       store.spectrumSettings = normalizeSpectrumSettings(store.spectrumSettings ?? {})
       if (store.mobileFullscreenLayout !== 'lyrics' && store.mobileFullscreenLayout !== 'cover')
         store.mobileFullscreenLayout = 'cover'
+      if (!fullscreenBackgroundOptions.some(option => option.value === store.fullscreenBackgroundStyle))
+        store.fullscreenBackgroundStyle = 'default'
       if (store.fullscreenCoverShape !== 'square' && store.fullscreenCoverShape !== 'circle')
         store.fullscreenCoverShape = 'square'
       if (typeof store.fullscreenCoverRotation !== 'boolean')
@@ -764,6 +767,7 @@ export const usePlayerStore = defineStore('player', {
       'lyricsSource',
       'useWordLyrics',
       'mobileFullscreenLayout',
+      'fullscreenBackgroundStyle',
       'fullscreenCoverShape',
       'fullscreenCoverRotation',
       'fullscreenCoverBorder',
