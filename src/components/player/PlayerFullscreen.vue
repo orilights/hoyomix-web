@@ -366,7 +366,7 @@ function onHeaderTouchEnd(cancelled = false) {
         <template #cover>
           <button
             type="button"
-            class="block size-full aspect-square shadow-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
+            class="block size-full aspect-square overflow-hidden shadow-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
             :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl ring-1 ring-white/10', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
             :aria-label="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
             :title="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
