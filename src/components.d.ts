@@ -170,6 +170,7 @@ declare module 'vue' {
     PlayerPlayBtn: typeof import('./components/player/PlayerPlayBtn.vue')['default']
     PlayerPlaylist: typeof import('./components/player/PlayerPlaylist.vue')['default']
     PlayerProgress: typeof import('./components/player/PlayerProgress.vue')['default']
+    PlayerScrollingText: typeof import('./components/player/PlayerScrollingText.vue')['default']
     PlayerSleepTimer: typeof import('./components/player/PlayerSleepTimer.vue')['default']
     PlayerSpectrum: typeof import('./components/player/PlayerSpectrum.vue')['default']
     PlayerSpectrumSettings: typeof import('./components/player/PlayerSpectrumSettings.vue')['default']

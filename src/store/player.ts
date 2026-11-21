@@ -31,6 +31,7 @@ export const usePlayerStore = defineStore('player', {
     showFullscreenLyrics: true,
     lyricsOffset: 0,
     lyricsFontSize: 16,
+    lyricsPerspective: false,
     lyricsSource: 'ncm' as LyricsSource,
     useWordLyrics: true,
     mobileFullscreenLayout: 'cover' as MobileFullscreenLayout,
@@ -240,12 +241,17 @@ export const usePlayerStore = defineStore('player', {
         recordShuffleSong(this.shuffleState, song.songId)
       }
       const requestId = ++this.playbackRequestId
+      const player = getAudioPlayer()
+      player.resetSource()
       this.currentIndex = index
 
       // 立即重置播放状态，不等待加载完成
+      this.isPlaying = false
       this.currentTime = 0
       this.duration = 0
       this.bufferedEnd = 0
+      this.currentMediaItems = []
+      this.availableQualities = new Set()
       this.isLoading = true
       this.lyricData = ''
       this.lyricTranslation = ''
@@ -284,7 +290,6 @@ export const usePlayerStore = defineStore('player', {
         return
       }
 
-      const player = getAudioPlayer()
       await player.loadSong(urls)
       if (requestId !== this.playbackRequestId || this.checkSleepTimer())
         return
@@ -562,11 +567,15 @@ export const usePlayerStore = defineStore('player', {
 
       const player = getAudioPlayer()
       await player.loadSong(urls)
+      if (requestId !== this.playbackRequestId || q !== this.quality)
+        return
 
       const onCanPlay = async () => {
         player.off('canplay', onCanPlay)
+        if (requestId !== this.playbackRequestId || q !== this.quality)
+          return
         player.seek(savedTime)
-        if (wasPlaying && requestId === this.playbackRequestId && !this.checkSleepTimer()) {
+        if (wasPlaying && !this.checkSleepTimer()) {
           await player.play()
         }
       }
@@ -751,6 +760,7 @@ export const usePlayerStore = defineStore('player', {
       'showFullscreenLyrics',
       'lyricsOffset',
       'lyricsFontSize',
+      'lyricsPerspective',
       'lyricsSource',
       'useWordLyrics',
       'mobileFullscreenLayout',

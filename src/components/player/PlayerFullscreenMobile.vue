@@ -3,10 +3,13 @@ import type { LyricLine } from '@/utils'
 import { useElementSize } from '@vueuse/core'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
+import PlayerControlMobile from './PlayerControlMobile.vue'
 import PlayerLyrics from './PlayerLyrics.vue'
+import PlayerScrollingText from './PlayerScrollingText.vue'
 
-defineProps<{ parsedLyrics: LyricLine[], hasTimestamp: boolean, currentLineIndex: number, wordLyricAuthors: string[] }>()
-defineEmits<{
+const props = defineProps<{ parsedLyrics: LyricLine[], hasTimestamp: boolean, currentLineIndex: number, wordLyricAuthors: string[] }>()
+const emit = defineEmits<{
+  activity: []
   close: []
   toSong: []
   toAlbum: []
@@ -30,17 +33,14 @@ function onArtClick(event: MouseEvent) {
   if (suppress && event.detail > 0) {
     event.preventDefault()
     event.stopPropagation()
+    emit('activity')
   }
 }
-const songTitle = useTemplateRef<HTMLElement>('songTitle')
-const songTitleText = useTemplateRef<HTMLElement>('songTitleText')
-const { width: titleWidth } = useElementSize(songTitle)
-const { width: titleTextWidth } = useElementSize(songTitleText)
-const titleOverflows = computed(() => titleWidth.value > 0 && titleTextWidth.value > titleWidth.value + 1)
-const titleScrollStyle = computed(() => ({
-  '--title-scroll-distance': `${-(titleTextWidth.value + 32)}px`,
-  '--title-scroll-duration': `${(titleTextWidth.value + 32) / 32 + 2}s`,
-}))
+const compactLyricIndex = computed(() => Math.max(0, props.currentLineIndex))
+const compactLyricLine = computed(() => props.hasTimestamp ? props.parsedLyrics[compactLyricIndex.value] : undefined)
+const songInfo = useTemplateRef<HTMLElement>('songInfo')
+const { height: songInfoHeight } = useElementSize(songInfo)
+const controls = useTemplateRef<InstanceType<typeof PlayerControlMobile>>('controls')
 const artArea = useTemplateRef<HTMLElement>('artArea')
 const { width, height } = useElementSize(artArea)
 // Reserve two 1.25-line-height lines plus the translation gap, independent of the current lyric.
@@ -49,9 +49,11 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
 </script>
 
 <template>
-  <div class="mobile-fullscreen relative z-10 flex-1 min-h-0 text-white">
+  <div class="mobile-fullscreen relative z-10 flex-1 min-h-0 text-white" :class="{ 'mobile-immersive-lyrics': controlsHidden && mobileFullscreenLayout === 'lyrics' }">
     <header
       class="mobile-heading"
+      :class="{ invisible: controlsHidden }"
+      :inert="controlsHidden"
       @touchstart="$emit('headerTouchStart', $event)" @touchmove.prevent="$emit('headerTouchMove', $event)" @touchend="$emit('headerTouchEnd')" @touchcancel="$emit('headerTouchEnd', true)"
     >
       <div class="mobile-heading-actions flex items-center justify-between">
@@ -60,15 +62,9 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
         </button>
         <FavoriteButton v-if="currentSong" type="song" :song-id="currentSong.songId" size="md" class="shrink-0 min-w-11 min-h-11 -mr-2 text-white!" />
       </div>
-      <div class="mobile-song-info min-w-0 transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
-        <button ref="songTitle" type="button" class="song-title block w-full overflow-hidden whitespace-nowrap text-left text-[22px] leading-tight font-semibold cursor-pointer" :aria-label="currentSong?.songName" :title="currentSong?.songName" @touchstart.stop @touchmove.stop @click="$emit('toSong')">
-          <span
-            :key="`${currentSong?.songId}:${currentSong?.songName}`"
-            class="song-title-track" :class="{ 'song-title-scrolling': titleOverflows, 'song-title-paused': controlsHidden }" :style="titleScrollStyle"
-          >
-            <span ref="songTitleText" class="shrink-0">{{ currentSong?.songName }}</span>
-            <span v-if="titleOverflows" class="shrink-0" aria-hidden="true">{{ currentSong?.songName }}</span>
-          </span>
+      <div ref="songInfo" class="min-w-0">
+        <button type="button" class="block w-full text-left text-[22px] leading-tight font-semibold cursor-pointer" :aria-label="currentSong?.songName" :title="currentSong?.songName" @touchstart.stop @touchmove.stop @click="$emit('toSong')">
+          <PlayerScrollingText :key="currentSong?.songId" :text="currentSong?.songName ?? ''" :paused="controlsHidden" />
         </button>
         <button type="button" class="mt-2 block max-w-full truncate text-sm text-white/60 cursor-pointer" @touchstart.stop @touchmove.stop @click="$emit('toAlbum')">
           {{ currentSong?.albumName }}
@@ -77,7 +73,7 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
     </header>
     <div
       ref="artArea"
-      class="mobile-art min-h-0 min-w-0" :class="{ 'pt-4': mobileFullscreenLayout === 'cover' }"
+      class="mobile-art relative min-h-0 min-w-0" :class="{ 'pt-4': mobileFullscreenLayout === 'cover' }"
       @pointerdown.capture="onArtPointerDown" @click.capture="onArtClick"
     >
       <div v-if="mobileFullscreenLayout === 'cover'" class="h-full flex flex-col items-center justify-center gap-5">
@@ -85,13 +81,28 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
           <slot name="cover" />
         </div>
         <div class="w-full shrink-0 overflow-hidden text-center" :style="{ height: `${lyricHeight}px` }">
-          <slot name="lyric" />
+          <div v-if="compactLyricLine" :key="compactLyricIndex" class="leading-tight">
+            <PlayerScrollingText :text="compactLyricLine.text" :title="compactLyricLine.text" :style="{ fontSize: `${lyricsFontSize}px` }" />
+            <PlayerScrollingText
+              v-if="showTranslation && compactLyricLine.translation"
+              class="mt-1 text-white/70"
+              :text="compactLyricLine.translation"
+              :title="compactLyricLine.translation"
+              :style="{ fontSize: `${lyricsFontSize - 2}px` }"
+            />
+          </div>
         </div>
       </div>
-      <PlayerLyrics v-else :word-lyric-authors="wordLyricAuthors" :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation" controls-on-scroll-only class="h-full" @seek="player.seek" />
+      <PlayerLyrics
+        v-else
+        :word-lyric-authors="wordLyricAuthors" :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :show-translation="showTranslation"
+        :font-viewport-height="height" controls-on-scroll-only class="mobile-lyrics"
+        :style="{ '--song-info-height': `${songInfoHeight}px`, '--progress-height': `${controls?.progressHeight ?? 0}px` }"
+        @seek="player.seek" @user-scroll="emit('activity')"
+      />
     </div>
     <div class="mobile-controls">
-      <PlayerControlMobile :controls-hidden="controlsHidden" @sleep="$emit('sleep')">
+      <PlayerControlMobile ref="controls" :controls-hidden="controlsHidden" @sleep="$emit('sleep')">
         <template #more>
           <slot name="more" />
         </template>
@@ -101,28 +112,14 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
 </template>
 
 <style scoped>
-.song-title-track {
-  display: inline-flex;
-  gap: 32px;
-  vertical-align: top;
-}
-.song-title-scrolling {
-  animation: song-title-scroll var(--title-scroll-duration) linear infinite;
-}
-.song-title-paused {
-  animation-play-state: paused;
-}
-@keyframes song-title-scroll {
-  0%, 10% { transform: translateX(0); }
-  100% { transform: translateX(var(--title-scroll-distance)); }
-}
 .mobile-fullscreen {
   --mobile-inline-padding: 28px;
   --mobile-top-padding: max(8px, env(safe-area-inset-top));
+  --mobile-row-gap: 8px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(180px, 1fr) auto;
-  gap: 8px;
+  gap: var(--mobile-row-gap);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: var(--mobile-top-padding) var(--mobile-inline-padding) max(8px, env(safe-area-inset-bottom));
@@ -137,6 +134,15 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
 }
 .mobile-art {
   grid-area: 2 / 1;
+}
+.mobile-lyrics {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+.mobile-immersive-lyrics .mobile-lyrics {
+  top: calc(-1 * (var(--mobile-row-gap) + var(--song-info-height)));
+  bottom: calc(-1 * (var(--mobile-row-gap) + var(--progress-height)));
 }
 .mobile-controls {
   grid-area: 3 / 1;
@@ -155,7 +161,7 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
 }
 @media (max-height: 700px) {
   .mobile-fullscreen {
-    gap: 4px;
+    --mobile-row-gap: 4px;
     --mobile-inline-padding: 24px;
   }
 }
@@ -183,13 +189,8 @@ const coverSize = computed(() => Math.max(72, Math.min(width.value, height.value
     grid-row: 2;
     align-self: end;
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  .song-title { text-overflow: ellipsis; }
-  .song-title-track { display: inline; animation: none; }
-  .song-title-track > [aria-hidden] { display: none; }
-  .mobile-song-info {
-    transition: none;
+  .mobile-immersive-lyrics .mobile-lyrics {
+    inset: 0;
   }
 }
 </style>

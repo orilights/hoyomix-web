@@ -28,7 +28,6 @@ const {
   showSpectrum,
   enableAudioContext,
   lyricsOffset,
-  lyricsFontSize,
   fullscreenCoverShape,
   fullscreenCoverRotation,
   fullscreenCoverBorder,
@@ -220,13 +219,6 @@ const { parsedLyrics, hasTimestamp, currentLineIndex, hasTranslation, wordLyricA
   lyricsOffset,
 })
 
-const compactLyricLine = computed(() => {
-  if (parsedLyrics.value.length === 0 || !hasTimestamp.value)
-    return null
-  const index = currentLineIndex.value >= 0 ? currentLineIndex.value : 0
-  return parsedLyrics.value[index] ?? null
-})
-
 let immersiveTimer: ReturnType<typeof setTimeout> | null = null
 const IMMERSIVE_HIDE_DELAY = 3000
 function showImmersiveControls() {
@@ -245,6 +237,13 @@ function onImmersiveActivity() {
   if (!isImmersive.value)
     return
   showImmersiveControls()
+}
+
+function onImmersiveMovement() {
+  // 展开的歌词区由点击或实际滚动唤醒，轻触开始时保留原布局。
+  if (isMobileViewport.value && player.mobileFullscreenLayout === 'lyrics' && !immersiveControlsVisible.value)
+    return
+  onImmersiveActivity()
 }
 
 watch([isImmersive, showPlayerMenu, coverMenu, showSleepTimer, () => isMobileViewport.value && player.showPlaylist], ([immersive]) => {
@@ -339,8 +338,8 @@ function onHeaderTouchEnd(cancelled = false) {
         transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
         transition: snapBack ? 'transform 0.3s ease' : undefined,
       }"
-      @mousemove="onImmersiveActivity"
-      @touchstart="onImmersiveActivity"
+      @mousemove="onImmersiveMovement"
+      @touchstart="onImmersiveMovement"
     >
       <div class="absolute inset-0 bg-gray-900">
         <div
@@ -359,7 +358,7 @@ function onHeaderTouchEnd(cancelled = false) {
       <PlayerFullscreenMobile
         v-if="isMobileViewport"
         :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :word-lyric-authors="wordLyricAuthors"
-        @click="onImmersiveActivity"
+        @click="onImmersiveActivity" @activity="onImmersiveActivity"
         @close="close" @to-song="toSong" @to-album="toAlbum" @sleep="showSleepTimer = true"
         @header-touch-start="onHeaderTouchStart" @header-touch-move="onHeaderTouchMove" @header-touch-end="onHeaderTouchEnd"
       >
@@ -384,26 +383,6 @@ function onHeaderTouchEnd(cancelled = false) {
               :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
             />
           </button>
-        </template>
-        <template #lyric>
-          <div v-if="compactLyricLine" class="max-w-full text-white font-bold">
-            <div
-              class="leading-tight whitespace-pre-line"
-              :class="showTranslation && compactLyricLine.translation ? 'line-clamp-1' : 'line-clamp-2'"
-              :style="{ fontSize: `${lyricsFontSize}px` }"
-              :title="compactLyricLine.text"
-            >
-              {{ compactLyricLine.text }}
-            </div>
-            <div
-              v-if="showTranslation && compactLyricLine.translation"
-              class="leading-tight whitespace-pre-line text-white/70 font-normal mt-1 line-clamp-1"
-              :style="{ fontSize: `${lyricsFontSize}px` }"
-              :title="compactLyricLine.translation"
-            >
-              {{ compactLyricLine.translation }}
-            </div>
-          </div>
         </template>
         <template #more>
           <div class="relative" @touchstart.stop>
@@ -607,31 +586,36 @@ function onHeaderTouchEnd(cancelled = false) {
           </div>
         </div>
 
-        <div class="relative z-10 flex-1 flex items-center px-16 gap-8 min-h-0" :class="{ 'justify-center': !showFullscreenLyrics }">
-          <div class="w-[40%] max-w-[40vh] shrink-0" :class="!showFullscreenLyrics ? 'mx-auto' : 'mx-[5vw]'">
-            <div
-              class="w-full aspect-square shadow-2xl"
-              :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
-              @contextmenu="onCoverContextMenu"
-            >
-              <LazyImg
-                class="size-full fullscreen-cover-image"
-                :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
-                :src="coverUrl"
-                :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
-              />
-            </div>
-            <div class="mt-4 text-center">
-              <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
-                {{ currentSong.songName }}
+        <div
+          class="relative z-10 flex-1 items-center px-16 gap-8 min-h-0"
+          :class="showFullscreenLyrics ? 'grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] grid-rows-[minmax(0,1fr)]' : 'flex justify-center'"
+        >
+          <div class="min-w-0" :class="{ 'w-[40%]': !showFullscreenLyrics }">
+            <div class="w-full max-w-[40vh] mx-auto">
+              <div
+                class="w-full aspect-square shadow-2xl"
+                :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
+                @contextmenu="onCoverContextMenu"
+              >
+                <LazyImg
+                  class="size-full fullscreen-cover-image"
+                  :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
+                  :src="coverUrl"
+                  :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
+                />
               </div>
-              <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">
-                {{ currentSong.songDescription }}
+              <div class="mt-4 text-center">
+                <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
+                  {{ currentSong.songName }}
+                </div>
+                <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">
+                  {{ currentSong.songDescription }}
+                </div>
               </div>
             </div>
           </div>
 
-          <div v-if="showFullscreenLyrics" class="flex-1 h-full min-w-0">
+          <div v-if="showFullscreenLyrics" class="h-full min-h-0 min-w-0">
             <PlayerLyrics
               :word-lyric-authors="wordLyricAuthors"
               :parsed-lyrics="parsedLyrics"

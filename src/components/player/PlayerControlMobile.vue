@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useElementSize } from '@vueuse/core'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { formatDuration } from '@/utils'
@@ -8,6 +9,9 @@ defineProps<{ controlsHidden: boolean }>()
 defineEmits<{ sleep: [] }>()
 const player = usePlayerStore()
 const { currentTime, duration, bufferedEnd, mobileFullscreenLayout, isPlaying, isLoading, playMode, showPlaylist } = storeToRefs(player)
+const progress = useTemplateRef<HTMLElement>('progress')
+const { height: progressHeight } = useElementSize(progress)
+defineExpose({ progressHeight })
 const playLabel = computed(() => isLoading.value ? t('PlayerPlayBtn.loading_please_wait') : isPlaying.value ? t('PlayerPlayBtn.pause') : t('MusicActions.play'))
 const modeLabel = computed(() => ({ sequential: t('PlayerBar.play_in_order'), loop: t('PlayerBar.repeat_all'), single: t('PlayerBar.repeat_one'), shuffle: t('DesktopSidebar.shuffle') })[playMode.value])
 const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.sleepTimerNow))
@@ -15,7 +19,7 @@ const timerLabel = computed(() => getSleepTimerLabel(player.sleepTimer, player.s
 
 <template>
   <div>
-    <div class="mobile-progress transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
+    <div ref="progress" class="mobile-progress transition-opacity duration-300" :class="{ 'opacity-0 pointer-events-none': controlsHidden }" :inert="controlsHidden">
       <PlayerProgress :current-time="currentTime" :duration="duration" :buffered-end="bufferedEnd" touch-friendly @seek="player.seek" />
       <div class="flex justify-between text-xs text-white/60 tabular-nums -mt-1 pointer-events-none">
         <span>{{ formatDuration(Math.floor(currentTime)) }}</span><span>{{ formatDuration(Math.floor(duration)) }}</span>

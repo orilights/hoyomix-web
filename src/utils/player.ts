@@ -113,6 +113,7 @@ export class AudioPlayer {
 
   async loadSong(urls: string[]) {
     this.pause()
+    const revision = this.playRevision
     this.urls = urls
     this.urlIndex = 0
 
@@ -122,7 +123,7 @@ export class AudioPlayer {
       await this.audioContext.resume()
     }
 
-    if (urls.length > 0) {
+    if (revision === this.playRevision && urls.length > 0) {
       await this.loadUrl(urls[0])
     }
   }
@@ -140,6 +141,14 @@ export class AudioPlayer {
   pause() {
     this.playRevision++
     this.audio.pause()
+  }
+
+  resetSource() {
+    this.pause()
+    this.urls = []
+    this.urlIndex = 0
+    this.audio.removeAttribute('src')
+    this.audio.load()
   }
 
   seek(time: number) {
