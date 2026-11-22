@@ -192,30 +192,32 @@ function playSong(event: Event, songId: number, albumId: number) {
         </div>
       </RouterLink>
       <div v-if="filteredSongsByAlbum.get(album.id)?.length" class="md:ml-22 mt-2">
-        <RouterLink
+        <div
           v-for="song in filteredSongsByAlbum.get(album.id)" :key="song.id"
           :data-song-id="song.id"
-          :to="{ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.id } }"
-          class="group/song flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-gray-500/10 transition-colors"
+          class="group/song relative flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-gray-500/10 transition-colors"
         >
-          <div class="flex-1 min-w-0 flex items-center gap-2">
+          <RouterLink
+            :to="{ name: 'MusicInfo', params: { albumId: song.albumId, musicId: song.id } }"
+            class="flex-1 min-w-0 flex items-center gap-2 after:absolute after:inset-0 after:rounded-lg after:content-empty"
+          >
             <span class="text-xs text-gray-400 shrink-0 w-4">{{ song.albumIndex }}</span>
             <span class="text-sm truncate min-w-0">{{ song.name }}</span>
             <span class="text-xs text-gray-400 shrink-0 ml-auto">{{ song.roles.join(' / ') }}</span>
-          </div>
-          <FavoriteButton type="song" :song-id="song.id" />
+          </RouterLink>
+          <FavoriteButton type="song" :song-id="song.id" class="relative" />
           <AppButton
             icon-only
             size="xs"
             variant="ghost"
-            class="hidden md:inline-flex shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 opacity-0 md:group-hover/song:opacity-100 transition-all hover:scale-105 active:scale-95"
+            class="relative hidden md:inline-flex shrink-0 text-gray-400 hover:text-gray-500 hover:dark:text-gray-400 opacity-0 md:group-hover/song:opacity-100 transition-all hover:scale-105 active:scale-95"
             :aria-label="t('ArtistAlbumList.play_song')"
             :title="t('ArtistAlbumList.play_song')"
             @click="playSong($event, song.id, song.albumId)"
           >
             <LucidePlay class="size-4" fill="currentColor" />
           </AppButton>
-        </RouterLink>
+        </div>
       </div>
     </div>
     <SongListPlaybackDialog ref="playbackDialog" />
