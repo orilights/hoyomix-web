@@ -2,7 +2,7 @@
 import { useElementSize, useFullscreen, useMediaQuery } from '@vueuse/core'
 import { usePlayerCoverColors } from '@/composables/usePlayerCoverColors'
 import { usePlayerLyrics } from '@/composables/usePlayerLyrics'
-import { audioQualityOptions, getQualityLabel } from '@/constants'
+import { audioQualityOptions, fullscreenBackgroundOptions, getQualityLabel } from '@/constants'
 import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { getCoverUrl, isIOS } from '@/utils'
@@ -28,7 +28,7 @@ const {
   showSpectrum,
   enableAudioContext,
   lyricsOffset,
-  lyricsFontSize,
+  fullscreenBackgroundStyle,
   fullscreenCoverShape,
   fullscreenCoverRotation,
   fullscreenCoverBorder,
@@ -202,7 +202,94 @@ const coverUrl = computed(() => {
   return getCoverUrl(currentSong.value.albumPlatforms, '800px', currentSong.value.albumCoverUrl)
 })
 
-const { gradient: coverGradient } = usePlayerCoverColors()
+const { coverUrl: backgroundCoverUrl, gradient: coverGradient } = usePlayerCoverColors()
+const blurredCoverUrl = ref('')
+const blurredCoverAngle = ref('0deg')
+watch([isFullscreen, fullscreenBackgroundStyle, backgroundCoverUrl], async ([fullscreen, style, url], _, onCleanup) => {
+  blurredCoverUrl.value = ''
+  if (!fullscreen || style !== 'blurred-cover' || !url)
+    return
+
+  let cancelled = false
+  onCleanup(() => {
+    cancelled = true
+  })
+  const image = new Image()
+  image.src = url
+  try {
+    await image.decode()
+    if (!cancelled && url === backgroundCoverUrl.value) {
+      blurredCoverAngle.value = `${Math.random() * 48 - 24}deg`
+      blurredCoverUrl.value = url
+    }
+  }
+  catch {
+    // 封面加载失败时继续使用底层渐变。
+  }
+}, { immediate: true })
+
+const showBlurredCoverFlow = computed(() => fullscreenBackgroundStyle.value === 'blurred-cover'
+  && !!blurredCoverUrl.value && blurredCoverUrl.value === backgroundCoverUrl.value)
+const isLocalDev = import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
+const showCoverViewport = ref(false)
+const blurredCoverImage = ref<HTMLImageElement | null>(null)
+const coverViewportCanvas = ref<HTMLCanvasElement | null>(null)
+
+watchPostEffect((onCleanup) => {
+  if (!isLocalDev)
+    return
+
+  const image = blurredCoverImage.value
+  const canvas = coverViewportCanvas.value
+  const rotor = image?.parentElement
+  const background = rotor?.parentElement
+  const ctx = canvas?.getContext('2d')
+  if (!image || !canvas || !rotor || !background || !ctx)
+    return
+
+  const drawViewport = () => {
+    const style = getComputedStyle(image)
+    const width = Number.parseFloat(style.width)
+    const height = Number.parseFloat(style.height)
+    const rotation = new DOMMatrixReadOnly(getComputedStyle(rotor).transform)
+    const drift = new DOMMatrixReadOnly(style.transform === 'none' ? undefined : style.transform)
+    const inverse = rotation.multiply(drift).inverse()
+    const bounds = background.getBoundingClientRect()
+    const left = Math.max(bounds.left, 0)
+    const right = Math.min(bounds.right, window.innerWidth)
+    const top = Math.max(bounds.top, 0)
+    const bottom = Math.min(bounds.bottom, window.innerHeight)
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    if (!width || !height || right <= left || bottom <= top)
+      return
+
+    // 将视口四角逆变换到背景图坐标，保留旋转后的真实取景形状。
+    const originX = bounds.left + (bounds.width + width) / 2
+    const originY = bounds.top + (bounds.height + height) / 2
+    ctx.beginPath()
+    for (const [x, y] of [[left, top], [right, top], [right, bottom], [left, bottom]]) {
+      const point = inverse.transformPoint(new DOMPoint(x - originX, y - originY))
+      ctx.lineTo((0.5 + point.x / width) * canvas.width, (0.5 + point.y / height) * canvas.height)
+    }
+    ctx.closePath()
+    ctx.lineWidth = 5
+    ctx.strokeStyle = '#111827'
+    ctx.stroke()
+    ctx.lineWidth = 2
+    ctx.strokeStyle = '#facc15'
+    ctx.stroke()
+  }
+
+  let frame = 0
+  function update() {
+    drawViewport()
+    frame = requestAnimationFrame(update)
+  }
+  update()
+  onCleanup(() => cancelAnimationFrame(frame))
+})
+
 const bg1 = ref(fallbackCoverColors.gradient)
 const bg2 = ref(fallbackCoverColors.gradient)
 const showBackground = ref(1)
@@ -218,13 +305,6 @@ const { parsedLyrics, hasTimestamp, currentLineIndex, hasTranslation, wordLyricA
   lyricTranslation,
   currentTime,
   lyricsOffset,
-})
-
-const compactLyricLine = computed(() => {
-  if (parsedLyrics.value.length === 0 || !hasTimestamp.value)
-    return null
-  const index = currentLineIndex.value >= 0 ? currentLineIndex.value : 0
-  return parsedLyrics.value[index] ?? null
 })
 
 let immersiveTimer: ReturnType<typeof setTimeout> | null = null
@@ -245,6 +325,13 @@ function onImmersiveActivity() {
   if (!isImmersive.value)
     return
   showImmersiveControls()
+}
+
+function onImmersiveMovement() {
+  // 展开的歌词区由点击或实际滚动唤醒，轻触开始时保留原布局。
+  if (isMobileViewport.value && player.mobileFullscreenLayout === 'lyrics' && !immersiveControlsVisible.value)
+    return
+  onImmersiveActivity()
 }
 
 watch([isImmersive, showPlayerMenu, coverMenu, showSleepTimer, () => isMobileViewport.value && player.showPlaylist], ([immersive]) => {
@@ -339,34 +426,41 @@ function onHeaderTouchEnd(cancelled = false) {
         transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : undefined,
         transition: snapBack ? 'transform 0.3s ease' : undefined,
       }"
-      @mousemove="onImmersiveActivity"
-      @touchstart="onImmersiveActivity"
+      @mousemove="onImmersiveMovement"
+      @touchstart="onImmersiveMovement"
     >
-      <div class="absolute inset-0 bg-gray-900">
+      <div class="pointer-events-none absolute inset-0 overflow-hidden bg-gray-900" aria-hidden="true">
         <div
-          class="absolute inset-0 transition-opacity duration-700"
+          class="background-gradient absolute inset-0 transition-opacity duration-700"
           :style="{ background: bg1 }"
           :class="showBackground === 1 ? 'opacity-100' : 'opacity-0'"
         />
         <div
-          class="absolute inset-0 transition-opacity duration-700"
+          class="background-gradient absolute inset-0 transition-opacity duration-700"
           :style="{ background: bg2 }"
           :class="showBackground === 2 ? 'opacity-100' : 'opacity-0'"
         />
+        <Transition v-if="isFullscreen" name="background-flow">
+          <div v-if="showBlurredCoverFlow" :key="blurredCoverUrl" class="absolute inset-0">
+            <div class="background-cover-rotor" :style="{ '--cover-start-angle': blurredCoverAngle }">
+              <img ref="blurredCoverImage" :src="blurredCoverUrl" class="background-flow-cover" alt="">
+            </div>
+          </div>
+        </Transition>
       </div>
       <div class="background-mask absolute inset-0" />
 
       <PlayerFullscreenMobile
         v-if="isMobileViewport"
         :parsed-lyrics="parsedLyrics" :has-timestamp="hasTimestamp" :current-line-index="currentLineIndex" :word-lyric-authors="wordLyricAuthors"
-        @click="onImmersiveActivity"
+        @click="onImmersiveActivity" @activity="onImmersiveActivity"
         @close="close" @to-song="toSong" @to-album="toAlbum" @sleep="showSleepTimer = true"
         @header-touch-start="onHeaderTouchStart" @header-touch-move="onHeaderTouchMove" @header-touch-end="onHeaderTouchEnd"
       >
         <template #cover>
           <button
             type="button"
-            class="block size-full aspect-square shadow-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
+            class="block size-full aspect-square overflow-hidden shadow-2xl cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 shrink-0"
             :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl ring-1 ring-white/10', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
             :aria-label="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
             :title="t('PlayerFullscreen.switch_to_full_lyrics_layout')"
@@ -384,26 +478,6 @@ function onHeaderTouchEnd(cancelled = false) {
               :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
             />
           </button>
-        </template>
-        <template #lyric>
-          <div v-if="compactLyricLine" class="max-w-full text-white font-bold">
-            <div
-              class="leading-tight whitespace-pre-line"
-              :class="showTranslation && compactLyricLine.translation ? 'line-clamp-1' : 'line-clamp-2'"
-              :style="{ fontSize: `${lyricsFontSize}px` }"
-              :title="compactLyricLine.text"
-            >
-              {{ compactLyricLine.text }}
-            </div>
-            <div
-              v-if="showTranslation && compactLyricLine.translation"
-              class="leading-tight whitespace-pre-line text-white/70 font-normal mt-1 line-clamp-1"
-              :style="{ fontSize: `${lyricsFontSize}px` }"
-              :title="compactLyricLine.translation"
-            >
-              {{ compactLyricLine.translation }}
-            </div>
-          </div>
         </template>
         <template #more>
           <div class="relative" @touchstart.stop>
@@ -448,6 +522,21 @@ function onHeaderTouchEnd(cancelled = false) {
                 <button type="button" role="menuitem" class="player-menu-item" :disabled="!isPageFullscreenSupported" @click="togglePageFullscreen()">
                   <LucideMaximize class="size-4 shrink-0" />{{ isPageFullscreen ? t('PlayerFullscreen.exit_fullscreen') : t('PlayerFullscreen.enter_fullscreen') }}
                 </button>
+                <div class="my-1 border-t border-white/15" />
+                <div role="group" :aria-label="t('Settings.fullscreen_player_background')">
+                  <div class="px-3 py-2 text-xs text-white/60" aria-hidden="true">
+                    {{ t('Settings.fullscreen_player_background') }}
+                  </div>
+                  <button
+                    v-for="option in fullscreenBackgroundOptions" :key="option.value"
+                    type="button" role="menuitemradio" class="player-menu-item"
+                    :aria-checked="fullscreenBackgroundStyle === option.value"
+                    @click.stop="fullscreenBackgroundStyle = option.value"
+                  >
+                    <span class="flex-1">{{ option.label }}</span>
+                    <LucideCheck v-if="fullscreenBackgroundStyle === option.value" class="size-4 shrink-0 text-blue-400" />
+                  </button>
+                </div>
                 <div class="my-1 border-t border-white/15" />
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
@@ -564,6 +653,30 @@ function onHeaderTouchEnd(cancelled = false) {
                   <span v-if="player.sleepTimer.status !== 'off'" class="text-xs text-blue-400">{{ sleepTimerLabel }}</span>
                 </button>
                 <div class="my-1 border-t border-white/15" />
+                <div role="group" :aria-label="t('Settings.fullscreen_player_background')">
+                  <div class="px-3 py-2 text-xs text-white/60" aria-hidden="true">
+                    {{ t('Settings.fullscreen_player_background') }}
+                  </div>
+                  <button
+                    v-for="option in fullscreenBackgroundOptions" :key="option.value"
+                    type="button" role="menuitemradio" class="player-menu-item"
+                    :aria-checked="fullscreenBackgroundStyle === option.value"
+                    @click.stop="fullscreenBackgroundStyle = option.value"
+                  >
+                    <span class="flex-1">{{ option.label }}</span>
+                    <LucideCheck v-if="fullscreenBackgroundStyle === option.value" class="size-4 shrink-0 text-blue-400" />
+                  </button>
+                  <button
+                    v-if="isLocalDev && fullscreenBackgroundStyle === 'blurred-cover'"
+                    type="button" role="menuitemcheckbox" class="player-menu-item"
+                    :aria-checked="showCoverViewport"
+                    @click.stop="showCoverViewport = !showCoverViewport"
+                  >
+                    <span class="flex-1">{{ t('PlayerFullscreen.background_animation_debug') }}</span>
+                    <LucideCheck v-if="showCoverViewport" class="size-4 shrink-0 text-blue-400" />
+                  </button>
+                </div>
+                <div class="my-1 border-t border-white/15" />
                 <button
                   type="button" role="menuitemcheckbox" class="player-menu-item"
                   :aria-checked="immersiveModeEnabled"
@@ -607,31 +720,47 @@ function onHeaderTouchEnd(cancelled = false) {
           </div>
         </div>
 
-        <div class="relative z-10 flex-1 flex items-center px-16 gap-8 min-h-0" :class="{ 'justify-center': !showFullscreenLyrics }">
-          <div class="w-[40%] max-w-[40vh] shrink-0" :class="!showFullscreenLyrics ? 'mx-auto' : 'mx-[5vw]'">
-            <div
-              class="w-full aspect-square shadow-2xl"
-              :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
-              @contextmenu="onCoverContextMenu"
-            >
-              <LazyImg
-                class="size-full fullscreen-cover-image"
-                :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }]"
-                :src="coverUrl"
-                :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
-              />
-            </div>
-            <div class="mt-4 text-center">
-              <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
-                {{ currentSong.songName }}
+        <div
+          class="relative z-10 flex-1 items-center px-16 gap-8 min-h-0"
+          :class="showFullscreenLyrics ? 'grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] grid-rows-[minmax(0,1fr)]' : 'flex justify-center'"
+        >
+          <div class="min-w-0" :class="{ 'w-[40%]': !showFullscreenLyrics }">
+            <div class="w-full max-w-[40vh] mx-auto">
+              <div
+                class="w-full aspect-square shadow-2xl"
+                :class="[isRoundCover ? 'rounded-full' : 'rounded-2xl', { 'fullscreen-cover-border': isRoundCover && fullscreenCoverBorder }]"
+                @contextmenu="onCoverContextMenu"
+              >
+                <div
+                  class="relative size-full"
+                  :class="{ 'fullscreen-cover-art': isRoundCover && fullscreenCoverBorder, 'fullscreen-cover-spin': isRoundCover && fullscreenCoverRotation, 'fullscreen-cover-spin-paused': !isPlaying }"
+                >
+                  <LazyImg
+                    class="size-full fullscreen-cover-image"
+                    :class="isRoundCover ? 'rounded-full' : 'rounded-2xl'"
+                    :src="coverUrl"
+                    :alt="t('PlayerFullscreen.cover', { p0: currentSong.songName })"
+                  />
+                  <canvas
+                    v-if="isLocalDev && isFullscreen && showCoverViewport && showBlurredCoverFlow"
+                    ref="coverViewportCanvas"
+                    class="pointer-events-none absolute inset-0 size-full"
+                    width="400" height="400" aria-hidden="true"
+                  />
+                </div>
               </div>
-              <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">
-                {{ currentSong.songDescription }}
+              <div class="mt-4 text-center">
+                <div class="text-white text-xl font-bold truncate cursor-pointer" :title="currentSong.songName" @click="toSong">
+                  {{ currentSong.songName }}
+                </div>
+                <div v-if="currentSong.songDescription" class="text-white/50 text-sm mt-1">
+                  {{ currentSong.songDescription }}
+                </div>
               </div>
             </div>
           </div>
 
-          <div v-if="showFullscreenLyrics" class="flex-1 h-full min-w-0">
+          <div v-if="showFullscreenLyrics" class="h-full min-h-0 min-w-0">
             <PlayerLyrics
               :word-lyric-authors="wordLyricAuthors"
               :parsed-lyrics="parsedLyrics"
@@ -786,6 +915,65 @@ function onHeaderTouchEnd(cancelled = false) {
 
 .background-mask {
   background: rgba(0, 0, 0, 0.25);
+}
+
+.background-flow-enter-active,
+.background-flow-leave-active {
+  transition: opacity 700ms ease;
+}
+
+.background-flow-enter-from,
+.background-flow-leave-to {
+  opacity: 0;
+}
+
+.background-cover-rotor {
+  --cover-size: calc(180vmax + 140vmin);
+  --cover-cycle: 60s;
+  position: absolute;
+  /* 取景中心偏向封面任一区域时，仍给旋转和模糊留出边缘。 */
+  top: 50%;
+  left: 50%;
+  width: var(--cover-size);
+  height: var(--cover-size);
+  transform: translate(-50%, -50%) rotate(var(--cover-start-angle));
+  animation: background-cover-spin var(--cover-cycle) linear infinite;
+}
+
+.background-flow-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  filter: blur(clamp(64px, 12vmax, 240px)) brightness(0.8);
+  opacity: 0.85;
+  animation: background-cover-drift var(--cover-cycle) ease-in-out infinite;
+}
+
+@keyframes background-cover-spin {
+  from { transform: translate(-50%, -50%) rotate(var(--cover-start-angle)); }
+  to { transform: translate(-50%, -50%) rotate(calc(var(--cover-start-angle) + 360deg)); }
+}
+
+@keyframes background-cover-drift {
+  0%, 100% { transform: translate(20%, 18%); }
+  25% { transform: translate(-20%, 18%); }
+  50% { transform: translate(-20%, -18%); }
+  75% { transform: translate(20%, -18%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background-cover-rotor,
+  .background-flow-cover {
+    animation: none;
+  }
+
+  .background-gradient,
+  .background-flow-enter-active,
+  .background-flow-leave-active {
+    transition: none;
+  }
 }
 
 .fullscreen-cover-border {

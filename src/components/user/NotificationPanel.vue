@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { AlbumInfo } from '@/types/core'
-import type { CommentNotificationMetadata, Notification } from '@/types/notification'
+import type { Notification } from '@/types/notification'
 import { useQueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 import { CommentApiError, getCommentLocationApi } from '@/api/comment'
@@ -11,10 +10,10 @@ import {
   markAllNotificationsReadApi,
   markNotificationReadApi,
 } from '@/api/notification'
+import { songInfoOptions } from '@/composables/queries'
 import { t } from '@/i18n'
-import { usePlayerStore } from '@/store/player'
 import { formatRelativeTime } from '@/utils'
-import { getRememberedCommentRoute } from '@/utils/comment-route'
+import { NotFoundError } from '@/utils/fetch'
 
 const emit = defineEmits<{
   unreadCountChange: [count: number]
@@ -22,9 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const queryClient = useQueryClient()
-const route = useRoute()
 const router = useRouter()
-const player = usePlayerStore()
 
 const loading = ref(false)
 const loadError = ref(false)
@@ -170,25 +167,16 @@ function isCommentNotification(notification: Notification) {
   return notification.type === 'comment-approval' || notification.type === 'comment-reply'
 }
 
-function getCommentMetadata(notification: Notification): CommentNotificationMetadata | null {
+function getCommentMetadata(notification: Notification) {
   if (!isCommentNotification(notification))
     return null
-  const { metadata } = notification
-  if (
-    typeof metadata.postId !== 'string'
-    || typeof metadata.commentId !== 'string'
-    || typeof metadata.threadId !== 'string'
-    || !(metadata.replyTo === null || typeof metadata.replyTo === 'string')
-  ) {
+  const { postId, commentId } = notification.metadata ?? {}
+  if (typeof postId !== 'string' || !postId || typeof commentId !== 'string' || !commentId)
     return null
-  }
-  return metadata as unknown as CommentNotificationMetadata
+  return { postId, commentId }
 }
 
-function resolveCommentPath(postId: string) {
-  const rememberedPath = getRememberedCommentRoute(postId)
-  if (rememberedPath)
-    return rememberedPath
+async function resolveCommentPath(postId: string) {
   if (postId === 'hoyomix:feedback')
     return '/feedback'
   const match = /^hoyomix:(album|playlist|song):(.+)$/.exec(postId)
@@ -203,15 +191,8 @@ function resolveCommentPath(postId: string) {
   const songId = Number(id)
   if (!Number.isInteger(songId) || songId <= 0)
     return null
-  if ((route.name === 'MusicInfo' || route.name === 'PlaylistMusicInfo') && Number(route.params.musicId) === songId)
-    return route.path
-  const playlistSong = player.playlist.find(song => song.songId === songId)
-  if (playlistSong)
-    return `/album/${playlistSong.albumId}/music/${songId}`
-  const cachedAlbum = queryClient.getQueriesData<AlbumInfo>({ queryKey: ['albumInfo'] })
-    .map(([, album]) => album)
-    .find(album => album?.songs.some(song => song.id === songId))
-  return cachedAlbum ? `/album/${cachedAlbum.id}/music/${songId}` : null
+  const { albumId } = await queryClient.fetchQuery(songInfoOptions(songId))
+  return albumId ? `/album/${albumId}/music/${songId}` : null
 }
 
 async function openNotification(notification: Notification) {
@@ -228,13 +209,16 @@ async function openNotification(notification: Notification) {
   try {
     const [location, path] = await Promise.all([
       getCommentLocationApi(metadata.commentId, metadata.postId),
-      Promise.resolve(resolveCommentPath(metadata.postId)),
+      resolveCommentPath(metadata.postId),
     ])
     if (!path) {
       toast.error(t('NotificationPanel.unable_to_find_the_page_for_this_comment'))
       return
     }
     await markRead(notification.id)
+    // 定位接口返回的是当前页码，评论页缓存仍可能保留旧的分页结果。
+    void queryClient.invalidateQueries({ queryKey: ['commentThreads', metadata.postId] })
+    void queryClient.invalidateQueries({ queryKey: ['commentReplies', metadata.postId, location.threadId] })
     emit('navigate')
     await router.push({
       path,
@@ -248,9 +232,11 @@ async function openNotification(notification: Notification) {
     })
   }
   catch (error) {
-    toast.error(error instanceof CommentApiError && error.code === 404
-      ? t('NotificationPanel.comment_does_not_exist_or_is_not_visible')
-      : error instanceof Error ? error.message : t('CommentThread.unable_to_locate_the_comment_please_try_again_later'))
+    toast.error(error instanceof NotFoundError
+      ? t('NotificationPanel.unable_to_find_the_page_for_this_comment')
+      : error instanceof CommentApiError && error.code === 404
+        ? t('NotificationPanel.comment_does_not_exist_or_is_not_visible')
+        : error instanceof Error ? error.message : t('CommentThread.unable_to_locate_the_comment_please_try_again_later'))
   }
   finally {
     navigatingId.value = null

@@ -279,7 +279,7 @@ onMounted(() => {
                   type="song"
                   :song-id="currentSong.songId"
                   size="md"
-                  class="text-white/60"
+                  dark
                 />
 
                 <Tooltip :content="playModeTip" placement="top" align="center">

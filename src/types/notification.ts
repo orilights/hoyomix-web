@@ -10,13 +10,6 @@ export interface Notification {
   platforms: (1 | 2)[]
 }
 
-export interface CommentNotificationMetadata {
-  postId: string
-  commentId: string
-  threadId: string
-  replyTo: string | null
-}
-
 export interface NotificationListResponse {
   total: number
   unreadCount: number

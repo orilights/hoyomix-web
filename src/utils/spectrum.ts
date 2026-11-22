@@ -27,13 +27,13 @@ export const spectrumControls = [
 ] as const
 
 export function createSpectrumSettings(): SpectrumSettings {
-  return { colorMode: 'custom', color: '#ffffff', count: 64, opacity: 20, gap: 2, height: 64 }
+  return { colorMode: 'cover', color: '#ffffff', count: 64, opacity: 20, gap: 2, height: 64 }
 }
 
 export function normalizeSpectrumSettings(value: Partial<SpectrumSettings>): SpectrumSettings {
   const settings = createSpectrumSettings()
-  if (value.colorMode === 'cover')
-    settings.colorMode = 'cover'
+  if (value.colorMode === 'custom' || value.colorMode === 'cover')
+    settings.colorMode = value.colorMode
   if (typeof value.color === 'string' && /^#[\da-f]{6}$/i.test(value.color))
     settings.color = value.color
   for (const control of spectrumControls) {

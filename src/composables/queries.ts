@@ -182,12 +182,18 @@ export function useAlbumInfoQuery(albumId: Ref<number | null>) {
   })
 }
 
+export function songInfoOptions(songId: number) {
+  return {
+    queryKey: ['songInfo', songId],
+    queryFn: () => getSongInfoApi(songId),
+  }
+}
+
 export function useSongInfoQuery(songId: Ref<number | null>) {
-  return useQuery({
-    queryKey: computed(() => ['songInfo', songId.value]),
-    queryFn: () => getSongInfoApi(songId.value!),
-    enabled: computed(() => !!songId.value),
-  })
+  return useQuery(computed(() => ({
+    ...songInfoOptions(songId.value!),
+    enabled: !!songId.value,
+  })))
 }
 
 export function useArtistOverviewQuery() {

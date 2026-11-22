@@ -6,6 +6,7 @@ import { t } from '@/i18n'
 import { usePlayerStore } from '@/store/player'
 import { animateWordLyricScroll } from '@/utils/lyric-scroll'
 import { wordLyricActiveRange, wordLyricScrollIndex, wordLyricSides } from '@/utils/word-lyrics'
+import PlayerWordLyricLine from './PlayerWordLyricLine.vue'
 
 const props = defineProps<{
   parsedLyrics: LyricLine[]
@@ -13,17 +14,20 @@ const props = defineProps<{
   currentLineIndex: number
   showTranslation: boolean
   controlsOnScrollOnly?: boolean
+  fontViewportHeight?: number
   wordLyricAuthors?: string[]
 }>()
 
 const emit = defineEmits<{
   seek: [time: number]
+  userScroll: []
 }>()
 
 const { parsedLyrics, hasTimestamp, currentLineIndex } = toRefs(props)
 
 const player = usePlayerStore()
-const { lyricsOffset, lyricsFontSize } = storeToRefs(player)
+const { lyricsOffset, lyricsFontSize, lyricsPerspective } = storeToRefs(player)
+const perspectiveEnabled = computed(() => hasTimestamp.value && lyricsPerspective.value)
 
 const MIN_FONT_SIZE = 12
 const MAX_FONT_SIZE = 32
@@ -62,10 +66,10 @@ const scrollLineIndex = computed(() => wordMode.value
 const { reducedMotion } = useWordLyricAnimation(lyricContainer, wordMode)
 const lyricLines = useTemplateRef<HTMLElement>('lyricLines')
 
-// 播放器可视高度：既驱动字号自适应，也是透视投影的归一化基准。
+// 移动端字号以常态视口为准，透视仍使用实际可视高度。
 const viewportHeight = ref(0)
 const autoFontSize = computed(() => {
-  const height = viewportHeight.value
+  const height = props.fontViewportHeight ?? viewportHeight.value
   if (!height)
     return lyricsFontSize.value
   return Math.round(lyricsFontSize.value * Math.min(1.6, Math.max(0.85, height / 760)) * 10) / 10
@@ -79,7 +83,7 @@ let perspectiveFrame = 0
 function measureRows() {
   const el = lyricLines.value
   const container = lyricContainer.value
-  if (!el || !container)
+  if (!perspectiveEnabled.value || !el || !container)
     return
   flowElements = [...el.querySelectorAll<HTMLElement>('.lyric-row')]
   // offsetTop/offsetHeight 是布局值，不受已写入的 transform 影响；
@@ -91,7 +95,7 @@ function measureRows() {
 // 按到视口中心的距离做投影：越远越小，位置取缩放曲线积分，行距与字号同步收缩。
 function applyPerspective() {
   const height = viewportHeight.value
-  if (!height || !hasTimestamp.value)
+  if (!height || !perspectiveEnabled.value)
     return
 
   const viewCenter = (lyricContainer.value?.scrollTop ?? 0) + height / 2
@@ -105,12 +109,12 @@ function applyPerspective() {
     if (Math.abs(distance) > range)
       continue
     const { scale, offset } = project(distance, height)
-    flowElements[i].style.transform = `translateY(${offset.toFixed(1)}px) scale(${scale.toFixed(3)})`
+    flowElements[i].style.setProperty('--lyric-projection', `translateY(${offset.toFixed(1)}px) scale(${scale.toFixed(3)})`)
   }
 }
 
 function schedulePerspective() {
-  if (perspectiveFrame)
+  if (!perspectiveEnabled.value || perspectiveFrame)
     return
   perspectiveFrame = requestAnimationFrame(() => {
     perspectiveFrame = 0
@@ -126,9 +130,7 @@ let userScrollTimer: ReturnType<typeof setTimeout> | null = null
 let scrollFallbackTimer: ReturnType<typeof setTimeout> | undefined
 const SCROLL_PAUSE_DURATION = 3000
 const SCROLL_FALLBACK_DURATION = 5000
-// 逐字歌词保持原有滚动节奏；普通歌词的自动滚动放慢一些。
-const WORD_SCROLL_DURATION = 600
-const SCROLL_DURATION = 800
+const SCROLL_DURATION = 600
 let cancelScrollAnimation: (() => void) | undefined
 
 useResizeObserver(lyricContainer, () => {
@@ -153,6 +155,7 @@ function onUserScroll() {
   }, SCROLL_PAUSE_DURATION)
   clearTimeout(scrollFallbackTimer)
   scrollFallbackTimer = setTimeout(scrollToCurrentLine, SCROLL_FALLBACK_DURATION)
+  emit('userScroll')
 }
 
 function onWheel() {
@@ -185,12 +188,13 @@ function onTouchEnd() {
 
 // 合并同一轮更新的定位请求，在 DOM 更新后读取布局。
 watch(
-  [parsedLyrics, scrollLineIndex, lyricsFontSize, () => props.showTranslation],
-  ([lines, , fontSize, translation], [previousLines, , previousFontSize, previousTranslation]) => {
-    const layoutChanged = lines !== previousLines || fontSize !== previousFontSize || translation !== previousTranslation
+  [parsedLyrics, scrollLineIndex, lyricsFontSize, () => props.showTranslation, perspectiveEnabled],
+  ([lines, , fontSize, translation, perspective], [previousLines, , previousFontSize, previousTranslation, previousPerspective]) => {
+    const contentChanged = lines !== previousLines || fontSize !== previousFontSize || translation !== previousTranslation
+    const layoutChanged = contentChanged || perspective !== previousPerspective
     if (layoutChanged)
       measureRows()
-    if (layoutChanged || !userScrolling.value)
+    if (contentChanged || !userScrolling.value)
       scrollToCurrentLine(!layoutChanged)
     applyPerspective()
   },
@@ -207,8 +211,7 @@ function scrollToCurrentLine(smooth = true) {
       const viewHeight = lyricContainer.value.clientHeight
       const targetTop = currentEl.offsetTop - viewHeight / 2 + currentEl.clientHeight / 2
       if (smooth && reducedMotion.value !== 'reduce') {
-        const duration = wordMode.value ? WORD_SCROLL_DURATION : SCROLL_DURATION
-        cancelScrollAnimation = animateWordLyricScroll(lyricContainer.value, targetTop, duration)
+        cancelScrollAnimation = animateWordLyricScroll(lyricContainer.value, targetTop, SCROLL_DURATION)
         return
       }
       lyricContainer.value.scrollTop = targetTop
@@ -274,6 +277,8 @@ onUnmounted(() => {
       class="lyrics-container h-full overflow-y-auto scrollbar-hide"
       :class="{
         'flex items-center justify-center': parsedLyrics.length === 0,
+        'lyrics-timed': hasTimestamp,
+        'lyrics-perspective': perspectiveEnabled,
       }"
       :style="{ 'fontSize': `${autoFontSize}px`, '--lyric-focus': String(FOCUS_SCALE) }"
       @wheel.passive="onWheel"
@@ -298,7 +303,7 @@ onUnmounted(() => {
           class="lyric-row px-4 py-[0.5em] transition-colors duration-300 rounded-lg"
           :class="[
             hasDuet ? `lyric-duet-${duetSides[index]}` : '',
-            index === currentLineIndex ? 'text-white font-bold' : 'text-white/40',
+            !line.wordLine && index === currentLineIndex ? 'text-white' : 'text-white/40',
             line.time !== null ? 'cursor-pointer hover:bg-white/10' : 'cursor-default',
           ]"
           :role="line.time !== null ? 'button' : undefined"
@@ -307,20 +312,24 @@ onUnmounted(() => {
           @keydown.enter.prevent="onClickLine(line)"
           @keydown.space.prevent="onClickLine(line)"
         >
-          <PlayerWordLyricLine v-if="line.wordLine" :line="line.wordLine" />
-          <div v-else class="whitespace-pre-line">
-            {{ line.text }}
-          </div>
-          <div
-            v-if="showTranslation && line.translation"
-            class="mt-[0.1em] whitespace-pre-line transition-colors duration-300 ease-out motion-reduce:transition-none"
-            style="font-size: max(0.75em, 9px)"
-            :class="line.wordLine ? 'word-translation text-white/30 font-normal' : index === currentLineIndex
-              ? 'text-white/70 font-normal'
-              : 'text-white/30'"
+          <component
+            :is="line.wordLine ? PlayerWordLyricLine : 'div'"
+            v-bind="line.wordLine ? { line: line.wordLine } : {}"
+            class="lyric-text"
+            :class="{ 'lyric-text-current': !line.wordLine && index === currentLineIndex }"
           >
-            {{ line.translation }}
-          </div>
+            <div v-if="!line.wordLine" class="whitespace-pre-line">
+              {{ line.text }}
+            </div>
+            <div
+              v-if="showTranslation && line.translation"
+              class="mt-[0.1em] whitespace-pre-line transition-colors duration-300 ease-out motion-reduce:transition-none"
+              style="font-size: max(0.75em, 9px)"
+              :class="line.wordLine ? 'word-translation text-white/30' : index === currentLineIndex ? 'text-white/70' : 'text-white/30'"
+            >
+              {{ line.translation }}
+            </div>
+          </component>
         </div>
         <div v-if="wordMode" class="lyric-row px-4 pt-6 pb-2 text-[0.53em] text-white/40 break-words">
           <p>
@@ -407,32 +416,57 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* 行宽按放大倍率预留，长句放大后也不会被容器边界裁切；
-   缩放围绕略偏右的竖轴进行，让左端随纵深轻微内收。 */
-.lyric-row {
-  width: calc(100% / var(--lyric-focus, 1.35));
+.lyrics-perspective .lyric-row {
+  width: calc(100% / var(--lyric-focus));
+  transform: var(--lyric-projection, none);
   transform-origin: 10% center;
 }
-/* 对唱声部只改变文本对齐：矩形与透视轴与主行完全相同，
-   两者的缩放中心和放大轨迹因此完全一致。 */
+
+.lyric-text {
+  overflow-wrap: anywhere;
+}
+
+/* 保留高亮所需的换行宽度，避免切换高亮时重新换行。 */
+.lyrics-timed:not(.lyrics-perspective) .lyric-text {
+  --lyric-max-scale: 1.1;
+  width: calc(100% / var(--lyric-max-scale));
+  transform-origin: left center;
+}
+
+.lyrics-timed:not(.lyrics-perspective) .lyric-text.word-background {
+  --lyric-max-scale: 1;
+}
+
+.lyrics-timed:not(.lyrics-perspective) .lyric-text:is(.lyric-text-current, [data-scale-active]) {
+  transform: scale(var(--lyric-max-scale));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lyrics-timed:not(.lyrics-perspective) .lyric-text {
+    transition: transform 600ms ease;
+  }
+
+  .lyrics-timed:not(.lyrics-perspective) .word-lyric:not(.word-background, [data-scale-active]) {
+    transition-delay: 100ms;
+  }
+}
+
 .lyric-duet-right {
   text-align: right;
 }
-.lyric-duet-right > .word-translation {
-  transform-origin: top right;
+.lyrics-timed:not(.lyrics-perspective) .lyric-duet-right > .lyric-text {
+  margin-left: auto;
+  transform-origin: right center;
 }
 
-.word-line[data-active='true'] + .word-translation {
+.word-lyric[data-active='true'] > .word-translation {
   color: rgb(255 255 255 / 70%);
 }
-.word-background[data-active='true'] + .word-translation {
+.word-background[data-active='true'] > .word-translation {
   color: rgb(255 255 255 / 50%);
 }
 
 .lyrics-container {
-  /* 整块歌词放在容器内偏左的中线附近：为放大后的行留出左侧余量，
-     宽屏下不再贴左；窄屏（移动端布局）收到 4%，避免挤压文字宽度。 */
-  padding-left: clamp(0px, 10%, 120px);
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
@@ -442,8 +476,12 @@ onUnmounted(() => {
   );
 }
 
+.lyrics-perspective {
+  padding-left: clamp(0px, 10%, 120px);
+}
+
 @media (max-width: 767px) {
-  .lyrics-container {
+  .lyrics-perspective {
     padding-left: 4%;
   }
 }

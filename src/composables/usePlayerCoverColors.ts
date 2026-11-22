@@ -25,7 +25,7 @@ export const usePlayerCoverColors = createSharedComposable(() => {
       image.crossOrigin = 'anonymous'
       image.src = url
       await image.decode()
-      if (cancelled)
+      if (cancelled || url !== coverUrl.value)
         return
       const canvas = document.createElement('canvas')
       canvas.width = canvas.height = 128
@@ -44,6 +44,7 @@ export const usePlayerCoverColors = createSharedComposable(() => {
   }, { immediate: true })
 
   return {
+    coverUrl,
     gradient: computed(() => colors.value.gradient),
     accent: computed(() => colors.value.accent),
   }

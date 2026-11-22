@@ -8,16 +8,24 @@ const activeRange = computed(() => wordLyricActiveRange(props.line))
 const animation = inject(wordLyricAnimationKey)!
 const root = useTemplateRef<HTMLElement>('root')
 const expanded = ref(false)
+const SCALE_LEAD_MS = 200
 let spans: HTMLElement[] = []
 let lastProgress: number[] = []
 let lastActive: boolean | undefined
+let lastScaleActive: boolean | undefined
 let unregister: (() => void) | undefined
 
 function paint(time: number, discrete: boolean) {
-  const active = time >= activeRange.value.start && time < activeRange.value.end
+  const { start, end } = activeRange.value
+  const active = time >= start && time < end
   if (lastActive !== active) {
     root.value?.setAttribute('data-active', String(active))
     lastActive = active
+  }
+  const scaleActive = !props.line.backgroundOf && start < end && time >= start - SCALE_LEAD_MS && time < end
+  if (lastScaleActive !== scaleActive) {
+    root.value?.toggleAttribute('data-scale-active', scaleActive)
+    lastScaleActive = scaleActive
   }
   if (spans.length !== props.line.words.length)
     return
@@ -34,6 +42,7 @@ watch([expanded, () => props.line], () => {
   spans = Array.from(root.value?.querySelectorAll<HTMLElement>('[data-word]') ?? [])
   lastProgress = []
   lastActive = undefined
+  lastScaleActive = undefined
   animation.refresh()
 }, { flush: 'post' })
 onMounted(() => {
@@ -43,13 +52,16 @@ onUnmounted(() => unregister?.())
 </script>
 
 <template>
-  <div ref="root" class="word-line whitespace-pre-line" :class="{ 'word-background': line.backgroundOf }">
-    <template v-if="expanded && line.words.length">
-      <span v-for="(word, index) in line.words" :key="index" data-word class="lyric-word">{{ word.text }}</span>
-    </template>
-    <template v-else>
-      {{ line.text }}
-    </template>
+  <div ref="root" class="word-lyric" :class="{ 'word-background': line.backgroundOf }">
+    <div class="word-line whitespace-pre-line">
+      <template v-if="expanded && line.words.length">
+        <span v-for="(word, index) in line.words" :key="index" data-word class="lyric-word">{{ word.text }}</span>
+      </template>
+      <template v-else>
+        {{ line.text }}
+      </template>
+    </div>
+    <slot />
   </div>
 </template>
 
@@ -62,17 +74,16 @@ onUnmounted(() => unregister?.())
   transition: opacity 300ms ease-out;
   font-weight: 500;
 }
-.word-line[data-active='true'] {
-  --word-unlit: rgb(255 255 255 / 40%);
-  opacity: 1;
-  transition: none;
-}
-.word-background {
+.word-background > .word-line {
   --word-lit: rgb(255 255 255 / 70%);
   /* 70% × 此透明度 = 非高亮时的 40%。 */
   opacity: 0.5714285714;
 }
-.word-background[data-active='true'] { opacity: 1; }
+.word-lyric[data-active='true'] > .word-line {
+  --word-unlit: rgb(255 255 255 / 40%);
+  opacity: 1;
+  transition: none;
+}
 .lyric-word { color: var(--word-unlit); }
 .word-lit { color: var(--word-lit); }
 @supports ((background-clip: text) or (-webkit-background-clip: text)) {

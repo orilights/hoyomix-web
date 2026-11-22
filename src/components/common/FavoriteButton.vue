@@ -14,6 +14,7 @@ interface Props {
   playlistId?: string
   size?: 'sm' | 'md'
   variant?: 'icon' | 'action'
+  dark?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -110,7 +111,7 @@ async function handleClick() {
   <AppButton
     v-else
     icon-only
-    variant="ghost"
+    :variant="dark ? 'dark' : 'ghost'"
     :size="size === 'md' ? 'sm' : 'xs'"
     class="group/favorite favorite shrink-0"
     :class="{

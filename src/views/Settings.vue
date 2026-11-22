@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { AudioQuality, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
+import type { AudioQuality, FullscreenBackgroundStyle, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
 import { toast } from 'vue-sonner'
 import { useChangelogQuery } from '@/composables/queries'
 import { useImageCache } from '@/composables/useImageCache'
 import { usePageScroll } from '@/composables/usePageScroll'
 import { usePageSeo } from '@/composables/usePageSeo'
-import { appGithubRepoUrl, appVersion, audioQualityOptions, getAppDescription, getQualityName, mediaSourceRegionOptions } from '@/constants'
+import { appGithubRepoUrl, appVersion, audioQualityOptions, fullscreenBackgroundOptions, getAppDescription, getQualityName, mediaSourceRegionOptions } from '@/constants'
 import { t } from '@/i18n'
 import { useAuthStore } from '@/store/auth'
 import { useLanguageStore } from '@/store/language'
@@ -35,6 +35,7 @@ async function clearImageCache() {
     toast.error(imageCacheError.value || t('Settings.failed_to_clear_image_cache_please_try_again_later'))
 }
 const { quality, enableAudioContext, enableMediaSession, lyricsSource, useWordLyrics, songListPlayBehavior, mobileFullscreenLayout, fullscreenCoverShape, fullscreenCoverRotation, fullscreenCoverBorder, immersiveModeEnabled } = storeToRefs(player)
+const { fullscreenBackgroundStyle, lyricsPerspective } = storeToRefs(player)
 const { user, isLoggedIn } = storeToRefs(auth)
 
 const songListPlayOptions: { value: SongListPlayBehavior, label: string }[] = [
@@ -345,6 +346,19 @@ onMounted(() => {
               <a href="https://github.com/amll-dev/amll-ttml-db" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">AMLL TTML DataBase</a>
             </p>
           </div>
+          <div>
+            <div id="lyrics-perspective-label" class="font-bold text-lg mb-2">
+              {{ t('Settings.lyrics_perspective') }}
+            </div>
+            <button
+              type="button" role="switch" aria-labelledby="lyrics-perspective-label" :aria-checked="lyricsPerspective"
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-blue-500"
+              :class="lyricsPerspective ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'"
+              @click="lyricsPerspective = !lyricsPerspective"
+            >
+              <span class="pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0 transition-transform duration-200" :class="lyricsPerspective ? 'translate-x-5' : 'translate-x-0'" />
+            </button>
+          </div>
         </div>
       </section>
 
@@ -401,6 +415,18 @@ onMounted(() => {
               @update:model-value="player.setMobileFullscreenLayout($event as MobileFullscreenLayout)"
             />
           </div>
+
+          <section aria-labelledby="fullscreen-background-heading">
+            <h2 id="fullscreen-background-heading" class="font-bold text-lg mb-2">
+              {{ t('Settings.fullscreen_player_background') }}
+            </h2>
+            <RadioGroup
+              aria-labelledby="fullscreen-background-heading"
+              :options="fullscreenBackgroundOptions"
+              :model-value="fullscreenBackgroundStyle"
+              @update:model-value="fullscreenBackgroundStyle = $event as FullscreenBackgroundStyle"
+            />
+          </section>
 
           <section aria-labelledby="fullscreen-cover-heading">
             <h2 id="fullscreen-cover-heading" class="font-bold text-lg mb-2">

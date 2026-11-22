@@ -6,11 +6,11 @@ import { createSpectrumSettings, spectrumControls } from '@/utils/spectrum'
 const player = usePlayerStore()
 const { spectrumSettings: settings, showSpectrum, enableAudioContext, isPlaying } = storeToRefs(player)
 const colorModeOptions = [
-  { value: 'custom', get label() {
-    return t('PlayerSpectrumSettings.custom_color')
-  } },
   { value: 'cover', get label() {
     return t('PlayerSpectrumSettings.match_cover_colors')
+  } },
+  { value: 'custom', get label() {
+    return t('PlayerSpectrumSettings.custom_color')
   } },
 ]
 </script>
@@ -78,9 +78,6 @@ const colorModeOptions = [
               <span class="text-xs text-gray-500 dark:text-gray-400 font-mono">{{ settings.color }}</span>
             </template>
           </div>
-          <p v-if="settings.colorMode === 'cover'" class="text-xs text-gray-500 dark:text-gray-400">
-            {{ t('PlayerSpectrumSettings.use_the_dominant_color_of_the_current_cover_falls') }}
-          </p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div v-for="control in spectrumControls" :key="control.key">
               <label :for="`spectrum-${control.key}`" class="flex justify-between gap-2 text-sm mb-2">

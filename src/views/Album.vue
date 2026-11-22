@@ -40,6 +40,7 @@ const { data: commentThreads } = useCommentThreadsQuery(commentPostId, commentUs
 const commentCount = computed(() => commentThreads.value?.commentCount ?? commentThreads.value?.pagination.total ?? 0)
 const commentSection = ref<HTMLElement | null>(null)
 const activeTab = ref<'songs' | 'artists' | 'info' | 'comments'>('songs')
+const hasDescription = computed(() => !!albumInfo.value?.description?.trim())
 const descriptionExpanded = ref(false)
 
 async function scrollToComments() {
@@ -297,8 +298,8 @@ function addAlbumToPlaylist() {
         </div>
 
         <div v-show="activeTab === 'artists' || activeTab === 'info'" class="detail-sidebar detail-sidebar-stack detail-desktop-visible min-w-0">
-          <div v-show="activeTab === 'info'" v-page-enter="120" class="detail-desktop-visible">
-            <div v-if="albumInfo.description" class="album-description text-sm bg-black/5 dark:bg-white/5 rounded-xl p-4">
+          <div v-if="hasDescription || albumInfo.tags.length" v-show="activeTab === 'info'" v-page-enter="120" class="detail-desktop-visible">
+            <div v-if="hasDescription" class="album-description text-sm bg-black/5 dark:bg-white/5 rounded-xl p-4">
               <p
                 id="album-description-content"
                 class="whitespace-pre-wrap break-words"
@@ -316,10 +317,7 @@ function addAlbumToPlaylist() {
                 {{ descriptionExpanded ? t('Album.collapse_description') : t('Album.expand_description') }}
               </button>
             </div>
-            <p v-else class="text-sm text-gray-500 dark:text-gray-400">
-              {{ t('Album.no_description') }}
-            </p>
-            <div v-if="albumInfo.tags.length" class="mt-4">
+            <div v-if="albumInfo.tags.length" :class="{ 'mt-4': hasDescription }">
               <TagList :tags="albumInfo.tags" :album-id="albumInfo.id" />
             </div>
           </div>

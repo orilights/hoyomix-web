@@ -1,4 +1,4 @@
-import type { AudioQuality } from '@/types/player'
+import type { AudioQuality, FullscreenBackgroundStyle } from '@/types/player'
 import { t } from '@/i18n'
 
 export const apiBase = import.meta.env.VITE_API_BASE as string
@@ -6,6 +6,15 @@ export const resourceBase = import.meta.env.VITE_RESOURCE_BASE as string
 export const userApiBase = import.meta.env.VITE_USER_API_BASE as string
 
 export const siteUrl = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/+$/, '') ?? ''
+
+export const fullscreenBackgroundOptions: { value: FullscreenBackgroundStyle, label: string }[] = [
+  { value: 'default', get label() {
+    return t('Settings.fullscreen_background_default')
+  } },
+  { value: 'blurred-cover', get label() {
+    return t('Settings.fullscreen_background_dynamic_glow')
+  } },
+]
 
 export const audioQualityOptions: { value: AudioQuality, label: string, key: string, desc: string }[] = [
   { value: 9, get label() {
