@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PlaylistListItem } from '@/types/core'
-import { Disc3, House, ListMusic, MapPin, Shuffle, Tags, TrendingUp, Trophy } from '@lucide/vue'
 import { useFavoritePlaylistsQuery, useMyPlaylistsQuery } from '@/composables/queries'
 import { appTitle } from '@/constants'
 import { t } from '@/i18n'
@@ -17,33 +16,6 @@ const player = usePlayerStore()
 const showCreate = ref(false)
 const mine = useMyPlaylistsQuery()
 const favorites = useFavoritePlaylistsQuery()
-
-const navigation = [
-  { name: 'Home', get label() {
-    return t('DesktopSidebar.home')
-  }, icon: House },
-  { name: 'Albums', get label() {
-    return t('DesktopSidebar.all_albums')
-  }, icon: Disc3 },
-  { name: 'Playlists', get label() {
-    return t('DesktopSidebar.community_playlists')
-  }, icon: ListMusic },
-  { name: 'Random', get label() {
-    return t('DesktopSidebar.shuffle')
-  }, icon: Shuffle },
-  { name: 'Regions', get label() {
-    return t('DesktopSidebar.regions')
-  }, icon: MapPin },
-  { name: 'SongTags', get label() {
-    return t('DesktopSidebar.tags')
-  }, icon: Tags },
-  { name: 'Ranking', get label() {
-    return t('DesktopSidebar.charts')
-  }, icon: TrendingUp },
-  { name: 'ContributionRanking', get label() {
-    return t('DesktopSidebar.contributors')
-  }, icon: Trophy },
-]
 
 const likedSongs = computed(() => mine.data.value?.find(item => item.type === 'favorites'))
 const groups = computed(() => [
@@ -119,16 +91,19 @@ watch(() => auth.user?.id, () => {
           <div class="sidebar-heading">
             {{ t('DesktopSidebar.discover') }}
           </div>
-          <RouterLink
-            v-for="item in navigation" :key="item.name"
-            :to="{ name: item.name }"
-            class="sidebar-link"
-            :class="{ 'is-active': isNavigationActive(item.name) }"
-            :aria-current="isNavigationActive(item.name) ? 'page' : undefined"
-          >
-            <component :is="item.icon" class="size-4.5 shrink-0" />
-            <span>{{ item.label }}</span>
-          </RouterLink>
+          <TransitionGroup tag="div" name="sidebar-navigation" class="relative">
+            <div v-for="item in store.visibleSidebarItems" :key="item.name">
+              <RouterLink
+                :to="{ name: item.name }"
+                class="sidebar-link"
+                :class="{ 'is-active': isNavigationActive(item.name) }"
+                :aria-current="isNavigationActive(item.name) ? 'page' : undefined"
+              >
+                <component :is="item.icon" class="size-4.5 shrink-0" />
+                <span>{{ t(item.label) }}</span>
+              </RouterLink>
+            </div>
+          </TransitionGroup>
         </nav>
 
         <div v-if="!auth.isLoggedIn" class="px-3 py-3 rounded-xl bg-black/5 dark:bg-white/5">
@@ -271,5 +246,25 @@ watch(() => auth.user?.id, () => {
 .sidebar-group-title:focus-visible {
   outline: 2px solid var(--colors-blue-500, #3b82f6);
   outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sidebar-navigation-move,
+  .sidebar-navigation-enter-active,
+  .sidebar-navigation-leave-active {
+    transition: transform 0.18s ease, opacity 0.18s ease;
+  }
+
+  .sidebar-navigation-enter-from,
+  .sidebar-navigation-leave-to {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  .sidebar-navigation-leave-active {
+    position: absolute;
+    inset-inline: 0;
+    pointer-events: none;
+  }
 }
 </style>

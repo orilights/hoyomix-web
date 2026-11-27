@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { AudioQuality, FullscreenBackgroundStyle, FullscreenCoverShape, LyricsSource, MobileFullscreenLayout, SongListPlayBehavior } from '@/types/player'
+import { usePreferredReducedMotion } from '@vueuse/core'
 import { toast } from 'vue-sonner'
+import draggable from 'vuedraggable'
 import { useChangelogQuery } from '@/composables/queries'
 import { useImageCache } from '@/composables/useImageCache'
 import { usePageScroll } from '@/composables/usePageScroll'
@@ -19,6 +21,13 @@ const player = usePlayerStore()
 const auth = useAuthStore()
 const mediaSource = useMediaSourceStore()
 const language = useLanguageStore()
+const reducedMotion = usePreferredReducedMotion()
+const sidebarItems = computed({
+  get: () => store.orderedSidebarItems,
+  set: (items) => {
+    store.sidebarOrder = items.map(item => item.name)
+  },
+})
 const languageOptions = computed(() => [
   { value: 'auto', label: t('language.follow_browser') },
   { value: 'zh-CN', label: '简体中文' },
@@ -203,6 +212,62 @@ onMounted(() => {
               aria-labelledby="language-label"
               @update:model-value="language.setPreference($event)"
             />
+          </div>
+          <div class="mt-6">
+            <h3 id="settings-sidebar-heading" class="mb-2 text-lg font-bold">
+              {{ t('Settings.customize_sidebar') }}
+            </h3>
+            <span id="settings-sidebar-sort-help" class="sr-only">{{ t('Settings.sidebar_keyboard_reorder') }}</span>
+            <draggable
+              v-model="sidebarItems"
+              tag="ul"
+              item-key="name"
+              handle=".sidebar-drag-handle"
+              ghost-class="opacity-40"
+              :animation="reducedMotion === 'reduce' ? 0 : 180"
+              :force-fallback="true"
+              :fallback-on-body="true"
+              :fallback-tolerance="4"
+              class="flex flex-wrap gap-2"
+              aria-labelledby="settings-sidebar-heading"
+            >
+              <template #item="{ element: item }">
+                <li
+                  class="flex max-w-full items-center rounded-full border border-gray-200 dark:border-gray-700 bg-gray-500/5 text-gray-700 dark:text-gray-300"
+                  :class="{ 'opacity-70': !item.required && store.sidebarHiddenItems.includes(item.name) }"
+                >
+                  <div
+                    role="group"
+                    tabindex="0"
+                    aria-describedby="settings-sidebar-sort-help"
+                    aria-keyshortcuts="ArrowLeft ArrowRight"
+                    :aria-label="t('SongList.drag_to_reorder_alternate', { p0: t(item.label) })"
+                    class="sidebar-drag-handle flex min-w-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm cursor-grab active:cursor-grabbing select-none touch-none focus-visible:outline-2 focus-visible:outline-blue-500"
+                    @keydown.left.prevent="store.moveSidebarItem(item.name, -1)"
+                    @keydown.right.prevent="store.moveSidebarItem(item.name, 1)"
+                  >
+                    <LucideGripVertical class="size-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+                    <component :is="item.icon" class="size-3.5 shrink-0" aria-hidden="true" />
+                    <span class="truncate">{{ t(item.label) }}</span>
+                  </div>
+                  <AppButton
+                    v-if="!item.required"
+                    icon-only
+                    shape="pill"
+                    size="sm"
+                    variant="ghost"
+                    class="mr-0.5 shrink-0"
+                    :aria-label="t('Settings.show_sidebar_item', { p0: t(item.label) })"
+                    :title="t('Settings.show_sidebar_item', { p0: t(item.label) })"
+                    :aria-pressed="!store.sidebarHiddenItems.includes(item.name)"
+                    @click="store.toggleSidebarItem(item.name)"
+                  >
+                    <LucideEyeOff v-if="store.sidebarHiddenItems.includes(item.name)" class="size-4" />
+                    <LucideEye v-else class="size-4" />
+                  </AppButton>
+                </li>
+              </template>
+            </draggable>
           </div>
         </div>
       </section>

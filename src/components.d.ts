@@ -71,6 +71,7 @@ declare module 'vue' {
     LucideCloudAlert: typeof import('@lucide/vue')['CloudAlert']
     LucideDisc: typeof import('@lucide/vue')['Disc']
     LucideEllipsis: typeof import('@lucide/vue')['Ellipsis']
+    LucideEye: typeof import('@lucide/vue')['Eye']
     LucideEyeOff: typeof import('@lucide/vue')['EyeOff']
     LucideFocus: typeof import('@lucide/vue')['Focus']
     LucideFolderPlus: typeof import('@lucide/vue')['FolderPlus']

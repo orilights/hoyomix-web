@@ -1,7 +1,7 @@
 import type { AlbumListItemInfo, AppConfigResponse, MapSongsSort, PlaylistSongItem, ProductListItemInfo } from '@/types/core'
 import { defineStore } from 'pinia'
 import { addFavoriteApi, addPlaylistFavoriteApi, getAllFavoritesApi, getFavoritePlaylistsApi, removeFavoriteApi, removePlaylistFavoriteApi } from '@/api/music'
-
+import { sidebarNavigation } from '@/constants/sidebar'
 import { LocalizedError } from '@/i18n/error'
 import { queryClient } from '@/utils/query-client'
 
@@ -13,6 +13,8 @@ export const useMainStore = defineStore('main', {
     showSearch: false,
     albumLayoutMap: {} as Record<string, 'grid' | 'list'>,
     regionSongsSort: 'region' as MapSongsSort,
+    sidebarOrder: [] as string[],
+    sidebarHiddenItems: [] as string[],
     // 随机播放列表
     randomPlaylistMode: 'random' as 'random' | 'album',
     randomPlaylistLimit: 20,
@@ -32,6 +34,16 @@ export const useMainStore = defineStore('main', {
     favoritePlaylistIds: [] as string[],
   }),
   getters: {
+    orderedSidebarItems: (state) => {
+      const items = new Map(sidebarNavigation.map(item => [item.name, item]))
+      // 新菜单没有已保存的位置，按默认顺序追加。
+      return [...new Set([...state.sidebarOrder, ...items.keys()])]
+        .map(name => items.get(name))
+        .filter(item => item !== undefined)
+    },
+    visibleSidebarItems(): typeof sidebarNavigation {
+      return this.orderedSidebarItems.filter(item => item.required || !this.sidebarHiddenItems.includes(item.name))
+    },
     // 产品 alias（如 genshin）→ 产品名称（如 原神）
     productNameMap: state =>
       Object.fromEntries(state.productList.map(p => [p.alias, p.name] as const)),
@@ -40,6 +52,26 @@ export const useMainStore = defineStore('main', {
       Object.fromEntries(state.productList.map(p => [p.name, p.alias] as const)),
   },
   actions: {
+    moveSidebarItem(name: string, offset: -1 | 1) {
+      const order = this.orderedSidebarItems.map(item => item.name)
+      const index = order.indexOf(name)
+      const target = index + offset
+      if (index === -1 || target < 0 || target >= order.length)
+        return
+
+      order.splice(index, 1)
+      order.splice(target, 0, name)
+      this.sidebarOrder = order
+    },
+    toggleSidebarItem(name: string) {
+      const item = sidebarNavigation.find(item => item.name === name)
+      if (!item || item.required)
+        return
+
+      this.sidebarHiddenItems = this.sidebarHiddenItems.includes(name)
+        ? this.sidebarHiddenItems.filter(hidden => hidden !== name)
+        : [...this.sidebarHiddenItems, name]
+    },
     setBackground(url = '') {
       this.backgroundUrl = url
     },
@@ -134,6 +166,6 @@ export const useMainStore = defineStore('main', {
     },
   },
   persist: {
-    pick: ['albumLayoutMap', 'regionSongsSort', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistMinDuration', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistExcludeInstrumental', 'randomPlaylistAlbums', 'randomPlaylist'],
+    pick: ['albumLayoutMap', 'regionSongsSort', 'sidebarOrder', 'sidebarHiddenItems', 'randomPlaylistMode', 'randomPlaylistLimit', 'randomPlaylistMinDuration', 'randomPlaylistProducts', 'randomPlaylistDateFrom', 'randomPlaylistDateTo', 'randomPlaylistExcludeAlbums', 'randomPlaylistExcludeInstrumental', 'randomPlaylistAlbums', 'randomPlaylist'],
   },
 })
