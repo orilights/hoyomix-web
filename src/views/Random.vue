@@ -85,28 +85,25 @@ async function generate() {
     const minDuration = normalizeMinDuration(randomPlaylistMinDuration.value)
     randomPlaylistMinDuration.value = minDuration
 
-    if (randomPlaylistMode.value === 'album') {
-      if (!randomPlaylistAlbums.value.length) {
-        toast.warning(t('Random.select_albums_first'))
-        return
-      }
-      randomPlaylist.value = await generatePlaylist({
-        limit,
-        minDuration,
-        albums: randomPlaylistAlbums.value,
-      })
+    const albumMode = randomPlaylistMode.value === 'album'
+    if (albumMode && !randomPlaylistAlbums.value.length) {
+      toast.warning(t('Random.select_albums_first'))
+      return
     }
-    else {
-      randomPlaylist.value = await generatePlaylist({
-        limit,
-        minDuration,
-        products: randomPlaylistProducts.value.length ? randomPlaylistProducts.value.map(k => getProductName(k)) : undefined,
-        dateFrom: randomPlaylistDateFrom.value || undefined,
-        dateTo: randomPlaylistDateTo.value || undefined,
-        excludeAlbums: randomPlaylistExcludeAlbums.value.length ? randomPlaylistExcludeAlbums.value : undefined,
-        excludeInstrumental: randomPlaylistExcludeInstrumental.value || undefined,
-      })
-    }
+
+    randomPlaylist.value = await generatePlaylist({
+      limit,
+      minDuration,
+      excludeInstrumental: randomPlaylistExcludeInstrumental.value || undefined,
+      ...(albumMode
+        ? { albums: randomPlaylistAlbums.value }
+        : {
+            products: randomPlaylistProducts.value.length ? randomPlaylistProducts.value.map(k => getProductName(k)) : undefined,
+            dateFrom: randomPlaylistDateFrom.value || undefined,
+            dateTo: randomPlaylistDateTo.value || undefined,
+            excludeAlbums: randomPlaylistExcludeAlbums.value.length ? randomPlaylistExcludeAlbums.value : undefined,
+          }),
+    })
   }
   catch (e: any) {
     toast.error(e.message ?? t('Random.failed_to_generate_queue'))
@@ -199,80 +196,6 @@ onMounted(() => {
                 </button>
               </div>
             </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('Random.release_date_range') }}</label>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div class="min-w-0">
-                  <div class="text-xs text-gray-400 mb-1">
-                    {{ t('Random.from') }}
-                  </div>
-                  <input
-                    v-model="randomPlaylistDateFrom"
-                    type="date"
-                    class="block w-full min-w-0 max-w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                </div>
-                <div class="min-w-0">
-                  <div class="text-xs text-gray-400 mb-1">
-                    {{ t('Random.to') }}
-                  </div>
-                  <input
-                    v-model="randomPlaylistDateTo"
-                    type="date"
-                    class="block w-full min-w-0 max-w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('Random.exclude_albums') }}</label>
-              <AppButton
-                variant="outline"
-                class="w-full !justify-start text-left"
-                @click="showExcludeAlbumsDialog = true"
-              >
-                <LucideListX class="size-4 text-gray-400 shrink-0" />
-                <span class="flex-1 text-gray-600 dark:text-gray-400">
-                  {{ randomPlaylistExcludeAlbums.length ? t('Random.album_excluded', { p0: randomPlaylistExcludeAlbums.length }, Number(randomPlaylistExcludeAlbums.length)) : t('Random.choose_albums_to_exclude') }}
-                </span>
-                <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
-              </AppButton>
-            </div>
-
-            <label class="flex items-center gap-2.5 py-1 cursor-pointer select-none">
-              <input
-                v-model="randomPlaylistExcludeInstrumental"
-                type="checkbox"
-                class="size-4 rounded border-gray-300 dark:border-gray-700 text-blue-500 focus:ring-blue-400 accent-blue-500 cursor-pointer"
-              >
-              <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('Random.exclude_backing_tracks') }}</span>
-            </label>
-
-            <div>
-              <label for="random-playlist-min-duration" class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <span>{{ t('Random.minimum_duration') }}</span>
-                <span class="text-blue-500 dark:text-blue-400 tabular-nums">{{ randomPlaylistMinDuration === 0 ? t('Random.no_limit') : t('Random.second', { p0: randomPlaylistMinDuration }, Number(randomPlaylistMinDuration)) }}</span>
-              </label>
-              <input
-                id="random-playlist-min-duration"
-                v-model.number="randomPlaylistMinDuration"
-                type="range"
-                min="0"
-                max="120"
-                step="10"
-                :aria-valuetext="randomPlaylistMinDuration === 0 ? t('Random.no_limit') : t('Random.second', { p0: randomPlaylistMinDuration }, Number(randomPlaylistMinDuration))"
-                class="w-full accent-blue-500 cursor-pointer"
-              >
-              <div class="flex justify-between mt-1 text-xs text-gray-400">
-                <span>{{ t('Random.no_limit') }}</span>
-                <span>{{ t('Random.120_seconds') }}</span>
-              </div>
-              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                {{ t('Random.exclude_songs_shorter_than_the_selected_duration') }}
-              </p>
-            </div>
           </template>
 
           <template v-else>
@@ -292,6 +215,86 @@ onMounted(() => {
               </AppButton>
             </div>
           </template>
+
+          <div>
+            <label for="random-playlist-min-duration" class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <span>{{ t('Random.minimum_duration') }}</span>
+              <span class="text-blue-500 dark:text-blue-400 tabular-nums">{{ randomPlaylistMinDuration === 0 ? t('Random.no_limit') : t('Random.second', { p0: randomPlaylistMinDuration }, Number(randomPlaylistMinDuration)) }}</span>
+            </label>
+            <input
+              id="random-playlist-min-duration"
+              v-model.number="randomPlaylistMinDuration"
+              type="range"
+              min="0"
+              max="120"
+              step="10"
+              :aria-valuetext="randomPlaylistMinDuration === 0 ? t('Random.no_limit') : t('Random.second', { p0: randomPlaylistMinDuration }, Number(randomPlaylistMinDuration))"
+              class="w-full accent-blue-500 cursor-pointer"
+            >
+            <div class="flex justify-between mt-1 text-xs text-gray-400">
+              <span>{{ t('Random.no_limit') }}</span>
+              <span>{{ t('Random.120_seconds') }}</span>
+            </div>
+          </div>
+
+          <details class="border-t border-gray-200 dark:border-gray-700 pt-3">
+            <summary class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+              {{ t('Random.advanced_options') }}
+            </summary>
+            <div class="mt-3 space-y-4">
+              <template v-if="randomPlaylistMode === 'random'">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('Random.release_date_range') }}</label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="min-w-0">
+                      <div class="text-xs text-gray-400 mb-1">
+                        {{ t('Random.from') }}
+                      </div>
+                      <input
+                        v-model="randomPlaylistDateFrom"
+                        type="date"
+                        class="block w-full min-w-0 max-w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      >
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-xs text-gray-400 mb-1">
+                        {{ t('Random.to') }}
+                      </div>
+                      <input
+                        v-model="randomPlaylistDateTo"
+                        type="date"
+                        class="block w-full min-w-0 max-w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ t('Random.exclude_albums') }}</label>
+                  <AppButton
+                    variant="outline"
+                    class="w-full !justify-start text-left"
+                    @click="showExcludeAlbumsDialog = true"
+                  >
+                    <LucideListX class="size-4 text-gray-400 shrink-0" />
+                    <span class="flex-1 text-gray-600 dark:text-gray-400">
+                      {{ randomPlaylistExcludeAlbums.length ? t('Random.album_excluded', { p0: randomPlaylistExcludeAlbums.length }, Number(randomPlaylistExcludeAlbums.length)) : t('Random.choose_albums_to_exclude') }}
+                    </span>
+                    <LucideChevronRight class="size-4 text-gray-300 shrink-0" />
+                  </AppButton>
+                </div>
+              </template>
+
+              <label class="flex items-center gap-2.5 py-1 cursor-pointer select-none">
+                <input
+                  v-model="randomPlaylistExcludeInstrumental"
+                  type="checkbox"
+                  class="size-4 rounded border-gray-300 dark:border-gray-700 text-blue-500 focus:ring-blue-400 accent-blue-500 cursor-pointer"
+                >
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ t('Random.exclude_backing_tracks') }}</span>
+              </label>
+            </div>
+          </details>
 
           <AppButton
             variant="primary"

@@ -460,7 +460,7 @@
   "Random.no_limit": "No limit",
   "Random.second": "{p0} second | {p0} seconds",
   "Random.120_seconds": "120 seconds",
-  "Random.exclude_songs_shorter_than_the_selected_duration": "Exclude songs shorter than the selected duration",
+  "Random.advanced_options": "Advanced options",
   "Random.choose_albums_required": "Choose albums (required)",
   "Random.generating": "Generating...",
   "Random.generate_random_queue": "Generate random queue",

@@ -460,7 +460,7 @@
   "Random.no_limit": "無限制",
   "Random.second": "{p0} 秒",
   "Random.120_seconds": "120 秒",
-  "Random.exclude_songs_shorter_than_the_selected_duration": "排除時長小於所選秒數的歌曲",
+  "Random.advanced_options": "進階選項",
   "Random.choose_albums_required": "點選選擇專輯（必選）",
   "Random.generating": "生成中...",
   "Random.generate_random_queue": "生成隨機播放佇列",
