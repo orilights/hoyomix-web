@@ -25,6 +25,7 @@ export interface LyricLine {
 }
 
 const lrcLineRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g
+const ncmOpeningTag = /^[^\S\r\n]*(\[00:00\.00)-1\]/gm
 
 function parseLrc(lrc: string): Map<number, string> {
   const map = new Map<number, string>()
@@ -61,17 +62,16 @@ export function mergeLyrics(content: string, translation: string): LyricLine[] {
   if (!content)
     return []
 
-  const originMap = parseLrc(content)
-
-  // 无时间戳，解析为纯文本行
-  if (originMap.size === 0) {
-    return content
+  // 网易云开头标记可能用于无时间轴的正文，保留原有分行。
+  if (content.search(lrcLineRegex) === -1) {
+    return content.replace(ncmOpeningTag, '')
       .split('\n')
       .map(l => l.trim())
       .filter(l => l.length > 0)
       .map(text => ({ time: null, text }))
   }
 
+  const originMap = parseLrc(content.replace(ncmOpeningTag, '$1]'))
   const transMap = translation ? parseLrc(translation) : new Map<number, string>()
 
   const lines: LyricLine[] = []
