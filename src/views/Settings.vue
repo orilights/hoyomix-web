@@ -3,6 +3,7 @@ import type { AudioQuality, FullscreenBackgroundStyle, FullscreenCoverShape, Lyr
 import { usePreferredReducedMotion } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import draggable from 'vuedraggable'
+import ChangelogContent from '@/components/ChangelogContent.vue'
 import { useChangelogQuery } from '@/composables/queries'
 import { useImageCache } from '@/composables/useImageCache'
 import { usePageScroll } from '@/composables/usePageScroll'
@@ -743,9 +744,7 @@ onMounted(() => {
             <div v-else-if="isChangelogError" class="flex items-center justify-center py-4 text-red-400">
               {{ t('ArtistListByType.unable_to_load_refresh_to_try_again') }}
             </div>
-            <div v-else class="font-mono whitespace-pre-wrap bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-              {{ changelog }}
-            </div>
+            <ChangelogContent v-else :content="changelog" />
           </AsyncFade>
         </div>
       </section>

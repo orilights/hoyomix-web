@@ -15,3 +15,7 @@ markdown.renderer.rules.link_open = (tokens, index, options, env, renderer) => {
 export function renderMarkdown(source: string) {
   return markdown.render(source)
 }
+
+export function parseMarkdown(source: string) {
+  return markdown.parse(source, {})
+}

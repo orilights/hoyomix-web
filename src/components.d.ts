@@ -24,6 +24,7 @@ declare module 'vue' {
     AsyncFade: typeof import('./components/common/AsyncFade.vue')['default']
     AuthDialog: typeof import('./components/user/AuthDialog.vue')['default']
     BackgroundLayer: typeof import('./components/BackgroundLayer.vue')['default']
+    ChangelogContent: typeof import('./components/ChangelogContent.vue')['default']
     ChangePasswordDialog: typeof import('./components/user/ChangePasswordDialog.vue')['default']
     ChangeUsernameDialog: typeof import('./components/user/ChangeUsernameDialog.vue')['default']
     CommentContent: typeof import('./components/comment/CommentContent.vue')['default']
